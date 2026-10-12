@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Sistem RKM - PT Kerinci Merangin Hidro')</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Active Sidebar Item Style (Seperti Sistem IT All Role) */
+        .sidebar-item-active {
+            background-color: #1b5e20;
+            color: #ffffff;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 12px rgba(27, 94, 32, 0.25);
+        }
+        .sidebar-item-active i,
+        .sidebar-item-active svg {
+            color: #ffffff;
+        }
+
+        .sidebar-item-inactive {
+            color: #475569;
+            font-weight: 500;
+            border-radius: 0.75rem;
+            transition: all 0.2s ease;
+        }
+        .sidebar-item-inactive:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .sidebar-item-inactive i,
+        .sidebar-item-inactive svg {
+            color: #64748b;
+        }
+        .sidebar-item-inactive:hover i,
+        .sidebar-item-inactive:hover svg {
+            color: #1b5e20;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen">
+
+@auth
+    <!-- ========================================================================= -->
+    <!-- LAYOUT AUTHENTICATED: SIDEBAR + TOPBAR (PERSIS SISTEM IT ALL ROLE) -->
+    <!-- ========================================================================= -->
+
+    <!-- 1. SIDEBAR DESKTOP (Fixed di Sebelah Kiri) -->
+    <aside class="hidden md:flex flex-col justify-between w-64 bg-white border-r border-slate-200 h-screen fixed left-0 top-0 z-30 shadow-sm">
+        <div class="flex flex-col h-full overflow-hidden">
+            <!-- Header Sidebar: Logo Kerinci Hydropower (Tengah Sidebar) -->
+            <div class="h-16 px-6 flex items-center justify-center border-b border-slate-100 flex-shrink-0">
+                <a href="{{ url('/') }}" class="flex items-center justify-center">
+                    <img src="{{ asset('images/logo-kerinci.png') }}" 
+                         alt="Kerinci Hydropower" 
+                         class="h-8 w-auto object-contain">
+                </a>
+            </div>
+
+            <!-- Menu Navigasi Sidebar -->
+            <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
+                <!-- Grup: Navigasi Utama -->
+                <div>
+                    <nav class="space-y-1">
+                        @if(auth()->user()->isHseAdmin())
+                            <a href="{{ route('hse.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                        @elseif(auth()->user()->isQmaAdmin())
+                            <a href="{{ route('qma.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                        @elseif(auth()->user()->isPgAdmin() || auth()->user()->isGateOfficer())
+                            <a href="{{ route('pg.gate.inspection') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Pos Gerbang</span>
+                            </a>
+                        @else
+                            <a href="{{ route('qma.activity.log') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm sidebar-item-active">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                        @endif
+                    </nav>
+                </div>
+
+                <!-- Grup: Modul Operasional RKM -->
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN SISTEM
+                    </p>
+                    <nav class="space-y-1">
+                        @if(auth()->user()->isHseAdmin() || auth()->user()->isAdmin())
+                            <a href="{{ route('hse.employees.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
+                                <span>Data Simper</span>
+                            </a>
+                        @endif
+
+                        @if(auth()->user()->isQmaAdmin() || auth()->user()->isAdmin())
+                            @php
+                                $isVehicleRoute = request()->routeIs('qma.vehicles.*');
+                            @endphp
+                            <!-- Dropdown Menu: Data Kendaraan -->
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleVehicleMenu('desktop')" 
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-car text-base w-5 text-center {{ $isVehicleRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Data Kendaraan</span>
+                                    </div>
+                                    <i id="vehicleChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <!-- Submenu Dropdown: Light Vehicle & Unit Support (Tanpa Icon) -->
+                                <div id="vehicleSubmenuDesktop" class="{{ $isVehicleRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.vehicles.lv') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.lv') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Light Vehicle</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.vehicles.support') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Unit Support</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('qma.activity.log') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.log') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-list text-base w-5 text-center"></i>
+                                <span>Log Aktivitas Kendaraan</span>
+                            </a>
+                        @endif
+
+                        @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                            <a href="{{ route('pg.guards.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-user-shield text-base w-5 text-center"></i>
+                                <span>Master Satpam (PG)</span>
+                            </a>
+                        @endif
+
+                        @if(auth()->user()->isGateOfficer() || auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                            <a href="{{ route('pg.gate.inspection') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                                <span>Verifikasi Gerbang</span>
+                            </a>
+                        @endif
+                    </nav>
+                </div>
+
+                <!-- Grup: Pengaturan Akun -->
+                <div class="mt-6">
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        PENGATURAN
+                    </p>
+                    <nav class="space-y-1">
+                        <a href="{{ route('profile.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('profile.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span>Profil Saya</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Footer Bawah Sidebar: Profil Pengguna & Tombol Logout (Persis Gambar IT All Role) -->
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <a href="{{ route('profile.index') }}" class="flex items-center space-x-2.5 min-w-0 hover:opacity-80 transition group" title="Buka Profil Saya">
+                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-slate-800 truncate leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
+                        <p class="text-[10px] text-slate-400 capitalize truncate">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
+                    </div>
+                </a>
+
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" title="Logout" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 2. SIDEBAR MOBILE (Drawer Modal untuk Layar Kecil) -->
+    <div id="mobileDrawer" class="fixed inset-0 z-50 hidden md:hidden">
+        <!-- Backdrop gelap -->
+        <div id="mobileBackdrop" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 ease-in-out opacity-0"></div>
+
+        <!-- Drawer Content -->
+        <div id="mobileDrawerPanel" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl flex flex-col justify-between z-10 transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-7 w-auto object-contain">
+                <button id="closeDrawerBtn" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">NAVIGASI</p>
+                <div class="space-y-1">
+                    @if(auth()->user()->isHseAdmin() || auth()->user()->isAdmin())
+                        <a href="{{ route('hse.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+                        <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-id-card w-5 text-center"></i>
+                            <span>Data Simper</span>
+                        </a>
+                    @endif
+                    @if(auth()->user()->isQmaAdmin() || auth()->user()->isAdmin())
+                        <a href="{{ route('qma.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+
+                        @php
+                            $isVehicleRouteMob = request()->routeIs('qma.vehicles.*');
+                        @endphp
+                        <div>
+                            <button type="button" 
+                                    onclick="toggleVehicleMenu('mobile')" 
+                                    class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fa-solid fa-car w-5 text-center {{ $isVehicleRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                    <span>Data Kendaraan</span>
+                                </div>
+                                <i id="vehicleChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                            </button>
+
+                            <div id="vehicleSubmenuMobile" class="{{ $isVehicleRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                <a href="{{ route('qma.vehicles.lv') }}" 
+                                   class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.lv') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                    <span>Light Vehicle</span>
+                                </a>
+
+                                <a href="{{ route('qma.vehicles.support') }}" 
+                                   class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                    <span>Unit Support</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('qma.activity.log') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.log') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clipboard-list w-5 text-center"></i>
+                            <span>Log Aktivitas Kendaraan</span>
+                        </a>
+                    @endif
+                    @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                        <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-user-shield w-5 text-center"></i>
+                            <span>Master Satpam (PG)</span>
+                        </a>
+                    @endif
+                    @if(auth()->user()->isGateOfficer() || auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                        <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                            <span>Pos Gerbang</span>
+                        </a>
+                    @endif
+                </div>
+
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mt-4">PENGATURAN</p>
+                <div class="space-y-1">
+                    <a href="{{ route('profile.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('profile.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                        <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>Profil Saya</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
+                <a href="{{ route('profile.index') }}" class="flex items-center space-x-2 hover:opacity-80 transition">
+                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-bold text-xs flex items-center justify-center">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                    <span class="text-xs font-bold text-slate-800">{{ auth()->user()->name }}</span>
+                </a>
+                <form action="{{ route('logout') }}" method="POST">
+                    @csrf
+                    <button type="submit" class="text-rose-600 text-xs font-bold px-2.5 py-1 rounded bg-rose-50">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. TOPBAR HEADER (Di Bagian Atas Samping Sidebar) -->
+    <header class="md:ml-64 bg-white border-b border-slate-200 h-16 sticky top-0 z-20 flex items-center justify-between px-6 sm:px-8 shadow-sm">
+        <!-- Sisi Kiri: Judul Halaman / Hamburger Button -->
+        <div class="flex items-center space-x-3">
+            <button id="openDrawerBtn" class="md:hidden text-slate-600 hover:text-slate-900 p-1.5 rounded-lg border border-slate-200">
+                <i class="fa-solid fa-bars text-base"></i>
+            </button>
+            <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                @if(request()->routeIs('hse.dashboard') || request()->routeIs('qma.dashboard'))
+                    Dashboard
+                @elseif(request()->routeIs('hse.employees.*'))
+                    Data Simper
+                @elseif(request()->routeIs('qma.vehicles.lv'))
+                    Light Vehicle
+                @elseif(request()->routeIs('qma.vehicles.support'))
+                    Unit Support
+                @elseif(request()->routeIs('qma.vehicles.*'))
+                    Data Kendaraan
+                @elseif(request()->routeIs('qma.activity.log'))
+                    Log Aktivitas Kendaraan
+                @elseif(request()->routeIs('profile.*'))
+                    Profil Saya
+                @elseif(request()->routeIs('pg.gate.*'))
+                    Verifikasi Pos Gerbang
+                @elseif(request()->routeIs('pg.guards.*'))
+                    Master Data Satpam (PG)
+                @else
+                    Dashboard
+                @endif
+            </h1>
+        </div>
+
+        <!-- Sisi Kanan: Profil Pengguna (Avatar Bulat + Nama + Role Huruf Kapital) Sesuai Gambar IT All Role -->
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('profile.index') }}" class="flex items-center space-x-3 pl-3 hover:opacity-80 transition group" title="Buka Profil Saya">
+                <div class="w-9 h-9 rounded-full bg-[#1b5e20] text-white font-bold text-sm flex items-center justify-center shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                </div>
+                <div class="text-left hidden sm:block">
+                    <p class="text-xs font-bold text-slate-800 leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
+                    <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                        {{ str_replace('_', ' ', auth()->user()->role) }}
+                    </p>
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- 4. KONTEN UTAMA DASHBOARD -->
+    <main class="md:ml-64 p-6 sm:p-8 min-h-[calc(100vh-4rem)]">
+        @yield('content')
+    </main>
+
+@else
+    <!-- ========================================================================= -->
+    <!-- LAYOUT PUBLIC (KHUSUS FORM SCAN QR LAPANGAN TANPA LOGIN) -->
+    <!-- ========================================================================= -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-8 w-auto object-contain">
+            <a href="{{ route('login') }}" class="text-xs font-semibold text-[#1b5e20] hover:underline flex items-center space-x-1">
+                <span>Login Petugas</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 sm:p-6 min-h-[calc(100vh-5rem)]">
+        @yield('content')
+    </main>
+
+    <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
+        &copy; 2026 PT Kerinci Merangin Hidro &bull; PLTA Merangin 350 MW
+    </footer>
+@endauth
+
+    <!-- Toast Notification Container (Pojok Kanan Bawah) -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none">
+        @if(session('success'))
+            <div id="toast-success" class="pointer-events-auto bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden min-w-[320px] max-w-sm sm:max-w-md transform transition-all duration-300 ease-out translate-y-0 opacity-100">
+                <div class="px-5 py-4 flex items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="flex-shrink-0 text-[#10b981]">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor"></circle>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 12.5l2.5 2.5 4.5-5"></path>
+                            </svg>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800 leading-snug">
+                            {{ session('success') }}
+                        </div>
+                    </div>
+                    <button type="button" onclick="dismissToast('toast-success')" class="text-slate-400 hover:text-slate-600 transition-colors p-1 flex-shrink-0 focus:outline-none" title="Tutup">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Progress Countdown Bar -->
+                <div class="w-full bg-slate-100 h-1 overflow-hidden">
+                    <div id="toast-progress-success" class="h-full bg-[#10b981] transition-all ease-linear" style="transition-duration: 4000ms; width: 100%;"></div>
+                </div>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div id="toast-error" class="pointer-events-auto bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden min-w-[320px] max-w-sm sm:max-w-md transform transition-all duration-300 ease-out translate-y-0 opacity-100">
+                <div class="px-5 py-4 flex items-center justify-between gap-4">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="flex-shrink-0 text-rose-500">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9" stroke="currentColor"></circle>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01"></path>
+                            </svg>
+                        </div>
+                        <div class="text-sm font-bold text-slate-800 leading-snug">
+                            {{ session('error') }}
+                        </div>
+                    </div>
+                    <button type="button" onclick="dismissToast('toast-error')" class="text-slate-400 hover:text-slate-600 transition-colors p-1 flex-shrink-0 focus:outline-none" title="Tutup">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- Progress Countdown Bar -->
+                <div class="w-full bg-slate-100 h-1 overflow-hidden">
+                    <div id="toast-progress-error" class="h-full bg-rose-500 transition-all ease-linear" style="transition-duration: 4000ms; width: 100%;"></div>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <!-- Script Javascript untuk Drawer Mobile & Toast Notification -->
+    <script>
+        const openBtn = document.getElementById('openDrawerBtn');
+        const closeBtn = document.getElementById('closeDrawerBtn');
+        const drawer = document.getElementById('mobileDrawer');
+        const backdrop = document.getElementById('mobileBackdrop');
+        const drawerPanel = document.getElementById('mobileDrawerPanel');
+        let drawerTimer = null;
+
+        if (openBtn && drawer && closeBtn && backdrop && drawerPanel) {
+            const openDrawer = () => {
+                if (drawerTimer) clearTimeout(drawerTimer);
+                drawer.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                // Beri waktu 2 frame agar browser menyelesaikan repaint sebelum memulai transisi CSS
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        backdrop.classList.remove('opacity-0');
+                        backdrop.classList.add('opacity-100');
+                        drawerPanel.classList.remove('-translate-x-full');
+                        drawerPanel.classList.add('translate-x-0');
+                    });
+                });
+            };
+
+            const closeDrawer = () => {
+                backdrop.classList.remove('opacity-100');
+                backdrop.classList.add('opacity-0');
+                drawerPanel.classList.remove('translate-x-0');
+                drawerPanel.classList.add('-translate-x-full');
+                document.body.classList.remove('overflow-hidden');
+
+                if (drawerTimer) clearTimeout(drawerTimer);
+                drawerTimer = setTimeout(() => {
+                    drawer.classList.add('hidden');
+                }, 300);
+            };
+
+            openBtn.addEventListener('click', openDrawer);
+            closeBtn.addEventListener('click', closeDrawer);
+            backdrop.addEventListener('click', closeDrawer);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !drawer.classList.contains('hidden')) {
+                    closeDrawer();
+                }
+            });
+        }
+
+        // Fungsi Menutup Toast
+        function dismissToast(id) {
+            const toast = document.getElementById(id);
+            if (!toast) return;
+            toast.classList.add('opacity-0', 'translate-y-3');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
+
+        // Auto dismiss Toast dengan countdown progress bar
+        document.addEventListener('DOMContentLoaded', () => {
+            const successToast = document.getElementById('toast-success');
+            if (successToast) {
+                const bar = document.getElementById('toast-progress-success');
+                setTimeout(() => {
+                    if (bar) bar.style.width = '0%';
+                }, 50);
+                setTimeout(() => {
+                    dismissToast('toast-success');
+                }, 4100);
+            }
+
+            const errorToast = document.getElementById('toast-error');
+            if (errorToast) {
+                const bar = document.getElementById('toast-progress-error');
+                setTimeout(() => {
+                    if (bar) bar.style.width = '0%';
+                }, 50);
+                setTimeout(() => {
+                    dismissToast('toast-error');
+                }, 4100);
+            }
+        });
+        // Toggle Dropdown Menu Data Kendaraan (Desktop & Mobile)
+        function toggleVehicleMenu(target) {
+            const submenu = document.getElementById(target === 'desktop' ? 'vehicleSubmenuDesktop' : 'vehicleSubmenuMobile');
+            const chevron = document.getElementById(target === 'desktop' ? 'vehicleChevronDesktop' : 'vehicleChevronMobile');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+    </script>
+
+    @yield('scripts')
+</body>
+</html>
