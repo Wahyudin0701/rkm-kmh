@@ -405,10 +405,15 @@
             </h1>
         </div>
 
-        <!-- Sisi Kanan: Profil Pengguna (Avatar Bulat + Nama + Role Huruf Kapital) Sesuai Gambar IT All Role -->
-        <div class="flex items-center space-x-3">
-            <a href="{{ route('profile.index') }}" class="flex items-center space-x-3 pl-3 hover:opacity-80 transition group" title="Buka Profil Saya">
-                <div class="w-9 h-9 rounded-full bg-[#1b5e20] text-white font-bold text-sm flex items-center justify-center shadow-sm group-hover:ring-2 ring-emerald-500/30">
+        <!-- Sisi Kanan: Profil Pengguna (Avatar Bulat + Nama + Role Huruf Kapital + Menu Melayang) Sesuai Gambar IT All Role -->
+        <div id="userProfileContainer" class="relative">
+            <button type="button" 
+                    id="userProfileDropdownBtn" 
+                    onclick="toggleProfileDropdown()" 
+                    class="flex items-center space-x-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-50 transition group focus:outline-none cursor-pointer"
+                    aria-expanded="false"
+                    aria-haspopup="true">
+                <div class="w-9 h-9 rounded-full bg-[#1b5e20] text-white font-bold text-sm flex items-center justify-center shadow-sm group-hover:ring-2 ring-emerald-500/30 flex-shrink-0">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div class="text-left hidden sm:block">
@@ -417,7 +422,29 @@
                         {{ str_replace('_', ' ', auth()->user()->role) }}
                     </p>
                 </div>
-            </a>
+                <i id="userProfileChevron" class="fa-solid fa-chevron-down text-slate-400 text-[11px] ml-1 transition-transform duration-200 group-hover:text-slate-600"></i>
+            </button>
+
+            <!-- Menu Melayang (Dropdown Menu) Sesuai Referensi Gambar -->
+            <div id="userProfileDropdownMenu" 
+                 class="hidden absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-50 transform origin-top-right transition-all">
+                <a href="{{ route('profile.index') }}" 
+                   class="flex items-center space-x-3 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 transition">
+                    <i class="fa-regular fa-user text-sm text-slate-400 w-4 text-center"></i>
+                    <span>Profil Saya</span>
+                </a>
+
+                <div class="border-t border-slate-100 my-1"></div>
+
+                <form method="POST" action="{{ route('logout') }}" class="w-full">
+                    @csrf
+                    <button type="submit" 
+                            class="w-full flex items-center space-x-3 px-4 py-2.5 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50/70 transition text-left cursor-pointer">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm w-4 text-center text-rose-500"></i>
+                        <span>Keluar Sistem</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </header>
 
@@ -600,6 +627,47 @@
                 chevron.classList.toggle('rotate-180');
             }
         }
+
+        // Toggle Dropdown Menu Profil Pengguna di Pojok Kanan Atas
+        function toggleProfileDropdown() {
+            const dropdown = document.getElementById('userProfileDropdownMenu');
+            const chevron = document.getElementById('userProfileChevron');
+            const btn = document.getElementById('userProfileDropdownBtn');
+            if (dropdown) {
+                const isHidden = dropdown.classList.toggle('hidden');
+                if (btn) btn.setAttribute('aria-expanded', !isHidden);
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        // Tutup dropdown profil jika mengklik di luar area
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('userProfileContainer');
+            const dropdown = document.getElementById('userProfileDropdownMenu');
+            const chevron = document.getElementById('userProfileChevron');
+            const btn = document.getElementById('userProfileDropdownBtn');
+            if (container && dropdown && !container.contains(event.target)) {
+                dropdown.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-180');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Tutup dropdown profil jika menekan tombol Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const dropdown = document.getElementById('userProfileDropdownMenu');
+                const chevron = document.getElementById('userProfileChevron');
+                const btn = document.getElementById('userProfileDropdownBtn');
+                if (dropdown && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                    if (chevron) chevron.classList.remove('rotate-180');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
     </script>
 
     @yield('scripts')
