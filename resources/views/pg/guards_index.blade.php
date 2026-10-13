@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Master Data Satpam - Admin Private Guard | PT Kerinci Merangin Hidro')
+@section('title', 'Data Satpam - Admin Private Guard | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="space-y-6">
@@ -13,7 +13,7 @@
             </span>
             <div class="flex items-center space-x-3">
                 <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                    Master Data Satpam (PG)
+                    Data Satpam
                 </h2>
                 <!-- Info Icon Badge bulat abu-abu -->
                 <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Kelola data petugas keamanan, regu tugas (1, 2, 3), dan hak akses verifikasi pos gerbang">

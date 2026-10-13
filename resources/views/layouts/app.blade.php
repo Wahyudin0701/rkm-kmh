@@ -181,7 +181,7 @@
                             <a href="{{ route('pg.guards.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-user-shield text-base w-5 text-center"></i>
-                                <span>Master Satpam (PG)</span>
+                                <span>Data Satpam</span>
                             </a>
                         @endif
 
@@ -318,7 +318,7 @@
                     @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
                         <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-user-shield w-5 text-center"></i>
-                            <span>Master Satpam (PG)</span>
+                            <span>Data Satpam</span>
                         </a>
                     @endif
                     @if(auth()->user()->isGateOfficer() || auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
@@ -383,7 +383,7 @@
                 @elseif(request()->routeIs('pg.gate.*'))
                     Verifikasi Pos Gerbang
                 @elseif(request()->routeIs('pg.guards.*'))
-                    Master Data Satpam (PG)
+                    Data Satpam
                 @else
                     Dashboard
                 @endif
