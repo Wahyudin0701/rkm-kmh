@@ -8,34 +8,38 @@
     <!-- Header Judul & Tombol Aksi (Persis Format Gambar Data Karyawan IT All Role) -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-                MANAJEMEN SISTEM
-            </span>
-            <div class="flex items-center space-x-3">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                    Data Simper
-                </h2>
-                <!-- Info Icon Badge bulat abu-abu sesuai gambar -->
-                <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Kelola data driver dan masa berlaku SIMPER">
-                    <i class="fa-solid fa-info"></i>
+            <div class="flex items-center space-x-1.5 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                    MANAJEMEN SISTEM
                 </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Data Simper">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Data Simper
+            </h2>
         </div>
 
-        <!-- Tombol Aksi Kanan (Ekspor Simper & Tambah Karyawan) -->
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <!-- Tombol Aksi Kanan (Pada Mobile: Lebar Sama / Proporsional 50-50) -->
+        <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
             <!-- Tombol Ekspor Dropdown -->
             <button type="button" 
                     onclick="alert('Fitur ekspor spreadsheet SIMPER sedang disiapkan')" 
-                    class="border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm">
+                    class="w-full sm:w-auto border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
                 <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
                 <span>Ekspor Simper</span>
-                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
             </button>
 
             <!-- Tombol Tambah Karyawan (+ Tambah Karyawan Hijau Tua) -->
-            <button onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
-                    class="bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm">
+            <button type="button"
+                    onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
+                    class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>Tambah Karyawan</span>
             </button>
@@ -43,9 +47,9 @@
     </div>
 
     <!-- Kotak Pencarian & Filter Status Simper (Tanpa Card Wrapper, Format Referensi) -->
-    <form method="GET" action="{{ route('hse.employees.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+    <form method="GET" action="{{ route('hse.employees.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
         <!-- Pencarian Cepat di Kiri -->
-        <div class="relative w-full max-w-sm sm:max-w-md">
+        <div class="relative w-full sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
@@ -57,39 +61,45 @@
                    class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
         </div>
 
-        <!-- Filter di Kanan (Disusun dari Kanan ke Tengah) -->
-        <div class="flex flex-wrap items-center justify-end gap-2.5">
-            <!-- Filter Status Driver -->
-            <select name="driver_status" 
-                    onchange="this.form.submit()" 
-                    class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
-                <option value="">Semua Status Driver</option>
-                <option value="driver" {{ request('driver_status') === 'driver' ? 'selected' : '' }}>Driver</option>
-                <option value="non_driver" {{ request('driver_status') === 'non_driver' ? 'selected' : '' }}>Bukan Driver</option>
-            </select>
+        <!-- Filter di Kanan (Pada Mobile: Sejajar 2 Kolom di Bawah Search Bar) -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
+            <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                <!-- Filter Status Driver -->
+                <select name="driver_status" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                    <option value="">Semua Status Driver</option>
+                    <option value="driver" {{ request('driver_status') === 'driver' ? 'selected' : '' }}>Driver</option>
+                    <option value="non_driver" {{ request('driver_status') === 'non_driver' ? 'selected' : '' }}>Bukan Driver</option>
+                </select>
 
-            <!-- Filter Masa Berlaku SIMPER -->
-            <select name="simper_status" 
-                    onchange="this.form.submit()" 
-                    class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
-                <option value="">Semua Masa Berlaku</option>
-                <option value="valid" {{ request('simper_status') === 'valid' ? 'selected' : '' }}>Masih Berlaku (Aktif)</option>
-                <option value="expiring_soon" {{ request('simper_status') === 'expiring_soon' ? 'selected' : '' }}>Segera Habis (≤ 30 Hari)</option>
-                <option value="expired" {{ request('simper_status') === 'expired' ? 'selected' : '' }}>Kedaluwarsa (Expired)</option>
-            </select>
+                <!-- Filter Masa Berlaku SIMPER -->
+                <select name="simper_status" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                    <option value="">Semua Masa Berlaku</option>
+                    <option value="valid" {{ request('simper_status') === 'valid' ? 'selected' : '' }}>Masih Berlaku (Aktif)</option>
+                    <option value="expiring_soon" {{ request('simper_status') === 'expiring_soon' ? 'selected' : '' }}>Segera Habis (≤ 30 Hari)</option>
+                    <option value="expired" {{ request('simper_status') === 'expired' ? 'selected' : '' }}>Kedaluwarsa (Expired)</option>
+                </select>
+            </div>
 
-            <!-- Tombol Reset (Hanya tampil saat filter digunakan) -->
-            @if(request()->anyFilled(['search', 'driver_status', 'simper_status']))
-                <a href="{{ route('hse.employees.index') }}" 
-                   class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition whitespace-nowrap shadow-sm">
-                    <span>Reset</span>
-                </a>
-            @endif
+            <!-- Tombol Reset Filter (Sesuai Referensi Merah / Rose Clean Text) -->
+            <div id="simperResetContainer">
+                @if(request()->anyFilled(['search', 'driver_status', 'simper_status']))
+                    <a href="{{ route('hse.employees.index') }}" 
+                       id="simperResetBtn"
+                       class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
+                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                        <span>Reset Filter</span>
+                    </a>
+                @endif
+            </div>
         </div>
     </form>
 
-    <!-- Tabel Data Simper dengan Header Biru Tua Navy (Persis Format Gambar) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- Tabel Data Simper dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <!-- Header Tabel Navy Gelap Solid #06213f -->
@@ -422,10 +432,112 @@
         </form>
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (DATA SIMPER)                                -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Data Simper & Pengemudi</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di menu <strong>Data Simper</strong>! Halaman ini adalah pusat pengelolaan izin mengemudi SIMPER dan data master pengemudi operasional PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-id-card"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Kelola Masa Berlaku SIMPER</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Memantau masa berlaku SIMPER setiap driver, memperbarui tanggal berlaku, dan mengunggah dokumen pendukung agar patuh regulasi keselamatan kerja (HSE).
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Pencarian & Filter Cepat</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Mencari data berdasarkan NIK, Nama, atau Divisi, serta menyaring berdasarkan status pengemudi (Driver / Bukan Driver) dan masa kedaluwarsa SIMPER.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Tambah & Perbarui Data Karyawan</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Mendaftarkan karyawan baru melalui tombol '+ Tambah Karyawan', serta mengedit informasi jabatan atau unit kerja melalui tombol aksi di tabel.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
 <script>
+    // Buka & Tutup Modal Panduan Halaman
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
     // Logika Penguncian Input SIMPER jika Bukan Driver
     function toggleSimperInput(type) {
         let opSelect, dateInput;
@@ -496,13 +608,44 @@
     });
 
     // Filter Pencarian Instan Real-time
-    document.getElementById('simperSearchInput')?.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase();
+    const searchInput = document.getElementById('simperSearchInput');
+    const resetContainer = document.getElementById('simperResetContainer');
+    const hasServerFilters = {{ request()->anyFilled(['search', 'driver_status', 'simper_status']) ? 'true' : 'false' }};
+
+    searchInput?.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
         const rows = document.querySelectorAll('#simperTableBody tr.simper-row');
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(query) ? '' : 'none';
         });
+
+        // Tampilkan/sembunyikan tombol Reset Filter secara real-time saat mengetik
+        let resetBtn = document.getElementById('simperResetBtn');
+        if (query.length > 0) {
+            if (!resetBtn && resetContainer) {
+                resetBtn = document.createElement('a');
+                resetBtn.id = 'simperResetBtn';
+                resetBtn.href = "{{ route('hse.employees.index') }}";
+                resetBtn.className = "text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2";
+                const resetIcon = document.createElement('i');
+                resetIcon.className = "fa-solid fa-rotate-left text-[11px]";
+                const resetText = document.createElement('span');
+                resetText.textContent = "Reset Filter";
+                resetBtn.appendChild(resetIcon);
+                resetBtn.appendChild(resetText);
+                resetContainer.appendChild(resetBtn);
+            }
+        } else if (!hasServerFilters && resetBtn) {
+            resetBtn.remove();
+        }
+    });
+
+    // Keyboard ESC untuk menutup modal panduan
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+        }
     });
 </script>
 @endsection

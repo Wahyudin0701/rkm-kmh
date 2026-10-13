@@ -32,45 +32,81 @@
         </div>
     </div>
 
-    <!-- Filter Card Modern & Rapi -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
-        <form method="GET" action="{{ route('qma.activity.log') }}" class="space-y-4">
-            <!-- Header Filter -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
-                    Filter & Pencarian Log
-                </span>
+    @php
+        $activeFilterCount = count(array_filter(request()->only(['start_date', 'end_date', 'gate_id', 'direction', 'status'])));
+        $isFilterOpen = request()->anyFilled(['start_date', 'end_date', 'gate_id', 'direction', 'status']);
+    @endphp
+
+    <!-- Form Filter & Pencarian Cepat -->
+    <form method="GET" action="{{ route('qma.activity.log') }}" class="space-y-3">
+        <!-- Baris Atas: Search Bar Mandiri di Luar Card Filter & Tombol Toggle -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <!-- Search Bar Utama (Real-Time) -->
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </div>
+                <input type="text" 
+                       name="search" 
+                       id="activityLogSearchInput"
+                       value="{{ request('search') }}" 
+                       placeholder="Cari Kode LV, Driver, Plat, Keperluan..." 
+                       class="w-full text-xs rounded-xl border border-slate-200 bg-white hover:border-slate-300 focus:bg-white pl-9 pr-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition shadow-2xs">
+            </div>
+
+            <!-- Tombol Buka/Tutup Filter Card & Reset Filter -->
+            <div class="flex items-center gap-2.5 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                <button type="button" 
+                        id="filterToggleBtn"
+                        onclick="toggleFilterCard()" 
+                        class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition group cursor-pointer">
+                    <i class="fa-solid fa-sliders text-slate-500 mr-2 group-hover:text-[#1b5e20] transition-colors"></i>
+                    <span>Filter</span>
+                    @if($activeFilterCount > 0)
+                        <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1b5e20] text-white">
+                            {{ $activeFilterCount }}
+                        </span>
+                    @endif
+                    <i id="filterChevron" class="fa-solid fa-chevron-down ml-2 text-[10px] text-slate-400 transition-transform duration-200 {{ $isFilterOpen ? 'rotate-180' : '' }}"></i>
+                </button>
+
                 <div id="headerResetFilterContainer">
                     @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
                         <a href="{{ route('qma.activity.log') }}" 
                            id="headerResetFilterBtn" 
-                           class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
+                           class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100">
                             <i class="fa-solid fa-rotate-left text-[11px]"></i>
                             <span>Reset Filter</span>
                         </a>
                     @endif
                 </div>
             </div>
+        </div>
+
+        <!-- Card Filter Lanjutan (Bisa Di Buka-Tutup / Collapsible) -->
+        <div id="collapsibleFilterCard" class="{{ $isFilterOpen ? '' : 'hidden ' }}bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition-all">
+            <!-- Header Card Filter -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
+                        Opsi Filter Lanjutan
+                    </span>
+                    @if($activeFilterCount > 0)
+                        <span class="text-[11px] text-slate-400 font-medium">({{ $activeFilterCount }} filter aktif)</span>
+                    @endif
+                </div>
+                <button type="button" 
+                        onclick="toggleFilterCard()" 
+                        class="text-xs text-slate-400 hover:text-slate-600 transition flex items-center space-x-1 cursor-pointer">
+                    <span>Tutup</span>
+                    <i class="fa-solid fa-xmark text-[11px]"></i>
+                </button>
+            </div>
 
             <!-- Baris Input Filter (Grid Responsif 12 Kolom) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
-                <!-- Pencarian Cepat -->
-                <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Pencarian Cepat
-                    </label>
-                    <div class="relative">
-                        <input type="text" 
-                               name="search" 
-                               id="activityLogSearchInput"
-                               value="{{ request('search') }}" 
-                               placeholder="Cari Kode LV, Driver, Plat, Keperluan..." 
-                               class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                    </div>
-                </div>
-
                 <!-- Rentang Mulai Tanggal -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Mulai Tanggal
                     </label>
@@ -82,7 +118,7 @@
                 </div>
 
                 <!-- Rentang Sampai Tanggal -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Sampai Tanggal
                     </label>
@@ -117,24 +153,21 @@
                         <option value="out" {{ request('direction') === 'out' ? 'selected' : '' }}>KELUAR (Out)</option>
                     </select>
                 </div>
-            </div>
 
-            <!-- Baris Aksi Bawah: Filter Status PG & Tombol -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
                 <!-- Status Validasi Pos Gerbang -->
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs font-bold text-slate-600 whitespace-nowrap">
-                        Status PG:
-                    </span>
-                    <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Status PG
+                    </label>
+                    <select name="status" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu PG</option>
                     </select>
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <!-- Tabel Log Aktivitas (Header Navy Solid #06213f Tanpa Nomor Kolom) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -360,6 +393,18 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+    // Toggle Card Filter Lanjutan
+    function toggleFilterCard() {
+        const card = document.getElementById('collapsibleFilterCard');
+        const chevron = document.getElementById('filterChevron');
+        if (card) {
+            card.classList.toggle('hidden');
+        }
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
 
     // Buka & Tutup Modal Panduan Halaman
     function openGuideModal() {

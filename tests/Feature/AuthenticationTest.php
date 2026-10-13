@@ -248,32 +248,32 @@ class AuthenticationTest extends TestCase
         $responseDriver->assertStatus(200);
         $responseDriver->assertSee('KMH-2022-001'); // Driver
         $responseDriver->assertDontSee('KMH-2021-088'); // Bukan driver
-        $responseDriver->assertSee('<span>Reset</span>', false);
+        $responseDriver->assertSee('<span>Reset Filter</span>', false);
 
         // 3. Filter status driver = non_driver
         $responseNonDriver = $this->actingAs($hseUser)->get('/hse/employees?driver_status=non_driver');
         $responseNonDriver->assertStatus(200);
         $responseNonDriver->assertSee('KMH-2021-088'); // Bukan driver
         $responseNonDriver->assertDontSee('KMH-2022-001'); // Driver
-        $responseNonDriver->assertSee('<span>Reset</span>', false);
+        $responseNonDriver->assertSee('<span>Reset Filter</span>', false);
 
         // 4. Filter SIMPER valid (masih berlaku)
         $responseValid = $this->actingAs($hseUser)->get('/hse/employees?simper_status=valid');
         $responseValid->assertStatus(200);
         $responseValid->assertSee('KMH-2022-001'); // Valid
         $responseValid->assertDontSee('KMH-2023-012'); // Expired
-        $responseValid->assertSee('<span>Reset</span>', false);
+        $responseValid->assertSee('<span>Reset Filter</span>', false);
 
         // 5. Filter SIMPER expired (kedaluwarsa)
         $responseExpired = $this->actingAs($hseUser)->get('/hse/employees?simper_status=expired');
         $responseExpired->assertStatus(200);
         $responseExpired->assertSee('KMH-2023-012'); // Expired
         $responseExpired->assertDontSee('KMH-2022-001'); // Valid
-        $responseExpired->assertSee('<span>Reset</span>', false);
+        $responseExpired->assertSee('<span>Reset Filter</span>', false);
 
         // 6. Request dengan query param kosong (default) tidak menampilkan tombol Reset
         $responseEmpty = $this->actingAs($hseUser)->get('/hse/employees?search=&driver_status=&simper_status=');
         $responseEmpty->assertStatus(200);
-        $responseEmpty->assertDontSee('<span>Reset</span>', false);
+        $responseEmpty->assertDontSee('<span>Reset Filter</span>', false);
     }
 }
