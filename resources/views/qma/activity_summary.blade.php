@@ -337,7 +337,7 @@
         <!-- Top 10 Driver Pengemudi Teraktif -->
         <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-5 border-b border-slate-100">
-                <h3 class="text-base font-bold text-slate-900">Pengemudi (Driver) Teraktif</h3>
+                <h3 class="text-base font-bold text-slate-900">Pengemudi Teraktif</h3>
                 <p class="text-xs text-slate-500">Berdasarkan total jarak tempuh & frekuensi trip</p>
             </div>
 
