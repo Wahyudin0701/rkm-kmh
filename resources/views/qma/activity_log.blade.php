@@ -159,8 +159,8 @@
                         <tr class="hover:bg-slate-50/70 transition">
                             <!-- Tanggal & Waktu -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <div class="font-bold text-slate-900">{{ $act->recorded_at->format('d/m/Y') }}</div>
-                                <div class="text-[10px] font-mono text-slate-400 font-medium">{{ $act->recorded_at->format('H:i') }} WIB</div>
+                                <div class="font-bold text-slate-900">{{ $act->recorded_at->locale('id')->translatedFormat('d M Y') }}</div>
+                                <div class="text-xs text-slate-400 font-medium mt-0.5">{{ $act->recorded_at->format('H:i') }} WIB</div>
                             </td>
 
                             <!-- Kode LV -->

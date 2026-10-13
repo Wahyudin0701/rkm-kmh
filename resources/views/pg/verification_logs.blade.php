@@ -192,7 +192,7 @@
                             <!-- Waktu Verifikasi -->
                             <td class="py-3 px-4 whitespace-nowrap">
                                 <div class="font-bold text-slate-900">
-                                    {{ $validatedTime ? $validatedTime->format('d/m/Y') : '-' }}
+                                    {{ $validatedTime ? $validatedTime->locale('id')->translatedFormat('d M Y') : '-' }}
                                 </div>
                                 <div class="text-[11px] text-slate-500 flex items-center gap-1 font-mono">
                                     <i class="fa-regular fa-clock text-[10px]"></i>
