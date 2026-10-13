@@ -107,9 +107,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <!-- Mulai Tanggal -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar text-slate-400"></i>
-                        <span>Mulai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Mulai Tanggal
                     </label>
                     <input type="date" 
                            name="start_date" 
@@ -120,9 +119,8 @@
 
                 <!-- Sampai Tanggal -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar-check text-slate-400"></i>
-                        <span>Sampai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Sampai Tanggal
                     </label>
                     <input type="date" 
                            name="end_date" 
@@ -133,9 +131,8 @@
 
                 <!-- Tipe Kendaraan -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-car-side text-slate-400"></i>
-                        <span>Kategori Unit</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Kategori Unit
                     </label>
                     <select name="type" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Kategori</option>
@@ -146,9 +143,8 @@
 
                 <!-- Pos Gerbang -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-torii-gate text-slate-400"></i>
-                        <span>Pos Gerbang</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Pos Gerbang
                     </label>
                     <select name="gate_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
