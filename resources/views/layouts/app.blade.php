@@ -188,6 +188,7 @@
                         @endif
                     </nav>
                 </div>
+                @endif
 
                 <!-- Grup: Pengaturan Akun -->
                 <div class="mt-6">
@@ -328,8 +329,13 @@
                             <span>Log Verifikasi Gerbang</span>
                         </a>
                     @endif
+                    @if(auth()->user()->isGateOfficer())
+                        <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                            <span>Verifikasi Pos Gerbang</span>
+                        </a>
+                    @endif
                 </div>
-                @endif
 
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mt-4">PENGATURAN</p>
                 <div class="space-y-1">
