@@ -36,6 +36,12 @@
                 <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
                     Filter & Pencarian Log
                 </span>
+                @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                    <a href="{{ route('qma.activity.log') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
+                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                        <span>Reset Filter</span>
+                    </a>
+                @endif
             </div>
 
             <!-- Baris Input Filter (Grid Responsif 12 Kolom) -->
@@ -117,15 +123,6 @@
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu PG</option>
                     </select>
                 </div>
-
-                <!-- Tombol Reset (Hanya tampil jika filter digunakan) -->
-                @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
-                    <div class="flex items-center space-x-2 justify-end">
-                        <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
-                            <span>Reset</span>
-                        </a>
-                    </div>
-                @endif
             </div>
         </form>
     </div>

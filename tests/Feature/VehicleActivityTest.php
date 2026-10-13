@@ -190,17 +190,17 @@ class VehicleActivityTest extends TestCase
         // 1. Unfiltered request should NOT see Reset button
         $response = $this->actingAs($qmaAdmin)->get('/qma/activity-log');
         $response->assertStatus(200);
-        $response->assertDontSee('<span>Reset</span>', false);
+        $response->assertDontSee('<span>Reset Filter</span>', false);
 
         // 2. Request with empty filter params should NOT see Reset button
         $responseEmpty = $this->actingAs($qmaAdmin)->get('/qma/activity-log?search=&direction=&gate_id=');
         $responseEmpty->assertStatus(200);
-        $responseEmpty->assertDontSee('<span>Reset</span>', false);
+        $responseEmpty->assertDontSee('<span>Reset Filter</span>', false);
 
         // 3. Request with active filter should see Reset button
         $responseFiltered = $this->actingAs($qmaAdmin)->get('/qma/activity-log?direction=in');
         $responseFiltered->assertStatus(200);
-        $responseFiltered->assertSee('<span>Reset</span>', false);
+        $responseFiltered->assertSee('<span>Reset Filter</span>', false);
     }
 
     public function test_admin_pg_can_store_security_guard_and_creates_login_account(): void
