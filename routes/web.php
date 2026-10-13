@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Hse\EmployeeController;
+use App\Http\Controllers\Pg\DashboardController as PgDashboardController;
 use App\Http\Controllers\Pg\GateInspectionController;
 use App\Http\Controllers\Pg\SecurityGuardController;
 use App\Http\Controllers\Pg\VerificationLogController;
@@ -20,7 +21,7 @@ Route::get('/', function () {
         return match ($user->role) {
             'hse_admin' => redirect()->route('hse.dashboard'),
             'qma_admin' => redirect()->route('qma.dashboard'),
-            'pg_admin' => redirect()->route('pg.guards.index'),
+            'pg_admin' => redirect()->route('pg.dashboard'),
             'gate_officer' => redirect()->route('pg.gate.inspection'),
             default => redirect()->route('qma.dashboard'),
         };
@@ -71,8 +72,9 @@ Route::middleware('auth')->group(function () {
 
     // 4. Modul Private Guard (PG): Admin PG & Pos Gerbang Satpam
     Route::prefix('pg')->name('pg.')->group(function () {
-        // Modul Admin PG (Data Satpam & Log Verifikasi Gerbang)
+        // Modul Admin PG (Dashboard, Data Satpam & Log Verifikasi Gerbang)
         Route::middleware('role:pg_admin')->group(function () {
+            Route::get('/dashboard', [PgDashboardController::class, 'index'])->name('dashboard');
             Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index');
             Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store');
             Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update');

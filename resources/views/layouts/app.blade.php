@@ -94,6 +94,17 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                        @elseif(auth()->user()->isPgAdmin())
+                            <a href="{{ route('pg.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
                         @elseif(auth()->user()->isGateOfficer())
                             <a href="{{ route('pg.gate.inspection') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
@@ -104,17 +115,6 @@
                                     <rect x="3" y="14" width="7" height="7" rx="2"></rect>
                                 </svg>
                                 <span>Pos Gerbang</span>
-                            </a>
-                        @else
-                            <a href="{{ route('qma.activity.log') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm sidebar-item-active">
-                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                                </svg>
-                                <span>Dashboard</span>
                             </a>
                         @endif
                     </nav>
@@ -314,6 +314,15 @@
                         </a>
                     @endif
                     @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                        <a href="{{ route('pg.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
                         <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-user-shield w-5 text-center"></i>
                             <span>Data Satpam</span>
@@ -382,6 +391,8 @@
                     Summary Aktivitas Kendaraan
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
+                @elseif(request()->routeIs('pg.dashboard'))
+                    Dashboard
                 @elseif(request()->routeIs('pg.gate.*'))
                     Verifikasi Pos Gerbang
                 @elseif(request()->routeIs('pg.guards.*'))

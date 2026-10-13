@@ -291,4 +291,19 @@ class VehicleActivityTest extends TestCase
         $filterResponse->assertStatus(200);
         $filterResponse->assertSee('TRX-LOG-PG-001');
     }
+
+    public function test_admin_pg_can_view_dashboard_with_summary_metrics(): void
+    {
+        $pgUser = User::where('role', 'pg_admin')->first();
+
+        $response = $this->actingAs($pgUser)->get(route('pg.dashboard'));
+        $response->assertStatus(200);
+        $response->assertSee('TOTAL SATPAM');
+        $response->assertSee('SATPAM AKTIF');
+        $response->assertSee('POS GERBANG');
+        $response->assertSee('VERIFIKASI HARI INI');
+        $response->assertSee('PENOLAKAN GERBANG');
+        $response->assertSee('Log Verifikasi Gerbang Terkini');
+        $response->assertSee('Petugas Satpam per Regu');
+    }
 }

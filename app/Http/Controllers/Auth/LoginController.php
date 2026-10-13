@@ -74,7 +74,7 @@ class LoginController extends Controller
         return match ($user->role) {
             'hse_admin' => redirect()->route('hse.dashboard'),
             'qma_admin' => redirect()->route('qma.dashboard'),
-            'pg_admin' => redirect()->route('pg.guards.index'),
+            'pg_admin' => redirect()->route('pg.dashboard'),
             'gate_officer' => redirect()->route('pg.gate.inspection'),
             default => redirect()->route('qma.dashboard'),
         };

@@ -77,7 +77,7 @@ class AuthenticationTest extends TestCase
             'password' => 'password',
         ]);
 
-        $response->assertRedirect('/pg/guards');
+        $response->assertRedirect('/pg/dashboard');
         $this->assertAuthenticated();
 
         $user = auth()->user();
@@ -124,15 +124,17 @@ class AuthenticationTest extends TestCase
         $this->actingAs($qmaUser)->get('/hse/employees')->assertStatus(403);
         $this->actingAs($qmaUser)->get('/pg/guards')->assertStatus(403);
 
-        // 4. Admin PG dapat akses modul PG guards & log verifikasi, ditolak dari pos gerbang verifikasi & HSE
+        // 4. Admin PG dapat akses modul PG dashboard, guards & log verifikasi, ditolak dari pos gerbang verifikasi & HSE
+        $this->actingAs($pgUser)->get('/pg/dashboard')->assertStatus(200);
         $this->actingAs($pgUser)->get('/pg/guards')->assertStatus(200);
         $this->actingAs($pgUser)->get('/pg/verification-logs')->assertStatus(200);
         $this->actingAs($pgUser)->get('/pg/gate-inspection')->assertStatus(403);
         $this->actingAs($pgUser)->get('/hse/employees')->assertStatus(403);
 
-        // 5. Petugas Satpam Pos Gerbang dapat akses verifikasi pos gerbang, ditolak dari master guards & logs
+        // 5. Petugas Satpam Pos Gerbang dapat akses verifikasi pos gerbang, ditolak dari master guards & logs & dashboard
         $gateOfficer = User::where('role', 'gate_officer')->first();
         $this->actingAs($gateOfficer)->get('/pg/gate-inspection')->assertStatus(200);
+        $this->actingAs($gateOfficer)->get('/pg/dashboard')->assertStatus(403);
         $this->actingAs($gateOfficer)->get('/pg/guards')->assertStatus(403);
         $this->actingAs($gateOfficer)->get('/pg/verification-logs')->assertStatus(403);
     }
