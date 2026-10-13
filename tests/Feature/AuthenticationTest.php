@@ -228,4 +228,52 @@ class AuthenticationTest extends TestCase
         $this->assertEquals('Mima HSE Updated', $user->name);
         $this->assertEquals('mima.updated@kerincihydro.co.id', $user->email);
     }
+
+    /**
+     * Memastikan Admin HSE dapat memfilter data SIMPER berdasarkan Status Driver dan Masa Berlaku.
+     */
+    public function test_admin_hse_can_filter_employees_by_driver_status_and_simper_validity(): void
+    {
+        $hseUser = User::where('username', '1185')->first();
+
+        // 1. Tanpa filter: semua tampil dan tombol Reset tidak muncul
+        $response = $this->actingAs($hseUser)->get('/hse/employees');
+        $response->assertStatus(200);
+        $response->assertSee('Semua Status Driver');
+        $response->assertSee('Semua Masa Berlaku');
+        $response->assertDontSee('<span>Reset</span>', false);
+
+        // 2. Filter status driver = driver
+        $responseDriver = $this->actingAs($hseUser)->get('/hse/employees?driver_status=driver');
+        $responseDriver->assertStatus(200);
+        $responseDriver->assertSee('KMH-2022-001'); // Driver
+        $responseDriver->assertDontSee('KMH-2021-088'); // Bukan driver
+        $responseDriver->assertSee('<span>Reset</span>', false);
+
+        // 3. Filter status driver = non_driver
+        $responseNonDriver = $this->actingAs($hseUser)->get('/hse/employees?driver_status=non_driver');
+        $responseNonDriver->assertStatus(200);
+        $responseNonDriver->assertSee('KMH-2021-088'); // Bukan driver
+        $responseNonDriver->assertDontSee('KMH-2022-001'); // Driver
+        $responseNonDriver->assertSee('<span>Reset</span>', false);
+
+        // 4. Filter SIMPER valid (masih berlaku)
+        $responseValid = $this->actingAs($hseUser)->get('/hse/employees?simper_status=valid');
+        $responseValid->assertStatus(200);
+        $responseValid->assertSee('KMH-2022-001'); // Valid
+        $responseValid->assertDontSee('KMH-2023-012'); // Expired
+        $responseValid->assertSee('<span>Reset</span>', false);
+
+        // 5. Filter SIMPER expired (kedaluwarsa)
+        $responseExpired = $this->actingAs($hseUser)->get('/hse/employees?simper_status=expired');
+        $responseExpired->assertStatus(200);
+        $responseExpired->assertSee('KMH-2023-012'); // Expired
+        $responseExpired->assertDontSee('KMH-2022-001'); // Valid
+        $responseExpired->assertSee('<span>Reset</span>', false);
+
+        // 6. Request dengan query param kosong (default) tidak menampilkan tombol Reset
+        $responseEmpty = $this->actingAs($hseUser)->get('/hse/employees?search=&driver_status=&simper_status=');
+        $responseEmpty->assertStatus(200);
+        $responseEmpty->assertDontSee('<span>Reset</span>', false);
+    }
 }

@@ -17,10 +17,6 @@ class EmployeeController extends Controller
     {
         $totalEmployees = Employee::count();
         $totalDrivers = Employee::where('is_operator', true)->count();
-        $validSimperCount = Employee::where('is_operator', true)
-            ->whereNotNull('simper_expired_at')
-            ->where('simper_expired_at', '>=', now()->toDateString())
-            ->count();
         $expiredSimperCount = Employee::where('is_operator', true)
             ->where(function ($q) {
                 $q->whereNull('simper_expired_at')
@@ -50,7 +46,6 @@ class EmployeeController extends Controller
         return view('hse.dashboard', compact(
             'totalEmployees',
             'totalDrivers',
-            'validSimperCount',
             'expiredSimperCount',
             'nonDriversCount',
             'recentDrivers',
@@ -62,9 +57,58 @@ class EmployeeController extends Controller
     /**
      * Tampilkan daftar master karyawan HSE & status SIMPER.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $employees = Employee::orderBy('name')->get();
+        $query = Employee::query();
+
+        // 1. Pencarian Kata Kunci (NIK, Nama, Jabatan, Unit, Divisi)
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('nik', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhere('position', 'like', "%{$search}%")
+                  ->orWhere('unit_kerja', 'like', "%{$search}%")
+                  ->orWhere('division', 'like', "%{$search}%");
+            });
+        }
+
+        // 2. Filter Status Driver
+        if ($request->filled('driver_status')) {
+            $driverStatus = $request->input('driver_status');
+            if ($driverStatus === 'driver') {
+                $query->where('is_operator', true);
+            } elseif ($driverStatus === 'non_driver') {
+                $query->where('is_operator', false);
+            }
+        }
+
+        // 3. Filter Masa Berlaku SIMPER
+        if ($request->filled('simper_status')) {
+            $simperStatus = $request->input('simper_status');
+            $today = now()->toDateString();
+            $expiringSoon = now()->addDays(30)->toDateString();
+
+            if ($simperStatus === 'valid') {
+                $query->where('is_operator', true)
+                      ->whereNotNull('simper_expired_at')
+                      ->where('simper_expired_at', '>=', $today);
+            } elseif ($simperStatus === 'expired') {
+                $query->where('is_operator', true)
+                      ->where(function ($q) use ($today) {
+                          $q->whereNull('simper_expired_at')
+                            ->orWhere('simper_expired_at', '<', $today);
+                      });
+            } elseif ($simperStatus === 'expiring_soon') {
+                $query->where('is_operator', true)
+                      ->whereNotNull('simper_expired_at')
+                      ->where('simper_expired_at', '>=', $today)
+                      ->where('simper_expired_at', '<=', $expiringSoon);
+            }
+        }
+
+        $employees = $query->orderBy('name')->get();
+
         return view('hse.employees_index', compact('employees'));
     }
 
