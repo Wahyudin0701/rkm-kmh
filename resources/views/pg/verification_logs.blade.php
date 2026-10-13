@@ -65,7 +65,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Regu Satpam
                     </label>
-                    <select name="team" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="team" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Regu</option>
                         <option value="1" {{ request('team') == '1' ? 'selected' : '' }}>Regu 1</option>
                         <option value="2" {{ request('team') == '2' ? 'selected' : '' }}>Regu 2</option>
@@ -78,7 +78,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Petugas Satpam
                     </label>
-                    <select name="security_guard_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="security_guard_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Petugas Satpam</option>
                         @foreach($guards as $guard)
                             <option value="{{ $guard->id }}" {{ request('security_guard_id') == $guard->id ? 'selected' : '' }}>
@@ -93,7 +93,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Pos Gerbang
                     </label>
-                    <select name="gate_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="gate_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
                         @foreach($gates as $g)
                             <option value="{{ $g->id }}" {{ request('gate_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
@@ -102,11 +102,11 @@
                 </div>
 
                 <!-- Filter Arah Gerbang -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Arah Gerbang
                     </label>
-                    <select name="direction" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="direction" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Arah</option>
                         <option value="in" {{ request('direction') === 'in' ? 'selected' : '' }}>Masuk (In)</option>
                         <option value="out" {{ request('direction') === 'out' ? 'selected' : '' }}>Keluar (Out)</option>
@@ -114,11 +114,11 @@
                 </div>
 
                 <!-- Filter Status Verifikasi -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Status
                     </label>
-                    <select name="status" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="status" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui (Approved)</option>
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
@@ -134,6 +134,7 @@
                     <input type="date" 
                            name="start_date" 
                            value="{{ request('start_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
@@ -145,14 +146,8 @@
                     <input type="date" 
                            name="end_date" 
                            value="{{ request('end_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                </div>
-
-                <!-- Tombol Submit Terapkan Filter -->
-                <div class="lg:col-span-2 flex items-end">
-                    <button type="submit" class="w-full bg-[#1b5e20] hover:bg-[#144919] text-white py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center shadow-sm transition">
-                        <span>Terapkan</span>
-                    </button>
                 </div>
             </div>
         </form>

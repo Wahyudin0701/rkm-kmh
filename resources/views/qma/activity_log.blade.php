@@ -67,6 +67,7 @@
                     <input type="date" 
                            name="start_date" 
                            value="{{ request('start_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
@@ -78,6 +79,7 @@
                     <input type="date" 
                            name="end_date" 
                            value="{{ request('end_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
@@ -86,7 +88,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Pos Gerbang
                     </label>
-                    <select name="gate_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="gate_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
                         @foreach($gates as $g)
                             <option value="{{ $g->id }}" {{ request('gate_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
@@ -99,7 +101,7 @@
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Arah Akses
                     </label>
-                    <select name="direction" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="direction" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Arah</option>
                         <option value="in" {{ request('direction') === 'in' ? 'selected' : '' }}>MASUK (In)</option>
                         <option value="out" {{ request('direction') === 'out' ? 'selected' : '' }}>KELUAR (Out)</option>
@@ -114,7 +116,7 @@
                     <span class="text-xs font-bold text-slate-600 whitespace-nowrap">
                         Status PG:
                     </span>
-                    <select name="status" class="text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu PG</option>
@@ -122,14 +124,11 @@
                     </select>
                 </div>
 
-                <!-- Tombol Submit & Reset -->
+                <!-- Tombol Reset -->
                 <div class="flex items-center space-x-2 justify-end">
                     <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
                         <span>Reset</span>
                     </a>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition">
-                        <span>Filter</span>
-                    </button>
                 </div>
             </div>
         </form>
