@@ -33,13 +33,11 @@
         <form method="GET" action="{{ route('qma.activity.log') }}" class="space-y-4">
             <!-- Header Filter -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center space-x-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
-                    <i class="fa-solid fa-sliders text-[#1b5e20]"></i>
-                    <span>Filter & Pencarian Log</span>
-                </div>
+                <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
+                    Filter & Pencarian Log
+                </span>
                 @if(request()->hasAny(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
-                    <a href="{{ route('qma.activity.log') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
-                        <i class="fa-solid fa-rotate-left"></i>
+                    <a href="{{ route('qma.activity.log') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition">
                         <span>Reset Semua Filter</span>
                     </a>
                 @endif
@@ -49,9 +47,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
                 <!-- Pencarian Cepat -->
                 <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                        <span>Pencarian Cepat</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Pencarian Cepat
                     </label>
                     <div class="relative">
                         <input type="text" 
@@ -64,9 +61,8 @@
 
                 <!-- Rentang Mulai Tanggal -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar text-slate-400"></i>
-                        <span>Mulai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Mulai Tanggal
                     </label>
                     <input type="date" 
                            name="start_date" 
@@ -76,9 +72,8 @@
 
                 <!-- Rentang Sampai Tanggal -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar-check text-slate-400"></i>
-                        <span>Sampai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Sampai Tanggal
                     </label>
                     <input type="date" 
                            name="end_date" 
@@ -88,9 +83,8 @@
 
                 <!-- Pos Gerbang -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-torii-gate text-slate-400"></i>
-                        <span>Pos Gerbang</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Pos Gerbang
                     </label>
                     <select name="gate_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
@@ -102,9 +96,8 @@
 
                 <!-- Arah Akses -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrows-left-right text-slate-400"></i>
-                        <span>Arah Akses</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Arah Akses
                     </label>
                     <select name="direction" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Arah</option>
@@ -118,8 +111,8 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
                 <!-- Status Validasi Pos Gerbang -->
                 <div class="flex items-center space-x-2">
-                    <span class="text-xs font-bold text-slate-600 whitespace-nowrap flex items-center gap-1">
-                        <i class="fa-solid fa-shield-halved text-slate-400"></i> Status PG:
+                    <span class="text-xs font-bold text-slate-600 whitespace-nowrap">
+                        Status PG:
                     </span>
                     <select name="status" class="text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
@@ -131,12 +124,10 @@
 
                 <!-- Tombol Submit & Reset -->
                 <div class="flex items-center space-x-2 justify-end">
-                    <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition flex items-center space-x-1.5">
-                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                    <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
                         <span>Reset</span>
                     </a>
-                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition flex items-center space-x-2">
-                        <i class="fa-solid fa-filter text-[11px]"></i>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition">
                         <span>Filter</span>
                     </button>
                 </div>
