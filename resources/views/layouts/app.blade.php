@@ -46,6 +46,56 @@
         .sidebar-item-inactive:hover svg {
             color: #1b5e20;
         }
+
+        /* Modern Sleek Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-button {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(148, 163, 184, 0.45);
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: all 0.2s ease;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(100, 116, 139, 0.75);
+        }
+
+        /* Efek Saat Modal Popup Terbuka: Scrollbar ikut gelap, buram (frosted blur) & menyatu dengan backdrop */
+        html.modal-open::-webkit-scrollbar-track,
+        body.modal-open::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        html.modal-open::-webkit-scrollbar-thumb,
+        body.modal-open::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+        html.modal-open::-webkit-scrollbar-thumb:hover,
+        body.modal-open::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* Dukungan Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+        }
+        html.modal-open,
+        body.modal-open {
+            scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 23, 42, 0.6);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen">
@@ -385,7 +435,7 @@
                 @elseif(request()->routeIs('qma.activity.log'))
                     Log Aktivitas Kendaraan
                 @elseif(request()->routeIs('qma.activity.summary'))
-                    Summary Aktivitas Kendaraan
+                    Summary Aktivitas
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
                 @elseif(request()->routeIs('pg.dashboard'))
