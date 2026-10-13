@@ -39,7 +39,7 @@ class QmaModuleTest extends TestCase
         $response = $this->actingAs($this->qmaAdmin)->get('/qma/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Divisi QMA (Quality Management Asset)');
+        $response->assertSee('Dashboard Divisi QMA');
         $response->assertSee('Selamat datang, Pinto Yuliandra');
         $response->assertSee('Light Vehicle');
         $response->assertSee('Unit Support');

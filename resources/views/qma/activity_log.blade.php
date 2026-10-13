@@ -7,21 +7,25 @@
     <!-- Header Judul & Total Catatan -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-                MANAJEMEN SISTEM
-            </span>
-            <div class="flex items-center space-x-3">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    Log Aktivitas Kendaraan
-                </h2>
-                <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Catatan pergerakan armada kendaraan dengan validasi pos gerbang">
-                    <i class="fa-solid fa-info"></i>
+            <div class="flex items-center space-x-1.5 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                    MANAJEMEN SISTEM
                 </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Log Aktivitas Kendaraan">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Log Aktivitas Kendaraan
+            </h2>
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('qma.activity.summary') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition group">
+            <a href="{{ route('qma.activity.summary') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition group">
                 <i class="fa-solid fa-chart-pie mr-2 text-emerald-400 group-hover:scale-110 transition-transform"></i>
                 <span>Summary Aktifitas</span>
             </a>
@@ -356,5 +360,113 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+
+    // Buka & Tutup Modal Panduan Halaman
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+        }
+    });
 </script>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (LOG AKTIVITAS KENDARAAN)                    -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Log Aktivitas Kendaraan</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di halaman <strong>Log Aktivitas Kendaraan</strong>! Halaman ini memuat seluruh riwayat operasional kendaraan yang telah terverifikasi oleh petugas pos gerbang. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Catatan Perjalanan Kendaraan</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Melihat log perjalanan setiap kendaraan operasional lengkap dengan tanggal, nomor plat, nama driver, serta tujuan penggunaan dinas.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-gauge"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Validasi Odometer Masuk & Keluar</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Memeriksa angka kilometer riil sebelum keluar dan saat kembali masuk untuk memantau jarak tempuh perjalanan unit.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Analitik & Filter Real-time</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Gunakan kotak pencarian dan filter cepat, atau klik tombol 'Lihat Summary Aktivitas' untuk rekapitulasi data per unit dan driver.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
 @endsection
