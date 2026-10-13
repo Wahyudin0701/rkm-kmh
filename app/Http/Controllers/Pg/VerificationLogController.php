@@ -78,24 +78,10 @@ class VerificationLogController extends Controller
             });
         }
 
-        // Data Statistik Ringkas untuk Admin PG
-        $totalApproved = VehicleActivity::where('validation_status', 'approved')->count();
-        $totalRejected = VehicleActivity::where('validation_status', 'rejected')->count();
-        $totalPending = VehicleActivity::where('validation_status', 'pending')->count();
-        $todayInspections = VehicleActivity::whereDate('recorded_at', Carbon::today())->count();
-
         $activities = $query->paginate(20)->withQueryString();
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $guards = SecurityGuard::orderBy('name')->get();
 
-        return view('pg.verification_logs', compact(
-            'activities',
-            'gates',
-            'guards',
-            'totalApproved',
-            'totalRejected',
-            'totalPending',
-            'todayInspections'
-        ));
+        return view('pg.verification_logs', compact('activities', 'gates', 'guards'));
     }
 }

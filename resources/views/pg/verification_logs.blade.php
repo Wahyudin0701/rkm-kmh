@@ -30,40 +30,6 @@
         </div>
     </div>
 
-    <!-- 4 Kartu Metrik Ringkas Audit Satpam (Format Pastel Sederhana Sesuai Dashboard) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <!-- 1. Total Disetujui (Pastel Mint / Emerald) -->
-        <div>
-            <div class="bg-[#edfbf4] border border-[#d1f5e2] rounded-3xl h-28 flex items-center justify-center shadow-xs">
-                <span class="text-4xl sm:text-5xl font-black text-[#10b981]">{{ number_format($totalApproved, 0, ',', '.') }}</span>
-            </div>
-            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DISETUJUI</p>
-        </div>
-
-        <!-- 2. Total Ditolak (Pastel Rose / Merah) -->
-        <div>
-            <div class="bg-[#fef2f2] border border-[#fee2e2] rounded-3xl h-28 flex items-center justify-center shadow-xs">
-                <span class="text-4xl sm:text-5xl font-black text-[#e11d48]">{{ number_format($totalRejected, 0, ',', '.') }}</span>
-            </div>
-            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DITOLAK</p>
-        </div>
-
-        <!-- 3. Total Menunggu (Pastel Amber / Yellow) -->
-        <div>
-            <div class="bg-[#fef9e8] border border-[#feefc7] rounded-3xl h-28 flex items-center justify-center shadow-xs">
-                <span class="text-4xl sm:text-5xl font-black text-[#f59e0b]">{{ number_format($totalPending, 0, ',', '.') }}</span>
-            </div>
-            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">MENUNGGU</p>
-        </div>
-
-        <!-- 4. Pemeriksaan Hari Ini (Pastel Biru Muda) -->
-        <div>
-            <div class="bg-[#edf5fd] border border-[#d2e4fb] rounded-3xl h-28 flex items-center justify-center shadow-xs">
-                <span class="text-4xl sm:text-5xl font-black text-[#1976d2]">{{ number_format($todayInspections, 0, ',', '.') }}</span>
-            </div>
-            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">HARI INI</p>
-        </div>
-    </div>
 
     <!-- Filter Bar Card Komprehensif (Tanpa Ikon pada Label) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
