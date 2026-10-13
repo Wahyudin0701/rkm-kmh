@@ -67,17 +67,22 @@ class ActivityLogController extends Controller
      */
     public function summary(Request $request): View
     {
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
         $type = $request->input('type');
         $gateId = $request->input('gate_id');
 
         $query = VehicleActivity::query();
 
-        if ($request->filled('start_date') && $request->filled('end_date')) {
+        if ($startDate && $endDate) {
             $start = Carbon::parse($startDate)->startOfDay();
             $end = Carbon::parse($endDate)->endOfDay();
             $query->whereBetween('recorded_at', [$start, $end]);
+        } elseif ($startDate) {
+            $query->where('recorded_at', '>=', Carbon::parse($startDate)->startOfDay());
+        } elseif ($endDate) {
+            $query->where('recorded_at', '<=', Carbon::parse($endDate)->endOfDay());
         }
 
         if ($request->filled('gate_id')) {
@@ -133,6 +138,8 @@ class ActivityLogController extends Controller
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
 
         return view('qma.activity_summary', compact(
+            'startDate',
+            'endDate',
             'totalActivities',
             'totalDistance',
             'activeVehiclesCount',

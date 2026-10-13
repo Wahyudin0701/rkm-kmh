@@ -112,7 +112,7 @@
                     </label>
                     <input type="date" 
                            name="start_date" 
-                           value="{{ request('start_date') }}" 
+                           value="{{ request('start_date', $startDate ?? now()->format('Y-m-d')) }}" 
                            onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
@@ -124,7 +124,7 @@
                     </label>
                     <input type="date" 
                            name="end_date" 
-                           value="{{ request('end_date') }}" 
+                           value="{{ request('end_date', $endDate ?? now()->format('Y-m-d')) }}" 
                            onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
