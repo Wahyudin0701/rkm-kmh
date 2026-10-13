@@ -7,43 +7,103 @@
     <!-- Header Halaman -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-                MANAJEMEN SISTEM
-            </span>
-            <div class="flex items-center space-x-3">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    Summary Aktivitas Kendaraan
-                </h2>
-                <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Ringkasan analitik dan rekapitulasi pergerakan armada kendaraan">
-                    <i class="fa-solid fa-chart-pie"></i>
+            <div class="flex items-center space-x-1.5 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                    MANAJEMEN SISTEM
                 </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Summary Aktivitas Kendaraan">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Summary Aktivitas Kendaraan
+            </h2>
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('qma.activity.log') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
+            <a href="{{ route('qma.activity.log') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-clipboard-list mr-2 text-slate-500 group-hover:text-slate-800"></i>
                 <span>Lihat Log Aktivitas Detail</span>
             </a>
         </div>
     </div>
 
-    <!-- Filter Bar Periode & Parameter -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
-        <form method="GET" action="{{ route('qma.activity.summary') }}" class="space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center space-x-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
-                    <i class="fa-solid fa-sliders text-[#1b5e20]"></i>
-                    <span>Filter Periode & Kriteria Summary</span>
+    @php
+        $activeFilterCount = count(array_filter(request()->only(['start_date', 'end_date', 'type', 'gate_id'])));
+        $isFilterOpen = request()->anyFilled(['start_date', 'end_date', 'type', 'gate_id']);
+    @endphp
+
+    <!-- Form Filter & Pencarian Cepat -->
+    <form method="GET" action="{{ route('qma.activity.summary') }}" class="space-y-3">
+        <!-- Baris Atas: Search Bar Mandiri di Luar Card Filter & Tombol Toggle -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <!-- Search Bar Utama (Real-Time) -->
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
                 </div>
-                @if(request()->hasAny(['start_date', 'end_date', 'type', 'gate_id']))
-                    <a href="{{ route('qma.activity.summary') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        <span>Reset Filter</span>
-                    </a>
-                @endif
+                <input type="text" 
+                       name="search" 
+                       id="summarySearchInput"
+                       value="{{ request('search') }}" 
+                       placeholder="Cari Kode LV, Unit, Plat, Penanggung Jawab..." 
+                       class="w-full text-xs rounded-xl border border-slate-200 bg-white hover:border-slate-300 focus:bg-white pl-9 pr-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition shadow-2xs">
             </div>
 
+            <!-- Tombol Buka/Tutup Filter Card & Reset Filter -->
+            <div class="flex items-center gap-2.5 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                <button type="button" 
+                        id="filterToggleBtn"
+                        onclick="toggleFilterCard()" 
+                        class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition group cursor-pointer">
+                    <i class="fa-solid fa-sliders text-slate-500 mr-2 group-hover:text-[#1b5e20] transition-colors"></i>
+                    <span>Filter</span>
+                    @if($activeFilterCount > 0)
+                        <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1b5e20] text-white">
+                            {{ $activeFilterCount }}
+                        </span>
+                    @endif
+                    <i id="filterChevron" class="fa-solid fa-chevron-down ml-2 text-[10px] text-slate-400 transition-transform duration-200 {{ $isFilterOpen ? 'rotate-180' : '' }}"></i>
+                </button>
+
+                <div id="headerResetFilterContainer">
+                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'type', 'gate_id']))
+                        <a href="{{ route('qma.activity.summary') }}" 
+                           id="headerResetFilterBtn" 
+                           class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100">
+                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                            <span>Reset Filter</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Filter Lanjutan (Bisa Di Buka-Tutup / Collapsible) -->
+        <div id="collapsibleFilterCard" class="{{ $isFilterOpen ? '' : 'hidden ' }}bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition-all">
+            <!-- Header Card Filter -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
+                        Opsi Filter Lanjutan
+                    </span>
+                    @if($activeFilterCount > 0)
+                        <span class="text-[11px] text-slate-400 font-medium">({{ $activeFilterCount }} filter aktif)</span>
+                    @endif
+                </div>
+                <button type="button" 
+                        onclick="toggleFilterCard()" 
+                        class="text-xs text-slate-400 hover:text-slate-600 transition flex items-center space-x-1 cursor-pointer">
+                    <span>Tutup</span>
+                    <i class="fa-solid fa-xmark text-[11px]"></i>
+                </button>
+            </div>
+
+            <!-- Baris Input Filter (Grid Responsif 4 Kolom) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <!-- Mulai Tanggal -->
                 <div>
@@ -54,6 +114,7 @@
                     <input type="date" 
                            name="start_date" 
                            value="{{ request('start_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
@@ -66,6 +127,7 @@
                     <input type="date" 
                            name="end_date" 
                            value="{{ request('end_date') }}" 
+                           onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
@@ -75,7 +137,7 @@
                         <i class="fa-solid fa-car-side text-slate-400"></i>
                         <span>Kategori Unit</span>
                     </label>
-                    <select name="type" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="type" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Kategori</option>
                         <option value="lv" {{ request('type') === 'lv' ? 'selected' : '' }}>Light Vehicle (LV)</option>
                         <option value="support" {{ request('type') === 'support' ? 'selected' : '' }}>Unit Support</option>
@@ -88,7 +150,7 @@
                         <i class="fa-solid fa-torii-gate text-slate-400"></i>
                         <span>Pos Gerbang</span>
                     </label>
-                    <select name="gate_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
+                    <select name="gate_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
                         @foreach($gates as $g)
                             <option value="{{ $g->id }}" {{ request('gate_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
@@ -96,19 +158,8 @@
                     </select>
                 </div>
             </div>
-
-            <!-- Tombol Submit & Reset -->
-            <div class="flex items-center justify-end space-x-2 pt-2">
-                <a href="{{ route('qma.activity.summary') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
-                    Reset
-                </a>
-                <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition flex items-center space-x-2">
-                    <i class="fa-solid fa-filter text-[11px]"></i>
-                    <span>Terapkan Filter</span>
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <!-- KPI Metric Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -183,7 +234,7 @@
     </div>
 
     <!-- Rekapitulasi per Kendaraan (Tabel Summary Armada) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
                 <h3 class="text-base font-bold text-slate-900">Rekapitulasi Aktivitas per Armada Kendaraan</h3>
@@ -209,12 +260,12 @@
                         <th class="py-3.5 px-4 text-right whitespace-nowrap">Odometer Terkini</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                <tbody id="summaryTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($vehicleSummaries as $vSummary)
                         @php
                             $veh = $vSummary->vehicle;
                         @endphp
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="summary-vehicle-row hover:bg-slate-50/70 transition">
                             <td class="py-3.5 px-4 text-center whitespace-nowrap font-mono">
                                 <span class="inline-block bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">
                                     {{ $veh->code ?? '-' }}
@@ -279,6 +330,19 @@
                             </td>
                         </tr>
                     @endforelse
+
+                    <!-- Baris Hasil Pencarian Real-Time Kosong -->
+                    <tr id="clientSearchEmptyRow" class="hidden">
+                        <td colspan="9" class="py-12 px-4 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                                <div class="text-sm font-bold text-slate-700">Tidak Ada Hasil Pencarian</div>
+                                <p class="text-xs text-slate-400">Tidak ditemukan armada yang sesuai dengan kata kunci pencarian Anda.</p>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -287,7 +351,7 @@
     <!-- Grid: Top Driver & Rekapitulasi Pos Gerbang -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Top 10 Driver Pengemudi Teraktif -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Pengemudi (Driver) Teraktif</h3>
@@ -336,7 +400,7 @@
         </div>
 
         <!-- Rekapitulasi Pos Gerbang -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Trafik Pos Gerbang</h3>
@@ -384,4 +448,188 @@
         </div>
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (SUMMARY AKTIVITAS KENDARAAN)                -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Summary Aktivitas Kendaraan</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di halaman <strong>Summary Aktivitas Kendaraan</strong>! Halaman analitik ini menyajikan rekapitulasi performa pergerakan armada armada operasional PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Kartu Metrik & Total Jarak</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Melihat total trip pergerakan, akumulasi kilometer riil seluruh armada, serta unit aktif dalam periode terpilih.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-table-list"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Rekapitulasi per Unit & Driver</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Mengevaluasi tabel frekuensi perjalanan dan jarak tempuh per kendaraan maupun pengemudi untuk optimalisasi aset.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Penyaringan Berdasarkan Periode</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Tentukan tanggal mulai dan akhir untuk memfilter laporan berkala (harian, mingguan, atau bulanan).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('summarySearchInput');
+    const tableBody = document.getElementById('summaryTableBody');
+    const resetContainer = document.getElementById('headerResetFilterContainer');
+    const emptyRow = document.getElementById('clientSearchEmptyRow');
+    const hasServerFilters = {{ request()->anyFilled(['start_date', 'end_date', 'type', 'gate_id']) ? 'true' : 'false' }};
+
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('input', function (e) {
+            const query = e.target.value.toLowerCase().trim();
+            const rows = tableBody.querySelectorAll('tr.summary-vehicle-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Tampilkan pesan kosong jika tidak ada baris yang cocok secara instan
+            if (emptyRow) {
+                if (rows.length > 0 && visibleCount === 0) {
+                    emptyRow.classList.remove('hidden');
+                } else {
+                    emptyRow.classList.add('hidden');
+                }
+            }
+
+            // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
+            if (resetContainer) {
+                let resetBtn = document.getElementById('headerResetFilterBtn');
+                if (query.length > 0 || hasServerFilters) {
+                    if (!resetBtn) {
+                        resetBtn = document.createElement('a');
+                        resetBtn.href = "{{ route('qma.activity.summary') }}";
+                        resetBtn.id = 'headerResetFilterBtn';
+                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100';
+
+                        const resetIcon = document.createElement('i');
+                        resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
+                        const resetText = document.createElement('span');
+                        resetText.textContent = 'Reset Filter';
+
+                        resetBtn.appendChild(resetIcon);
+                        resetBtn.appendChild(resetText);
+                        resetContainer.appendChild(resetBtn);
+                    }
+                } else {
+                    if (resetBtn && !hasServerFilters) {
+                        resetBtn.remove();
+                    }
+                }
+            }
+        });
+    }
+});
+
+    // Toggle Card Filter Lanjutan
+    function toggleFilterCard() {
+        const card = document.getElementById('collapsibleFilterCard');
+        const chevron = document.getElementById('filterChevron');
+        if (card) {
+            card.classList.toggle('hidden');
+        }
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
+
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+        }
+    });
+</script>
 @endsection
