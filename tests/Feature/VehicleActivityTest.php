@@ -182,4 +182,73 @@ class VehicleActivityTest extends TestCase
         $response->assertSee('KM Berjalan');
         $response->assertSee('Aktivitas');
     }
+
+    public function test_admin_pg_can_store_security_guard_and_creates_login_account(): void
+    {
+        $adminPg = User::where('role', 'pg_admin')->first();
+        $gate = Gate::first();
+
+        $response = $this->actingAs($adminPg)->post('/pg/guards', [
+            'badge_id' => 'SEC-999',
+            'name' => 'Kurniawan Pratama',
+            'team' => 2,
+            'gate_id' => $gate->id,
+            'password' => 'satpam123',
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('security_guards', [
+            'badge_id' => 'SEC-999',
+            'name' => 'Kurniawan Pratama',
+            'team' => 2,
+            'gate_id' => $gate->id,
+        ]);
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'SEC-999',
+            'role' => 'gate_officer',
+            'gate_id' => $gate->id,
+        ]);
+    }
+
+    public function test_guard_can_login_with_badge_id_and_auto_approve_without_manual_guard_id(): void
+    {
+        // Login with satpam SEC-001
+        $loginResponse = $this->post('/login', [
+            'username' => 'SEC-001',
+            'password' => 'password',
+        ]);
+
+        $loginResponse->assertRedirect(route('pg.gate.inspection'));
+
+        $guard = SecurityGuard::where('badge_id', 'SEC-001')->first();
+        $vehicle = Vehicle::first();
+        $driver = Employee::first();
+
+        $activity = VehicleActivity::create([
+            'transaction_no' => 'TRX-TEST-AUTO-01',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $guard->gate_id,
+            'direction' => 'out',
+            'previous_km' => $vehicle->current_km,
+            'current_km' => $vehicle->current_km + 15,
+            'distance' => 15,
+            'purpose' => 'Uji Verifikasi Otomatis',
+            'recorded_at' => Carbon::now(),
+            'validation_status' => 'pending',
+        ]);
+
+        $guardUser = $guard->user;
+        $approveResponse = $this->actingAs($guardUser)->post("/pg/gate-inspection/{$activity->id}/approve");
+
+        $approveResponse->assertRedirect();
+
+        $this->assertDatabaseHas('vehicle_activities', [
+            'id' => $activity->id,
+            'validation_status' => 'approved',
+            'security_guard_id' => $guard->id,
+        ]);
+    }
 }

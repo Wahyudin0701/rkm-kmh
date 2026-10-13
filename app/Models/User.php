@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -54,6 +55,11 @@ class User extends Authenticatable
     public function gate(): BelongsTo
     {
         return $this->belongsTo(Gate::class);
+    }
+
+    public function securityGuard(): HasOne
+    {
+        return $this->hasOne(SecurityGuard::class);
     }
 
     public function isGateOfficer(): bool

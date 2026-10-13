@@ -46,16 +46,34 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 2. Seed Master Security Guards (Satpam PG)
-        $guards = [
-            ['name' => 'Ahmad Fauzi', 'is_active' => true],
-            ['name' => 'Budi Santoso', 'is_active' => true],
-            ['name' => 'Hendra Pratama', 'is_active' => true],
-            ['name' => 'Rusli Efendi', 'is_active' => true],
-            ['name' => 'Slamet Widodo', 'is_active' => true],
+        // 2. Seed Master Security Guards (Satpam PG Lengkap dengan Akun Login)
+        $guardData = [
+            ['badge_id' => 'SEC-001', 'name' => 'Ahmad Fauzi', 'team' => 1, 'gate' => 'BTUNGGAL'],
+            ['badge_id' => 'SEC-002', 'name' => 'Budi Santoso', 'team' => 2, 'gate' => 'ADIT1'],
+            ['badge_id' => 'SEC-003', 'name' => 'Hendra Pratama', 'team' => 3, 'gate' => 'REGWEIR'],
+            ['badge_id' => 'SEC-004', 'name' => 'Rusli Efendi', 'team' => 1, 'gate' => 'ADIT2'],
+            ['badge_id' => 'SEC-005', 'name' => 'Slamet Widodo', 'team' => 2, 'gate' => 'ADIT3'],
         ];
-        foreach ($guards as $guard) {
-            SecurityGuard::create($guard);
+
+        foreach ($guardData as $g) {
+            $gateModel = $createdGates[$g['gate']];
+            $guardUser = User::create([
+                'name' => $g['name'],
+                'username' => $g['badge_id'],
+                'email' => strtolower($g['badge_id']) . '@kmh.co.id',
+                'password' => Hash::make('password'),
+                'role' => 'gate_officer',
+                'gate_id' => $gateModel->id,
+            ]);
+
+            SecurityGuard::create([
+                'badge_id' => $g['badge_id'],
+                'name' => $g['name'],
+                'team' => $g['team'],
+                'gate_id' => $gateModel->id,
+                'user_id' => $guardUser->id,
+                'is_active' => true,
+            ]);
         }
 
         // 3. Seed Users (Admin & Shared Gate Accounts)

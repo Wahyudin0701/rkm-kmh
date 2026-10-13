@@ -21,6 +21,7 @@ class GateInspectionController extends Controller
     {
         // Ambil gerbang yang terikat pada akun petugas pos jaga yang sedang login
         $user = $request->user();
+        $currentGuard = $user ? $user->securityGuard : null;
         $gateId = $user ? $user->gate_id : $request->query('gate_id');
 
         // Jika tidak ada gate_id terikat, ambil gerbang pertama sebagai fallback
@@ -35,10 +36,10 @@ class GateInspectionController extends Controller
                 ->get();
         }
 
-        // Daftar satpam aktif untuk dipilih saat verifikasi
+        // Daftar satpam aktif untuk fallback pilihan
         $guards = SecurityGuard::where('is_active', true)->orderBy('name')->get();
 
-        return view('pg.gate_inspection', compact('gate', 'pendingActivities', 'guards'));
+        return view('pg.gate_inspection', compact('gate', 'pendingActivities', 'guards', 'currentGuard'));
     }
 
     /**
@@ -46,11 +47,18 @@ class GateInspectionController extends Controller
      */
     public function approve(Request $request, int $id): RedirectResponse
     {
-        $request->validate([
-            'security_guard_id' => ['required', 'exists:security_guards,id'],
-        ], [
-            'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan.',
-        ]);
+        $user = $request->user();
+        $currentGuard = $user ? $user->securityGuard : null;
+        $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
+
+        if (!$guardId) {
+            $request->validate([
+                'security_guard_id' => ['required', 'exists:security_guards,id'],
+            ], [
+                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan.',
+            ]);
+            $guardId = $request->input('security_guard_id');
+        }
 
         $activity = VehicleActivity::with('vehicle')->findOrFail($id);
 
@@ -58,9 +66,7 @@ class GateInspectionController extends Controller
             return back()->with('error', 'Aktivitas ini sudah pernah divalidasi sebelumnya.');
         }
 
-        DB::transaction(function () use ($request, $activity) {
-            $guardId = $request->input('security_guard_id');
-
+        DB::transaction(function () use ($guardId, $activity) {
             // 1. Update status aktivitas menjadi approved
             $activity->update([
                 'validation_status' => 'approved',
@@ -82,11 +88,22 @@ class GateInspectionController extends Controller
      */
     public function reject(Request $request, int $id): RedirectResponse
     {
+        $user = $request->user();
+        $currentGuard = $user ? $user->securityGuard : null;
+        $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
+
+        if (!$guardId) {
+            $request->validate([
+                'security_guard_id' => ['required', 'exists:security_guards,id'],
+            ], [
+                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam.',
+            ]);
+            $guardId = $request->input('security_guard_id');
+        }
+
         $request->validate([
-            'security_guard_id' => ['required', 'exists:security_guards,id'],
             'rejection_note' => ['required', 'string', 'max:500'],
         ], [
-            'security_guard_id.required' => 'Silakan pilih nama petugas Satpam.',
             'rejection_note.required' => 'Alasan penolakan wajib diisi.',
         ]);
 
@@ -98,7 +115,7 @@ class GateInspectionController extends Controller
 
         $activity->update([
             'validation_status' => 'rejected',
-            'security_guard_id' => $request->input('security_guard_id'),
+            'security_guard_id' => $guardId,
             'rejection_note' => $request->input('rejection_note'),
             'validated_at' => Carbon::now(),
         ]);

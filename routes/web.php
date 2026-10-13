@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
         Route::middleware('role:pg_admin')->group(function () {
             Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index');
             Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store');
+            Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update');
             Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle');
         });
 

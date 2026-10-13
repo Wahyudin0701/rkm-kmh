@@ -11,13 +11,28 @@ class SecurityGuard extends Model
     use HasFactory;
 
     protected $fillable = [
+        'badge_id',
         'name',
+        'team',
+        'gate_id',
+        'user_id',
         'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'team' => 'integer',
     ];
+
+    public function gate()
+    {
+        return $this->belongsTo(Gate::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function activities(): HasMany
     {
