@@ -30,65 +30,51 @@
         </div>
     </div>
 
-    <!-- 4 Kartu Statistik Ringkas Audit Satpam -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Kartu 1: Total Disetujui (Approved) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center flex-shrink-0 text-lg font-bold">
-                <i class="fa-solid fa-circle-check"></i>
+    <!-- 4 Kartu Metrik Ringkas Audit Satpam (Format Pastel Sederhana Sesuai Dashboard) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- 1. Total Disetujui (Pastel Mint / Emerald) -->
+        <div>
+            <div class="bg-[#edfbf4] border border-[#d1f5e2] rounded-3xl h-28 flex items-center justify-center shadow-xs">
+                <span class="text-4xl sm:text-5xl font-black text-[#10b981]">{{ number_format($totalApproved, 0, ',', '.') }}</span>
             </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Disetujui</p>
-                <h3 class="text-xl font-extrabold text-slate-800">{{ number_format($totalApproved, 0, ',', '.') }}</h3>
-            </div>
+            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DISETUJUI</p>
         </div>
 
-        <!-- Kartu 2: Total Ditolak (Rejected) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 text-lg font-bold">
-                <i class="fa-solid fa-circle-xmark"></i>
+        <!-- 2. Total Ditolak (Pastel Rose / Merah) -->
+        <div>
+            <div class="bg-[#fef2f2] border border-[#fee2e2] rounded-3xl h-28 flex items-center justify-center shadow-xs">
+                <span class="text-4xl sm:text-5xl font-black text-[#e11d48]">{{ number_format($totalRejected, 0, ',', '.') }}</span>
             </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ditolak</p>
-                <h3 class="text-xl font-extrabold text-slate-800">{{ number_format($totalRejected, 0, ',', '.') }}</h3>
-            </div>
+            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DITOLAK</p>
         </div>
 
-        <!-- Kartu 3: Total Antrean (Pending) -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0 text-lg font-bold">
-                <i class="fa-solid fa-hourglass-half"></i>
+        <!-- 3. Total Menunggu (Pastel Amber / Yellow) -->
+        <div>
+            <div class="bg-[#fef9e8] border border-[#feefc7] rounded-3xl h-28 flex items-center justify-center shadow-xs">
+                <span class="text-4xl sm:text-5xl font-black text-[#f59e0b]">{{ number_format($totalPending, 0, ',', '.') }}</span>
             </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Menunggu</p>
-                <h3 class="text-xl font-extrabold text-slate-800">{{ number_format($totalPending, 0, ',', '.') }}</h3>
-            </div>
+            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">MENUNGGU</p>
         </div>
 
-        <!-- Kartu 4: Pemeriksaan Hari Ini -->
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-[#06213f]/10 text-[#06213f] flex items-center justify-center flex-shrink-0 text-lg font-bold">
-                <i class="fa-solid fa-calendar-day"></i>
+        <!-- 4. Pemeriksaan Hari Ini (Pastel Biru Muda) -->
+        <div>
+            <div class="bg-[#edf5fd] border border-[#d2e4fb] rounded-3xl h-28 flex items-center justify-center shadow-xs">
+                <span class="text-4xl sm:text-5xl font-black text-[#1976d2]">{{ number_format($todayInspections, 0, ',', '.') }}</span>
             </div>
-            <div class="min-w-0">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hari Ini</p>
-                <h3 class="text-xl font-extrabold text-slate-800">{{ number_format($todayInspections, 0, ',', '.') }}</h3>
-            </div>
+            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">HARI INI</p>
         </div>
     </div>
 
-    <!-- Filter Bar Card Komprehensif -->
+    <!-- Filter Bar Card Komprehensif (Tanpa Ikon pada Label) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
         <form method="GET" action="{{ route('pg.logs.index') }}" class="space-y-4">
             <!-- Header Filter & Tombol Reset -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center space-x-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
-                    <i class="fa-solid fa-sliders text-[#1b5e20]"></i>
-                    <span>Filter & Pencarian Log Audit</span>
-                </div>
+                <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
+                    Filter & Pencarian Log Audit
+                </span>
                 @if(request()->hasAny(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
-                    <a href="{{ route('pg.logs.index') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
-                        <i class="fa-solid fa-rotate-left"></i>
+                    <a href="{{ route('pg.logs.index') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition">
                         <span>Reset Semua Filter</span>
                     </a>
                 @endif
@@ -98,9 +84,8 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
                 <!-- Pencarian Kata Kunci -->
                 <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                        <span>Pencarian Cepat</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Pencarian Cepat
                     </label>
                     <input type="text" 
                            name="search" 
@@ -111,9 +96,8 @@
 
                 <!-- Filter Regu Satpam (Regu 1, 2, 3) -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-users text-slate-400"></i>
-                        <span>Regu Satpam</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Regu Satpam
                     </label>
                     <select name="team" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Regu</option>
@@ -125,9 +109,8 @@
 
                 <!-- Filter Petugas Satpam Spesifik -->
                 <div class="lg:col-span-3">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-shield text-slate-400"></i>
-                        <span>Petugas Satpam</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Petugas Satpam
                     </label>
                     <select name="security_guard_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Petugas Satpam</option>
@@ -141,9 +124,8 @@
 
                 <!-- Filter Pos Gerbang -->
                 <div class="lg:col-span-3">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-torii-gate text-slate-400"></i>
-                        <span>Pos Gerbang</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Pos Gerbang
                     </label>
                     <select name="gate_id" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Gerbang</option>
@@ -155,9 +137,8 @@
 
                 <!-- Filter Arah Gerbang -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrows-left-right text-slate-400"></i>
-                        <span>Arah Gerbang</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Arah Gerbang
                     </label>
                     <select name="direction" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Arah</option>
@@ -168,9 +149,8 @@
 
                 <!-- Filter Status Verifikasi -->
                 <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-solid fa-circle-check text-slate-400"></i>
-                        <span>Status</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Status
                     </label>
                     <select name="status" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
@@ -182,9 +162,8 @@
 
                 <!-- Rentang Mulai Tanggal -->
                 <div class="lg:col-span-3">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar text-slate-400"></i>
-                        <span>Mulai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Mulai Tanggal
                     </label>
                     <input type="date" 
                            name="start_date" 
@@ -194,9 +173,8 @@
 
                 <!-- Rentang Sampai Tanggal -->
                 <div class="lg:col-span-3">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                        <i class="fa-regular fa-calendar-check text-slate-400"></i>
-                        <span>Sampai Tanggal</span>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Sampai Tanggal
                     </label>
                     <input type="date" 
                            name="end_date" 
@@ -206,8 +184,7 @@
 
                 <!-- Tombol Submit Terapkan Filter -->
                 <div class="lg:col-span-2 flex items-end">
-                    <button type="submit" class="w-full bg-[#1b5e20] hover:bg-[#144919] text-white py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-sm transition">
-                        <i class="fa-solid fa-filter text-xs"></i>
+                    <button type="submit" class="w-full bg-[#1b5e20] hover:bg-[#144919] text-white py-2.5 px-4 rounded-xl text-xs font-bold flex items-center justify-center shadow-sm transition">
                         <span>Terapkan</span>
                     </button>
                 </div>
