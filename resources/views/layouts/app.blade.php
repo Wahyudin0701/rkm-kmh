@@ -399,16 +399,21 @@
                 </div>
             </div>
 
-            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50">
-                <a href="{{ route('profile.index') }}" class="flex items-center space-x-2 hover:opacity-80 transition">
-                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-bold text-xs flex items-center justify-center">
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <a href="{{ route('profile.index') }}" class="flex items-center space-x-2.5 min-w-0 hover:opacity-80 transition group" title="Buka Profil Saya">
+                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
-                    <span class="text-xs font-bold text-slate-800">{{ auth()->user()->name }}</span>
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-slate-800 truncate leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
+                        <p class="text-[10px] text-slate-400 capitalize truncate">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
+                    </div>
                 </a>
-                <form action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" class="inline">
                     @csrf
-                    <button type="submit" class="text-rose-600 text-xs font-bold px-2.5 py-1 rounded bg-rose-50">Logout</button>
+                    <button type="submit" title="Logout" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                    </button>
                 </form>
             </div>
         </div>
