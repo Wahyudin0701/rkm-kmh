@@ -290,10 +290,7 @@
 
                             <!-- Pos Gerbang -->
                             <td class="py-3 px-4 whitespace-nowrap font-bold text-slate-800">
-                                <div class="flex items-center gap-1.5">
-                                    <i class="fa-solid fa-torii-gate text-slate-400 text-xs"></i>
-                                    <span>{{ $item->gate ? $item->gate->name : '-' }}</span>
-                                </div>
+                                <span>{{ $item->gate ? $item->gate->name : '-' }}</span>
                             </td>
 
                             <!-- Kendaraan -->

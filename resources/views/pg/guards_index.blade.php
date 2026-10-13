@@ -100,7 +100,6 @@
                             <!-- Penempatan Pos Gerbang -->
                             <td class="py-3.5 px-4 whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                    <i class="fa-solid fa-torii-gate mr-1.5 text-slate-400 text-[10px]"></i>
                                     {{ $g->gate->name ?? 'Belum Ditentukan' }}
                                 </span>
                             </td>
