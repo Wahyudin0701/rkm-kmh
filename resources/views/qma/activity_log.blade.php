@@ -36,12 +36,16 @@
                 <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
                     Filter & Pencarian Log
                 </span>
-                @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
-                    <a href="{{ route('qma.activity.log') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
-                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                        <span>Reset Filter</span>
-                    </a>
-                @endif
+                <div id="headerResetFilterContainer">
+                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                        <a href="{{ route('qma.activity.log') }}" 
+                           id="headerResetFilterBtn" 
+                           class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition">
+                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                            <span>Reset Filter</span>
+                        </a>
+                    @endif
+                </div>
             </div>
 
             <!-- Baris Input Filter (Grid Responsif 12 Kolom) -->
@@ -54,6 +58,7 @@
                     <div class="relative">
                         <input type="text" 
                                name="search" 
+                               id="activityLogSearchInput"
                                value="{{ request('search') }}" 
                                placeholder="Cari Kode LV, Driver, Plat, Keperluan..." 
                                class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
@@ -146,9 +151,9 @@
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Status PG</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                <tbody id="activityLogTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($activities as $act)
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="activity-row hover:bg-slate-50/70 transition">
                             <!-- Tanggal & Waktu -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 <div class="font-bold text-slate-900">{{ $act->recorded_at->locale('id')->translatedFormat('d M Y') }}</div>
@@ -264,6 +269,19 @@
                             </td>
                         </tr>
                     @endforelse
+
+                    <!-- Baris Hasil Pencarian Real-Time Kosong -->
+                    <tr id="clientSearchEmptyRow" class="hidden">
+                        <td colspan="11" class="py-12 px-4 text-center">
+                            <div class="flex flex-col items-center justify-center space-y-2">
+                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </div>
+                                <div class="text-sm font-bold text-slate-700">Tidak Ada Hasil Pencarian</div>
+                                <p class="text-xs text-slate-400">Tidak ditemukan log aktivitas yang sesuai dengan kata kunci pencarian Anda.</p>
+                            </div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -276,4 +294,67 @@
         @endif
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('activityLogSearchInput');
+    const tableBody = document.getElementById('activityLogTableBody');
+    const resetContainer = document.getElementById('headerResetFilterContainer');
+    const emptyRow = document.getElementById('clientSearchEmptyRow');
+    const hasServerFilters = {{ request()->anyFilled(['start_date', 'end_date', 'gate_id', 'direction', 'status']) ? 'true' : 'false' }};
+
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('input', function (e) {
+            const query = e.target.value.toLowerCase().trim();
+            const rows = tableBody.querySelectorAll('tr.activity-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(query)) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Tampilkan pesan kosong jika tidak ada baris yang cocok secara instan
+            if (emptyRow) {
+                if (rows.length > 0 && visibleCount === 0) {
+                    emptyRow.classList.remove('hidden');
+                } else {
+                    emptyRow.classList.add('hidden');
+                }
+            }
+
+            // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
+            if (resetContainer) {
+                let resetBtn = document.getElementById('headerResetFilterBtn');
+                if (query.length > 0 || hasServerFilters) {
+                    if (!resetBtn) {
+                        resetBtn = document.createElement('a');
+                        resetBtn.href = "{{ route('qma.activity.log') }}";
+                        resetBtn.id = 'headerResetFilterBtn';
+                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition';
+
+                        const resetIcon = document.createElement('i');
+                        resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
+                        const resetText = document.createElement('span');
+                        resetText.textContent = 'Reset Filter';
+
+                        resetBtn.appendChild(resetIcon);
+                        resetBtn.appendChild(resetText);
+                        resetContainer.appendChild(resetBtn);
+                    }
+                } else {
+                    if (resetBtn && !hasServerFilters) {
+                        resetBtn.remove();
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
 @endsection
