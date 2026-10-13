@@ -28,18 +28,37 @@ class GateInspectionController extends Controller
         $gate = $gateId ? Gate::find($gateId) : Gate::first();
 
         $pendingActivities = collect();
+        $todayApprovedCount = 0;
+        $todayRejectedCount = 0;
         if ($gate) {
             $pendingActivities = VehicleActivity::where('gate_id', $gate->id)
                 ->where('validation_status', 'pending')
                 ->with(['vehicle', 'driver'])
                 ->orderBy('recorded_at', 'asc')
                 ->get();
+
+            $todayApprovedCount = VehicleActivity::where('gate_id', $gate->id)
+                ->where('validation_status', 'approved')
+                ->whereDate('validated_at', Carbon::today())
+                ->count();
+
+            $todayRejectedCount = VehicleActivity::where('gate_id', $gate->id)
+                ->where('validation_status', 'rejected')
+                ->whereDate('validated_at', Carbon::today())
+                ->count();
         }
 
         // Daftar satpam aktif untuk fallback pilihan
         $guards = SecurityGuard::where('is_active', true)->orderBy('name')->get();
 
-        return view('pg.gate_inspection', compact('gate', 'pendingActivities', 'guards', 'currentGuard'));
+        return view('pg.gate_inspection', compact(
+            'gate', 
+            'pendingActivities', 
+            'guards', 
+            'currentGuard',
+            'todayApprovedCount',
+            'todayRejectedCount'
+        ));
     }
 
     /**

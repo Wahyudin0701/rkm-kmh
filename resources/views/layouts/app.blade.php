@@ -108,19 +108,15 @@
                         @elseif(auth()->user()->isGateOfficer())
                             <a href="{{ route('pg.gate.inspection') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                                </svg>
-                                <span>Pos Gerbang</span>
+                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                                <span>Verifikasi Pos Gerbang</span>
                             </a>
                         @endif
                     </nav>
                 </div>
 
                 <!-- Grup: Modul Operasional RKM -->
+                @if(!auth()->user()->isGateOfficer())
                 <div>
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN SISTEM
@@ -332,13 +328,8 @@
                             <span>Log Verifikasi Gerbang</span>
                         </a>
                     @endif
-                    @if(auth()->user()->isGateOfficer())
-                        <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                            <span>Pos Gerbang</span>
-                        </a>
-                    @endif
                 </div>
+                @endif
 
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mt-4">PENGATURAN</p>
                 <div class="space-y-1">
