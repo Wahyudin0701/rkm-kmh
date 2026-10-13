@@ -115,7 +115,6 @@
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu PG</option>
-                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Ditolak</option>
                     </select>
                 </div>
 

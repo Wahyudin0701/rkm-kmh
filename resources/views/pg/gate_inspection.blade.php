@@ -44,8 +44,8 @@
         </div>
     </div>
 
-    <!-- 4 Kartu Ringkasan Operasional (Gaya Pastel Sederhana & Bersih) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- 3 Kartu Ringkasan Operasional (Gaya Pastel Sederhana & Bersih) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <!-- 1. Antrean Menunggu -->
         <div>
             <div class="bg-[#fef9e8] border border-[#feefc7] rounded-3xl h-24 sm:h-28 flex items-center justify-center shadow-xs">
@@ -54,23 +54,15 @@
             <p class="mt-2 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">ANTREAN MENUNGGU</p>
         </div>
 
-        <!-- 2. Disetujui Hari Ini -->
+        <!-- 2. Divalidasi Hari Ini -->
         <div>
             <div class="bg-[#eef7ee] border border-[#d6ebd7] rounded-3xl h-24 sm:h-28 flex items-center justify-center shadow-xs">
                 <span class="text-3xl sm:text-4xl font-black text-[#2e7d32]">{{ $todayApprovedCount }}</span>
             </div>
-            <p class="mt-2 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DISETUJUI HARI INI</p>
+            <p class="mt-2 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DIVALIDASI HARI INI</p>
         </div>
 
-        <!-- 3. Ditolak Hari Ini -->
-        <div>
-            <div class="bg-[#fef2f2] border border-[#fecdd3] rounded-3xl h-24 sm:h-28 flex items-center justify-center shadow-xs">
-                <span class="text-3xl sm:text-4xl font-black text-[#e11d48]">{{ $todayRejectedCount }}</span>
-            </div>
-            <p class="mt-2 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">DITOLAK HARI INI</p>
-        </div>
-
-        <!-- 4. Pos Jaga & Regu Piket -->
+        <!-- 3. Pos Jaga & Regu Piket -->
         <div>
             <div class="bg-[#edf5fd] border border-[#d2e4fb] rounded-3xl h-24 sm:h-28 flex flex-col items-center justify-center px-3 text-center shadow-xs">
                 <span class="text-sm sm:text-base font-black text-[#1976d2] truncate max-w-full">
@@ -319,60 +311,11 @@
                     </div>
                 @endif
 
-                <div class="flex items-center space-x-2 pt-2 border-t border-slate-100">
-                    <button type="submit" class="flex-1 bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm cursor-pointer">
+                <div class="pt-2 border-t border-slate-100">
+                    <button type="submit" class="w-full bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs py-2.5 px-4 rounded-xl transition flex items-center justify-center space-x-2 shadow-sm cursor-pointer">
                         <i class="fa-solid fa-check"></i>
-                        <span>Setujui (Buka Portal)</span>
+                        <span>Validasi (Kendaraan Lewat)</span>
                     </button>
-                    <button type="button" onclick="showRejectSection()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs py-2.5 px-3.5 rounded-xl transition cursor-pointer">
-                        Tolak
-                    </button>
-                </div>
-            </form>
-
-            <!-- Form Tolak (Hidden by default) -->
-            <form id="rejectForm" method="POST" action="" class="hidden border-t border-rose-100 pt-3">
-                @csrf
-                <div class="space-y-3">
-                    <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-bold text-rose-800">
-                                Alasan Penolakan <span class="text-rose-500">*</span>
-                            </label>
-                            <span class="text-[10px] text-slate-400">Pilih opsi cepat atau ketik sendiri</span>
-                        </div>
-
-                        <!-- Template Alasan Cepat (Friendly UX untuk Satpam) -->
-                        <div class="flex flex-wrap gap-1.5 mb-2">
-                            <button type="button" onclick="setRejectReason('Angka odometer fisik pada kendaraan tidak sesuai dengan sistem.')" class="text-[10px] bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 px-2 py-1 rounded-lg border border-slate-200 transition cursor-pointer">
-                                KM Fisik Tidak Sesuai
-                            </button>
-                            <button type="button" onclick="setRejectReason('Driver tidak memiliki izin SIMPER aktif.')" class="text-[10px] bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 px-2 py-1 rounded-lg border border-slate-200 transition cursor-pointer">
-                                SIMPER Expired / Tidak Ada
-                            </button>
-                            <button type="button" onclick="setRejectReason('Kondisi unit tidak laik jalan / ada kendala keselamatan fisik.')" class="text-[10px] bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 px-2 py-1 rounded-lg border border-slate-200 transition cursor-pointer">
-                                Unit Tidak Laik Jalan
-                            </button>
-                            <button type="button" onclick="setRejectReason('Tanpa surat izin dinas / operasional resmi.')" class="text-[10px] bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-600 px-2 py-1 rounded-lg border border-slate-200 transition cursor-pointer">
-                                Tanpa Izin Operasional
-                            </button>
-                        </div>
-
-                        <textarea name="rejection_note" id="rejectionNoteInput" required rows="2" placeholder="Tuliskan catatan alasan penolakan secara jelas..." class="w-full text-xs rounded-xl border-rose-300 border p-2.5 focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 bg-rose-50/20 text-slate-800"></textarea>
-                    </div>
-
-                    @if(!$currentGuard)
-                        <input type="hidden" name="security_guard_id" id="rejectGuardId">
-                    @endif
-
-                    <div class="flex items-center space-x-2">
-                        <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs py-2.5 px-3 rounded-xl transition shadow-sm cursor-pointer">
-                            Konfirmasi Tolak Kendaraan
-                        </button>
-                        <button type="button" onclick="document.getElementById('rejectForm').classList.add('hidden')" class="px-3 py-2.5 text-xs text-slate-500 hover:text-slate-700 transition cursor-pointer">
-                            Batal
-                        </button>
-                    </div>
                 </div>
             </form>
         </div>
@@ -456,39 +399,12 @@
         }
 
         document.getElementById('approveForm').action = `/pg/gate-inspection/${activityId}/approve`;
-        document.getElementById('rejectForm').action = `/pg/gate-inspection/${activityId}/reject`;
-
-        document.getElementById('rejectForm').classList.add('hidden');
         document.getElementById('verificationModal').classList.remove('hidden');
     }
 
     function closeVerificationModal() {
         document.getElementById('verificationModal').classList.add('hidden');
         isModalOpen = false;
-    }
-
-    function showRejectSection() {
-        const guardSelect = document.getElementById('security_guard_id');
-        const rejectGuardInput = document.getElementById('rejectGuardId');
-        
-        if (guardSelect && rejectGuardInput) {
-            if (!guardSelect.value) {
-                alert('Silakan pilih nama petugas Satpam terlebih dahulu sebelum menolak!');
-                guardSelect.focus();
-                return;
-            }
-            rejectGuardInput.value = guardSelect.value;
-        }
-
-        document.getElementById('rejectForm').classList.toggle('hidden');
-    }
-
-    function setRejectReason(reason) {
-        const textarea = document.getElementById('rejectionNoteInput');
-        if (textarea) {
-            textarea.value = reason;
-            textarea.focus();
-        }
     }
 
     // Tutup modal jika tombol Escape ditekan
