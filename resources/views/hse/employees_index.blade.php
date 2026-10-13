@@ -42,58 +42,51 @@
         </div>
     </div>
 
-    <!-- Filter & Pencarian Data Simper -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3.5 sm:p-4">
-        <form method="GET" action="{{ route('hse.employees.index') }}" class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
-                <!-- Pencarian Cepat -->
-                <div class="relative flex-1 max-w-sm">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    </span>
-                    <input type="text" 
-                           name="search"
-                           id="simperSearchInput"
-                           value="{{ request('search') }}"
-                           placeholder="Cari NIK atau nama karyawan..." 
-                           class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                </div>
+    <!-- Kotak Pencarian & Filter Status Simper (Tanpa Card Wrapper, Format Referensi) -->
+    <form method="GET" action="{{ route('hse.employees.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <!-- Pencarian Cepat di Kiri -->
+        <div class="relative w-full max-w-sm sm:max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </span>
+            <input type="text" 
+                   name="search"
+                   id="simperSearchInput"
+                   value="{{ request('search') }}"
+                   placeholder="Cari NIK atau nama karyawan..." 
+                   class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+        </div>
 
-                <!-- Filter Status Driver -->
-                <div class="w-full sm:w-48">
-                    <select name="driver_status" 
-                            onchange="this.form.submit()" 
-                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                        <option value="">Semua Status Driver</option>
-                        <option value="driver" {{ request('driver_status') === 'driver' ? 'selected' : '' }}>Driver</option>
-                        <option value="non_driver" {{ request('driver_status') === 'non_driver' ? 'selected' : '' }}>Bukan Driver</option>
-                    </select>
-                </div>
+        <!-- Filter di Kanan (Disusun dari Kanan ke Tengah) -->
+        <div class="flex flex-wrap items-center justify-end gap-2.5">
+            <!-- Filter Status Driver -->
+            <select name="driver_status" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+                <option value="">Semua Status Driver</option>
+                <option value="driver" {{ request('driver_status') === 'driver' ? 'selected' : '' }}>Driver</option>
+                <option value="non_driver" {{ request('driver_status') === 'non_driver' ? 'selected' : '' }}>Bukan Driver</option>
+            </select>
 
-                <!-- Filter Masa Berlaku SIMPER -->
-                <div class="w-full sm:w-56">
-                    <select name="simper_status" 
-                            onchange="this.form.submit()" 
-                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                        <option value="">Semua Masa Berlaku</option>
-                        <option value="valid" {{ request('simper_status') === 'valid' ? 'selected' : '' }}>Masih Berlaku (Aktif)</option>
-                        <option value="expiring_soon" {{ request('simper_status') === 'expiring_soon' ? 'selected' : '' }}>Segera Habis (≤ 30 Hari)</option>
-                        <option value="expired" {{ request('simper_status') === 'expired' ? 'selected' : '' }}>Kedaluwarsa (Expired)</option>
-                    </select>
-                </div>
-            </div>
+            <!-- Filter Masa Berlaku SIMPER -->
+            <select name="simper_status" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+                <option value="">Semua Masa Berlaku</option>
+                <option value="valid" {{ request('simper_status') === 'valid' ? 'selected' : '' }}>Masih Berlaku (Aktif)</option>
+                <option value="expiring_soon" {{ request('simper_status') === 'expiring_soon' ? 'selected' : '' }}>Segera Habis (≤ 30 Hari)</option>
+                <option value="expired" {{ request('simper_status') === 'expired' ? 'selected' : '' }}>Kedaluwarsa (Expired)</option>
+            </select>
 
             <!-- Tombol Reset (Hanya tampil saat filter digunakan) -->
             @if(request()->anyFilled(['search', 'driver_status', 'simper_status']))
-                <div class="flex items-center justify-end">
-                    <a href="{{ route('hse.employees.index') }}" 
-                       class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition whitespace-nowrap">
-                        <span>Reset</span>
-                    </a>
-                </div>
+                <a href="{{ route('hse.employees.index') }}" 
+                   class="px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition whitespace-nowrap shadow-sm">
+                    <span>Reset</span>
+                </a>
             @endif
-        </form>
-    </div>
+        </div>
+    </form>
 
     <!-- Tabel Data Simper dengan Header Biru Tua Navy (Persis Format Gambar) -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
