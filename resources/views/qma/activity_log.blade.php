@@ -177,7 +177,7 @@
                     <tr>
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Tanggal</th>
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Kode LV</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">Unit</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[220px]">Unit</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Penanggung Jawab</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Driver</th>
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Gate</th>
@@ -205,10 +205,10 @@
                             </td>
 
                             <!-- Unit & Plat -->
-                            <td class="py-3.5 px-4">
-                                <div class="font-bold text-slate-900">{{ $act->vehicle->brand_type }}</div>
+                            <td class="py-3.5 px-4 min-w-[220px]">
+                                <div class="font-bold text-slate-900 whitespace-nowrap">{{ $act->vehicle->brand_type }}</div>
                                 @if($act->vehicle->license_plate)
-                                    <span class="inline-block text-[10px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-0.5">
+                                    <span class="inline-block text-[10px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-0.5 whitespace-nowrap">
                                         {{ $act->vehicle->license_plate }}
                                     </span>
                                 @else
@@ -237,12 +237,12 @@
                             <!-- Akses (In / Out) -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 @if($act->direction === 'in')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="fa-solid fa-arrow-right-to-bracket mr-1.5 text-emerald-600"></i> MASUK
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        MASUK
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                        <i class="fa-solid fa-arrow-right-from-bracket mr-1.5 text-blue-600"></i> KELUAR
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                        KELUAR
                                     </span>
                                 @endif
                             </td>
