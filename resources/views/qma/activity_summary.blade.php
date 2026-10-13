@@ -157,49 +157,57 @@
         </div>
     </form>
 
-    <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- KPI Metric Cards (Mobile: Format 2 Kolom Horisontal x 2 Kolom Vertikal) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <!-- Total Pergerakan / Trips -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pergerakan</p>
-            <h3 class="text-2xl font-black text-slate-900 mt-1">{{ number_format($totalActivities, 0, ',', '.') }}</h3>
-            <div class="flex items-center space-x-2 mt-1 text-[11px]">
+        <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <p class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Pergerakan</p>
+                <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">{{ number_format($totalActivities, 0, ',', '.') }}</h3>
+            </div>
+            <div class="flex flex-wrap items-center gap-1 sm:space-x-2 mt-1.5 sm:mt-1 text-[10px] sm:text-[11px]">
                 <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-arrow-down mr-0.5"></i> {{ $inCount }} Masuk</span>
-                <span class="text-slate-300">•</span>
+                <span class="text-slate-300 hidden sm:inline">•</span>
                 <span class="text-blue-700 font-semibold"><i class="fa-solid fa-arrow-up mr-0.5"></i> {{ $outCount }} Keluar</span>
             </div>
         </div>
 
         <!-- Akumulasi Jarak Tempuh (KM) -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Jarak Tempuh</p>
-            <h3 class="text-2xl font-black text-emerald-700 font-mono mt-1">
-                {{ number_format($totalDistance, 0, ',', '.') }} <span class="text-xs font-sans font-bold text-slate-500">KM</span>
-            </h3>
-            <p class="text-[11px] text-slate-500 mt-1">
+        <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <p class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Jarak Tempuh</p>
+                <h3 class="text-xl sm:text-2xl font-black text-emerald-700 font-mono mt-1">
+                    {{ number_format($totalDistance, 0, ',', '.') }} <span class="text-xs font-sans font-bold text-slate-500">KM</span>
+                </h3>
+            </div>
+            <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1.5 sm:mt-1">
                 Rata-rata: <span class="font-bold font-mono text-slate-700">{{ number_format($avgDistancePerTrip, 1, ',', '.') }} KM</span>/trip
             </p>
         </div>
 
         <!-- Armada Beroperasi -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Armada Beroperasi</p>
-            <h3 class="text-2xl font-black text-slate-900 mt-1">{{ $activeVehiclesCount }} <span class="text-xs font-bold text-slate-500 font-sans">Unit</span></h3>
-            <p class="text-[11px] text-slate-500 mt-1">
+        <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <p class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Armada Beroperasi</p>
+                <h3 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">{{ $activeVehiclesCount }} <span class="text-xs font-bold text-slate-500 font-sans">Unit</span></h3>
+            </div>
+            <p class="text-[10px] sm:text-[11px] text-slate-500 mt-1.5 sm:mt-1">
                 Unit aktif dalam periode ini
             </p>
         </div>
 
         <!-- Status Validasi PG -->
-        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Status Validasi PG</p>
-            <div class="flex items-center space-x-2 mt-2">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    {{ $approvedCount }} Disetujui
-                </span>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                    {{ $pendingCount }} Menunggu
-                </span>
+        <div class="bg-white rounded-2xl p-3.5 sm:p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div>
+                <p class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Status Validasi PG</p>
+                <div class="flex flex-wrap items-center gap-1 sm:space-x-2 mt-2">
+                    <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {{ $approvedCount }} Disetujui
+                    </span>
+                    <span class="inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        {{ $pendingCount }} Menunggu
+                    </span>
+                </div>
             </div>
             @if($rejectedCount > 0)
                 <p class="text-[10px] text-rose-600 font-semibold mt-1">
