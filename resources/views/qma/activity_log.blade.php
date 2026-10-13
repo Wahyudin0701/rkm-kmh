@@ -25,8 +25,8 @@
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('qma.activity.summary') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition group">
-                <i class="fa-solid fa-chart-pie mr-2 text-emerald-400 group-hover:scale-110 transition-transform"></i>
+            <a href="{{ route('qma.activity.summary') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
+                <i class="fa-solid fa-chart-pie mr-2 text-slate-500 group-hover:text-slate-800"></i>
                 <span>Summary Aktifitas</span>
             </a>
         </div>
