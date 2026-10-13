@@ -20,11 +20,19 @@ class VerificationLogController extends Controller
         $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
             ->orderByRaw('COALESCE(validated_at, recorded_at) DESC');
 
-        // Filter Rentang Tanggal
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
-            $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
-            $query->whereBetween('recorded_at', [$startDate, $endDate]);
+        // Filter Rentang Tanggal (Default Hari Ini)
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
+
+        if ($startDate && $endDate) {
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+            $query->whereBetween('recorded_at', [$start, $end]);
+        } elseif ($startDate) {
+            $query->where('recorded_at', '>=', Carbon::parse($startDate)->startOfDay());
+        } elseif ($endDate) {
+            $query->where('recorded_at', '<=', Carbon::parse($endDate)->endOfDay());
         }
 
         // Filter Regu Satpam (1, 2, 3)
@@ -82,6 +90,6 @@ class VerificationLogController extends Controller
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $guards = SecurityGuard::orderBy('name')->get();
 
-        return view('pg.verification_logs', compact('activities', 'gates', 'guards'));
+        return view('pg.verification_logs', compact('activities', 'gates', 'guards', 'startDate', 'endDate'));
     }
 }

@@ -31,9 +31,14 @@ class EmployeeController extends Controller
             ->take(5)
             ->get();
 
-        // 2. Log Status & Masa Berlaku SIMPER (Semua Driver dengan status SIMPER)
+        // 2. Monitoring Status & Masa Berlaku SIMPER (Prioritas Kedaluwarsa & Segera Habis)
+        $today = now()->toDateString();
         $simperLogs = Employee::where('is_operator', true)
-            ->orderBy('simper_expired_at', 'asc')
+            ->orderByRaw("CASE 
+                WHEN simper_expired_at IS NULL THEN 1 
+                WHEN simper_expired_at < '{$today}' THEN 0 
+                ELSE 2 
+            END ASC, simper_expired_at ASC")
             ->take(5)
             ->get();
 

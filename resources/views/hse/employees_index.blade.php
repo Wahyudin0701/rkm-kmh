@@ -3,7 +3,7 @@
 @section('title', 'Data Simper - Admin HSE | PT Kerinci Merangin Hidro')
 
 @section('content')
-<div class="space-y-6">
+<div class="w-full space-y-6">
 
     <!-- Header Judul & Tombol Aksi (Persis Format Gambar Data Karyawan IT All Role) -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -192,11 +192,20 @@
                     @empty
                         <tr>
                             <td colspan="8" class="py-12 text-center text-slate-400">
-                                <i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>
-                                Belum ada data pengemudi atau SIMPER yang sesuai kriteria filter.
+                                <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                                @if(request('search'))
+                                    <p class="text-sm font-semibold text-slate-700">
+                                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-1">Pastikan ejaan NIK atau nama karyawan yang dicari sudah benar.</p>
+                                @else
+                                    <p class="text-sm font-semibold text-slate-700">Belum ada data pengemudi atau SIMPER yang sesuai kriteria filter.</p>
+                                @endif
+
                                 @if(request()->anyFilled(['search', 'driver_status', 'simper_status']))
-                                    <div class="mt-3">
-                                        <a href="{{ route('hse.employees.index') }}" class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1b5e20] bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">
+                                    <div class="mt-4">
+                                        <a href="{{ route('hse.employees.index') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition">
+                                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
                                             <span>Reset Filter</span>
                                         </a>
                                     </div>
@@ -211,7 +220,7 @@
 </div>
 
 <!-- Modal Dialog Add Karyawan (Persis Format Gambar IT All Role) -->
-<div id="addKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="addKaryawanModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
         <!-- Header Modal Bersih Tanpa Banner Gelap Sesuai Gambar -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -302,7 +311,7 @@
 </div>
 
 <!-- Modal Dialog Perpanjang SIMPER (Clean White Card) -->
-<div id="renewModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="renewModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-7 border border-slate-100 overflow-hidden">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <h3 class="text-xl font-bold text-slate-900 tracking-tight">Perpanjang SIMPER</h3>
@@ -345,7 +354,7 @@
 </div>
 
 <!-- Modal Dialog Edit Data Simper Karyawan -->
-<div id="editModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="editModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -610,15 +619,59 @@
     // Filter Pencarian Instan Real-time
     const searchInput = document.getElementById('simperSearchInput');
     const resetContainer = document.getElementById('simperResetContainer');
+    const tableBody = document.getElementById('simperTableBody');
     const hasServerFilters = {{ request()->anyFilled(['search', 'driver_status', 'simper_status']) ? 'true' : 'false' }};
 
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     searchInput?.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase().trim();
+        const rawValue = e.target.value;
+        const query = rawValue.toLowerCase().trim();
         const rows = document.querySelectorAll('#simperTableBody tr.simper-row');
+        let visibleCount = 0;
+
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(query) ? '' : 'none';
+            const match = text.includes(query);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
         });
+
+        // Hapus baris pesan kosong pencarian jika ada sebelumnya
+        const existingEmptyRow = document.getElementById('simperEmptySearchRow');
+        if (existingEmptyRow) {
+            existingEmptyRow.remove();
+        }
+
+        // Tampilkan pesan jika tidak ada data yang cocok di tabel
+        if (rows.length > 0 && visibleCount === 0 && query.length > 0) {
+            const emptyTr = document.createElement('tr');
+            emptyTr.id = 'simperEmptySearchRow';
+            emptyTr.innerHTML = `
+                <td colspan="8" class="py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                    <p class="text-sm font-semibold text-slate-700">
+                        Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                    </p>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Pastikan ejaan NIK atau nama karyawan yang dicari sudah benar.
+                    </p>
+                    <div class="mt-4">
+                        <button type="button" 
+                                onclick="const inp = document.getElementById('simperSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                            <span>Hapus Pencarian</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tableBody?.appendChild(emptyTr);
+        }
 
         // Tampilkan/sembunyikan tombol Reset Filter secara real-time saat mengetik
         let resetBtn = document.getElementById('simperResetBtn');

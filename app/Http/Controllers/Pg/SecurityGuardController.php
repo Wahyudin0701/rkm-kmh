@@ -17,10 +17,33 @@ class SecurityGuardController extends Controller
     /**
      * Tampilkan daftar petugas Satpam beserta daftar pos gerbang.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        $guards = SecurityGuard::with(['gate', 'user'])
-            ->orderBy('team')
+        $query = SecurityGuard::with(['gate', 'user']);
+
+        // 1. Pencarian Kata Kunci (ID Satpam / Nama Lengkap / Pos Gerbang)
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('badge_id', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
+                  ->orWhereHas('gate', function ($gq) use ($search) {
+                      $gq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // 2. Filter Regu Satpam (Regu 1, 2, atau 3)
+        if ($request->filled('team')) {
+            $query->where('team', (int) $request->input('team'));
+        }
+
+        // 3. Filter Penempatan Pos Gerbang
+        if ($request->filled('gate_id')) {
+            $query->where('gate_id', (int) $request->input('gate_id'));
+        }
+
+        $guards = $query->orderBy('team')
             ->orderBy('name')
             ->get();
 
@@ -137,5 +160,26 @@ class SecurityGuardController extends Controller
 
         $statusText = $newStatus ? 'diaktifkan' : 'dinonaktifkan';
         return back()->with('success', "Status petugas Satpam ({$guard->name}) berhasil {$statusText}.");
+    }
+
+    /**
+     * Hapus data petugas Satpam beserta akun login terkait.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $guard = SecurityGuard::with('user')->findOrFail($id);
+        $guardName = $guard->name;
+        $badgeId = $guard->badge_id;
+
+        DB::transaction(function () use ($guard) {
+            $user = $guard->user;
+            $guard->delete();
+
+            if ($user) {
+                $user->delete();
+            }
+        });
+
+        return back()->with('success', "Data petugas Satpam {$guardName} ({$badgeId}) berhasil dihapus.");
     }
 }

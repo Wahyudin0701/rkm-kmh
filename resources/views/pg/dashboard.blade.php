@@ -3,21 +3,25 @@
 @section('title', 'Dashboard - Admin Private Guard | PT Kerinci Merangin Hidro')
 
 @section('content')
-<div class="space-y-6">
+<div class="w-full space-y-6">
 
     <!-- Header Admin PG (Persis Gaya Referensi IT KMH) -->
     <div>
-        <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-            SISTEM ADMINISTRATOR
-        </span>
-        <div class="flex items-center space-x-2.5">
-            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Selamat datang, {{ auth()->user()->name }}
-            </h2>
-            <span class="w-5 h-5 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Dashboard Operasional Admin Private Guard">
-                <i class="fa-solid fa-info text-[10px]"></i>
+        <div class="flex items-center space-x-1.5 mb-1">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                SISTEM ADMINISTRATOR
             </span>
+            <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+            <button type="button" 
+                    onclick="openGuideModal()" 
+                    class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                    title="Panduan Halaman Dashboard Private Guard">
+                <i class="fa-solid fa-info"></i>
+            </button>
         </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Selamat datang, {{ auth()->user()->name }}
+        </h2>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
             Berikut ringkasan operasional sistem keamanan pos gerbang dan tata kelola personel Satpam PT Kerinci Merangin Hidro secara keseluruhan.
         </p>
@@ -213,4 +217,115 @@
     </div>
 
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (DASHBOARD PRIVATE GUARD)                    -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Dashboard Private Guard</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di <strong>Dashboard Private Guard</strong>! Halaman ini adalah pusat ringkasan untuk memantau personel pengamanan pos dan alur verifikasi fisik armada di PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Monitoring Personel Satpam & Regu</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Pantau total petugas satpam aktif serta pembagian giliran piket per regu tugas (Regu 1, Regu 2, dan Regu 3) secara real-time.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-torii-gate"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Pemeriksaan & Validasi Pos Gerbang</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Akses menu verifikasi gerbang untuk memvalidasi kelayakan fisik kendaraan, odometer, serta izin masuk/keluar sebelum portal dibuka.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Rekapitulasi Log Riwayat Gerbang</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Lihat catatan historis kendaraan yang disetujui atau ditolak lengkap dengan catatan penolakan dan petugas pemeriksa.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+        }
+    });
+</script>
 @endsection

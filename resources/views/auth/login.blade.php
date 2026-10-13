@@ -213,13 +213,19 @@
                     </div>
                 </div>
 
-                <!-- Tombol Masuk -->
-                <div class="pt-2">
+                <!-- Tombol Masuk & Navigasi Kembali ke Beranda -->
+                <div class="pt-2 space-y-3">
                     <button type="submit"
                             class="btn-login w-full text-white font-semibold text-sm py-4 rounded-xl flex items-center justify-center gap-2">
                         Masuk ke Sistem
                         <i class="fa-solid fa-arrow-right text-xs arrow-icon"></i>
                     </button>
+
+                    <a href="{{ route('home') }}"
+                       class="w-full py-3.5 px-4 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 text-slate-600 hover:text-[#1b5e20] hover:border-slate-300 font-semibold text-sm flex items-center justify-center gap-2 transition duration-150 group">
+                        <i class="fa-solid fa-arrow-left text-xs transition-transform group-hover:-translate-x-1"></i>
+                        <span>Kembali ke Beranda RKM</span>
+                    </a>
                 </div>
             </form>
 

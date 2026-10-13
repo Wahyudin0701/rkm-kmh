@@ -31,6 +31,112 @@ class VehicleActivityTest extends TestCase
         $response->assertSee('Input Timesheet Unit');
         $response->assertSee('LV62');
         $response->assertSee('MITSUBISHI - L300 - PICK UP');
+        $response->assertDontSee('<aside', false);
+        $response->assertDontSee('userProfileDropdownBtn');
+        $response->assertDontSee('openDrawerBtn');
+    }
+
+    public function test_form_qr_hides_sidebar_and_topbar_when_accessed_by_authenticated_admin(): void
+    {
+        $admin = User::where('role', 'qma_admin')->first();
+
+        $response = $this->actingAs($admin)->get('/gate-activity/LV62');
+        $response->assertStatus(200);
+        $response->assertSee('Input Timesheet Unit');
+        $response->assertDontSee('<aside', false);
+        $response->assertDontSee('userProfileDropdownBtn');
+        $response->assertDontSee('openDrawerBtn');
+    }
+
+    public function test_check_nik_endpoint_returns_not_found_for_unregistered_nik(): void
+    {
+        $response = $this->postJson('/gate-activity/LV62/check-nik', [
+            'nik' => 'KMH-9999-999',
+        ]);
+
+        $response->assertStatus(404);
+        $response->assertJson([
+            'status' => 'not_found',
+        ]);
+        $response->assertJsonFragment([
+            'message' => "NIK 'KMH-9999-999' tidak terdaftar dalam database SIMPER PT KMH. Silakan periksa kembali atau hubungi Divisi HSE.",
+        ]);
+    }
+
+    public function test_check_nik_endpoint_returns_expired_for_expired_simper(): void
+    {
+        // Randi Kurniawan (KMH-2023-012) memiliki SIMPER kedaluwarsa
+        $response = $this->postJson('/gate-activity/LV62/check-nik', [
+            'nik' => 'KMH-2023-012',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'status' => 'expired',
+        ]);
+        $this->assertStringContainsString('telah KEDALUWARSA', $response->json('message'));
+    }
+
+    public function test_check_nik_endpoint_returns_valid_for_active_simper(): void
+    {
+        // Eka Sufiatna (KMH-2022-001) memiliki SIMPER aktif
+        $response = $this->postJson('/gate-activity/LV62/check-nik', [
+            'nik' => 'KMH-2022-001',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'status' => 'valid',
+            'employee' => [
+                'name' => 'Eka Sufiatna',
+                'nik' => 'KMH-2022-001',
+            ],
+        ]);
+    }
+
+    public function test_form_qr_auto_fills_driver_when_valid_nik_provided(): void
+    {
+        $response = $this->get('/gate-activity/LV62?nik=KMH-2022-001');
+
+        $response->assertStatus(200);
+        $response->assertSee('Eka Sufiatna');
+        $response->assertSee('KMH-2022-001');
+        $response->assertSee('Otomatis Terisi');
+        $response->assertSee('SIMPER Aktif');
+    }
+
+    public function test_check_nik_endpoint_returns_not_driver_when_employee_is_not_operator(): void
+    {
+        // Siti Rahma (KMH-2021-088) adalah Staff Finance (Bukan Driver)
+        $response = $this->postJson('/gate-activity/LV62/check-nik', [
+            'nik' => 'KMH-2021-088',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJson([
+            'status' => 'not_driver',
+            'title' => 'Bukan Driver Terdaftar',
+        ]);
+        $this->assertStringContainsString('terdaftar sebagai BUKAN DRIVER', $response->json('message'));
+    }
+
+    public function test_form_qr_shows_error_when_invalid_or_expired_or_non_driver_nik_provided_via_query(): void
+    {
+        // 1. NIK Tidak terdaftar
+        $responseUnregistered = $this->get('/gate-activity/LV62?nik=KMH-9999-999');
+        $responseUnregistered->assertStatus(200);
+        $responseUnregistered->assertSee('tidak terdaftar dalam database SIMPER');
+
+        // 2. NIK Kedaluwarsa
+        $responseExpired = $this->get('/gate-activity/LV62?nik=KMH-2023-012');
+        $responseExpired->assertStatus(200);
+        $responseExpired->assertSee('telah KEDALUWARSA');
+
+        // 3. NIK Karyawan Bukan Driver (Staff Finance)
+        $responseNotDriver = $this->get('/gate-activity/LV62?nik=KMH-2021-088');
+        $responseNotDriver->assertStatus(200);
+        $responseNotDriver->assertSee('Bukan Driver Terdaftar');
+        $responseNotDriver->assertSee('terdaftar sebagai BUKAN DRIVER');
     }
 
     public function test_submit_blocked_if_driver_simper_is_expired(): void
@@ -335,5 +441,34 @@ class VehicleActivityTest extends TestCase
         $response->assertSee('PENOLAKAN GERBANG');
         $response->assertSee('Log Verifikasi Gerbang Terkini');
         $response->assertSee('Petugas Satpam per Regu');
+    }
+
+    public function test_guard_can_fetch_live_queue_json_endpoint(): void
+    {
+        $gateOfficer = User::where('role', 'gate_officer')->first();
+        $vehicle = Vehicle::where('code', 'LV62')->first();
+        $driver = Employee::where('nik', 'KMH-2022-001')->first();
+        $gateId = $gateOfficer->gate_id ?? Gate::first()->id;
+
+        VehicleActivity::create([
+            'transaction_no' => 'TRX-LIVE-001',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $gateId,
+            'direction' => 'out',
+            'previous_km' => 12500,
+            'current_km' => 12600,
+            'distance' => 100,
+            'purpose' => 'Pengujian Live Queue',
+            'recorded_at' => Carbon::now(),
+            'validation_status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($gateOfficer)->get(route('pg.gate.live_queue'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['count', 'html']);
+        $this->assertGreaterThanOrEqual(1, $response->json('count'));
+        $this->assertStringContainsString('BH 8893 DI', $response->json('html'));
+        $this->assertStringContainsString('Pengujian Live Queue', $response->json('html'));
     }
 }

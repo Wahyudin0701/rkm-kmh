@@ -67,7 +67,12 @@ class StoreVehicleActivityRequest extends FormRequest
             // 1. Validasi SIMPER Pengemudi (BR-01 & BR-02)
             $driver = Employee::find($this->input('driver_id'));
             if ($driver) {
-                if (!$driver->hasValidSimper()) {
+                if (!$driver->is_operator) {
+                    $validator->errors()->add(
+                        'driver_id',
+                        "Karyawan ({$driver->name}) terdaftar sebagai Bukan Driver dan tidak memiliki izin mengemudi (SIMPER)."
+                    );
+                } elseif (!$driver->hasValidSimper()) {
                     $expiredText = $driver->simper_expired_at ? $driver->simper_expired_at->format('d/m/Y') : 'Belum Terdaftar';
                     $validator->errors()->add(
                         'driver_id',

@@ -100,7 +100,24 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen">
 
-@auth
+@php
+    $isFormMobil = request()->routeIs('vehicle.activity.*') || request()->is('gate-activity*');
+@endphp
+
+@if($isFormMobil)
+    <!-- ========================================================================= -->
+    <!-- LAYOUT KHUSUS FORM UNIT MOBIL (TANPA SIDEBAR & TOPBAR) -->
+    <!-- ========================================================================= -->
+    <div class="min-h-screen bg-slate-50 flex flex-col justify-between py-6 px-4 sm:px-6">
+        <main class="w-full">
+            @yield('content')
+        </main>
+        <footer class="mt-8 text-center text-xs text-slate-400">
+            &copy; 2026 PT Kerinci Merangin Hidro &bull; PLTA Merangin 350 MW
+        </footer>
+    </div>
+
+@elseif(auth()->check())
     <!-- ========================================================================= -->
     <!-- LAYOUT AUTHENTICATED: SIDEBAR + TOPBAR (PERSIS SISTEM IT ALL ROLE) -->
     <!-- ========================================================================= -->
@@ -500,9 +517,11 @@
         </div>
     </header>
 
-    <!-- 4. KONTEN UTAMA DASHBOARD -->
-    <main class="md:ml-64 p-6 sm:p-8 min-h-[calc(100vh-4rem)]">
-        @yield('content')
+    <!-- 4. KONTEN UTAMA DASHBOARD (ATURAN EMAS: WRAPPER MAX-WIDTH HANYA DI SATU TEMPAT) -->
+    <main class="md:ml-64 flex-1 min-h-[calc(100vh-4rem)]">
+        <div class="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
+            @yield('content')
+        </div>
     </main>
 
 @else
@@ -510,12 +529,21 @@
     <!-- LAYOUT PUBLIC (KHUSUS FORM SCAN QR LAPANGAN TANPA LOGIN) -->
     <!-- ========================================================================= -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-8 w-auto object-contain">
-            <a href="{{ route('login') }}" class="text-xs font-semibold text-[#1b5e20] hover:underline flex items-center space-x-1">
-                <span>Login Petugas</span>
-                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+        <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="{{ route('home') }}" class="flex items-center space-x-2">
+                <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-8 w-auto object-contain">
+                <span class="font-extrabold text-[#1b5e20] text-sm hidden sm:inline">RKM</span>
             </a>
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('home') }}" class="text-xs font-semibold text-slate-600 hover:text-[#1b5e20] flex items-center space-x-1.5">
+                    <i class="fa-solid fa-house text-[11px]"></i>
+                    <span>Beranda RKM</span>
+                </a>
+                <a href="{{ route('login') }}" class="text-xs font-semibold text-white bg-[#1b5e20] hover:bg-[#144918] px-3 py-1.5 rounded-lg flex items-center space-x-1 shadow-sm">
+                    <span>Login Petugas</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
         </div>
     </header>
 
@@ -526,7 +554,7 @@
     <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-200 bg-white">
         &copy; 2026 PT Kerinci Merangin Hidro &bull; PLTA Merangin 350 MW
     </footer>
-@endauth
+@endif
 
     <!-- Toast Notification Container (Pojok Kanan Bawah) -->
     <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-3 pointer-events-none">
@@ -585,7 +613,125 @@
         @endif
     </div>
 
-    <!-- Script Javascript untuk Drawer Mobile & Toast Notification -->
+    <!-- Script Javascript untuk Toast Notification -->
+    <script>
+        // Fungsi Menutup Toast
+        function dismissToast(id) {
+            const toast = document.getElementById(id);
+            if (!toast) return;
+            toast.classList.add('opacity-0', 'translate-y-3');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
+
+        // Auto dismiss Toast dengan countdown progress bar
+        document.addEventListener('DOMContentLoaded', () => {
+            const successToast = document.getElementById('toast-success');
+            if (successToast) {
+                const bar = document.getElementById('toast-progress-success');
+                setTimeout(() => {
+                    if (bar) bar.style.width = '0%';
+                }, 50);
+                setTimeout(() => {
+                    dismissToast('toast-success');
+                }, 4100);
+            }
+
+            const errorToast = document.getElementById('toast-error');
+            if (errorToast) {
+                const bar = document.getElementById('toast-progress-error');
+                setTimeout(() => {
+                    if (bar) bar.style.width = '0%';
+                }, 50);
+                setTimeout(() => {
+                    dismissToast('toast-error');
+                }, 4100);
+            }
+        });
+
+        // =========================================================================
+        // PENGELOLA MODAL UNIVERSAL: KLIK BACKDROP DI SEKITAR POPUP & TOMBOL ESCAPE
+        // =========================================================================
+        function closeAnyActiveModal(modal) {
+            if (!modal || modal.classList.contains('hidden') || modal.id === 'mobileDrawer') return;
+
+            // 1. Coba klik tombol tutup / batal spesifik di dalam modal
+            const closeBtn = modal.querySelector('button[onclick*="close"], button[onclick*="Close"], button[onclick*="hide"], button[onclick*="Batal"], button[data-close]');
+            if (closeBtn) {
+                closeBtn.click();
+            }
+
+            // 2. Jika modal masih belum tertutup, sembunyikan langsung
+            if (!modal.classList.contains('hidden')) {
+                modal.classList.add('hidden');
+            }
+
+            // 3. Normalisasi status overflow body jika semua modal sudah tertutup
+            const openModals = document.querySelectorAll('.fixed.inset-0:not(.hidden):not(#mobileDrawer)');
+            if (openModals.length === 0) {
+                document.body.classList.remove('modal-open', 'overflow-hidden');
+                document.documentElement.classList.remove('modal-open');
+            }
+        }
+
+        let isBackdropClickTarget = false;
+        let activeBackdropTargetModal = null;
+
+        document.addEventListener('mousedown', function(e) {
+            const modal = e.target.closest('[id$="Modal"], [id$="modal"], .fixed.inset-0.z-50');
+            if (modal && !modal.classList.contains('hidden') && modal.id !== 'mobileDrawer') {
+                const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
+                if (dialogCard && !dialogCard.contains(e.target)) {
+                    isBackdropClickTarget = true;
+                    activeBackdropTargetModal = modal;
+                    return;
+                }
+            }
+            isBackdropClickTarget = false;
+            activeBackdropTargetModal = null;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+            if (isBackdropClickTarget && activeBackdropTargetModal) {
+                const modal = activeBackdropTargetModal;
+                if (!modal.classList.contains('hidden')) {
+                    const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
+                    if (dialogCard && !dialogCard.contains(e.target)) {
+                        closeAnyActiveModal(modal);
+                    }
+                }
+            }
+            isBackdropClickTarget = false;
+            activeBackdropTargetModal = null;
+        });
+
+        // Dukungan klik langsung pada backdrop
+        document.addEventListener('click', function(e) {
+            const modal = e.target.closest('[id$="Modal"], [id$="modal"], .fixed.inset-0.z-50');
+            if (modal && !modal.classList.contains('hidden') && modal.id !== 'mobileDrawer') {
+                const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
+                if (dialogCard && !dialogCard.contains(e.target)) {
+                    closeAnyActiveModal(modal);
+                }
+            }
+        });
+
+        // Dukungan tombol Escape keyboard untuk menutup modal aktif
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('[id$="Modal"]:not(.hidden), [id$="modal"]:not(.hidden), .fixed.inset-0.z-50:not(.hidden)');
+                openModals.forEach(modal => {
+                    if (modal.id !== 'mobileDrawer') {
+                        closeAnyActiveModal(modal);
+                    }
+                });
+            }
+        });
+    </script>
+
+    @if(auth()->check() && !$isFormMobil)
+    <!-- Script Javascript untuk Drawer Mobile & Menu Admin -->
     <script>
         const openBtn = document.getElementById('openDrawerBtn');
         const closeBtn = document.getElementById('closeDrawerBtn');
@@ -634,40 +780,6 @@
             });
         }
 
-        // Fungsi Menutup Toast
-        function dismissToast(id) {
-            const toast = document.getElementById(id);
-            if (!toast) return;
-            toast.classList.add('opacity-0', 'translate-y-3');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }
-
-        // Auto dismiss Toast dengan countdown progress bar
-        document.addEventListener('DOMContentLoaded', () => {
-            const successToast = document.getElementById('toast-success');
-            if (successToast) {
-                const bar = document.getElementById('toast-progress-success');
-                setTimeout(() => {
-                    if (bar) bar.style.width = '0%';
-                }, 50);
-                setTimeout(() => {
-                    dismissToast('toast-success');
-                }, 4100);
-            }
-
-            const errorToast = document.getElementById('toast-error');
-            if (errorToast) {
-                const bar = document.getElementById('toast-progress-error');
-                setTimeout(() => {
-                    if (bar) bar.style.width = '0%';
-                }, 50);
-                setTimeout(() => {
-                    dismissToast('toast-error');
-                }, 4100);
-            }
-        });
         // Toggle Dropdown Menu Data Kendaraan (Desktop & Mobile)
         function toggleVehicleMenu(target) {
             const submenu = document.getElementById(target === 'desktop' ? 'vehicleSubmenuDesktop' : 'vehicleSubmenuMobile');
@@ -721,6 +833,7 @@
             }
         });
     </script>
+    @endif
 
     @yield('scripts')
 </body>

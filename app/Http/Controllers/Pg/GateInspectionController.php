@@ -7,6 +7,7 @@ use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\VehicleActivity;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -28,24 +29,12 @@ class GateInspectionController extends Controller
         $gate = $gateId ? Gate::find($gateId) : Gate::first();
 
         $pendingActivities = collect();
-        $todayApprovedCount = 0;
-        $todayRejectedCount = 0;
         if ($gate) {
             $pendingActivities = VehicleActivity::where('gate_id', $gate->id)
                 ->where('validation_status', 'pending')
                 ->with(['vehicle', 'driver'])
                 ->orderBy('recorded_at', 'asc')
                 ->get();
-
-            $todayApprovedCount = VehicleActivity::where('gate_id', $gate->id)
-                ->where('validation_status', 'approved')
-                ->whereDate('validated_at', Carbon::today())
-                ->count();
-
-            $todayRejectedCount = VehicleActivity::where('gate_id', $gate->id)
-                ->where('validation_status', 'rejected')
-                ->whereDate('validated_at', Carbon::today())
-                ->count();
         }
 
         // Daftar satpam aktif untuk fallback pilihan
@@ -55,10 +44,35 @@ class GateInspectionController extends Controller
             'gate', 
             'pendingActivities', 
             'guards', 
-            'currentGuard',
-            'todayApprovedCount',
-            'todayRejectedCount'
+            'currentGuard'
         ));
+    }
+
+    /**
+     * Endpoint sync antrean realtime (Fetch) tanpa reload halaman.
+     */
+    public function liveQueue(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $gateId = $user ? $user->gate_id : $request->query('gate_id');
+        $gate = $gateId ? Gate::find($gateId) : Gate::first();
+
+        $pendingActivities = collect();
+        if ($gate) {
+            $pendingActivities = VehicleActivity::where('gate_id', $gate->id)
+                ->where('validation_status', 'pending')
+                ->with(['vehicle', 'driver'])
+                ->orderBy('recorded_at', 'asc')
+                ->get();
+        }
+
+        $currentGuard = $user ? $user->securityGuard : null;
+        $guards = SecurityGuard::where('is_active', true)->orderBy('name')->get();
+
+        return response()->json([
+            'count' => $pendingActivities->count(),
+            'html' => view('pg.partials.queue_cards', compact('pendingActivities', 'currentGuard', 'guards'))->render(),
+        ]);
     }
 
     /**
@@ -71,12 +85,17 @@ class GateInspectionController extends Controller
         $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
 
         if (!$guardId) {
-            $request->validate([
-                'security_guard_id' => ['required', 'exists:security_guards,id'],
-            ], [
-                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan.',
-            ]);
-            $guardId = $request->input('security_guard_id');
+            $fallbackGuard = SecurityGuard::where('is_active', true)->first() ?? SecurityGuard::first();
+            if ($fallbackGuard) {
+                $guardId = $fallbackGuard->id;
+            } else {
+                $request->validate([
+                    'security_guard_id' => ['required', 'exists:security_guards,id'],
+                ], [
+                    'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan.',
+                ]);
+                $guardId = $request->input('security_guard_id');
+            }
         }
 
         $activity = VehicleActivity::with('vehicle')->findOrFail($id);

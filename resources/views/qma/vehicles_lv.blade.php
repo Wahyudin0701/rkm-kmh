@@ -3,22 +3,26 @@
 @section('title', 'Light Vehicle - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
-<div class="space-y-6">
+<div class="w-full space-y-6">
 
     <!-- Header Judul & Tombol Aksi -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-                MANAJEMEN SISTEM
-            </span>
-            <div class="flex items-center space-x-3">
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                    Light Vehicle
-                </h2>
-                <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Kelola data master armada kendaraan ringan operasional">
-                    <i class="fa-solid fa-info"></i>
+            <div class="flex items-center space-x-1.5 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                    MANAJEMEN SISTEM
                 </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Light Vehicle">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Light Vehicle
+            </h2>
         </div>
 
         <!-- Tombol Aksi Kanan -->
@@ -87,6 +91,7 @@
                     <tr>
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
                         <th class="py-3.5 px-4">KODE LV</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap">QR CODE</th>
                         <th class="py-3.5 px-4">MEREK & TIPE</th>
                         <th class="py-3.5 px-4 text-center">NO. POLISI</th>
                         <th class="py-3.5 px-4">DIVISI</th>
@@ -107,6 +112,20 @@
                                 <span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200">
                                     {{ $v->code }}
                                 </span>
+                            </td>
+
+                            <!-- QR Code Stiker Unit -->
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <button type="button" 
+                                        onclick="openQrModal('{{ $v->code }}', '{{ addslashes($v->brand_type ?? '') }}', '{{ addslashes($v->license_plate ?? '-') }}', '{{ addslashes($v->division ?? '-') }}', '{{ url('/gate-activity/' . $v->code) }}', this)"
+                                        data-qr-base64="{{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::size(240)->margin(1)->generate(url('/gate-activity/' . $v->code))) }}"
+                                        class="group inline-flex items-center space-x-1.5 px-2 py-1 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition shadow-2xs cursor-pointer"
+                                        title="Klik untuk Lihat, Unduh & Cetak Stiker QR {{ $v->code }}">
+                                    <div class="w-7 h-7 bg-white rounded-lg border border-slate-200 group-hover:border-emerald-300 flex items-center justify-center p-0.5 overflow-hidden [&>svg]:w-full [&>svg]:h-full shadow-2xs">
+                                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(24)->margin(0)->generate(url('/gate-activity/' . $v->code)) !!}
+                                    </div>
+                                    <i class="fa-solid fa-expand text-[10px] text-slate-400 group-hover:text-emerald-600"></i>
+                                </button>
                             </td>
 
                             <td class="py-3.5 px-4 font-bold text-slate-900">
@@ -179,7 +198,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-12 text-center text-slate-400">
+                            <td colspan="10" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-car text-3xl mb-2 block text-slate-300"></i>
                                 Belum ada armada Light Vehicle yang sesuai dengan kriteria pencarian.
                             </td>
@@ -198,7 +217,9 @@
 <!-- ========================================================================= -->
 <!-- MODAL: TAMBAH LIGHT VEHICLE -->
 <!-- ========================================================================= -->
-<div id="addVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="addVehicleModal" 
+     onclick="if(event.target === this) closeAddModal()"
+     class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Tambah Aset -->
         <div class="flex items-center justify-between mb-5">
@@ -293,7 +314,9 @@
 <!-- ========================================================================= -->
 <!-- MODAL: EDIT LIGHT VEHICLE -->
 <!-- ========================================================================= -->
-<div id="editVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="editVehicleModal" 
+     onclick="if(event.target === this) closeEditModal()"
+     class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Tambah Aset -->
         <div class="flex items-center justify-between mb-5">
@@ -382,7 +405,9 @@
 <!-- ========================================================================= -->
 <!-- MODAL: DETAIL LIGHT VEHICLE -->
 <!-- ========================================================================= -->
-<div id="detailVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="detailVehicleModal" 
+     onclick="if(event.target === this) closeDetailModal()"
+     class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Card Tambah Data -->
         <div class="flex items-center justify-between mb-5">
@@ -463,7 +488,9 @@
 <!-- ========================================================================= -->
 <!-- MODAL: KONFIRMASI HAPUS KENDARAAN (LIGHT VEHICLE) -->
 <!-- ========================================================================= -->
-<div id="deleteVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+<div id="deleteVehicleModal" 
+     onclick="if(event.target === this) closeDeleteModal()"
+     class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
         <!-- Icon Peringatan Elegan -->
         <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
@@ -501,6 +528,131 @@
         </div>
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: PREVIEW & CETAK STIKER QR CODE KENDARAAN                            -->
+<!-- ========================================================================= -->
+<div id="qrVehicleModal" 
+     onclick="if(event.target === this) closeQrModal()"
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base border border-emerald-200/60 shadow-2xs">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Stiker QR Code Kendaraan</h3>
+                    <p class="text-xs text-slate-500">Siap dicetak dan ditempelkan pada fisik armada unit</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeQrModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Area Kartu Stiker Fisik (Bisa Dicetak Langsung) -->
+        <div class="mt-5">
+            <div id="printableStickerArea" class="bg-white border-2 border-slate-900 rounded-3xl p-5 text-center shadow-sm max-w-[360px] mx-auto">
+                <!-- Kop Stiker Resmi Perusahaan -->
+                <div class="border-b-2 border-slate-900 pb-3 mb-4">
+                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
+                    <h4 class="text-xs font-black uppercase tracking-tight text-slate-900 mt-0.5">TIMESHEET KENDARAAN OPERASIONAL</h4>
+                    <div class="text-[9px] font-bold text-slate-500 tracking-wider">LIGHT VEHICLE (LV) • RKM SYSTEM</div>
+                </div>
+
+                <!-- Kontainer QR Code Vektor -->
+                <div class="bg-white p-3.5 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs mb-4">
+                    <div id="modalQrCodeContainer" class="w-52 h-52 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
+                        <!-- SVG QR Code di-inject secara dinamis di sini -->
+                    </div>
+                </div>
+
+                <!-- Rincian Identitas Unit Kendaraan -->
+                <div class="space-y-1.5 mb-3 text-left bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
+                        <span id="modalQrCodeText" class="font-mono font-extrabold text-sm text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">LV01</span>
+                    </div>
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
+                        <span id="modalQrPlateText" class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">BH 1024 AB</span>
+                    </div>
+                    <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
+                        <span id="modalQrBrandText" class="font-bold text-xs text-slate-900 text-right max-w-[200px]">TOYOTA HILUX 4X4 DC</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">DIVISI:</span>
+                        <span id="modalQrDivisionText" class="font-bold text-xs text-slate-700">HSE</span>
+                    </div>
+                </div>
+
+                <!-- Panduan Driver -->
+                <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
+                    <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
+                            <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
+                        </svg>
+                    </div>
+                    <span class="leading-snug">
+                        <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir pencatatan kilometer & perlintasan gerbang.
+                    </span>
+                </div>
+
+                <!-- Tautan Langsung -->
+                <div class="mt-2.5 text-[9px] font-mono text-slate-400 break-all" id="modalQrUrlDisplay">
+                    http://.../gate-activity/LV01
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi Cetak & Unduh -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div class="flex items-center space-x-2">
+                <!-- Tombol Cetak Stiker -->
+                <button type="button" 
+                        onclick="printQrSticker()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak Stiker</span>
+                </button>
+
+                <!-- Tombol Download PNG -->
+                <button type="button" 
+                        id="btnDownloadSticker"
+                        onclick="downloadQrCode()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Unduh PNG</span>
+                </button>
+            </div>
+
+            <div class="flex items-center space-x-2 justify-end">
+                <!-- Test Form Scan -->
+                <a id="modalQrTestLink" 
+                   href="#" 
+                   target="_blank" 
+                   class="inline-flex items-center space-x-1 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
+                   title="Buka form input penggunaan kendaraan di tab baru untuk pengetesan">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                    <span>Tes Form</span>
+                </a>
+
+                <button type="button" 
+                        onclick="closeQrModal()" 
+                        class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
     // Daftar semua kode kendaraan LV yang sudah terdaftar di sistem
@@ -710,7 +862,438 @@
             openAddModal();
         });
     @endif
+
+    // Buka & Tutup Modal QR Code Stiker
+    let currentQrCode = '';
+    let currentQrBase64 = '';
+
+    function openQrModal(code, brand, plate, division, url, btn) {
+        currentQrCode = code;
+        const modal = document.getElementById('qrVehicleModal');
+        if (!modal) return;
+
+        // Ambil SVG QR Code dari data attribute button
+        const container = document.getElementById('modalQrCodeContainer');
+        const base64Svg = btn ? btn.getAttribute('data-qr-base64') : '';
+        currentQrBase64 = base64Svg || '';
+        if (container && base64Svg) {
+            try {
+                container.innerHTML = atob(base64Svg);
+            } catch(e) {
+                console.error('Error decoding QR SVG:', e);
+            }
+        }
+
+        const elCode = document.getElementById('modalQrCodeText');
+        const elPlate = document.getElementById('modalQrPlateText');
+        const elBrand = document.getElementById('modalQrBrandText');
+        const elDivision = document.getElementById('modalQrDivisionText');
+        const elUrl = document.getElementById('modalQrUrlDisplay');
+        const testLink = document.getElementById('modalQrTestLink');
+
+        if (elCode) elCode.textContent = code;
+        if (elPlate) elPlate.textContent = plate || '-';
+        if (elBrand) elBrand.textContent = brand || '-';
+        if (elDivision) elDivision.textContent = division || '-';
+        if (elUrl) elUrl.textContent = url;
+        if (testLink) testLink.href = url;
+
+        modal.classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeQrModal() {
+        const modal = document.getElementById('qrVehicleModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function printQrSticker() {
+        window.print();
+    }
+
+    // =========================================================================
+    // UNDUH STIKER QR: Pure Canvas API (tanpa html2canvas)
+    // Menggambar seluruh kartu stiker secara manual ke Canvas, termasuk QR code.
+    // Ini menjamin QR Code PASTI ter-render karena menggunakan img.onload.
+    // =========================================================================
+    function downloadQrCode() {
+        const code = (currentQrCode || 'LV').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        const btnEl = document.getElementById('btnDownloadSticker');
+        const originalBtnHtml = btnEl ? btnEl.innerHTML : '';
+
+        if (btnEl) {
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>Memproses...</span>';
+        }
+
+        // Baca data teks dari modal
+        const plate = document.getElementById('modalQrPlateText')?.textContent?.trim() || '-';
+        const brand = document.getElementById('modalQrBrandText')?.textContent?.trim() || '-';
+        const division = document.getElementById('modalQrDivisionText')?.textContent?.trim() || '-';
+        const urlText = document.getElementById('modalQrUrlDisplay')?.textContent?.trim() || '';
+
+        // Dapatkan SVG source untuk QR Code
+        let svgDataUri = '';
+        if (currentQrBase64) {
+            svgDataUri = 'data:image/svg+xml;base64,' + currentQrBase64;
+        } else {
+            const svgEl = document.querySelector('#modalQrCodeContainer svg');
+            if (svgEl) {
+                const raw = new XMLSerializer().serializeToString(svgEl);
+                svgDataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(raw)));
+            }
+        }
+
+        if (!svgDataUri) {
+            alert('Data QR Code tidak ditemukan. Silakan buka kembali modal QR.');
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+            return;
+        }
+
+        // Load QR SVG sebagai Image terlebih dahulu, baru gambar semua di onload
+        const qrImg = new Image();
+        qrImg.onload = function() {
+            // ---- Konfigurasi Dimensi Canvas ----
+            // Ukuran dihitung secara proporsional agar kartu padat, seimbang, dan tanpa ruang kosong di bawah
+            const W = 1200;  // lebar canvas total
+            const H = 1500;  // tinggi canvas total (sebelumnya 1900 sehingga ada ruang kosong besar)
+            const PAD = 50;  // padding luar putih
+            const CW = W - PAD * 2;  // 1100 (lebar kartu)
+            const CH = H - PAD * 2;  // 1400 (tinggi kartu)
+            const R = 55;    // radius sudut kartu
+            const CX = PAD;  // x kartu (50)
+            const CY = PAD;  // y kartu (50)
+
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            // -- Helper: rounded rect --
+            function roundRect(x, y, w, h, r) {
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); }
+                else {
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+                }
+                ctx.closePath();
+            }
+
+            // ---- 1. Background Putih Luar ----
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, W, H);
+
+            // ---- 2. Bingkai Kartu Stiker ----
+            roundRect(CX, CY, CW, CH, R);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+
+            // ---- 3. Header: Kop Perusahaan ----
+            const headerCenterX = W / 2;
+            let curY = CY + 52;
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#1b5e20';
+            ctx.font = '800 26px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('PT KERINCI MERANGIN HIDRO', headerCenterX, curY);
+
+            curY += 40;
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '900 32px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('TIMESHEET KENDARAAN OPERASIONAL', headerCenterX, curY);
+
+            curY += 30;
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('LIGHT VEHICLE (LV) \u2022 RKM SYSTEM', headerCenterX, curY);
+
+            // Garis pemisah header
+            curY += 22;
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(CX + 35, curY);
+            ctx.lineTo(CX + CW - 35, curY);
+            ctx.stroke();
+
+            // ---- 4. QR Code (DIBESARKAN) ----
+            const qrSize = 580; // Dibesarkan dari 480 menjadi 580
+            const qrBoxPadding = 22;
+            const qrBoxSize = qrSize + qrBoxPadding * 2; // 624
+            const qrBoxX = (W - qrBoxSize) / 2;
+            curY += 28;
+            const qrBoxY = curY;
+            const qrX = (W - qrSize) / 2;
+            const qrY = qrBoxY + qrBoxPadding;
+
+            // Kotak border QR Code
+            roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Gambar QR Code tajam & presisi
+            ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+            // ---- 5. Info Box Detail Kendaraan ----
+            curY = qrBoxY + qrBoxSize + 30;
+            const infoX = CX + 40;
+            const infoW = CW - 80;
+            const infoH = 370;
+            const infoR = 28;
+
+            roundRect(infoX, curY, infoW, infoH, infoR);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fill();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // -- Helper baris info --
+            const rowLeft = infoX + 30;
+            const rowRight = infoX + infoW - 30;
+            let rowY = curY + 54;
+
+            function drawInfoRow(label, value, isBadge, badgeColor, badgeBg, badgeBorder) {
+                // Label
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#64748b';
+                ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText(label, rowLeft, rowY);
+
+                if (isBadge) {
+                    ctx.font = '700 26px monospace';
+                    const tw = ctx.measureText(value).width;
+                    const bx = rowRight - tw - 28;
+                    roundRect(bx, rowY - 30, tw + 28, 40, 10);
+                    ctx.fillStyle = badgeBg;
+                    ctx.fill();
+                    ctx.strokeStyle = badgeBorder;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = badgeColor;
+                    ctx.fillText(value, bx + 14, rowY);
+                } else {
+                    ctx.textAlign = 'right';
+                    ctx.fillStyle = '#0f172a';
+                    if (value.length > 25) {
+                        ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+                    } else {
+                        ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+                    }
+                    ctx.fillText(value, rowRight, rowY);
+                }
+
+                // Garis pemisah antar baris
+                rowY += 18;
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(rowLeft, rowY);
+                ctx.lineTo(rowRight, rowY);
+                ctx.stroke();
+
+                rowY += 64;
+            }
+
+            drawInfoRow('KODE UNIT:', code, true, '#1b5e20', '#ecfdf5', '#a7f3d0');
+            drawInfoRow('NO. POLISI:', plate, true, '#78350f', '#fffbeb', '#fde68a');
+            drawInfoRow('MEREK & TIPE:', brand, false);
+            // Divisi (baris terakhir tanpa garis pembatas bawah)
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('DIVISI:', rowLeft, rowY);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#334155';
+            ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText(division, rowRight, rowY);
+
+            // ---- 6. Banner Instruksi Scan HP ----
+            curY = curY + infoH + 22;
+            const banH = 104;
+            roundRect(infoX, curY, infoW, banH, 22);
+            ctx.fillStyle = '#ecfdf5';
+            ctx.fill();
+            ctx.strokeStyle = '#a7f3d0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Kotak ikon kamera
+            roundRect(infoX + 20, curY + 22, 60, 60, 16);
+            ctx.fillStyle = '#1b5e20';
+            ctx.fill();
+            // Grafis ikon kamera
+            ctx.fillStyle = '#ffffff';
+            roundRect(infoX + 32, curY + 42, 36, 26, 6);
+            ctx.fill();
+            ctx.fillStyle = '#1b5e20';
+            ctx.beginPath();
+            ctx.arc(infoX + 50, curY + 55, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            roundRect(infoX + 43, curY + 36, 14, 7, 2);
+            ctx.fill();
+
+            // Teks instruksi
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '600 21px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('Scan QR ini menggunakan kamera HP untuk', infoX + 98, curY + 44);
+            ctx.font = '400 21px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('membuka formulir pencatatan kilometer & perlintasan gerbang.', infoX + 98, curY + 76);
+
+            // ---- 7. URL Footer (Pas & Rapi Menutup Kartu) ----
+            curY = curY + banH + 34;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '400 21px monospace';
+            ctx.fillText(urlText, headerCenterX, curY);
+
+            // ---- EXPORT PNG ----
+            const pngUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = 'Stiker_QR_' + code + '.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Kembalikan tombol ke keadaan semula
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+        };
+
+        qrImg.onerror = function() {
+            alert('Gagal memuat gambar QR Code. Silakan coba lagi.');
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+        };
+
+        qrImg.src = svgDataUri;
+    }
+
+    // Buka & Tutup Modal Panduan Halaman
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeQrModal();
+            closeGuideModal();
+        }
+    });
 </script>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (LIGHT VEHICLE)                              -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Master Data Light Vehicle (LV)</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di menu <strong>Light Vehicle</strong>! Halaman ini adalah pusat tata kelola data armada kendaraan ringan dinas PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-car-side"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Pendaftaran & Master Unit LV</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Mendaftarkan armada baru dengan menetapkan kode lambung LV, plat nomor, merek/model, tipe transmisi, dan tahun perakitan.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Alokasi Driver & Departemen</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Menghubungkan unit kendaraan dengan pengemudi penanggung jawab tetap serta divisi/departemen operasional pemilik unit.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Pembaruan & Status Kesiapan</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Gunakan tombol aksi pada tabel untuk memperbarui data teknis, mengganti penanggung jawab, atau menonaktifkan unit yang telah ditarik.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
 
 <style>
     /* Hilangkan scrollbar default pada modal */
@@ -722,6 +1305,31 @@
         display: none; /* Chrome, Safari, Opera */
         width: 0px;
         height: 0px;
+    }
+
+    /* Format Cetak Stiker Fisik Unit */
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+        #printableStickerArea, #printableStickerArea * {
+            visibility: visible !important;
+        }
+        #printableStickerArea {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 320px !important;
+            max-width: 90% !important;
+            box-shadow: none !important;
+            border: 2px solid #0f172a !important;
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            border-radius: 1.5rem !important;
+            z-index: 99999 !important;
+        }
     }
 </style>
 @endsection

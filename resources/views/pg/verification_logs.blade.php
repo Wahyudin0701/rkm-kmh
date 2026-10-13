@@ -3,27 +3,30 @@
 @section('title', 'Log Riwayat Verifikasi Gerbang - Admin Private Guard | PT Kerinci Merangin Hidro')
 
 @section('content')
-<div class="space-y-6">
+<div class="w-full space-y-6">
 
     <!-- Header Judul & Tombol Aksi Cepat -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20] block mb-1">
-                MANAJEMEN SISTEM
-            </span>
-            <div class="flex items-center space-x-3">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    Log Riwayat Verifikasi Gerbang
-                </h2>
-                <!-- Info Icon Badge -->
-                <span class="w-6 h-6 rounded-full bg-slate-200/90 text-slate-500 text-xs inline-flex items-center justify-center font-bold shadow-sm" title="Rekapitulasi lengkap riwayat pemeriksaan fisik kendaraan dan validasi pos gerbang oleh satpam">
-                    <i class="fa-solid fa-info"></i>
+            <div class="flex items-center space-x-1.5 mb-1">
+                <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
+                    MANAJEMEN SISTEM
                 </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Log Verifikasi Gerbang">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Log Riwayat Verifikasi Gerbang
+            </h2>
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('pg.guards.index') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] shadow-sm transition group">
+            <a href="{{ route('pg.guards.index') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] shadow-sm transition group">
                 <i class="fa-solid fa-user-shield mr-2 group-hover:scale-110 transition-transform"></i>
                 <span>Kelola Data Satpam</span>
             </a>
@@ -31,37 +34,82 @@
     </div>
 
 
-    <!-- Filter Bar Card Komprehensif (Tanpa Ikon pada Label) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
-        <form method="GET" action="{{ route('pg.logs.index') }}" class="space-y-4">
-            <!-- Header Filter & Tombol Reset -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
-                    Filter & Pencarian Log Audit
-                </span>
-                @if(request()->anyFilled(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
-                    <a href="{{ route('pg.logs.index') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition">
-                        <span>Reset Semua Filter</span>
-                    </a>
-                @endif
+    @php
+        $filterKeys = ['team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date'];
+        $activeFilterCount = count(array_filter(request()->only($filterKeys)));
+        $isFilterOpen = request()->anyFilled($filterKeys);
+    @endphp
+
+    <!-- Form Filter & Pencarian Cepat (Aturan Standar: Separated Search Bar & Collapsible Filter Card) -->
+    <form method="GET" action="{{ route('pg.logs.index') }}" class="space-y-3">
+        <!-- Level 1: Quick Search Bar Mandiri di Luar Card Filter & Tombol Toggle -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <!-- Search Bar Utama (Real-Time) -->
+            <div class="relative flex-1">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                </div>
+                <input type="text" 
+                       name="search" 
+                       id="verificationLogSearchInput"
+                       value="{{ request('search') }}" 
+                       placeholder="Cari TRX, Plat, Driver, Satpam, Catatan..." 
+                       class="w-full text-xs rounded-xl border border-slate-200 bg-white hover:border-slate-300 focus:bg-white pl-9 pr-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition shadow-2xs">
+            </div>
+
+            <!-- Tombol Buka/Tutup Filter Card & Reset Filter -->
+            <div class="flex items-center gap-2.5 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                <button type="button" 
+                        id="filterToggleBtn"
+                        onclick="toggleFilterCard()" 
+                        class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 shadow-2xs transition group cursor-pointer">
+                    <i class="fa-solid fa-sliders text-slate-500 mr-2 group-hover:text-[#1b5e20] transition-colors"></i>
+                    <span>Filter</span>
+                    @if($activeFilterCount > 0)
+                        <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#1b5e20] text-white">
+                            {{ $activeFilterCount }}
+                        </span>
+                    @endif
+                    <i id="filterChevron" class="fa-solid fa-chevron-down ml-2 text-[10px] text-slate-400 transition-transform duration-200 {{ $isFilterOpen ? 'rotate-180' : '' }}"></i>
+                </button>
+
+                <div id="headerResetFilterContainer">
+                    @if(request()->anyFilled(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
+                        <a href="{{ route('pg.logs.index') }}" 
+                           id="headerResetFilterBtn" 
+                           class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100">
+                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                            <span>Reset Filter</span>
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 2: Collapsible Filter Card Lanjutan -->
+        <div id="collapsibleFilterCard" class="{{ $isFilterOpen ? '' : 'hidden ' }}bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 transition-all">
+            <!-- Header Card Filter -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
+                        Opsi Filter Lanjutan
+                    </span>
+                    @if($activeFilterCount > 0)
+                        <span class="text-[11px] text-slate-400 font-medium">({{ $activeFilterCount }} filter aktif)</span>
+                    @endif
+                </div>
+                <button type="button" 
+                        onclick="toggleFilterCard()" 
+                        class="text-xs text-slate-400 hover:text-slate-600 transition flex items-center space-x-1 cursor-pointer">
+                    <span>Tutup</span>
+                    <i class="fa-solid fa-xmark text-[11px]"></i>
+                </button>
             </div>
 
             <!-- Baris Input Filter (Grid 12 Kolom) -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5">
-                <!-- Pencarian Kata Kunci -->
-                <div class="lg:col-span-4">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Pencarian Cepat
-                    </label>
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}" 
-                           placeholder="Cari TRX, Plat, Driver, Satpam, Catatan..." 
-                           class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                </div>
-
                 <!-- Filter Regu Satpam (Regu 1, 2, 3) -->
-                <div class="lg:col-span-2">
+                <div class="lg:col-span-3">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Regu Satpam
                     </label>
@@ -114,53 +162,54 @@
                 </div>
 
                 <!-- Filter Status Verifikasi -->
-                <div class="lg:col-span-3">
+                <div class="lg:col-span-4">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Status
+                        Status Verifikasi
                     </label>
                     <select name="status" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui (Approved)</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu (Pending)</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
                     </select>
                 </div>
 
                 <!-- Rentang Mulai Tanggal -->
-                <div class="lg:col-span-3">
+                <div class="lg:col-span-4">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Mulai Tanggal
                     </label>
                     <input type="date" 
                            name="start_date" 
-                           value="{{ request('start_date') }}" 
+                           value="{{ request('start_date', $startDate ?? now()->format('Y-m-d')) }}" 
                            onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
                 <!-- Rentang Sampai Tanggal -->
-                <div class="lg:col-span-3">
+                <div class="lg:col-span-4">
                     <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Sampai Tanggal
                     </label>
                     <input type="date" 
                            name="end_date" 
-                           value="{{ request('end_date') }}" 
+                           value="{{ request('end_date', $endDate ?? now()->format('Y-m-d')) }}" 
                            onchange="this.form.submit()"
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <!-- Tabel Lengkap Log Verifikasi Gerbang (Navy Header #06213f) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <!-- Header Navy Solid #06213f -->
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
-                        <th class="py-3.5 px-4">WAKTU VERIFIKASI</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap">WAKTU VERIFIKASI</th>
                         <th class="py-3.5 px-4">NO. TRANSAKSI</th>
                         <th class="py-3.5 px-4">PETUGAS SATPAM</th>
                         <th class="py-3.5 px-4">POS GERBANG</th>
@@ -171,27 +220,30 @@
                         <th class="py-3.5 px-4 text-center">STATUS & CATATAN</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                <tbody id="verificationLogTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
                     @forelse($activities as $index => $item)
                         @php
                             $rowNum = $activities->firstItem() ? ($activities->firstItem() + $index) : ($index + 1);
                             $validatedTime = $item->validated_at ?? $item->recorded_at;
                         @endphp
-                        <tr class="hover:bg-slate-50/80 transition-colors {{ $loop->even ? 'bg-slate-50/30' : 'bg-white' }}">
+                        <tr class="verification-row hover:bg-slate-50/80 transition-colors {{ $loop->even ? 'bg-slate-50/30' : 'bg-white' }}">
                             <!-- No -->
                             <td class="py-3 px-4 text-center text-slate-400 font-bold">
                                 {{ $rowNum }}
                             </td>
 
                             <!-- Waktu Verifikasi -->
-                            <td class="py-3 px-4 whitespace-nowrap">
-                                <div class="font-bold text-slate-900">
-                                    {{ $validatedTime ? $validatedTime->locale('id')->translatedFormat('d M Y') : '-' }}
-                                </div>
-                                <div class="text-[11px] text-slate-500 flex items-center gap-1 font-mono">
-                                    <i class="fa-regular fa-clock text-[10px]"></i>
-                                    {{ $validatedTime ? $validatedTime->format('H:i') . ' WIB' : '-' }}
-                                </div>
+                            <td class="py-3 px-4 text-center whitespace-nowrap">
+                                @if($validatedTime)
+                                    <div class="font-bold text-slate-900">
+                                        {{ $validatedTime->locale('id')->translatedFormat('d M Y') }}
+                                    </div>
+                                    <div class="text-xs text-slate-400 font-medium mt-0.5">
+                                        {{ $validatedTime->format('H:i') }} WIB
+                                    </div>
+                                @else
+                                    <span class="text-slate-400">-</span>
+                                @endif
                             </td>
 
                             <!-- No Transaksi -->
@@ -236,10 +288,8 @@
                                     <div class="font-bold text-slate-900">
                                         {{ $item->vehicle->license_plate }}
                                     </div>
-                                    <div class="text-[11px] text-slate-500 flex items-center gap-1">
-                                        <span class="font-bold text-emerald-700">{{ $item->vehicle->code }}</span>
-                                        <span>•</span>
-                                        <span>{{ $item->vehicle->brand_type }}</span>
+                                    <div class="text-[11px] text-slate-500">
+                                        {{ $item->vehicle->brand_type }}
                                     </div>
                                 @else
                                     <span class="text-slate-400">-</span>
@@ -322,8 +372,27 @@
                                     <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg">
                                         <i class="fa-solid fa-clipboard-question"></i>
                                     </div>
-                                    <p class="text-sm font-bold text-slate-600">Belum ada catatan log riwayat verifikasi gerbang</p>
-                                    <p class="text-xs text-slate-400">Aktivitas kendaraan yang diverifikasi oleh petugas Satpam akan tercatat otomatis di sini.</p>
+                                    @if(request('search'))
+                                        <p class="text-sm font-semibold text-slate-700">
+                                            <span class="inline-block mr-1">🔍</span>Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                        </p>
+                                        <p class="text-xs text-slate-400 mt-1">Pastikan ejaan nomor transaksi, plat kendaraan, nama pengemudi, atau petugas sudah benar.</p>
+                                    @elseif(request()->anyFilled($filterKeys))
+                                        <p class="text-sm font-semibold text-slate-700">Tidak ada data log verifikasi gerbang yang sesuai kriteria filter.</p>
+                                        <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kembali kriteria filter tanggal, pos gerbang, regu, atau status.</p>
+                                    @else
+                                        <p class="text-sm font-bold text-slate-600">Belum ada catatan log riwayat verifikasi gerbang</p>
+                                        <p class="text-xs text-slate-400">Aktivitas kendaraan yang diverifikasi oleh petugas Satpam akan tercatat otomatis di sini.</p>
+                                    @endif
+
+                                    @if(request()->anyFilled(array_merge(['search'], $filterKeys)))
+                                        <div class="mt-4">
+                                            <a href="{{ route('pg.logs.index') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition">
+                                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                                <span>Reset Filter</span>
+                                            </a>
+                                        </div>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -341,4 +410,226 @@
     </div>
 
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (LOG VERIFIKASI GERBANG)                     -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200">
+                    <i class="fa-solid fa-info"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
+                    <p class="text-xs text-slate-500">Log Riwayat Verifikasi Gerbang</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <div class="mt-4 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Selamat datang di halaman <strong>Log Riwayat Verifikasi Gerbang</strong>! Halaman ini adalah rekapitulasi lengkap hasil inspeksi fisik armada oleh petugas Satpam di pos gerbang. Di halaman ini Anda dapat:
+            </p>
+
+            <div class="space-y-3">
+                <!-- Fitur 1 (Hijau) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-emerald-200/50">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Riwayat Perlintasan Kendaraan</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Melihat log keluar/masuk kendaraan secara kronologis lengkap dengan waktu perlintasan, nomor polisi, dan driver pengemudi.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 2 (Biru) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100/70 text-blue-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-blue-200/50">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Status Validasi & Catatan Penolakan</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Memeriksa status validasi (Disetujui / Ditolak) beserta alasan penolakan jika kondisi fisik kendaraan atau izin kerja tidak memenuhi standar.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Fitur 3 (Amber) -->
+                <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
+                        <i class="fa-solid fa-filter"></i>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h4 class="text-xs font-bold text-slate-900">Penyaringan Multi-Kriteria</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                            Saring data log berdasarkan rentang tanggal, regu tugas, petugas satpam pemeriksa, pos gerbang, maupun arah masuk/keluar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Tombol -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="px-6 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer shadow-2xs">
+                Saya Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('scripts')
+<script>
+    // Toggle Card Filter Lanjutan
+    function toggleFilterCard() {
+        const card = document.getElementById('collapsibleFilterCard');
+        const chevron = document.getElementById('filterChevron');
+        if (card) {
+            card.classList.toggle('hidden');
+        }
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('verificationLogSearchInput');
+        const tableBody = document.getElementById('verificationLogTableBody');
+        const resetContainer = document.getElementById('headerResetFilterContainer');
+        const hasServerFilters = {{ request()->anyFilled($filterKeys) ? 'true' : 'false' }};
+
+        if (searchInput && tableBody) {
+            searchInput.addEventListener('input', function (e) {
+                const rawValue = e.target.value;
+                const query = rawValue.toLowerCase().trim();
+                const rows = tableBody.querySelectorAll('tr.verification-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const match = text.includes(query);
+                    row.style.display = match ? '' : 'none';
+                    if (match) visibleCount++;
+                });
+
+                // Hapus baris pesan kosong pencarian jika ada sebelumnya
+                const existingEmptyRow = document.getElementById('verificationEmptySearchRow');
+                if (existingEmptyRow) {
+                    existingEmptyRow.remove();
+                }
+
+                // Tampilkan pesan instan jika tidak ada baris yang cocok di tabel
+                if (rows.length > 0 && visibleCount === 0 && query.length > 0) {
+                    const emptyTr = document.createElement('tr');
+                    emptyTr.id = 'verificationEmptySearchRow';
+                    emptyTr.innerHTML = `
+                        <td colspan="10" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                            <p class="text-sm font-semibold text-slate-700">
+                                <span class="inline-block mr-1">🔍</span>Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                            </p>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Pastikan ejaan nomor transaksi, nomor plat, nama driver, atau petugas satpam yang dicari sudah benar.
+                            </p>
+                            <div class="mt-4">
+                                <button type="button" 
+                                        onclick="const inp = document.getElementById('verificationLogSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                    <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                    <span>Hapus Pencarian</span>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(emptyTr);
+                }
+
+                // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
+                let resetBtn = document.getElementById('headerResetFilterBtn');
+                if (query.length > 0) {
+                    if (!resetBtn && resetContainer) {
+                        resetBtn = document.createElement('a');
+                        resetBtn.href = "{{ route('pg.logs.index') }}";
+                        resetBtn.id = 'headerResetFilterBtn';
+                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100';
+
+                        const resetIcon = document.createElement('i');
+                        resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
+                        const resetText = document.createElement('span');
+                        resetText.textContent = 'Reset Filter';
+
+                        resetBtn.appendChild(resetIcon);
+                        resetBtn.appendChild(resetText);
+                        resetContainer.appendChild(resetBtn);
+                    }
+                } else if (!hasServerFilters && resetBtn) {
+                    resetBtn.remove();
+                }
+            });
+        }
+
+        // Reset filter click handler saat hanya input client-side tanpa server filter
+        if (resetContainer) {
+            resetContainer.addEventListener('click', function(e) {
+                const btn = e.target.closest('#headerResetFilterBtn');
+                if (btn && !hasServerFilters) {
+                    e.preventDefault();
+                    if (searchInput) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.focus();
+                    }
+                }
+            });
+        }
+    });
+
+    // Panduan Halaman Modal
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+        }
+    });
+</script>
 @endsection

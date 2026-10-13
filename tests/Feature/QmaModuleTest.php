@@ -240,4 +240,35 @@ class QmaModuleTest extends TestCase
         $responseSupport = $this->actingAs($this->hseAdmin)->get('/qma/vehicles/unit-support');
         $responseSupport->assertStatus(403);
     }
+
+    /**
+     * Memastikan kolom QR Code dan modal stiker fisik tampil pada tabel Light Vehicle.
+     */
+    public function test_qma_lv_table_renders_qr_code_column_and_modal(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV77',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Mitsubishi Triton 4x4',
+            'license_plate' => 'BH 7777 QR',
+            'division' => 'Civil & Inviro',
+            'ownership' => 'PT Kerinci Merangin Hidro',
+            'status' => 'Operation',
+            'current_km' => 15000,
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)->get('/qma/vehicles/light-vehicle');
+
+        $response->assertStatus(200);
+        $response->assertSee('QR CODE');
+        $response->assertSee('Stiker QR');
+        $response->assertSee('qrVehicleModal');
+        $response->assertSee('printableStickerArea');
+        $response->assertSee('gate-activity/LV77');
+        $response->assertSee('Cetak Stiker');
+        $response->assertSee('Unduh PNG');
+        $response->assertSee('btnDownloadSticker');
+        $response->assertSee('downloadQrCode');
+    }
 }
+

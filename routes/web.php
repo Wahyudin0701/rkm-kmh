@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Hse\EmployeeController;
 use App\Http\Controllers\Pg\DashboardController as PgDashboardController;
 use App\Http\Controllers\Pg\GateInspectionController;
@@ -13,21 +14,8 @@ use App\Http\Controllers\Qma\VehicleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Redirect root
-Route::get('/', function () {
-    if (Auth::check()) {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        return match ($user->role) {
-            'hse_admin' => redirect()->route('hse.dashboard'),
-            'qma_admin' => redirect()->route('qma.dashboard'),
-            'pg_admin' => redirect()->route('pg.dashboard'),
-            'gate_officer' => redirect()->route('pg.gate.inspection'),
-            default => redirect()->route('qma.dashboard'),
-        };
-    }
-    return redirect()->route('login');
-});
+// Halaman Utama (Homepage Sistem RKM Publik & Ringkasan Sistem)
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Autentikasi Pengguna (Login & Logout)
 Route::middleware('guest')->group(function () {
@@ -37,9 +25,10 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// 1. Modul Publik: Form Pencatatan Aktivitas Kendaraan Ringan (Via Scan QR Code di Lapangan)
+// 1. Modul Publik: Pencatatan Aktivitas Kendaraan Ringan (Via Scan QR Code Mobil Unit di Lapangan)
 Route::prefix('gate-activity')->name('vehicle.activity.')->group(function () {
     Route::get('/{code}', [VehicleActivityFormController::class, 'show'])->name('form');
+    Route::post('/{code}/check-nik', [VehicleActivityFormController::class, 'checkNik'])->name('check.nik');
     Route::post('/{code}', [VehicleActivityFormController::class, 'store'])->name('store');
 });
 
@@ -79,12 +68,14 @@ Route::middleware('auth')->group(function () {
             Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store');
             Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update');
             Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle');
+            Route::delete('/guards/{id}', [SecurityGuardController::class, 'destroy'])->name('guards.destroy');
             Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index');
         });
 
         // Verifikasi Pos Gerbang (Khusus Petugas Satpam Pos Gerbang)
         Route::middleware('role:gate_officer')->group(function () {
             Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection');
+            Route::get('/gate-inspection/live-queue', [GateInspectionController::class, 'liveQueue'])->name('gate.live_queue');
             Route::post('/gate-inspection/{id}/approve', [GateInspectionController::class, 'approve'])->name('gate.approve');
             Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject');
         });
