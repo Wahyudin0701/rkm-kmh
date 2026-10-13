@@ -36,11 +36,6 @@
                 <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
                     Filter & Pencarian Log
                 </span>
-                @if(request()->hasAny(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
-                    <a href="{{ route('qma.activity.log') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition">
-                        <span>Reset Semua Filter</span>
-                    </a>
-                @endif
             </div>
 
             <!-- Baris Input Filter (Grid Responsif 12 Kolom) -->
@@ -124,12 +119,14 @@
                     </select>
                 </div>
 
-                <!-- Tombol Reset -->
-                <div class="flex items-center space-x-2 justify-end">
-                    <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
-                        <span>Reset</span>
-                    </a>
-                </div>
+                <!-- Tombol Reset (Hanya tampil jika filter digunakan) -->
+                @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                    <div class="flex items-center space-x-2 justify-end">
+                        <a href="{{ route('qma.activity.log') }}" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition">
+                            <span>Reset</span>
+                        </a>
+                    </div>
+                @endif
             </div>
         </form>
     </div>
@@ -261,7 +258,7 @@
                                     <p class="text-xs text-slate-400 max-w-sm">
                                         Tidak ditemukan catatan aktivitas kendaraan yang sesuai dengan kriteria filter saat ini.
                                     </p>
-                                    @if(request()->hasAny(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
                                         <a href="{{ route('qma.activity.log') }}" class="mt-2 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1b5e20] bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">
                                             <i class="fa-solid fa-rotate-left text-[11px]"></i>
                                             <span>Reset Filter</span>

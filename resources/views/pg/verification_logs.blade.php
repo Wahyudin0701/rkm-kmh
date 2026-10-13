@@ -39,7 +39,7 @@
                 <span class="text-slate-800 font-bold text-xs uppercase tracking-wider">
                     Filter & Pencarian Log Audit
                 </span>
-                @if(request()->hasAny(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
+                @if(request()->anyFilled(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
                     <a href="{{ route('pg.logs.index') }}" class="text-xs text-rose-600 hover:text-rose-700 font-semibold transition">
                         <span>Reset Semua Filter</span>
                     </a>
