@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Hse\EmployeeController;
 use App\Http\Controllers\Pg\GateInspectionController;
 use App\Http\Controllers\Pg\SecurityGuardController;
+use App\Http\Controllers\Pg\VerificationLogController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\VehicleActivityFormController;
 use App\Http\Controllers\Qma\ActivityLogController;
@@ -68,18 +69,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary');
     });
 
-    // 4. Modul Private Guard (PG): Admin PG (Admin PG - AdminPG) & Pos Gerbang Satpam
+    // 4. Modul Private Guard (PG): Admin PG & Pos Gerbang Satpam
     Route::prefix('pg')->name('pg.')->group(function () {
-        // Master Satpam (Hanya Admin PG)
+        // Modul Admin PG (Data Satpam & Log Verifikasi Gerbang)
         Route::middleware('role:pg_admin')->group(function () {
             Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index');
             Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store');
             Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update');
             Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle');
+            Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index');
         });
 
-        // Verifikasi Pos Gerbang (Petugas Pos Gerbang & Admin PG)
-        Route::middleware('role:gate_officer,pg_admin')->group(function () {
+        // Verifikasi Pos Gerbang (Khusus Petugas Satpam Pos Gerbang)
+        Route::middleware('role:gate_officer')->group(function () {
             Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection');
             Route::post('/gate-inspection/{id}/approve', [GateInspectionController::class, 'approve'])->name('gate.approve');
             Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject');

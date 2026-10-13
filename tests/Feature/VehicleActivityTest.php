@@ -251,4 +251,44 @@ class VehicleActivityTest extends TestCase
             'security_guard_id' => $guard->id,
         ]);
     }
+
+    public function test_admin_pg_can_view_and_filter_verification_logs(): void
+    {
+        $pgUser = User::where('role', 'pg_admin')->first();
+        $guard = SecurityGuard::first();
+        $vehicle = Vehicle::first();
+        $driver = Employee::first();
+
+        // Buat data aktivitas verifikasi
+        VehicleActivity::create([
+            'transaction_no' => 'TRX-LOG-PG-001',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $guard->gate_id,
+            'direction' => 'out',
+            'previous_km' => 1000,
+            'current_km' => 1050,
+            'distance' => 50,
+            'purpose' => 'Dinas Luar',
+            'recorded_at' => Carbon::now(),
+            'validated_at' => Carbon::now(),
+            'security_guard_id' => $guard->id,
+            'validation_status' => 'approved',
+        ]);
+
+        $response = $this->actingAs($pgUser)->get(route('pg.logs.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Log Riwayat Verifikasi Gerbang');
+        $response->assertSee('TRX-LOG-PG-001');
+        $response->assertSee($guard->name);
+
+        // Test filter parameter
+        $filterResponse = $this->actingAs($pgUser)->get(route('pg.logs.index', [
+            'team' => $guard->team,
+            'status' => 'approved',
+            'search' => 'TRX-LOG-PG',
+        ]));
+        $filterResponse->assertStatus(200);
+        $filterResponse->assertSee('TRX-LOG-PG-001');
+    }
 }

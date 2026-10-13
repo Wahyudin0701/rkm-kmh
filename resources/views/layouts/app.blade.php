@@ -94,7 +94,7 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
-                        @elseif(auth()->user()->isPgAdmin() || auth()->user()->isGateOfficer())
+                        @elseif(auth()->user()->isGateOfficer())
                             <a href="{{ route('pg.gate.inspection') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -183,13 +183,11 @@
                                 <i class="fa-solid fa-user-shield text-base w-5 text-center"></i>
                                 <span>Data Satpam</span>
                             </a>
-                        @endif
 
-                        @if(auth()->user()->isGateOfficer() || auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
-                            <a href="{{ route('pg.gate.inspection') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
-                                <span>Verifikasi Gerbang</span>
+                            <a href="{{ route('pg.logs.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
+                                <span>Log Verifikasi Gerbang</span>
                             </a>
                         @endif
                     </nav>
@@ -320,8 +318,12 @@
                             <i class="fa-solid fa-user-shield w-5 text-center"></i>
                             <span>Data Satpam</span>
                         </a>
+                        <a href="{{ route('pg.logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
+                            <span>Log Verifikasi Gerbang</span>
+                        </a>
                     @endif
-                    @if(auth()->user()->isGateOfficer() || auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                    @if(auth()->user()->isGateOfficer())
                         <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                             <span>Pos Gerbang</span>
@@ -384,6 +386,8 @@
                     Verifikasi Pos Gerbang
                 @elseif(request()->routeIs('pg.guards.*'))
                     Data Satpam
+                @elseif(request()->routeIs('pg.logs.*'))
+                    Log Verifikasi Gerbang
                 @else
                     Dashboard
                 @endif
