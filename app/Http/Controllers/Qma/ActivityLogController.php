@@ -36,6 +36,21 @@ class ActivityLogController extends Controller
             $query->where('direction', $request->input('direction'));
         }
 
+        // Filter Kata Kunci Pencarian (Kode LV, Tipe Kendaraan, Plat, Driver, Keperluan)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('vehicle', function ($vq) use ($search) {
+                    $vq->where('code', 'like', "%{$search}%")
+                        ->orWhere('brand_type', 'like', "%{$search}%")
+                        ->orWhere('license_plate', 'like', "%{$search}%");
+                })->orWhereHas('driver', function ($dq) use ($search) {
+                    $dq->where('name', 'like', "%{$search}%")
+                        ->orWhere('nik', 'like', "%{$search}%");
+                })->orWhere('purpose', 'like', "%{$search}%");
+            });
+        }
+
         // Filter Status Validasi (pending, approved, rejected)
         if ($request->filled('status')) {
             $query->where('validation_status', $request->input('status'));

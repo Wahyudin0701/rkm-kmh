@@ -170,16 +170,16 @@ class VehicleActivityTest extends TestCase
         $qmaAdmin = User::where('role', 'qma_admin')->first();
         $response = $this->actingAs($qmaAdmin)->get('/qma/activity-log');
         $response->assertStatus(200);
-        $response->assertSee('Log Aktivitas Kendaraan QMA');
-        $response->assertSee('1. Tanggal');
-        $response->assertSee('2. Kode LV');
-        $response->assertSee('3. Unit');
-        $response->assertSee('4. Penanggung Jawab');
-        $response->assertSee('5. Driver');
-        $response->assertSee('6. Gate');
-        $response->assertSee('7. Akses');
-        $response->assertSee('8. KM Sebelumnya');
-        $response->assertSee('9. KM Berjalan');
-        $response->assertSee('10. Aktifitas');
+        $response->assertSee('Log Aktivitas Kendaraan');
+        $response->assertSee('Tanggal');
+        $response->assertSee('Kode LV');
+        $response->assertSee('Unit');
+        $response->assertSee('Penanggung Jawab');
+        $response->assertSee('Driver');
+        $response->assertSee('Gate');
+        $response->assertSee('Akses');
+        $response->assertSee('KM Sebelumnya');
+        $response->assertSee('KM Berjalan');
+        $response->assertSee('Aktivitas');
     }
 }
