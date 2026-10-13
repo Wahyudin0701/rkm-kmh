@@ -169,8 +169,8 @@
         </div>
     </form>
 
-    <!-- Tabel Log Aktivitas (Header Navy Solid #06213f Tanpa Nomor Kolom) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- Tabel Log Aktivitas (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
