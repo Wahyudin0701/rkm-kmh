@@ -203,6 +203,16 @@ class VehicleActivityTest extends TestCase
         $responseFiltered->assertSee('<span>Reset Filter</span>', false);
     }
 
+    public function test_qma_log_defaults_date_filter_to_today(): void
+    {
+        $qmaAdmin = User::where('role', 'qma_admin')->first();
+        $today = Carbon::today()->toDateString();
+
+        $response = $this->actingAs($qmaAdmin)->get('/qma/activity-log');
+        $response->assertStatus(200);
+        $response->assertSee('value="' . $today . '"', false);
+    }
+
     public function test_admin_pg_can_store_security_guard_and_creates_login_account(): void
     {
         $adminPg = User::where('role', 'pg_admin')->first();

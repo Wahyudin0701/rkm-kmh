@@ -19,11 +19,19 @@ class ActivityLogController extends Controller
         $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
             ->latest('recorded_at');
 
-        // Filter Rentang Tanggal
-        if ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = Carbon::parse($request->input('start_date'))->startOfDay();
-            $endDate = Carbon::parse($request->input('end_date'))->endOfDay();
-            $query->whereBetween('recorded_at', [$startDate, $endDate]);
+        // Filter Rentang Tanggal (Default Hari Ini)
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
+
+        if ($startDate && $endDate) {
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+            $query->whereBetween('recorded_at', [$start, $end]);
+        } elseif ($startDate) {
+            $query->where('recorded_at', '>=', Carbon::parse($startDate)->startOfDay());
+        } elseif ($endDate) {
+            $query->where('recorded_at', '<=', Carbon::parse($endDate)->endOfDay());
         }
 
         // Filter Gerbang
@@ -59,7 +67,7 @@ class ActivityLogController extends Controller
         $activities = $query->paginate(20)->withQueryString();
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
 
-        return view('qma.activity_log', compact('activities', 'gates'));
+        return view('qma.activity_log', compact('activities', 'gates', 'startDate', 'endDate'));
     }
 
     /**
