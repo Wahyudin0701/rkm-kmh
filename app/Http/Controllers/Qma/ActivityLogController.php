@@ -61,4 +61,91 @@ class ActivityLogController extends Controller
 
         return view('qma.activity_log', compact('activities', 'gates'));
     }
+
+    /**
+     * Tampilkan Summary Aktivitas Kendaraan (Rekapitulasi Armada, Driver, Pos Gerbang & Statistik).
+     */
+    public function summary(Request $request): View
+    {
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $type = $request->input('type');
+        $gateId = $request->input('gate_id');
+
+        $query = VehicleActivity::query();
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $start = Carbon::parse($startDate)->startOfDay();
+            $end = Carbon::parse($endDate)->endOfDay();
+            $query->whereBetween('recorded_at', [$start, $end]);
+        }
+
+        if ($request->filled('gate_id')) {
+            $query->where('gate_id', $gateId);
+        }
+
+        if ($request->filled('type')) {
+            $type = $request->input('type');
+            $query->whereHas('vehicle', function ($q) use ($type) {
+                if ($type === 'lv' || $type === 'light_vehicle') {
+                    $q->where('category', 'light_vehicle');
+                } elseif ($type === 'support' || $type === 'unit_support') {
+                    $q->where('category', 'unit_support');
+                }
+            });
+        }
+
+        $totalActivities = (clone $query)->count();
+        $totalDistance = (clone $query)->sum('distance');
+        $inCount = (clone $query)->where('direction', 'in')->count();
+        $outCount = (clone $query)->where('direction', 'out')->count();
+        $approvedCount = (clone $query)->where('validation_status', 'approved')->count();
+        $pendingCount = (clone $query)->where('validation_status', 'pending')->count();
+        $rejectedCount = (clone $query)->where('validation_status', 'rejected')->count();
+
+        // Rekapitulasi per Kendaraan
+        $vehicleSummaries = (clone $query)
+            ->selectRaw("vehicle_id, COUNT(*) as total_trips, SUM(CASE WHEN direction = 'in' THEN 1 ELSE 0 END) as in_trips, SUM(CASE WHEN direction = 'out' THEN 1 ELSE 0 END) as out_trips, SUM(distance) as total_km")
+            ->groupBy('vehicle_id')
+            ->with('vehicle')
+            ->orderByDesc('total_km')
+            ->get();
+
+        $activeVehiclesCount = $vehicleSummaries->count();
+        $avgDistancePerTrip = $totalActivities > 0 ? round($totalDistance / $totalActivities, 1) : 0;
+
+        // Rekapitulasi per Driver (Top Driver)
+        $driverSummaries = (clone $query)
+            ->selectRaw("driver_id, COUNT(*) as total_trips, SUM(distance) as total_km")
+            ->groupBy('driver_id')
+            ->with('driver')
+            ->orderByDesc('total_km')
+            ->take(10)
+            ->get();
+
+        // Rekapitulasi per Pos Gerbang
+        $gateSummaries = (clone $query)
+            ->selectRaw("gate_id, COUNT(*) as total_trips, SUM(CASE WHEN direction = 'in' THEN 1 ELSE 0 END) as in_trips, SUM(CASE WHEN direction = 'out' THEN 1 ELSE 0 END) as out_trips")
+            ->groupBy('gate_id')
+            ->with('gate')
+            ->get();
+
+        $gates = Gate::where('is_active', true)->orderBy('name')->get();
+
+        return view('qma.activity_summary', compact(
+            'totalActivities',
+            'totalDistance',
+            'activeVehiclesCount',
+            'avgDistancePerTrip',
+            'inCount',
+            'outCount',
+            'approvedCount',
+            'pendingCount',
+            'rejectedCount',
+            'vehicleSummaries',
+            'driverSummaries',
+            'gateSummaries',
+            'gates'
+        ));
+    }
 }

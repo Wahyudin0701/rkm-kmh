@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update');
         Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log');
+        Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary');
     });
 
     // 4. Modul Private Guard (PG): Admin PG (Admin PG - AdminPG) & Pos Gerbang Satpam

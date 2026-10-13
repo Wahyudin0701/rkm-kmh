@@ -169,6 +169,12 @@
                                 <i class="fa-solid fa-clipboard-list text-base w-5 text-center"></i>
                                 <span>Log Aktivitas Kendaraan</span>
                             </a>
+
+                            <a href="{{ route('qma.activity.summary') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
+                                <span>Summary Aktivitas</span>
+                            </a>
                         @endif
 
                         @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
@@ -303,6 +309,11 @@
                             <i class="fa-solid fa-clipboard-list w-5 text-center"></i>
                             <span>Log Aktivitas Kendaraan</span>
                         </a>
+
+                        <a href="{{ route('qma.activity.summary') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                            <span>Summary Aktivitas</span>
+                        </a>
                     @endif
                     @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
                         <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
@@ -365,6 +376,8 @@
                     Data Kendaraan
                 @elseif(request()->routeIs('qma.activity.log'))
                     Log Aktivitas Kendaraan
+                @elseif(request()->routeIs('qma.activity.summary'))
+                    Summary Aktivitas Kendaraan
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
                 @elseif(request()->routeIs('pg.gate.*'))

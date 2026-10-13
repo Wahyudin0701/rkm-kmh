@@ -21,9 +21,10 @@
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <span class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-sm">
-                <i class="fa-solid fa-clipboard-check mr-2 text-emerald-600"></i> Total: {{ $activities->total() }} Catatan
-            </span>
+            <a href="{{ route('qma.activity.summary') }}" class="inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#06213f] hover:bg-[#0b315b] shadow-sm transition group">
+                <i class="fa-solid fa-chart-pie mr-2 text-emerald-400 group-hover:scale-110 transition-transform"></i>
+                <span>Summary Aktifitas</span>
+            </a>
         </div>
     </div>
 
