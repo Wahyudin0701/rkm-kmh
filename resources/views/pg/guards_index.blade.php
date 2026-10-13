@@ -55,7 +55,7 @@
                         <th class="py-3.5 px-4">ID SATPAM</th>
                         <th class="py-3.5 px-4">NAMA LENGKAP</th>
                         <th class="py-3.5 px-4 text-center">REGU</th>
-                        <th class="py-3.5 px-4">PENEMPATAN</th>
+                        <th class="py-3.5 px-4 text-center">PENEMPATAN</th>
                         <th class="py-3.5 px-4 text-center">STATUS</th>
                         <th class="py-3.5 px-4 text-center w-28">AKSI</th>
                     </tr>
@@ -98,7 +98,7 @@
                             </td>
 
                             <!-- Penempatan Pos Gerbang -->
-                            <td class="py-3.5 px-4 whitespace-nowrap">
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                                     {{ $g->gate->name ?? 'Belum Ditentukan' }}
                                 </span>
