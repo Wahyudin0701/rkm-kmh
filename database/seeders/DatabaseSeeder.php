@@ -39,8 +39,9 @@ class DatabaseSeeder extends Seeder
 
         $createdGates = [];
         foreach ($gateList as $g) {
-            $createdGates[$g['code']] = Gate::create([
+            $createdGates[$g['code']] = Gate::firstOrCreate([
                 'code' => $g['code'],
+            ], [
                 'name' => $g['name'],
                 'is_active' => true,
             ]);
@@ -57,17 +58,19 @@ class DatabaseSeeder extends Seeder
 
         foreach ($guardData as $g) {
             $gateModel = $createdGates[$g['gate']];
-            $guardUser = User::create([
-                'name' => $g['name'],
+            $guardUser = User::firstOrCreate([
                 'username' => $g['badge_id'],
+            ], [
+                'name' => $g['name'],
                 'email' => strtolower($g['badge_id']) . '@kmh.co.id',
                 'password' => Hash::make('password'),
                 'role' => 'gate_officer',
                 'gate_id' => $gateModel->id,
             ]);
 
-            SecurityGuard::create([
+            SecurityGuard::firstOrCreate([
                 'badge_id' => $g['badge_id'],
+            ], [
                 'name' => $g['name'],
                 'team' => $g['team'],
                 'gate_id' => $gateModel->id,
@@ -78,36 +81,40 @@ class DatabaseSeeder extends Seeder
 
         // 3. Seed Users (Super Admin, Dept Admins & Shared Gate Accounts)
         // Super Admin [Nama : Super Administrator, Username : superadmin, Password : password]
-        User::create([
-            'name' => 'Super Administrator',
+        User::firstOrCreate([
             'username' => 'superadmin',
+        ], [
+            'name' => 'Super Administrator',
             'email' => 'superadmin@kmh.co.id',
             'password' => Hash::make('password'),
             'role' => 'super_admin',
         ]);
 
         // Admin HSE [Nama : Mima, Username : 1185, Password : password]
-        User::create([
-            'name' => 'Mima',
+        User::firstOrCreate([
             'username' => '1185',
+        ], [
+            'name' => 'Mima',
             'email' => '1185@kmh.co.id',
             'password' => Hash::make('password'),
             'role' => 'hse_admin',
         ]);
 
         // Admin QMA [Nama : Pinto Yuliandra, Username : 1171, Password : password]
-        User::create([
-            'name' => 'Pinto Yuliandra',
+        User::firstOrCreate([
             'username' => '1171',
+        ], [
+            'name' => 'Pinto Yuliandra',
             'email' => '1171@kmh.co.id',
             'password' => Hash::make('password'),
             'role' => 'qma_admin',
         ]);
 
         // Admin PG [Nama : Admin PG, Username : AdminPG, Password : password]
-        User::create([
-            'name' => 'Admin PG',
+        User::firstOrCreate([
             'username' => 'AdminPG',
+        ], [
+            'name' => 'Admin PG',
             'email' => 'adminpg@kmh.co.id',
             'password' => Hash::make('password'),
             'role' => 'pg_admin',
@@ -154,21 +161,23 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($employeesData as $emp) {
-            $empUser = User::create([
-                'name' => $emp['name'],
+            $empUser = User::firstOrCreate([
                 'username' => $emp['nik'],
+            ], [
+                'name' => $emp['name'],
                 'email' => strtolower(str_replace(['-', ' '], '', $emp['nik'])) . '@kmh.co.id',
                 'password' => Hash::make('password'),
                 'role' => 'employee',
             ]);
 
             $emp['user_id'] = $empUser->id;
-            Employee::create($emp);
+            Employee::firstOrCreate(['nik' => $emp['nik']], $emp);
         }
 
         // 5. Seed Vehicles (Master Data QMA: Kendaraan Ringan / LV)
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'LV62',
+        ], [
             'category' => 'light_vehicle',
             'brand_type' => 'MITSUBISHI - L300 - PICK UP',
             'license_plate' => 'BH 8893 DI',
@@ -178,8 +187,9 @@ class DatabaseSeeder extends Seeder
             'current_km' => 12500.00,
         ]);
 
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'LV01',
+        ], [
             'category' => 'light_vehicle',
             'brand_type' => 'TOYOTA HILUX 4X4 DC',
             'license_plate' => 'BH 1024 AB',
@@ -189,8 +199,9 @@ class DatabaseSeeder extends Seeder
             'current_km' => 45200.00,
         ]);
 
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'LV15',
+        ], [
             'category' => 'light_vehicle',
             'brand_type' => 'ISUZU D-MAX 4X4',
             'license_plate' => 'BH 9012 CD',
@@ -201,8 +212,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 6. Seed Vehicles (Master Data QMA: Kendaraan Berat / Unit Support - HANYA Pencatatan Data)
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'EX01',
+        ], [
             'category' => 'unit_support',
             'brand_type' => 'KOMATSU PC200-8',
             'unit_category' => 'Excavator',
@@ -222,8 +234,9 @@ class DatabaseSeeder extends Seeder
             'kir_document' => 'KIR-2026/08',
         ]);
 
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'CR01',
+        ], [
             'category' => 'unit_support',
             'brand_type' => 'KATO SR-250R',
             'unit_category' => 'Mobile Crane',
@@ -241,8 +254,9 @@ class DatabaseSeeder extends Seeder
             'kir_document' => 'KIR-2026/10',
         ]);
 
-        Vehicle::create([
+        Vehicle::firstOrCreate([
             'code' => 'DT02',
+        ], [
             'category' => 'unit_support',
             'brand_type' => 'MITSUBISHI FUSO FIGHTER FN62F',
             'license_plate' => 'BH 8412 AA',
@@ -260,6 +274,9 @@ class DatabaseSeeder extends Seeder
             'stnk_document' => 'STNK-BH-8412-AA',
             'kir_document' => 'KIR-2026/11',
         ]);
+
+        // 6. Seed RBAC Roles, Permissions & Super Admin
+        $this->call(RolePermissionSeeder::class);
 
         // 7. Seed 28 Master Template P2H Unit Support
         $this->call(P2hTemplateSeeder::class);

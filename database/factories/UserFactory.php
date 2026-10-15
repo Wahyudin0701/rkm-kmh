@@ -26,6 +26,7 @@ class UserFactory extends Factory
     {
         return [
             'name' => fake()->name(),
+            'username' => fake()->unique()->userName(),
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
@@ -41,5 +42,20 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    /**
+     * Configure the model factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            if ($user->role && \Illuminate\Support\Facades\Schema::hasTable('roles')) {
+                $role = \Spatie\Permission\Models\Role::where('name', $user->role)->first();
+                if ($role && !$user->hasRole($user->role)) {
+                    $user->assignRole($role);
+                }
+            }
+        });
     }
 }

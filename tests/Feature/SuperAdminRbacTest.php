@@ -1,0 +1,287 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Gate;
+use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Tests\TestCase;
+
+class SuperAdminRbacTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Pastikan role dan permissions ada
+        $this->seed(RolePermissionSeeder::class);
+    }
+
+    public function test_super_admin_can_login_and_redirects_to_admin_dashboard(): void
+    {
+        $response = $this->post(route('login.post'), [
+            'username' => 'superadmin',
+            'password' => 'password',
+        ]);
+
+        $response->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticated();
+    }
+
+    public function test_super_admin_can_view_dashboard_and_modules(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        $response = $this->actingAs($superAdmin)->get(route('admin.dashboard'));
+        $response->assertOk();
+        $response->assertSee('Dashboard Super Admin');
+    }
+
+    public function test_non_super_admin_cannot_access_admin_dashboard(): void
+    {
+        $regularUser = User::factory()->create([
+            'role' => 'hse_admin',
+        ]);
+
+        $response = $this->actingAs($regularUser)->get(route('admin.dashboard'));
+        $response->assertForbidden();
+    }
+
+    public function test_super_admin_can_view_users_page(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        $response = $this->actingAs($superAdmin)->get(route('admin.users.index'));
+        $response->assertOk();
+        $response->assertSee('Manajemen Pengguna Sistem');
+        $response->assertSee('superadmin');
+    }
+
+    public function test_super_admin_can_create_new_user_with_spatie_role(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.store'), [
+            'name' => 'Operator Baru',
+            'username' => 'operator.baru',
+            'email' => 'operator@kmh.co.id',
+            'password' => 'password123',
+            'role' => 'gate_officer',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success');
+
+        $newUser = User::where('username', 'operator.baru')->first();
+        $this->assertNotNull($newUser);
+        $this->assertTrue($newUser->hasRole('gate_officer'));
+        $this->assertEquals('gate_officer', $newUser->role);
+    }
+
+    public function test_super_admin_can_update_user_and_change_role(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $user = User::factory()->create([
+            'name' => 'Pinto Yuliandra',
+            'username' => '1171',
+            'email' => '1171@kmh.co.id',
+            'role' => 'qma_admin',
+        ]);
+        $user->assignRole('qma_admin');
+
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.update', $user->id), [
+            'name' => 'Pinto Yuliandra Updated',
+            'username' => '1171',
+            'email' => '1171@kmh.co.id',
+            'role' => 'hse_admin',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+
+        $user->refresh();
+        $this->assertEquals('Pinto Yuliandra Updated', $user->name);
+        $this->assertTrue($user->hasRole('hse_admin'));
+    }
+
+    public function test_super_admin_cannot_delete_own_account_or_main_superadmin(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        $response = $this->actingAs($superAdmin)->delete(route('admin.users.destroy', $superAdmin->id));
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('error');
+
+        $this->assertDatabaseHas('users', ['id' => $superAdmin->id]);
+    }
+
+    public function test_super_admin_can_view_and_update_role_permissions(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $role = Role::findByName('hse_admin');
+
+        $response = $this->actingAs($superAdmin)->get(route('admin.roles.index'));
+        $response->assertOk();
+        $response->assertSee('Matriks Role');
+
+        // Update permissions for hse_admin
+        $response = $this->actingAs($superAdmin)->post(route('admin.roles.permissions.update', $role->id), [
+            'permissions' => ['hse.employees.view'],
+        ]);
+
+        $response->assertRedirect(route('admin.roles.index'));
+        $response->assertSessionHas('success');
+
+        $role->refresh();
+        $this->assertTrue($role->hasPermissionTo('hse.employees.view'));
+        $this->assertFalse($role->hasPermissionTo('hse.employees.create'));
+    }
+
+    public function test_super_admin_can_assign_direct_permissions_to_user(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $user = User::factory()->create([
+            'role' => 'gate_officer',
+        ]);
+        $user->assignRole('gate_officer');
+
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.update', $user->id), [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role' => 'gate_officer',
+            'direct_permissions' => ['qma.logs.view'],
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+
+        $user->refresh();
+        $this->assertTrue($user->hasDirectPermission('qma.logs.view'));
+    }
+
+    public function test_super_admin_has_bypass_access_to_all_modules(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        // HSE Dashboard
+        $response = $this->actingAs($superAdmin)->get(route('hse.dashboard'));
+        $response->assertOk();
+
+        // QMA Dashboard
+        $response = $this->actingAs($superAdmin)->get(route('qma.dashboard'));
+        $response->assertOk();
+
+        // PG Dashboard
+        $response = $this->actingAs($superAdmin)->get(route('pg.dashboard'));
+        $response->assertOk();
+    }
+
+    public function test_permission_revocation_immediately_blocks_action_and_hides_button(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $hseUser = User::factory()->create([
+            'role' => 'hse_admin',
+        ]);
+        $hseUser->assignRole('hse_admin');
+
+        // 1. Sebelum izin dicabut: bisa melihat tombol dan menambah karyawan
+        $resView = $this->actingAs($hseUser)->get(route('hse.employees.index'));
+        $resView->assertOk();
+        $resView->assertSee('Tambah Karyawan');
+
+        $resStore = $this->actingAs($hseUser)->post(route('hse.employees.store'), [
+            'nik' => 'NIK-TEST-001',
+            'name' => 'Budi Santoso',
+            'unit_kerja' => 'Teknik',
+            'division' => 'Civil',
+            'position' => 'Driver',
+            'is_operator' => '1',
+            'simper_expired_at' => now()->addYear()->format('Y-m-d'),
+        ]);
+        $resStore->assertRedirect();
+        $this->assertDatabaseHas('employees', ['nik' => 'NIK-TEST-001']);
+
+        // 2. Super Admin mencabut izin 'hse.employees.create' dari role hse_admin
+        $role = Role::findByName('hse_admin');
+        $this->actingAs($superAdmin)->post(route('admin.roles.permissions.update', $role->id), [
+            'permissions' => ['hse.employees.view'], // hse.employees.create sengaja dicabut
+        ]);
+
+        // 3. Verifikasi Sinkronisasi Langsung:
+        // A. Tombol 'Tambah Karyawan' langsung hilang dari halaman index
+        $resViewRevoked = $this->actingAs($hseUser)->get(route('hse.employees.index'));
+        $resViewRevoked->assertOk();
+        $resViewRevoked->assertDontSee('<span>Tambah Karyawan</span>', false);
+
+        // B. Akses request POST langsung diblokir 403 Forbidden
+        $resStoreBlocked = $this->actingAs($hseUser)->post(route('hse.employees.store'), [
+            'nik' => 'NIK-TEST-002',
+            'name' => 'Karyawan Baru',
+            'unit_kerja' => 'Teknik',
+            'division' => 'Civil',
+            'position' => 'Driver',
+            'is_operator' => '1',
+        ]);
+        $resStoreBlocked->assertForbidden();
+        $this->assertDatabaseMissing('employees', ['nik' => 'NIK-TEST-002']);
+
+        // 4. Super Admin mengembalikan izin 'hse.employees.create'
+        $this->actingAs($superAdmin)->post(route('admin.roles.permissions.update', $role->id), [
+            'permissions' => ['hse.employees.view', 'hse.employees.create', 'hse.employees.edit'],
+        ]);
+
+        // 5. User langsung bisa menambah karyawan kembali
+        $resStoreRestored = $this->actingAs($hseUser)->post(route('hse.employees.store'), [
+            'nik' => 'NIK-TEST-002',
+            'name' => 'Karyawan Baru',
+            'unit_kerja' => 'Teknik',
+            'division' => 'Civil',
+            'position' => 'Driver',
+            'is_operator' => '1',
+        ]);
+        $resStoreRestored->assertRedirect();
+        $this->assertDatabaseHas('employees', ['nik' => 'NIK-TEST-002']);
+    }
+
+    public function test_user_direct_permission_sync_allows_or_denies_immediately(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $gateUser = User::factory()->create([
+            'role' => 'gate_officer',
+        ]);
+        $gateUser->assignRole('gate_officer');
+
+        // Awalnya gate officer tidak punya izin melihat qma activity log
+        $resDenied = $this->actingAs($gateUser)->get(route('qma.activity.log'));
+        $resDenied->assertForbidden();
+
+        // Super Admin memberikan direct permission qma.logs.view ke user ini
+        $this->actingAs($superAdmin)->post(route('admin.users.update', $gateUser->id), [
+            'name' => $gateUser->name,
+            'username' => $gateUser->username,
+            'email' => $gateUser->email,
+            'role' => 'gate_officer',
+            'direct_permissions' => ['qma.logs.view'],
+        ]);
+
+        // User langsung dapat mengakses activity log
+        $resAllowed = $this->actingAs($gateUser->fresh())->get(route('qma.activity.log'));
+        $resAllowed->assertOk();
+
+        // Super Admin mencabut izin langsung tersebut
+        $this->actingAs($superAdmin)->post(route('admin.users.update', $gateUser->id), [
+            'name' => $gateUser->name,
+            'username' => $gateUser->username,
+            'email' => $gateUser->email,
+            'role' => 'gate_officer',
+            'direct_permissions' => [],
+        ]);
+
+        // User langsung ditolak kembali
+        $resDeniedAgain = $this->actingAs($gateUser->fresh())->get(route('qma.activity.log'));
+        $resDeniedAgain->assertForbidden();
+    }
+}

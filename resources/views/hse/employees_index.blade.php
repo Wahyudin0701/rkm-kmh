@@ -35,6 +35,15 @@
                 <span>Ekspor Simper</span>
                 <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
             </button>
+            <!-- Tombol Tambah Karyawan (+ Tambah Karyawan Hijau Tua) -->
+            @can('hse.employees.create')
+            <button type="button"
+                    onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
+                    class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span>Tambah Karyawan</span>
+            </button>
+            @endcan
         </div>
     </div>
 
@@ -165,6 +174,7 @@
                             
                             <!-- Aksi (Edit Data Simper & Perpanjang SIMPER) -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                @can('hse.employees.edit')
                                 <div class="flex items-center justify-center space-x-2">
                                     <button onclick='openEditModal(@json($emp))' 
                                             class="inline-flex items-center space-x-1 text-amber-500 hover:text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
@@ -179,6 +189,9 @@
                                         Perpanjang
                                     </button>
                                 </div>
+                                @else
+                                <span class="text-xs text-slate-400 italic">Hanya lihat</span>
+                                @endcan
                             </td>
                         </tr>
                     @empty

@@ -49,32 +49,37 @@
 
         /* Modern Sleek Scrollbar */
         ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
-        }
-        ::-webkit-scrollbar-button {
-            display: none;
-            width: 0;
-            height: 0;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
         }
         ::-webkit-scrollbar-thumb {
-            background-color: rgba(148, 163, 184, 0.45);
+            background: #cbd5e1;
             border-radius: 9999px;
-            border: 2px solid transparent;
-            background-clip: padding-box;
-            transition: all 0.2s ease;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(100, 116, 139, 0.75);
+            background: #94a3b8;
         }
 
-        /* Efek Saat Modal Popup Terbuka: Scrollbar ikut gelap, buram (frosted blur) & menyatu dengan backdrop */
+        /* Cegah Scrollbar Melompat & Hilangkan Gap Putih saat Modal Aktif */
+        html.modal-open,
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0px !important;
+            margin-right: 0px !important;
+        }
+
+        /* Scrollbar Halus & Transparan untuk Dialog Modal */
+        html.modal-open::-webkit-scrollbar,
+        body.modal-open::-webkit-scrollbar {
+            width: 6px;
+            background-color: rgba(15, 23, 42, 0.6);
+        }
         html.modal-open::-webkit-scrollbar-track,
         body.modal-open::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
+            background-color: rgba(15, 23, 42, 0.6);
         }
         html.modal-open::-webkit-scrollbar-thumb,
         body.modal-open::-webkit-scrollbar-thumb {
@@ -155,36 +160,22 @@
 
             <!-- Menu Navigasi Sidebar -->
             <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6 no-scrollbar">
-                @if(auth()->user()->isSuperAdmin())
-                <!-- Kategori Khusus Super Admin: Dashboard & Manajemen Role -->
-                <div>
-                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        MENU ADMIN
-                    </p>
-                    <nav class="space-y-1">
-                        <a href="{{ route('superadmin.dashboard') }}" 
-                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                            </svg>
-                            <span>Dashboard</span>
-                        </a>
-
-                        <a href="{{ route('superadmin.roles.index') }}" 
-                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('superadmin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-users-gear text-base w-5 text-center"></i>
-                            <span>Manajemen Role</span>
-                        </a>
-                    </nav>
-                </div>
-                @else
-                <!-- Grup: Navigasi Utama (Departemen Lain) -->
+                <!-- Grup: Navigasi Utama -->
                 <div>
                     <nav class="space-y-1">
-                        @if(auth()->user()->isHseAdmin())
+                        @if(auth()->user()->isSuperAdmin())
+                            <a href="{{ route('admin.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard Admin</span>
+                            </a>
+                        @elseif(auth()->user()->isHseAdmin())
+                            @can('hse.employees.view')
                             <a href="{{ route('hse.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -195,7 +186,9 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
                         @elseif(auth()->user()->isQmaAdmin())
+                            @can('qma.vehicles.view')
                             <a href="{{ route('qma.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -206,7 +199,9 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
                         @elseif(auth()->user()->isPgAdmin())
+                            @can('pg.guards.view')
                             <a href="{{ route('pg.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -217,12 +212,15 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
                         @elseif(auth()->user()->isGateOfficer())
+                            @can('gate.inspect')
                             <a href="{{ route('pg.gate.inspection') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
                                 <span>Verifikasi Pos Gerbang</span>
                             </a>
+                            @endcan
                         @elseif(auth()->user()->isEmployee())
                             <a href="{{ route('employee.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
@@ -248,22 +246,52 @@
                     </nav>
                 </div>
 
-                <!-- Grup: Modul Operasional Departemen RKM -->
-                @if(!auth()->user()->isGateOfficer())
+                <!-- Grup: Super Admin & RBAC -->
+                @if(auth()->user()->isSuperAdmin())
                 <div>
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        MANAJEMEN SISTEM
+                        SUPER ADMIN & RBAC
                     </p>
                     <nav class="space-y-1">
-                        @if(auth()->user()->isHseAdmin())
-                            <a href="{{ route('hse.employees.index') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
-                                <span>Data Simper</span>
-                            </a>
-                        @endif
+                        <a href="{{ route('admin.users.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.users.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-users-gear text-base w-5 text-center"></i>
+                            <span>Kelola Pengguna</span>
+                        </a>
 
-                        @if(auth()->user()->isQmaAdmin())
+                        <a href="{{ route('admin.roles.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                            <span>Role & Permission</span>
+                        </a>
+                    </nav>
+                </div>
+                @endif
+
+                <!-- Grup: Manajemen HSE -->
+                @can('hse.employees.view')
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN HSE
+                    </p>
+                    <nav class="space-y-1">
+                        <a href="{{ route('hse.employees.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
+                            <span>Data Simper</span>
+                        </a>
+                    </nav>
+                </div>
+                @endcan
+
+                <!-- Grup: Manajemen QMA -->
+                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view']))
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN QMA
+                    </p>
+                    <nav class="space-y-1">
+                        @can('qma.vehicles.view')
                             @php
                                 $isVehicleRoute = request()->routeIs('qma.vehicles.*');
                             @endphp
@@ -287,12 +315,14 @@
                                     </a>
 
                                     <a href="{{ route('qma.vehicles.support') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') || request()->routeIs('qma.vehicles.support.units*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Unit Support</span>
                                     </a>
                                 </div>
                             </div>
+                        @endcan
 
+                        @can('qma.logs.view')
                             @php
                                 $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
@@ -327,26 +357,53 @@
                                 <i class="fa-solid fa-layer-group text-base w-5 text-center"></i>
                                 <span>Master Template P2H</span>
                             </a>
+                        @endcan
 
+                        @can('qma.summary.view')
+                            <a href="{{ route('qma.activity.summary') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
+                                <span>Summary Aktivitas</span>
+                            </a>
+                        @endcan
+                    </nav>
+                </div>
+                @endif
 
-                        @endif
-
-                        @if(auth()->user()->isPgAdmin())
+                <!-- Grup: Manajemen Private Guard (PG) -->
+                @if(auth()->user()->canAny(['pg.guards.view', 'pg.logs.view', 'gate.inspect']))
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN PRIVATE GUARD (PG)
+                    </p>
+                    <nav class="space-y-1">
+                        @can('pg.guards.view')
                             <a href="{{ route('pg.guards.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-user-shield text-base w-5 text-center"></i>
                                 <span>Data Satpam</span>
                             </a>
+                        @endcan
 
+                        @can('pg.logs.view')
                             <a href="{{ route('pg.logs.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
                                 <span>Log Verifikasi Gerbang</span>
                             </a>
+                        @endcan
+
+                        @if(!auth()->user()->isGateOfficer())
+                            @can('gate.inspect')
+                                <a href="{{ route('pg.gate.inspection') }}" 
+                                   class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                    <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                                    <span>Verifikasi Pos Gerbang</span>
+                                </a>
+                            @endcan
                         @endif
                     </nav>
                 </div>
-                @endif
                 @endif
 
                 <!-- Grup: Pengaturan Akun -->
@@ -404,25 +461,21 @@
             </div>
 
             <div class="p-4 space-y-4 flex-1 overflow-y-auto no-scrollbar">
-                    @if(auth()->user()->isSuperAdmin())
-                        <div class="mb-3 space-y-1">
-                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1">MENU ADMIN</p>
-                            <a href="{{ route('superadmin.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                <!-- Grup: Navigasi Utama Mobile -->
+                <div>
+                    <nav class="space-y-1">
+                        @if(auth()->user()->isSuperAdmin())
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="2"></rect>
                                     <rect x="14" y="14" width="7" height="7" rx="2"></rect>
                                     <rect x="3" y="14" width="7" height="7" rx="2"></rect>
                                 </svg>
-                                <span>Dashboard</span>
+                                <span>Dashboard Admin</span>
                             </a>
-                            <a href="{{ route('superadmin.roles.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('superadmin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-users-gear w-5 text-center"></i>
-                                <span>Manajemen Role</span>
-                            </a>
-                        </div>
-                    @else
-                        @if(auth()->user()->isHseAdmin())
+                        @elseif(auth()->user()->isHseAdmin())
+                            @can('hse.employees.view')
                             <a href="{{ route('hse.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
@@ -432,12 +485,9 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
-                            <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-id-card w-5 text-center"></i>
-                                <span>Data Simper</span>
-                            </a>
-                        @endif
-                        @if(auth()->user()->isQmaAdmin())
+                            @endcan
+                        @elseif(auth()->user()->isQmaAdmin())
+                            @can('qma.vehicles.view')
                             <a href="{{ route('qma.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
@@ -447,7 +497,90 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
+                        @elseif(auth()->user()->isPgAdmin())
+                            @can('pg.guards.view')
+                            <a href="{{ route('pg.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            @endcan
+                        @elseif(auth()->user()->isGateOfficer())
+                            @can('gate.inspect')
+                            <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                                <span>Verifikasi Pos Gerbang</span>
+                            </a>
+                            @endcan
+                        @elseif(auth()->user()->isEmployee())
+                            <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
+                                <span>Pemeriksaan P2H</span>
+                            </a>
+                            <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-car text-base w-5 text-center"></i>
+                                <span>Timesheet</span>
+                            </a>
+                        @endif
+                    </nav>
+                </div>
 
+                <!-- Grup: Super Admin & RBAC Mobile -->
+                @if(auth()->user()->isSuperAdmin())
+                <div>
+                    <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        SUPER ADMIN & RBAC
+                    </p>
+                    <nav class="space-y-1">
+                        <a href="{{ route('admin.users.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.users.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                            <span>Kelola Pengguna</span>
+                        </a>
+                        <a href="{{ route('admin.roles.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                            <span>Role & Permission</span>
+                        </a>
+                    </nav>
+                </div>
+                @endif
+
+                <!-- Grup: Manajemen HSE Mobile -->
+                @can('hse.employees.view')
+                <div>
+                    <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN HSE
+                    </p>
+                    <nav class="space-y-1">
+                        <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-id-card w-5 text-center"></i>
+                            <span>Data Simper</span>
+                        </a>
+                    </nav>
+                </div>
+                @endcan
+
+                <!-- Grup: Manajemen QMA Mobile -->
+                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view']))
+                <div>
+                    <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN QMA
+                    </p>
+                    <nav class="space-y-1">
+                        @can('qma.vehicles.view')
                             @php
                                 $isVehicleRouteMob = request()->routeIs('qma.vehicles.*');
                             @endphp
@@ -469,12 +602,14 @@
                                     </a>
 
                                     <a href="{{ route('qma.vehicles.support') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') || request()->routeIs('qma.vehicles.support.units*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Unit Support</span>
                                     </a>
                                 </div>
                             </div>
+                        @endcan
 
+                        @can('qma.logs.view')
                             @php
                                 $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
@@ -506,55 +641,48 @@
                                 <i class="fa-solid fa-layer-group w-5 text-center"></i>
                                 <span>Master Template P2H</span>
                             </a>
+                        @endcan
 
+                        @can('qma.summary.view')
+                            <a href="{{ route('qma.activity.summary') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                                <span>Summary Aktivitas</span>
+                            </a>
+                        @endcan
+                    </nav>
+                </div>
+                @endif
 
-                        @endif
-                        @if(auth()->user()->isEmployee())
-                            <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                                </svg>
-                                <span>Dashboard</span>
-                            </a>
-                            <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-clipboard-check w-5 text-center"></i>
-                                <span>Pemeriksaan P2H</span>
-                            </a>
-                            <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-car w-5 text-center"></i>
-                                <span>Timesheet</span>
-                            </a>
-                        @endif
-                        @if(auth()->user()->isPgAdmin())
-                            <a href="{{ route('pg.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                                </svg>
-                                <span>Dashboard</span>
-                            </a>
+                <!-- Grup: Manajemen Private Guard (PG) Mobile -->
+                @if(auth()->user()->canAny(['pg.guards.view', 'pg.logs.view', 'gate.inspect']))
+                <div>
+                    <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MANAJEMEN PRIVATE GUARD (PG)
+                    </p>
+                    <nav class="space-y-1">
+                        @can('pg.guards.view')
                             <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-user-shield w-5 text-center"></i>
                                 <span>Data Satpam</span>
                             </a>
+                        @endcan
+                        @can('pg.logs.view')
                             <a href="{{ route('pg.logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
                                 <span>Log Verifikasi Gerbang</span>
                             </a>
+                        @endcan
+                        @if(!auth()->user()->isGateOfficer())
+                            @can('gate.inspect')
+                                <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                    <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                                    <span>Verifikasi Pos Gerbang</span>
+                                </a>
+                            @endcan
                         @endif
-                        @if(auth()->user()->isGateOfficer())
-                            <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                                <span>Verifikasi Pos Gerbang</span>
-                            </a>
-                        @endif
-                    @endif
+                    </nav>
                 </div>
+                @endif
 
                 <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mt-4">PENGATURAN</p>
                 <div class="space-y-1">
@@ -596,16 +724,20 @@
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
             <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                @if(request()->routeIs('superadmin.dashboard'))
+                @if(request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard'))
                     Dashboard Admin
-                @elseif(request()->routeIs('superadmin.roles.*') || request()->routeIs('superadmin.users.*'))
-                    Manajemen Role
+                @elseif(request()->routeIs('admin.users.*'))
+                    Kelola Pengguna
+                @elseif(request()->routeIs('admin.roles.*'))
+                    Role & Permission
                 @elseif(request()->routeIs('hse.dashboard') || request()->routeIs('qma.dashboard'))
                     Dashboard
                 @elseif(request()->routeIs('hse.employees.*'))
                     Data Simper
                 @elseif(request()->routeIs('qma.vehicles.lv'))
                     Light Vehicle
+                @elseif(request()->routeIs('qma.vehicles.support.units*'))
+                    Daftar Unit Fisik Support
                 @elseif(request()->routeIs('qma.vehicles.support'))
                     Unit Support
                 @elseif(request()->routeIs('qma.vehicles.*'))
@@ -619,7 +751,7 @@
                 @elseif(request()->routeIs('qma.p2h.*'))
                     P2H Unit Support
                 @elseif(request()->routeIs('qma.activity.summary'))
-                    Summary Timesheet LV
+                    Summary Aktivitas
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
                 @elseif(request()->routeIs('pg.dashboard'))
@@ -631,7 +763,7 @@
                 @elseif(request()->routeIs('pg.logs.*'))
                     Log Verifikasi Gerbang
                 @elseif(request()->routeIs('employee.dashboard'))
-                    Dashboard
+                    Dashboard Karyawan
                 @elseif(request()->routeIs('p2h.*'))
                     Pemeriksaan P2H
                 @elseif(request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*'))
@@ -686,7 +818,7 @@
     </header>
 
     <!-- 4. KONTEN UTAMA DASHBOARD (ATURAN EMAS: WRAPPER MAX-WIDTH HANYA DI SATU TEMPAT) -->
-    <main class="md:ml-64 flex-1 overflow-y-auto min-h-[calc(100vh-4rem)]">
+    <main class="md:ml-64 flex-1 min-h-[calc(100vh-4rem)]">
         <div class="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
             @yield('content')
         </div>
@@ -819,15 +951,16 @@
         });
 
         // =========================================================================
-        // PENGELOLA MODAL UNIVERSAL: KLIK BACKDROP DI SEKITAR POPUP & TOMBOL ESCAPE
+        // ATURAN EMAS MODAL: PENANGANAN BACKDROP KLIK & ESCAPE TERPUSAT
         // =========================================================================
         function closeAnyActiveModal(modal) {
-            if (!modal || modal.classList.contains('hidden') || modal.id === 'mobileDrawer') return;
+            if (!modal) return;
 
-            // 1. Coba klik tombol tutup / batal spesifik di dalam modal
-            const closeBtn = modal.querySelector('button[onclick*="close"], button[onclick*="Close"], button[onclick*="hide"], button[onclick*="Batal"], button[data-close]');
-            if (closeBtn) {
+            // 1. Trigger tombol close/batal jika tersedia
+            const closeBtn = modal.querySelector('[data-modal-close], button[onclick*="close"], button[onclick*="Modal"], .modal-close');
+            if (closeBtn && typeof closeBtn.click === 'function') {
                 closeBtn.click();
+                return;
             }
 
             // 2. Jika modal masih belum tertutup, sembunyikan langsung

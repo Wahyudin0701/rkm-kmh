@@ -19,10 +19,16 @@ class CheckRole
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk mengakses menu ini.');
         }
 
-        $userRole = $request->user()->role;
+        $user = $request->user();
+        $userRole = $user->role;
 
-        // Role 'super_admin' dan 'admin' selalu memiliki hak akses penuh ke seluruh modul
-        if (in_array($userRole, ['super_admin', 'superadmin', 'admin']) || in_array($userRole, $roles)) {
+        // Role 'super_admin', 'superadmin', dan 'admin' selalu memiliki hak akses penuh ke seluruh modul
+        if (in_array($userRole, ['super_admin', 'superadmin', 'admin']) || (method_exists($user, 'hasRole') && ($user->hasRole('super_admin') || $user->hasRole('admin')))) {
+            return $next($request);
+        }
+
+        // Cek via kolom role string atau Spatie hasAnyRole
+        if (in_array($userRole, $roles) || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole($roles))) {
             return $next($request);
         }
 

@@ -9,11 +9,42 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function (User $user) {
+            if ($user->role && \Illuminate\Support\Facades\Schema::hasTable('roles')) {
+                $role = \Spatie\Permission\Models\Role::where('name', $user->role)->first();
+                if ($role && !$user->hasRole($user->role)) {
+                    $user->assignRole($role);
+                }
+            }
+        });
+
+        static::deleting(function (User $user) {
+            if ($user->employee) {
+                if ($user->employee->activities()->exists() || $user->employee->p2hRecords()->exists()) {
+                    throw new \Exception("Tidak dapat menghapus user: Karyawan '{$user->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H.");
+                }
+                $user->employee->delete();
+            }
+            if ($user->securityGuard) {
+                if ($user->securityGuard->activities()->exists()) {
+                    throw new \Exception("Tidak dapat menghapus user: Petugas Satpam '{$user->name}' memiliki riwayat data validasi pos gerbang.");
+                }
+                $user->securityGuard->delete();
+            }
+        });
+    }
 
     /**
      * The attributes that are mass assignable.
@@ -52,24 +83,6 @@ class User extends Authenticatable
         ];
     }
 
-    protected static function booted(): void
-    {
-        static::deleting(function (User $user) {
-            if ($user->employee) {
-                if ($user->employee->activities()->exists() || $user->employee->p2hRecords()->exists()) {
-                    throw new \Exception("Tidak dapat menghapus user: Karyawan '{$user->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H.");
-                }
-                $user->employee->delete();
-            }
-            if ($user->securityGuard) {
-                if ($user->securityGuard->activities()->exists()) {
-                    throw new \Exception("Tidak dapat menghapus user: Petugas Satpam '{$user->name}' memiliki riwayat data validasi pos gerbang.");
-                }
-                $user->securityGuard->delete();
-            }
-        });
-    }
-
     public function gate(): BelongsTo
     {
         return $this->belongsTo(Gate::class);
@@ -87,36 +100,36 @@ class User extends Authenticatable
 
     public function isEmployee(): bool
     {
-        return $this->role === 'employee';
+        return $this->role === 'employee' || $this->hasRole('employee');
     }
 
     public function isGateOfficer(): bool
     {
-        return $this->role === 'gate_officer';
+        return $this->role === 'gate_officer' || $this->hasRole('gate_officer');
     }
 
     public function isHseAdmin(): bool
     {
-        return $this->role === 'hse_admin';
+        return $this->isSuperAdmin() || $this->role === 'hse_admin' || $this->hasRole('hse_admin');
     }
 
     public function isQmaAdmin(): bool
     {
-        return $this->role === 'qma_admin';
+        return $this->isSuperAdmin() || $this->role === 'qma_admin' || $this->hasRole('qma_admin');
     }
 
     public function isPgAdmin(): bool
     {
-        return $this->role === 'pg_admin';
+        return $this->isSuperAdmin() || $this->role === 'pg_admin' || $this->hasRole('pg_admin');
     }
 
     public function isSuperAdmin(): bool
     {
-        return in_array($this->role, ['super_admin', 'superadmin']);
+        return in_array($this->role, ['super_admin', 'superadmin']) || $this->hasRole('super_admin');
     }
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, ['admin', 'super_admin', 'superadmin']);
+        return $this->isSuperAdmin() || in_array($this->role, ['admin', 'super_admin', 'superadmin']) || $this->hasRole('admin');
     }
 }

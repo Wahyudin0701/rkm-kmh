@@ -120,32 +120,74 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Pendaftaran master karyawan baru dialihkan ke Super Admin.
+     * Simpan data karyawan baru beserta izin SIMPER (Form modal tambah karyawan).
      */
     public function store(Request $request): RedirectResponse
     {
-        return back()->with('error', 'Pendaftaran master data karyawan baru hanya dapat dilakukan oleh Super Admin melalui menu Manajemen Akun.');
+        $validated = $request->validate([
+            'nik' => ['required', 'string', 'max:50', 'unique:employees,nik'],
+            'name' => ['required', 'string', 'max:100'],
+            'unit_kerja' => ['required', 'string'],
+            'division' => ['required', 'string'],
+            'position' => ['required', 'string'],
+            'is_operator' => ['required', 'in:1,0'],
+            'simper_expired_at' => ['nullable', 'date'],
+        ], [
+            'nik.required' => 'NIK wajib diisi.',
+            'nik.unique' => 'NIK sudah terdaftar dalam sistem.',
+            'name.required' => 'Nama karyawan wajib diisi.',
+            'unit_kerja.required' => 'Unit kerja wajib dipilih.',
+            'division.required' => 'Divisi wajib dipilih.',
+            'position.required' => 'Posisi / Jabatan wajib diisi.',
+            'is_operator.required' => 'Pilih apakah karyawan berstatus Operator / Driver.',
+        ]);
+
+        $isOperator = (bool) $validated['is_operator'];
+        $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? null) : null;
+
+        Employee::create([
+            'nik' => $validated['nik'],
+            'name' => $validated['name'],
+            'unit_kerja' => $validated['unit_kerja'],
+            'division' => $validated['division'],
+            'position' => $validated['position'],
+            'is_operator' => $isOperator,
+            'simper_expired_at' => $simperExpiredAt,
+        ]);
+
+        return back()->with('success', "Data karyawan {$validated['name']} berhasil ditambahkan.");
     }
 
     /**
-     * Perpanjang atau perbarui status driver & masa berlaku SIMPER karyawan.
-     * Master data profil karyawan dikelola terpusat oleh Super Admin.
+     * Perpanjang atau perbarui data karyawan & SIMPER.
      */
     public function update(Request $request, int $id): RedirectResponse
     {
         $employee = Employee::findOrFail($id);
 
         $validated = $request->validate([
+            'nik' => ['sometimes', 'required', 'string', 'max:50', 'unique:employees,nik,' . $employee->id],
+            'name' => ['sometimes', 'required', 'string', 'max:100'],
+            'unit_kerja' => ['sometimes', 'required', 'string'],
+            'division' => ['sometimes', 'required', 'string'],
+            'position' => ['sometimes', 'required', 'string'],
             'is_operator' => ['required', 'in:1,0'],
             'simper_expired_at' => ['nullable', 'date'],
         ], [
+            'nik.unique' => 'NIK sudah digunakan oleh karyawan lain.',
+            'name.required' => 'Nama lengkap wajib diisi.',
             'is_operator.required' => 'Status driver wajib dipilih.',
         ]);
 
         $isOperator = (bool) $validated['is_operator'];
-        $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? null) : null;
+        $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? $employee->simper_expired_at) : null;
 
         $employee->update([
+            'nik' => $validated['nik'] ?? $employee->nik,
+            'name' => $validated['name'] ?? $employee->name,
+            'unit_kerja' => $validated['unit_kerja'] ?? $employee->unit_kerja,
+            'division' => $validated['division'] ?? $employee->division,
+            'position' => $validated['position'] ?? $employee->position,
             'is_operator' => $isOperator,
             'simper_expired_at' => $simperExpiredAt,
         ]);

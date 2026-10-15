@@ -27,12 +27,14 @@
 
         <!-- Tombol Aksi Kanan (+ Tambah Satpam Hijau Tua) -->
         <div class="flex items-center space-x-3 w-full sm:w-auto">
+            @can('pg.guards.create')
             <button type="button" 
                     onclick="document.getElementById('addGuardModal').classList.remove('hidden')" 
                     class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>Tambah Petugas Satpam</span>
             </button>
+            @endcan
         </div>
     </div>
 
@@ -169,6 +171,7 @@
                             <!-- Aksi (Ikon Edit Oranye & Ikon Status Merah Selaras Format Gambar) -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-2">
+                                    @can('pg.guards.edit')
                                     <!-- Tombol Edit Oranye -->
                                     <button type="button" 
                                             onclick="openEditGuardModal({{ json_encode($g) }})" 
@@ -176,7 +179,9 @@
                                             title="Edit Data / Reset Password">
                                         <i class="fa-regular fa-pen-to-square text-sm"></i>
                                     </button>
+                                    @endcan
 
+                                    @can('pg.guards.toggle')
                                     <!-- Tombol Toggle Nonaktifkan/Aktifkan Merah/Hijau -->
                                     <button type="button" 
                                             onclick="openToggleStatusModal({{ $g->id }}, '{{ addslashes($g->name) }}', '{{ $g->badge_id ?? 'SEC-' . str_pad($g->id, 3, '0', STR_PAD_LEFT) }}', {{ $g->is_active ? 'true' : 'false' }})" 
@@ -184,7 +189,9 @@
                                             class="{{ $g->is_active ? 'text-rose-500 hover:text-rose-700' : 'text-emerald-600 hover:text-emerald-800' }} p-1.5 transition cursor-pointer">
                                         <i class="fa-solid fa-power-off text-sm"></i>
                                     </button>
+                                    @endcan
 
+                                    @can('pg.guards.delete')
                                     <!-- Tombol Hapus Merah -->
                                     <button type="button" 
                                             onclick="openDeleteGuardModal({{ $g->id }}, '{{ addslashes($g->name) }}', '{{ $g->badge_id ?? 'SEC-' . str_pad($g->id, 3, '0', STR_PAD_LEFT) }}')" 
@@ -192,6 +199,11 @@
                                             class="text-rose-600 hover:text-rose-800 p-1.5 transition cursor-pointer">
                                         <i class="fa-regular fa-trash-can text-sm"></i>
                                     </button>
+                                    @endcan
+
+                                    @if(!auth()->user()->can('pg.guards.edit') && !auth()->user()->can('pg.guards.toggle') && !auth()->user()->can('pg.guards.delete'))
+                                        <span class="text-xs text-slate-400 italic">Hanya lihat</span>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
