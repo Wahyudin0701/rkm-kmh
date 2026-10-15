@@ -4,8 +4,16 @@
 
 @section('content')
 <div class="max-w-2xl mx-auto space-y-4">
-    <!-- Logo Perusahaan KMH -->
-    <div class="flex items-center justify-center pb-1">
+    <!-- Navigasi Kembali & Logo Perusahaan KMH -->
+    <div class="flex items-center justify-between pb-1">
+        @if(auth()->check())
+            <a href="{{ route('mobilisasi.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#1b5e20] transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                <span>Kembali ke Katalog LV</span>
+            </a>
+        @else
+            <div></div>
+        @endif
         <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-8 w-auto object-contain">
     </div>
 

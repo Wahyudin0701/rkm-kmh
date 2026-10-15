@@ -307,26 +307,33 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="9" class="py-10 text-center text-slate-400">
-                                <i class="fa-solid fa-chart-simple text-3xl mb-2 block"></i>
-                                Belum ada data aktivitas kendaraan untuk periode yang dipilih.
+                        <tr id="serverSummaryEmptyRow">
+                            <td colspan="9" class="py-12 px-4 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shadow-xs">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </div>
+                                    @if(request('search'))
+                                        <h4 class="text-sm font-bold text-slate-800">
+                                            Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                        </h4>
+                                        <p class="text-xs text-slate-400 max-w-sm">
+                                            Pastikan kata kunci yang dicari sudah benar atau gunakan filter lainnya.
+                                        </p>
+                                        <div class="mt-4">
+                                            <a href="{{ route('qma.activity.summary') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                                <span>Hapus Pencarian</span>
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="text-sm font-bold text-slate-700">Belum Ada Data Rekapitulasi</div>
+                                        <p class="text-xs text-slate-400">Belum ada data aktivitas kendaraan untuk periode yang dipilih.</p>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforelse
-
-                    <!-- Baris Hasil Pencarian Real-Time Kosong -->
-                    <tr id="clientSearchEmptyRow" class="hidden">
-                        <td colspan="9" class="py-12 px-4 text-center">
-                            <div class="flex flex-col items-center justify-center space-y-2">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </div>
-                                <div class="text-sm font-bold text-slate-700">Tidak Ada Hasil Pencarian</div>
-                                <p class="text-xs text-slate-400">Tidak ditemukan armada yang sesuai dengan kata kunci pencarian Anda.</p>
-                            </div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -517,32 +524,68 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('summarySearchInput');
     const tableBody = document.getElementById('summaryTableBody');
     const resetContainer = document.getElementById('headerResetFilterContainer');
-    const emptyRow = document.getElementById('clientSearchEmptyRow');
+    const serverEmptyRow = document.getElementById('serverSummaryEmptyRow');
     const hasServerFilters = {{ request()->anyFilled(['start_date', 'end_date', 'type', 'gate_id']) ? 'true' : 'false' }};
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 
     if (searchInput && tableBody) {
         searchInput.addEventListener('input', function (e) {
-            const query = e.target.value.toLowerCase().trim();
+            const rawValue = e.target.value;
+            const query = rawValue.toLowerCase().trim();
             const rows = tableBody.querySelectorAll('tr.summary-vehicle-row');
             let visibleCount = 0;
 
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
-                if (text.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
+                const match = text.includes(query);
+                row.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
             });
 
-            // Tampilkan pesan kosong jika tidak ada baris yang cocok secara instan
-            if (emptyRow) {
-                if (rows.length > 0 && visibleCount === 0) {
-                    emptyRow.classList.remove('hidden');
-                } else {
-                    emptyRow.classList.add('hidden');
-                }
+            // Sembunyikan pesan SSR kosong saat user mengetik
+            if (serverEmptyRow) {
+                serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+            }
+
+            // Hapus baris pesan kosong pencarian client jika ada sebelumnya
+            const existingEmptyRow = document.getElementById('summaryClientEmptyRow');
+            if (existingEmptyRow) {
+                existingEmptyRow.remove();
+            }
+
+            // Tampilkan pesan jika tidak ada data yang cocok di tabel
+            if (visibleCount === 0 && query.length > 0) {
+                const emptyTr = document.createElement('tr');
+                emptyTr.id = 'summaryClientEmptyRow';
+                emptyTr.innerHTML = `
+                    <td colspan="9" class="py-12 px-4 text-center">
+                        <div class="flex flex-col items-center justify-center space-y-3">
+                            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-xl shadow-xs">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                            </div>
+                            <h4 class="text-sm font-bold text-slate-800">
+                                Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                            </h4>
+                            <p class="text-xs text-slate-400 max-w-sm">
+                                Pastikan kata kunci yang dicari sudah benar atau gunakan filter lainnya.
+                            </p>
+                            <div class="mt-4">
+                                <button type="button" 
+                                        onclick="const inp = document.getElementById('summarySearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                    <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                    <span>Hapus Pencarian</span>
+                                </button>
+                            </div>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(emptyTr);
             }
 
             // Tampilkan atau sembunyikan tombol Reset Filter secara real-time

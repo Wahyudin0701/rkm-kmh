@@ -196,12 +196,12 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="serverGuardEmptyRow">
                             <td colspan="7" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
                                     <p class="text-sm font-semibold text-slate-700">
-                                        <span class="inline-block mr-1">🔍</span>Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
                                     </p>
                                     <p class="text-xs text-slate-400 mt-1">Pastikan ejaan ID Satpam atau nama petugas yang dicari sudah benar.</p>
                                 @elseif(request()->anyFilled(['team', 'gate_id']))
@@ -226,6 +226,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($guards->hasPages())
+            <div class="p-4 border-t border-slate-100 bg-white">
+                {{ $guards->links() }}
+            </div>
+        @endif
     </div>
 </div>
 
@@ -636,6 +642,11 @@
             if (match) visibleCount++;
         });
 
+        const serverEmptyRow = document.getElementById('serverGuardEmptyRow');
+        if (serverEmptyRow) {
+            serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+        }
+
         // Hapus baris pesan kosong pencarian jika ada sebelumnya
         const existingEmptyRow = document.getElementById('guardEmptySearchRow');
         if (existingEmptyRow) {
@@ -643,14 +654,14 @@
         }
 
         // Tampilkan pesan jika tidak ada data yang cocok di tabel
-        if (rows.length > 0 && visibleCount === 0 && query.length > 0) {
+        if (visibleCount === 0 && query.length > 0) {
             const emptyTr = document.createElement('tr');
             emptyTr.id = 'guardEmptySearchRow';
             emptyTr.innerHTML = `
                 <td colspan="7" class="py-12 text-center text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                     <p class="text-sm font-semibold text-slate-700">
-                        <span class="inline-block mr-1">🔍</span>Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                        Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
                     </p>
                     <p class="text-xs text-slate-400 mt-1">
                         Pastikan ejaan ID Satpam atau nama petugas yang dicari sudah benar.

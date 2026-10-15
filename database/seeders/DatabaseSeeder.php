@@ -76,7 +76,16 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 3. Seed Users (Admin & Shared Gate Accounts)
+        // 3. Seed Users (Super Admin, Dept Admins & Shared Gate Accounts)
+        // Super Admin [Nama : Super Administrator, Username : superadmin, Password : password]
+        User::create([
+            'name' => 'Super Administrator',
+            'username' => 'superadmin',
+            'email' => 'superadmin@kmh.co.id',
+            'password' => Hash::make('password'),
+            'role' => 'super_admin',
+        ]);
+
         // Admin HSE [Nama : Mima, Username : 1185, Password : password]
         User::create([
             'name' => 'Mima',
@@ -104,74 +113,58 @@ class DatabaseSeeder extends Seeder
             'role' => 'pg_admin',
         ]);
 
-        // Shared Gate Accounts (Akun Pos Gerbang)
-        User::create([
-            'name' => 'Pos Gerbang Beringin Tunggal',
-            'username' => 'pos.beringin',
-            'email' => 'pos.beringin@kmh.co.id',
-            'password' => Hash::make('password'),
-            'role' => 'gate_officer',
-            'gate_id' => $createdGates['BTUNGGAL']->id,
-        ]);
+        // 4. Seed Employees (Master Data HSE & Akun Login Karyawan dengan Role 'employee')
+        $employeesData = [
+            [
+                'nik' => 'KMH-2022-001',
+                'name' => 'Eka Sufiatna',
+                'unit_kerja' => 'Teknik',
+                'division' => 'INFORMATION & TECHNOLOGY',
+                'position' => 'IT Division Coordinator',
+                'is_operator' => true,
+                'simper_expired_at' => Carbon::now()->addMonths(8), // SIMPER AKTIF
+            ],
+            [
+                'nik' => 'KMH-2022-045',
+                'name' => 'Wanturi',
+                'unit_kerja' => 'Umum',
+                'division' => 'GA',
+                'position' => 'Driver Operasional',
+                'is_operator' => true,
+                'simper_expired_at' => Carbon::now()->addMonths(4), // SIMPER AKTIF
+            ],
+            [
+                'nik' => 'KMH-2023-012',
+                'name' => 'Randi Kurniawan',
+                'unit_kerja' => 'Pembangkit',
+                'division' => 'Mechanical',
+                'position' => 'Operator Lapangan',
+                'is_operator' => true,
+                'simper_expired_at' => Carbon::now()->subDays(14), // SIMPER KEDALUWARSA (Untuk Test Validasi)
+            ],
+            [
+                'nik' => 'KMH-2021-088',
+                'name' => 'Siti Rahma',
+                'unit_kerja' => 'Umum',
+                'division' => 'Keuangan',
+                'position' => 'Staff Finance',
+                'is_operator' => false, // BUKAN DRIVER
+                'simper_expired_at' => null,
+            ],
+        ];
 
-        User::create([
-            'name' => 'Pos Gerbang Adit 1',
-            'username' => 'pos.adit1',
-            'email' => 'pos.adit1@kmh.co.id',
-            'password' => Hash::make('password'),
-            'role' => 'gate_officer',
-            'gate_id' => $createdGates['ADIT1']->id,
-        ]);
+        foreach ($employeesData as $emp) {
+            $empUser = User::create([
+                'name' => $emp['name'],
+                'username' => $emp['nik'],
+                'email' => strtolower(str_replace(['-', ' '], '', $emp['nik'])) . '@kmh.co.id',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+            ]);
 
-        User::create([
-            'name' => 'Pos Gerbang Regulating Weir',
-            'username' => 'pos.regweir',
-            'email' => 'pos.regweir@kmh.co.id',
-            'password' => Hash::make('password'),
-            'role' => 'gate_officer',
-            'gate_id' => $createdGates['REGWEIR']->id,
-        ]);
-
-        // 4. Seed Employees (Master Data HSE: Driver dengan SIMPER Valid dan Expired)
-        Employee::create([
-            'nik' => 'KMH-2022-001',
-            'name' => 'Eka Sufiatna',
-            'unit_kerja' => 'Teknik',
-            'division' => 'INFORMATION & TECHNOLOGY',
-            'position' => 'IT Division Coordinator',
-            'is_operator' => true,
-            'simper_expired_at' => Carbon::now()->addMonths(8), // SIMPER AKTIF
-        ]);
-
-        Employee::create([
-            'nik' => 'KMH-2022-045',
-            'name' => 'Wanturi',
-            'unit_kerja' => 'Umum',
-            'division' => 'GA',
-            'position' => 'Driver Operasional',
-            'is_operator' => true,
-            'simper_expired_at' => Carbon::now()->addMonths(4), // SIMPER AKTIF
-        ]);
-
-        Employee::create([
-            'nik' => 'KMH-2023-012',
-            'name' => 'Randi Kurniawan',
-            'unit_kerja' => 'Pembangkit',
-            'division' => 'Mechanical',
-            'position' => 'Operator Lapangan',
-            'is_operator' => true,
-            'simper_expired_at' => Carbon::now()->subDays(14), // SIMPER KEDALUWARSA (Untuk Test Validasi)
-        ]);
-
-        Employee::create([
-            'nik' => 'KMH-2021-088',
-            'name' => 'Siti Rahma',
-            'unit_kerja' => 'Umum',
-            'division' => 'Keuangan',
-            'position' => 'Staff Finance',
-            'is_operator' => false, // BUKAN DRIVER
-            'simper_expired_at' => null,
-        ]);
+            $emp['user_id'] = $empUser->id;
+            Employee::create($emp);
+        }
 
         // 5. Seed Vehicles (Master Data QMA: Kendaraan Ringan / LV)
         Vehicle::create([
@@ -267,5 +260,8 @@ class DatabaseSeeder extends Seeder
             'stnk_document' => 'STNK-BH-8412-AA',
             'kir_document' => 'KIR-2026/11',
         ]);
+
+        // 7. Seed 28 Master Template P2H Unit Support
+        $this->call(P2hTemplateSeeder::class);
     }
 }

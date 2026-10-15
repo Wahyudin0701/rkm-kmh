@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('vehicle_activities', function (Blueprint $table) {
             $table->id();
             $table->string('transaction_no', 60)->unique();
-            $table->foreignId('vehicle_id')->constrained('vehicles')->cascadeOnDelete();
-            $table->foreignId('driver_id')->constrained('employees')->cascadeOnDelete();
-            $table->foreignId('gate_id')->constrained('gates')->cascadeOnDelete();
+            $table->foreignId('vehicle_id')->constrained('vehicles')->restrictOnDelete();
+            $table->foreignId('driver_id')->constrained('employees')->restrictOnDelete();
+            $table->foreignId('gate_id')->constrained('gates')->restrictOnDelete();
             $table->string('direction', 10); // 'in', 'out'
             $table->decimal('previous_km', 12, 2);
             $table->decimal('current_km', 12, 2);

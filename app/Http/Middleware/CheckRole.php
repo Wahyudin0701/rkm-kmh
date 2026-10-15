@@ -21,8 +21,8 @@ class CheckRole
 
         $userRole = $request->user()->role;
 
-        // Role 'admin' selalu memiliki hak akses penuh
-        if ($userRole === 'admin' || in_array($userRole, $roles)) {
+        // Role 'super_admin' dan 'admin' selalu memiliki hak akses penuh ke seluruh modul
+        if (in_array($userRole, ['super_admin', 'superadmin', 'admin']) || in_array($userRole, $roles)) {
             return $next($request);
         }
 

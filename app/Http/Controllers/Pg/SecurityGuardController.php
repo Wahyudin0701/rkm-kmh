@@ -45,7 +45,8 @@ class SecurityGuardController extends Controller
 
         $guards = $query->orderBy('team')
             ->orderBy('name')
-            ->get();
+            ->paginate(20)
+            ->withQueryString();
 
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
 

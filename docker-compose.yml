@@ -1,0 +1,88 @@
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Aplikasi Laravel (PHP 8.2-FPM Alpine)
+  # ---------------------------------------------------------------------------
+  app:
+    container_name: rkm_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-rkm_kmh}
+      DB_USERNAME: ${DB_USERNAME:-rkm_user}
+      DB_PASSWORD: ${DB_PASSWORD:-rkm_secret_password}
+      RUN_SEEDER: ${RUN_SEEDER:-false}
+    volumes:
+      - rkm_storage:/var/www/storage
+      - rkm_bootstrap_cache:/var/www/bootstrap/cache
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - rkm_network
+
+  # ---------------------------------------------------------------------------
+  # 2. Web Server Nginx (Reverse Proxy & Static Asset Handler)
+  # ---------------------------------------------------------------------------
+  web:
+    container_name: rkm_web
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - .:/var/www:ro
+      - rkm_storage:/var/www/storage:ro
+    depends_on:
+      - app
+    networks:
+      - rkm_network
+
+  # ---------------------------------------------------------------------------
+  # 3. Database Server MySQL 8.0 (Enterprise Relational Database)
+  # ---------------------------------------------------------------------------
+  db:
+    container_name: rkm_db
+    image: mysql:8.0
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-rkm_kmh}
+      MYSQL_USER: ${DB_USERNAME:-rkm_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-rkm_secret_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_secret_password}
+    ports:
+      - "${FORWARD_DB_PORT:-3306}:3306"
+    volumes:
+      - rkm_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - rkm_network
+
+# -----------------------------------------------------------------------------
+# Persistent Volumes & Network Configurations
+# -----------------------------------------------------------------------------
+volumes:
+  rkm_mysql_data:
+    name: rkm_mysql_data
+  rkm_storage:
+    name: rkm_storage
+  rkm_bootstrap_cache:
+    name: rkm_bootstrap_cache
+
+networks:
+  rkm_network:
+    name: rkm_network
+    driver: bridge

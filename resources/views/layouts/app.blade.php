@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Sistem RKM - PT Kerinci Merangin Hidro')</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Compiled Assets via Vite -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,17 +96,36 @@
         body.modal-open {
             scrollbar-color: rgba(255, 255, 255, 0.2) rgba(15, 23, 42, 0.6);
         }
+
+        /* Hilangkan Scrollbar pada Sidebar Desktop & Mobile (tetap dapat di-scroll) */
+        aside .overflow-y-auto,
+        #mobileDrawerPanel .overflow-y-auto,
+        .no-scrollbar {
+            -ms-overflow-style: none !important; /* IE dan Edge */
+            scrollbar-width: none !important; /* Firefox */
+        }
+        aside .overflow-y-auto::-webkit-scrollbar,
+        #mobileDrawerPanel .overflow-y-auto::-webkit-scrollbar,
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased font-sans min-h-screen">
 
 @php
-    $isFormMobil = request()->routeIs('vehicle.activity.*') || request()->is('gate-activity*');
+    $isStandaloneForm = request()->routeIs('vehicle.activity.*') 
+        || request()->is('gate-activity*') 
+        || request()->routeIs('p2h.form', 'p2h.store') 
+        || (request()->is('p2h/*') && !request()->routeIs('qma.*'));
+    $isFormMobil = $isStandaloneForm;
 @endphp
 
-@if($isFormMobil)
+@if($isStandaloneForm)
     <!-- ========================================================================= -->
-    <!-- LAYOUT KHUSUS FORM UNIT MOBIL (TANPA SIDEBAR & TOPBAR) -->
+    <!-- LAYOUT KHUSUS FORM STANDALONE / FORM MOBIL & P2H (TANPA SIDEBAR & TOPBAR) -->
     <!-- ========================================================================= -->
     <div class="min-h-screen bg-slate-50 flex flex-col justify-between py-6 px-4 sm:px-6">
         <main class="w-full">
@@ -135,8 +154,34 @@
             </div>
 
             <!-- Menu Navigasi Sidebar -->
-            <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-                <!-- Grup: Navigasi Utama -->
+            <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6 no-scrollbar">
+                @if(auth()->user()->isSuperAdmin())
+                <!-- Kategori Khusus Super Admin: Dashboard & Manajemen Role -->
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        MENU ADMIN
+                    </p>
+                    <nav class="space-y-1">
+                        <a href="{{ route('superadmin.dashboard') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                            </svg>
+                            <span>Dashboard</span>
+                        </a>
+
+                        <a href="{{ route('superadmin.roles.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('superadmin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-users-gear text-base w-5 text-center"></i>
+                            <span>Manajemen Role</span>
+                        </a>
+                    </nav>
+                </div>
+                @else
+                <!-- Grup: Navigasi Utama (Departemen Lain) -->
                 <div>
                     <nav class="space-y-1">
                         @if(auth()->user()->isHseAdmin())
@@ -178,18 +223,39 @@
                                 <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
                                 <span>Verifikasi Pos Gerbang</span>
                             </a>
+                        @elseif(auth()->user()->isEmployee())
+                            <a href="{{ route('employee.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('p2h.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
+                                <span>Pemeriksaan P2H</span>
+                            </a>
+                            <a href="{{ route('timesheet.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-car text-base w-5 text-center"></i>
+                                <span>Timesheet</span>
+                            </a>
                         @endif
                     </nav>
                 </div>
 
-                <!-- Grup: Modul Operasional RKM -->
+                <!-- Grup: Modul Operasional Departemen RKM -->
                 @if(!auth()->user()->isGateOfficer())
                 <div>
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN SISTEM
                     </p>
                     <nav class="space-y-1">
-                        @if(auth()->user()->isHseAdmin() || auth()->user()->isAdmin())
+                        @if(auth()->user()->isHseAdmin())
                             <a href="{{ route('hse.employees.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
@@ -197,7 +263,7 @@
                             </a>
                         @endif
 
-                        @if(auth()->user()->isQmaAdmin() || auth()->user()->isAdmin())
+                        @if(auth()->user()->isQmaAdmin())
                             @php
                                 $isVehicleRoute = request()->routeIs('qma.vehicles.*');
                             @endphp
@@ -227,20 +293,45 @@
                                 </div>
                             </div>
 
-                            <a href="{{ route('qma.activity.log') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.log') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-clipboard-list text-base w-5 text-center"></i>
-                                <span>Log Aktivitas Kendaraan</span>
+                            @php
+                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                            @endphp
+                            <!-- Dropdown Menu: Log Aktifitas -->
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleActivityMenu('desktop')" 
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isActivityRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-clipboard-list text-base w-5 text-center {{ $isActivityRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Log Aktifitas</span>
+                                    </div>
+                                    <i id="activityChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <!-- Submenu Dropdown: Timesheet LV & P2H Unit Support (Tanpa Icon) -->
+                                <div id="activitySubmenuDesktop" class="{{ $isActivityRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.activity.log') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Timesheet LV</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.p2h.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>P2H Unit Support</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('qma.p2h.templates') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.p2h.templates*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-layer-group text-base w-5 text-center"></i>
+                                <span>Master Template P2H</span>
                             </a>
 
-                            <a href="{{ route('qma.activity.summary') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
-                                <span>Summary Aktivitas</span>
-                            </a>
+
                         @endif
 
-                        @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
+                        @if(auth()->user()->isPgAdmin())
                             <a href="{{ route('pg.guards.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-user-shield text-base w-5 text-center"></i>
@@ -255,6 +346,7 @@
                         @endif
                     </nav>
                 </div>
+                @endif
                 @endif
 
                 <!-- Grup: Pengaturan Akun -->
@@ -311,96 +403,156 @@
                 </button>
             </div>
 
-            <div class="p-4 space-y-4 flex-1 overflow-y-auto">
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">NAVIGASI</p>
-                <div class="space-y-1">
-                    @if(auth()->user()->isHseAdmin() || auth()->user()->isAdmin())
-                        <a href="{{ route('hse.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                            </svg>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-id-card w-5 text-center"></i>
-                            <span>Data Simper</span>
-                        </a>
-                    @endif
-                    @if(auth()->user()->isQmaAdmin() || auth()->user()->isAdmin())
-                        <a href="{{ route('qma.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                            </svg>
-                            <span>Dashboard</span>
-                        </a>
-
-                        @php
-                            $isVehicleRouteMob = request()->routeIs('qma.vehicles.*');
-                        @endphp
-                        <div>
-                            <button type="button" 
-                                    onclick="toggleVehicleMenu('mobile')" 
-                                    class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                <div class="flex items-center space-x-3">
-                                    <i class="fa-solid fa-car w-5 text-center {{ $isVehicleRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
-                                    <span>Data Kendaraan</span>
-                                </div>
-                                <i id="vehicleChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
-                            </button>
-
-                            <div id="vehicleSubmenuMobile" class="{{ $isVehicleRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
-                                <a href="{{ route('qma.vehicles.lv') }}" 
-                                   class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.lv') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                    <span>Light Vehicle</span>
-                                </a>
-
-                                <a href="{{ route('qma.vehicles.support') }}" 
-                                   class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                    <span>Unit Support</span>
-                                </a>
-                            </div>
+            <div class="p-4 space-y-4 flex-1 overflow-y-auto no-scrollbar">
+                    @if(auth()->user()->isSuperAdmin())
+                        <div class="mb-3 space-y-1">
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1">MENU ADMIN</p>
+                            <a href="{{ route('superadmin.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('superadmin.roles.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('superadmin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-users-gear w-5 text-center"></i>
+                                <span>Manajemen Role</span>
+                            </a>
                         </div>
+                    @else
+                        @if(auth()->user()->isHseAdmin())
+                            <a href="{{ route('hse.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-id-card w-5 text-center"></i>
+                                <span>Data Simper</span>
+                            </a>
+                        @endif
+                        @if(auth()->user()->isQmaAdmin())
+                            <a href="{{ route('qma.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
 
-                        <a href="{{ route('qma.activity.log') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.log') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-clipboard-list w-5 text-center"></i>
-                            <span>Log Aktivitas Kendaraan</span>
-                        </a>
+                            @php
+                                $isVehicleRouteMob = request()->routeIs('qma.vehicles.*');
+                            @endphp
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleVehicleMenu('mobile')" 
+                                        class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-car w-5 text-center {{ $isVehicleRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Data Kendaraan</span>
+                                    </div>
+                                    <i id="vehicleChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
 
-                        <a href="{{ route('qma.activity.summary') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                            <span>Summary Aktivitas</span>
-                        </a>
-                    @endif
-                    @if(auth()->user()->isPgAdmin() || auth()->user()->isAdmin())
-                        <a href="{{ route('pg.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="2"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="2"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="2"></rect>
-                            </svg>
-                            <span>Dashboard</span>
-                        </a>
-                        <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-user-shield w-5 text-center"></i>
-                            <span>Data Satpam</span>
-                        </a>
-                        <a href="{{ route('pg.logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
-                            <span>Log Verifikasi Gerbang</span>
-                        </a>
-                    @endif
-                    @if(auth()->user()->isGateOfficer())
-                        <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                            <span>Verifikasi Pos Gerbang</span>
-                        </a>
+                                <div id="vehicleSubmenuMobile" class="{{ $isVehicleRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.vehicles.lv') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.lv') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Light Vehicle</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.vehicles.support') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Unit Support</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            @php
+                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                            @endphp
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleActivityMenu('mobile')" 
+                                        class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isActivityRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-clipboard-list w-5 text-center {{ $isActivityRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Log Aktifitas</span>
+                                    </div>
+                                    <i id="activityChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <div id="activitySubmenuMobile" class="{{ $isActivityRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.activity.log') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Timesheet LV</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.p2h.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>P2H Unit Support</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <a href="{{ route('qma.p2h.templates') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.p2h.templates*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-layer-group w-5 text-center"></i>
+                                <span>Master Template P2H</span>
+                            </a>
+
+
+                        @endif
+                        @if(auth()->user()->isEmployee())
+                            <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-check w-5 text-center"></i>
+                                <span>Pemeriksaan P2H</span>
+                            </a>
+                            <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-car w-5 text-center"></i>
+                                <span>Timesheet</span>
+                            </a>
+                        @endif
+                        @if(auth()->user()->isPgAdmin())
+                            <a href="{{ route('pg.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="3" width="7" height="7" rx="2"></rect>
+                                    <rect x="14" y="14" width="7" height="7" rx="2"></rect>
+                                    <rect x="3" y="14" width="7" height="7" rx="2"></rect>
+                                </svg>
+                                <span>Dashboard</span>
+                            </a>
+                            <a href="{{ route('pg.guards.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.guards.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-user-shield w-5 text-center"></i>
+                                <span>Data Satpam</span>
+                            </a>
+                            <a href="{{ route('pg.logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
+                                <span>Log Verifikasi Gerbang</span>
+                            </a>
+                        @endif
+                        @if(auth()->user()->isGateOfficer())
+                            <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                                <span>Verifikasi Pos Gerbang</span>
+                            </a>
+                        @endif
                     @endif
                 </div>
 
@@ -444,7 +596,11 @@
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
             <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                @if(request()->routeIs('hse.dashboard') || request()->routeIs('qma.dashboard'))
+                @if(request()->routeIs('superadmin.dashboard'))
+                    Dashboard Admin
+                @elseif(request()->routeIs('superadmin.roles.*') || request()->routeIs('superadmin.users.*'))
+                    Manajemen Role
+                @elseif(request()->routeIs('hse.dashboard') || request()->routeIs('qma.dashboard'))
                     Dashboard
                 @elseif(request()->routeIs('hse.employees.*'))
                     Data Simper
@@ -455,9 +611,15 @@
                 @elseif(request()->routeIs('qma.vehicles.*'))
                     Data Kendaraan
                 @elseif(request()->routeIs('qma.activity.log'))
-                    Log Aktivitas Kendaraan
+                    Timesheet LV
+                @elseif(request()->routeIs('qma.p2h.summary'))
+                    Summary P2H Unit Support
+                @elseif(request()->routeIs('qma.p2h.templates*'))
+                    Master Template P2H
+                @elseif(request()->routeIs('qma.p2h.*'))
+                    P2H Unit Support
                 @elseif(request()->routeIs('qma.activity.summary'))
-                    Summary Aktivitas
+                    Summary Timesheet LV
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
                 @elseif(request()->routeIs('pg.dashboard'))
@@ -468,6 +630,12 @@
                     Data Satpam
                 @elseif(request()->routeIs('pg.logs.*'))
                     Log Verifikasi Gerbang
+                @elseif(request()->routeIs('employee.dashboard'))
+                    Dashboard
+                @elseif(request()->routeIs('p2h.*'))
+                    Pemeriksaan P2H
+                @elseif(request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*'))
+                    Timesheet
                 @else
                     Dashboard
                 @endif
@@ -518,7 +686,7 @@
     </header>
 
     <!-- 4. KONTEN UTAMA DASHBOARD (ATURAN EMAS: WRAPPER MAX-WIDTH HANYA DI SATU TEMPAT) -->
-    <main class="md:ml-64 flex-1 min-h-[calc(100vh-4rem)]">
+    <main class="md:ml-64 flex-1 overflow-y-auto min-h-[calc(100vh-4rem)]">
         <div class="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
             @yield('content')
         </div>
@@ -784,6 +952,18 @@
         function toggleVehicleMenu(target) {
             const submenu = document.getElementById(target === 'desktop' ? 'vehicleSubmenuDesktop' : 'vehicleSubmenuMobile');
             const chevron = document.getElementById(target === 'desktop' ? 'vehicleChevronDesktop' : 'vehicleChevronMobile');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        // Toggle Dropdown Menu Log Aktifitas (Desktop & Mobile)
+        function toggleActivityMenu(target) {
+            const submenu = document.getElementById(target === 'desktop' ? 'activitySubmenuDesktop' : 'activitySubmenuMobile');
+            const chevron = document.getElementById(target === 'desktop' ? 'activityChevronDesktop' : 'activityChevronMobile');
             if (submenu) {
                 submenu.classList.toggle('hidden');
             }

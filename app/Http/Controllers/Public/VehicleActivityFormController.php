@@ -20,6 +20,33 @@ class VehicleActivityFormController extends Controller
 {
 
     /**
+     * Tampilkan katalog / daftar kendaraan ringan (LV) untuk keperluan mobilisasi karyawan.
+     */
+    public function index(Request $request): View
+    {
+        $query = Vehicle::lightVehicles();
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('brand_type', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%")
+                  ->orWhere('ownership', 'like', "%{$search}%");
+            });
+        }
+
+        $vehicles = $query->orderBy('code')->paginate(24)->withQueryString();
+
+        $employee = null;
+        if (auth()->check()) {
+            $employee = auth()->user()->employee;
+        }
+
+        return view('mobilisasi.index', compact('vehicles', 'employee'));
+    }
+
+    /**
      * Tampilkan form pencatatan aktivitas kendaraan saat scan QR code.
      */
     public function show(Request $request, string $code): View
@@ -70,6 +97,20 @@ class VehicleActivityFormController extends Controller
                 }
             } else {
                 $verifiedDriver = $emp;
+            }
+        } elseif (auth()->check() && auth()->user()->isEmployee()) {
+            $emp = auth()->user()->employee;
+            if ($emp) {
+                if (!$emp->is_operator) {
+                    $nikErrorTitle = 'Bukan Driver Terdaftar';
+                    $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) terdaftar sebagai BUKAN DRIVER dan tidak memiliki izin mengemudi (SIMPER). Anda tidak diizinkan mengoperasikan kendaraan unit. Silakan hubungi Divisi HSE.";
+                } elseif (!$emp->hasValidSimper()) {
+                    $nikErrorTitle = 'Peringatan: SIMPER Kedaluwarsa';
+                    $nikError = "SIMPER atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) telah KEDALUWARSA. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+                } else {
+                    $verifiedDriver = $emp;
+                    $inputNik = $emp->nik;
+                }
             }
         }
 

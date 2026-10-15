@@ -25,8 +25,8 @@
             </h2>
         </div>
 
-        <!-- Tombol Aksi Kanan (Pada Mobile: Lebar Sama / Proporsional 50-50) -->
-        <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
+        <!-- Tombol Aksi Kanan -->
+        <div class="w-full sm:w-auto">
             <!-- Tombol Ekspor Dropdown -->
             <button type="button" 
                     onclick="alert('Fitur ekspor spreadsheet SIMPER sedang disiapkan')" 
@@ -34,14 +34,6 @@
                 <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
                 <span>Ekspor Simper</span>
                 <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
-            </button>
-
-            <!-- Tombol Tambah Karyawan (+ Tambah Karyawan Hijau Tua) -->
-            <button type="button"
-                    onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
-                    class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tambah Karyawan</span>
             </button>
         </div>
     </div>
@@ -190,7 +182,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="serverSimperEmptyRow">
                             <td colspan="8" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
@@ -216,99 +208,16 @@
                 </tbody>
             </table>
         </div>
+
+        @if($employees->hasPages())
+            <div class="p-4 border-t border-slate-100 bg-white">
+                {{ $employees->links() }}
+            </div>
+        @endif
     </div>
 </div>
 
-<!-- Modal Dialog Add Karyawan (Persis Format Gambar IT All Role) -->
-<div id="addKaryawanModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
-        <!-- Header Modal Bersih Tanpa Banner Gelap Sesuai Gambar -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-            <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                Tambah Data Simper
-            </h3>
-            <button type="button" onclick="document.getElementById('addKaryawanModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
 
-        <form action="{{ route('hse.employees.store') }}" method="POST" class="mt-5 space-y-4">
-            @csrf
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Nomor Induk Karyawan (NIK) <span class="text-rose-500">*</span></label>
-                <input type="text" name="nik" required placeholder="Contoh: 0001" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Nama Lengkap <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: Ahmad Budi" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Unit Kerja <span class="text-rose-500">*</span></label>
-                    <select name="unit_kerja" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="" disabled selected>Pilih Unit Kerja</option>
-                        <option value="Pembangkit">Pembangkit</option>
-                        <option value="Bendungan">Bendungan</option>
-                        <option value="Teknik">Teknik</option>
-                        <option value="Umum">Umum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Divisi <span class="text-rose-500">*</span></label>
-                    <select name="division" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="" disabled selected>Pilih Divisi</option>
-                        <option value="INFORMATION & TECHNOLOGY">INFORMATION & TECHNOLOGY</option>
-                        <option value="K3">K3 / HSE</option>
-                        <option value="Quality Management Asset (QMA)">Quality Management Asset (QMA)</option>
-                        <option value="GA">General Affairs (GA)</option>
-                        <option value="HR">Human Resources (HR)</option>
-                        <option value="Keuangan">Keuangan</option>
-                        <option value="Logistik">Logistik / Warehouse</option>
-                        <option value="Mechanical">Mechanical</option>
-                        <option value="Civil & Inviro">Civil & Inviro</option>
-                        <option value="PG">Private Guard (PG)</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Jabatan <span class="text-rose-500">*</span></label>
-                <input type="text" name="position" required placeholder="Contoh: Staff IT" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Operator / Driver <span class="text-rose-500">*</span></label>
-                    <select name="is_operator" id="addOperator" onchange="toggleSimperInput('add')" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="1">YA (Aktif Mengemudi)</option>
-                        <option value="0">TIDAK (Bukan Driver)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Masa Berlaku SIMPER</label>
-                    <input type="date" name="simper_expired_at" id="addSimperDate"
-                           class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                </div>
-            </div>
-
-            <!-- Footer Tombol: Batal & Simpan Data Sesuai Gambar -->
-            <div class="pt-6 border-t border-slate-100 flex items-center justify-end space-x-3 mt-6">
-                <button type="button" onclick="document.getElementById('addKaryawanModal').classList.add('hidden')" 
-                        class="px-6 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition">
-                    Batal
-                </button>
-                <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-sm transition shadow-sm">
-                    Simpan Data
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- Modal Dialog Perpanjang SIMPER (Clean White Card) -->
 <div id="renewModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -358,9 +267,12 @@
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-            <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                Edit Data Simper
-            </h3>
+            <div>
+                <h3 class="text-xl font-bold text-slate-900 tracking-tight">
+                    Kelola SIMPER Karyawan
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Kelola status pengemudi dan masa berlaku izin SIMPER.</p>
+            </div>
             <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
@@ -368,63 +280,49 @@
 
         <form id="editForm" method="POST" action="" class="mt-5 space-y-4">
             @csrf
+
+            <!-- Profil Master Data Karyawan (Read-Only Info Card) -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-200/60">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profil Karyawan</span>
+                    <span class="text-[10px] font-semibold text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full inline-flex items-center">
+                        <i class="fa-solid fa-lock text-[9px] mr-1.5 text-slate-400"></i>Master Super Admin
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[11px]">NIK:</span>
+                        <span id="editNikDisplay" class="font-bold text-slate-800 font-mono"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[11px]">Nama Lengkap:</span>
+                        <span id="editNameDisplay" class="font-bold text-slate-900"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[11px]">Unit Kerja:</span>
+                        <span id="editUnitKerjaDisplay" class="font-semibold text-slate-700"></span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[11px]">Divisi / Jabatan:</span>
+                        <span id="editDivisionPositionDisplay" class="font-semibold text-slate-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bagian yang Dikelola HSE -->
             <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Nomor Induk Karyawan (NIK) <span class="text-rose-500">*</span></label>
-                <input type="text" name="nik" id="editNik" required placeholder="Contoh: 0001" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                <label class="block text-sm font-bold text-slate-800 mb-2">Operator / Driver <span class="text-rose-500">*</span></label>
+                <select name="is_operator" id="editOperator" onchange="toggleSimperInput('edit')" required 
+                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <option value="1">YA (Aktif Mengemudi)</option>
+                    <option value="0">TIDAK (Bukan Driver)</option>
+                </select>
             </div>
             <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Nama Lengkap <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" id="editName" required placeholder="Contoh: Ahmad Budi" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Unit Kerja <span class="text-rose-500">*</span></label>
-                    <select name="unit_kerja" id="editUnitKerja" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="Pembangkit">Pembangkit</option>
-                        <option value="Bendungan">Bendungan</option>
-                        <option value="Teknik">Teknik</option>
-                        <option value="Umum">Umum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Divisi <span class="text-rose-500">*</span></label>
-                    <select name="division" id="editDivision" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="INFORMATION & TECHNOLOGY">INFORMATION & TECHNOLOGY</option>
-                        <option value="K3">K3 / HSE</option>
-                        <option value="Quality Management Asset (QMA)">Quality Management Asset (QMA)</option>
-                        <option value="GA">General Affairs (GA)</option>
-                        <option value="HR">Human Resources (HR)</option>
-                        <option value="Keuangan">Keuangan</option>
-                        <option value="Logistik">Logistik / Warehouse</option>
-                        <option value="Mechanical">Mechanical</option>
-                        <option value="Civil & Inviro">Civil & Inviro</option>
-                        <option value="PG">Private Guard (PG)</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Jabatan <span class="text-rose-500">*</span></label>
-                <input type="text" name="position" id="editPosition" required placeholder="Contoh: Staff IT" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Operator / Driver <span class="text-rose-500">*</span></label>
-                    <select name="is_operator" id="editOperator" onchange="toggleSimperInput('edit')" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="1">YA (Aktif Mengemudi)</option>
-                        <option value="0">TIDAK (Bukan Driver)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-bold text-slate-800 mb-2">Masa Berlaku SIMPER</label>
-                    <input type="date" name="simper_expired_at" id="editSimperDate" 
-                           class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                </div>
+                <label class="block text-sm font-bold text-slate-800 mb-2">Masa Berlaku SIMPER</label>
+                <input type="date" name="simper_expired_at" id="editSimperDate" 
+                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika bukan driver atau belum memiliki SIMPER.</p>
             </div>
 
             <!-- Footer Tombol -->
@@ -502,12 +400,12 @@
                 <!-- Fitur 3 (Amber) -->
                 <div class="bg-slate-50/70 border border-slate-100 rounded-2xl p-3.5 flex items-start space-x-3.5">
                     <div class="w-9 h-9 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-sm border border-amber-200/50">
-                        <i class="fa-solid fa-user-plus"></i>
+                        <i class="fa-solid fa-id-badge"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h4 class="text-xs font-bold text-slate-900">Tambah & Perbarui Data Karyawan</h4>
+                        <h4 class="text-xs font-bold text-slate-900">Kelola Status Driver & SIMPER</h4>
                         <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                            Mendaftarkan karyawan baru melalui tombol '+ Tambah Karyawan', serta mengedit informasi jabatan atau unit kerja melalui tombol aksi di tabel.
+                            Mengatur status kelayakan driver dan memperbarui tanggal SIMPER. Pendaftaran dan master data profil karyawan dikelola terpusat oleh Super Admin.
                         </p>
                     </div>
                 </div>
@@ -550,10 +448,7 @@
     // Logika Penguncian Input SIMPER jika Bukan Driver
     function toggleSimperInput(type) {
         let opSelect, dateInput;
-        if (type === 'add') {
-            opSelect = document.getElementById('addOperator');
-            dateInput = document.getElementById('addSimperDate');
-        } else if (type === 'edit') {
+        if (type === 'edit') {
             opSelect = document.getElementById('editOperator');
             dateInput = document.getElementById('editSimperDate');
         } else if (type === 'renew') {
@@ -579,11 +474,10 @@
     }
 
     function openEditModal(emp) {
-        document.getElementById('editNik').value = emp.nik || '';
-        document.getElementById('editName').value = emp.name || '';
-        document.getElementById('editUnitKerja').value = emp.unit_kerja || '';
-        document.getElementById('editDivision').value = emp.division || '';
-        document.getElementById('editPosition').value = emp.position || '';
+        document.getElementById('editNikDisplay').textContent = emp.nik || '-';
+        document.getElementById('editNameDisplay').textContent = emp.name || '-';
+        document.getElementById('editUnitKerjaDisplay').textContent = emp.unit_kerja || '-';
+        document.getElementById('editDivisionPositionDisplay').textContent = (emp.division || '-') + ' / ' + (emp.position || '-');
         document.getElementById('editOperator').value = emp.is_operator ? '1' : '0';
         
         let expDate = '';
@@ -611,11 +505,6 @@
         document.getElementById('renewModal').classList.remove('hidden');
     }
 
-    // Inisialisasi awal untuk modal tambah
-    document.addEventListener('DOMContentLoaded', function() {
-        toggleSimperInput('add');
-    });
-
     // Filter Pencarian Instan Real-time
     const searchInput = document.getElementById('simperSearchInput');
     const resetContainer = document.getElementById('simperResetContainer');
@@ -641,6 +530,11 @@
             if (match) visibleCount++;
         });
 
+        const serverEmptyRow = document.getElementById('serverSimperEmptyRow');
+        if (serverEmptyRow) {
+            serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+        }
+
         // Hapus baris pesan kosong pencarian jika ada sebelumnya
         const existingEmptyRow = document.getElementById('simperEmptySearchRow');
         if (existingEmptyRow) {
@@ -648,7 +542,7 @@
         }
 
         // Tampilkan pesan jika tidak ada data yang cocok di tabel
-        if (rows.length > 0 && visibleCount === 0 && query.length > 0) {
+        if (visibleCount === 0 && query.length > 0) {
             const emptyTr = document.createElement('tr');
             emptyTr.id = 'simperEmptySearchRow';
             emptyTr.innerHTML = `

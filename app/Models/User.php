@@ -52,6 +52,24 @@ class User extends Authenticatable
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if ($user->employee) {
+                if ($user->employee->activities()->exists() || $user->employee->p2hRecords()->exists()) {
+                    throw new \Exception("Tidak dapat menghapus user: Karyawan '{$user->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H.");
+                }
+                $user->employee->delete();
+            }
+            if ($user->securityGuard) {
+                if ($user->securityGuard->activities()->exists()) {
+                    throw new \Exception("Tidak dapat menghapus user: Petugas Satpam '{$user->name}' memiliki riwayat data validasi pos gerbang.");
+                }
+                $user->securityGuard->delete();
+            }
+        });
+    }
+
     public function gate(): BelongsTo
     {
         return $this->belongsTo(Gate::class);
@@ -60,6 +78,16 @@ class User extends Authenticatable
     public function securityGuard(): HasOne
     {
         return $this->hasOne(SecurityGuard::class);
+    }
+
+    public function employee(): HasOne
+    {
+        return $this->hasOne(Employee::class);
+    }
+
+    public function isEmployee(): bool
+    {
+        return $this->role === 'employee';
     }
 
     public function isGateOfficer(): bool
@@ -82,8 +110,13 @@ class User extends Authenticatable
         return $this->role === 'pg_admin';
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return in_array($this->role, ['super_admin', 'superadmin']);
+    }
+
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return in_array($this->role, ['admin', 'super_admin', 'superadmin']);
     }
 }

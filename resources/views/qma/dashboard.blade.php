@@ -55,7 +55,14 @@
             <a href="{{ route('qma.activity.log') }}" 
                class="inline-flex items-center space-x-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition">
                 <i class="fa-solid fa-clipboard-list"></i>
-                <span>Buka Log Aktivitas Kendaraan</span>
+                <span>Log Timesheet LV</span>
+                <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+            </a>
+
+            <a href="{{ route('qma.p2h.index') }}" 
+               class="inline-flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <span>Log P2H Unit Support</span>
                 <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
             </a>
         </div>

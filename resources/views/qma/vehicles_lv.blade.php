@@ -26,19 +26,19 @@
         </div>
 
         <!-- Tombol Aksi Kanan -->
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
             <button type="button" 
                     onclick="alert('Fitur ekspor spreadsheet Light Vehicle sedang disiapkan')" 
-                    class="border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm">
+                    class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
                 <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
-                <span>Ekspor Light Vehicle</span>
+                <span class="truncate">Ekspor LV</span>
                 <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
             </button>
 
             <button onclick="openAddModal()" 
-                    class="bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm">
+                    class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tambah Light Vehicle</span>
+                <span class="truncate">Tambah LV</span>
             </button>
         </div>
     </div>
@@ -46,19 +46,17 @@
 
     <!-- Kotak Pencarian & Filter Status -->
     <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        <form method="GET" action="{{ route('qma.vehicles.lv') }}" class="relative w-full max-w-sm sm:max-w-md">
-            @if(request('status'))
-                <input type="hidden" name="status" value="{{ request('status') }}">
-            @endif
+        <div class="relative w-full max-w-sm sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
             <input type="text" 
+                   id="lvSearchInput"
                    name="search"
                    value="{{ request('search') }}"
                    placeholder="Cari kode LV, nopol, merek, tipe, atau pemilik..." 
                    class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-sm transition">
-        </form>
+        </div>
 
         <div class="flex items-center space-x-2">
             <form method="GET" action="{{ route('qma.vehicles.lv') }}">
@@ -74,17 +72,19 @@
                 </select>
             </form>
 
-            @if(request('search') || request('status'))
-                <a href="{{ route('qma.vehicles.lv') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-2">
-                    <i class="fa-solid fa-rotate-left"></i>
-                    <span>Reset Filter</span>
-                </a>
-            @endif
+            <div id="lvResetWrapper" class="flex items-center">
+                @if(request('search') || request('status'))
+                    <a id="lvResetBtn" href="{{ route('qma.vehicles.lv') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-2">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Reset Filter</span>
+                    </a>
+                @endif
+            </div>
         </div>
     </div>
 
     <!-- Tabel Data Light Vehicle (Header Navy Solid #06213f) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
@@ -101,9 +101,9 @@
                         <th class="py-3.5 px-4 text-center">AKSI</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                <tbody id="lvTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($vehicles as $index => $v)
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="lv-row hover:bg-slate-50/70 transition">
                             <td class="py-3.5 px-4 text-center font-medium text-slate-400">
                                 {{ $vehicles->firstItem() + $index }}
                             </td>
@@ -119,12 +119,11 @@
                                 <button type="button" 
                                         onclick="openQrModal('{{ $v->code }}', '{{ addslashes($v->brand_type ?? '') }}', '{{ addslashes($v->license_plate ?? '-') }}', '{{ addslashes($v->division ?? '-') }}', '{{ url('/gate-activity/' . $v->code) }}', this)"
                                         data-qr-base64="{{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::size(240)->margin(1)->generate(url('/gate-activity/' . $v->code))) }}"
-                                        class="group inline-flex items-center space-x-1.5 px-2 py-1 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition shadow-2xs cursor-pointer"
+                                        class="group inline-flex items-center justify-center p-1 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition shadow-2xs cursor-pointer"
                                         title="Klik untuk Lihat, Unduh & Cetak Stiker QR {{ $v->code }}">
                                     <div class="w-7 h-7 bg-white rounded-lg border border-slate-200 group-hover:border-emerald-300 flex items-center justify-center p-0.5 overflow-hidden [&>svg]:w-full [&>svg]:h-full shadow-2xs">
                                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(24)->margin(0)->generate(url('/gate-activity/' . $v->code)) !!}
                                     </div>
-                                    <i class="fa-solid fa-expand text-[10px] text-slate-400 group-hover:text-emerald-600"></i>
                                 </button>
                             </td>
 
@@ -197,10 +196,26 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="serverLvEmptyRow">
                             <td colspan="10" class="py-12 text-center text-slate-400">
-                                <i class="fa-solid fa-car text-3xl mb-2 block text-slate-300"></i>
-                                Belum ada armada Light Vehicle yang sesuai dengan kriteria pencarian.
+                                <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                                @if(request('search'))
+                                    <p class="text-sm font-semibold text-slate-700">
+                                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                    </p>
+                                    <p class="text-xs text-slate-400 mt-1">
+                                        Pastikan kata kunci yang dicari sudah benar.
+                                    </p>
+                                    <div class="mt-4">
+                                        <a href="{{ route('qma.vehicles.lv') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                            <span>Hapus Pencarian</span>
+                                        </a>
+                                    </div>
+                                @else
+                                    <p class="text-sm font-semibold text-slate-700">Belum ada armada Light Vehicle</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">Belum ada data armada Light Vehicle yang sesuai dengan kriteria filter.</p>
+                                @endif
                             </td>
                         </tr>
                     @endforelse
@@ -208,7 +223,7 @@
             </table>
         </div>
 
-        <div class="p-4 bg-slate-50 border-t border-slate-200">
+        <div id="lvPaginationContainer" class="p-4 bg-slate-50 border-t border-slate-200">
             {{ $vehicles->links() }}
         </div>
     </div>
@@ -856,6 +871,95 @@
     function closeDeleteModal() {
         document.getElementById('deleteVehicleModal').classList.add('hidden');
     }
+
+    // =========================================================================
+    // REAL-TIME CLIENT-SIDE SEARCH
+    // =========================================================================
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('lvSearchInput');
+        const tableBody = document.getElementById('lvTableBody');
+        const resetWrapper = document.getElementById('lvResetWrapper');
+        const paginationContainer = document.getElementById('lvPaginationContainer');
+        const serverEmptyRow = document.getElementById('serverLvEmptyRow');
+        const hasServerFilters = {{ request()->filled('status') ? 'true' : 'false' }};
+
+        if (searchInput && tableBody) {
+            searchInput.addEventListener('input', function (e) {
+                const rawValue = e.target.value;
+                const query = rawValue.toLowerCase().trim();
+                const rows = tableBody.querySelectorAll('tr.lv-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                if (paginationContainer) {
+                    paginationContainer.style.display = query.length > 0 ? 'none' : '';
+                }
+
+                const existingEmptyRow = document.getElementById('clientLvEmptyRow');
+                if (existingEmptyRow) existingEmptyRow.remove();
+
+                if (serverEmptyRow) {
+                    serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+                }
+
+                if (visibleCount === 0 && query.length > 0) {
+                    const emptyTr = document.createElement('tr');
+                    emptyTr.id = 'clientLvEmptyRow';
+                    emptyTr.innerHTML = `
+                        <td colspan="10" class="py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                            <p class="text-sm font-semibold text-slate-700">
+                                Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                            </p>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Pastikan kata kunci yang dicari sudah benar.
+                            </p>
+                            <div class="mt-4">
+                                <button type="button" 
+                                        onclick="const inp = document.getElementById('lvSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                    <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                    <span>Hapus Pencarian</span>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(emptyTr);
+                }
+
+                if (resetWrapper) {
+                    let resetBtn = document.getElementById('lvResetBtn');
+                    if (query.length > 0 || hasServerFilters) {
+                        if (!resetBtn) {
+                            resetBtn = document.createElement('a');
+                            resetBtn.id = 'lvResetBtn';
+                            resetBtn.href = "{{ route('qma.vehicles.lv') }}";
+                            resetBtn.className = 'text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-2';
+                            resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i><span>Reset Filter</span>';
+                            resetWrapper.appendChild(resetBtn);
+                        }
+                    } else if (!hasServerFilters && resetBtn) {
+                        resetBtn.remove();
+                    }
+                }
+            });
+        }
+    });
 
     @if($errors->any())
         document.addEventListener('DOMContentLoaded', function() {

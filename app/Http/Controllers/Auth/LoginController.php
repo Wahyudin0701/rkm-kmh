@@ -72,11 +72,13 @@ class LoginController extends Controller
     private function redirectBasedOnRole($user): RedirectResponse
     {
         return match ($user->role) {
+            'super_admin', 'superadmin', 'admin' => redirect()->route('superadmin.dashboard'),
             'hse_admin' => redirect()->route('hse.dashboard'),
             'qma_admin' => redirect()->route('qma.dashboard'),
             'pg_admin' => redirect()->route('pg.dashboard'),
             'gate_officer' => redirect()->route('pg.gate.inspection'),
-            default => redirect()->route('qma.dashboard'),
+            'employee' => redirect()->route('employee.dashboard'),
+            default => redirect()->route('superadmin.dashboard'),
         };
     }
 }

@@ -108,13 +108,23 @@ class ActivityLogController extends Controller
             });
         }
 
-        $totalActivities = (clone $query)->count();
-        $totalDistance = (clone $query)->sum('distance');
-        $inCount = (clone $query)->where('direction', 'in')->count();
-        $outCount = (clone $query)->where('direction', 'out')->count();
-        $approvedCount = (clone $query)->where('validation_status', 'approved')->count();
-        $pendingCount = (clone $query)->where('validation_status', 'pending')->count();
-        $rejectedCount = (clone $query)->where('validation_status', 'rejected')->count();
+        $stats = (clone $query)->selectRaw("
+            COUNT(*) as total_activities,
+            COALESCE(SUM(distance), 0) as total_distance,
+            COUNT(CASE WHEN direction = 'in' THEN 1 END) as in_count,
+            COUNT(CASE WHEN direction = 'out' THEN 1 END) as out_count,
+            COUNT(CASE WHEN validation_status = 'approved' THEN 1 END) as approved_count,
+            COUNT(CASE WHEN validation_status = 'pending' THEN 1 END) as pending_count,
+            COUNT(CASE WHEN validation_status = 'rejected' THEN 1 END) as rejected_count
+        ")->first();
+
+        $totalActivities = (int) ($stats->total_activities ?? 0);
+        $totalDistance = (float) ($stats->total_distance ?? 0);
+        $inCount = (int) ($stats->in_count ?? 0);
+        $outCount = (int) ($stats->out_count ?? 0);
+        $approvedCount = (int) ($stats->approved_count ?? 0);
+        $pendingCount = (int) ($stats->pending_count ?? 0);
+        $rejectedCount = (int) ($stats->rejected_count ?? 0);
 
         // Rekapitulasi per Kendaraan
         $vehicleSummaries = (clone $query)

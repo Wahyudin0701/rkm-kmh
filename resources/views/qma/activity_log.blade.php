@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Log Aktivitas Kendaraan QMA')
+@section('title', 'Timesheet LV QMA')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -15,12 +15,12 @@
                 <button type="button" 
                         onclick="openGuideModal()" 
                         class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
-                        title="Panduan Halaman Log Aktivitas Kendaraan">
+                        title="Panduan Halaman Timesheet LV">
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Log Aktivitas Kendaraan
+                Timesheet LV
             </h2>
         </div>
 
@@ -286,46 +286,48 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="serverActivityEmptyRow">
                             <td colspan="11" class="py-12 px-4 text-center">
                                 <div class="flex flex-col items-center justify-center space-y-3">
                                     <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
-                                        <i class="fa-solid fa-route"></i>
+                                        <i class="fa-solid fa-magnifying-glass"></i>
                                     </div>
-                                    <div class="text-sm font-bold text-slate-700">Belum Ada Data Log Aktivitas</div>
-                                    <p class="text-xs text-slate-400 max-w-sm">
-                                        Tidak ditemukan catatan aktivitas kendaraan yang sesuai dengan kriteria filter saat ini.
-                                    </p>
-                                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
-                                        <a href="{{ route('qma.activity.log') }}" class="mt-2 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1b5e20] bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">
-                                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                                            <span>Reset Filter</span>
-                                        </a>
+                                    @if(request('search'))
+                                        <p class="text-sm font-semibold text-slate-700">
+                                            Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                        </p>
+                                        <p class="text-xs text-slate-400 mt-1">
+                                            Pastikan kata kunci yang dicari sudah benar.
+                                        </p>
+                                        <div class="mt-4">
+                                            <a href="{{ route('qma.activity.log') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                                <span>Hapus Pencarian</span>
+                                            </a>
+                                        </div>
+                                    @else
+                                        <div class="text-sm font-bold text-slate-700">Belum Ada Data Log Aktivitas</div>
+                                        <p class="text-xs text-slate-400 max-w-sm">
+                                            Tidak ditemukan catatan aktivitas kendaraan yang sesuai dengan kriteria filter saat ini.
+                                        </p>
+                                        @if(request()->anyFilled(['start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                                            <a href="{{ route('qma.activity.log') }}" class="mt-2 inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#1b5e20] bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition">
+                                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                                <span>Reset Filter</span>
+                                            </a>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
                         </tr>
                     @endforelse
-
-                    <!-- Baris Hasil Pencarian Real-Time Kosong -->
-                    <tr id="clientSearchEmptyRow" class="hidden">
-                        <td colspan="11" class="py-12 px-4 text-center">
-                            <div class="flex flex-col items-center justify-center space-y-2">
-                                <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-xl">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </div>
-                                <div class="text-sm font-bold text-slate-700">Tidak Ada Hasil Pencarian</div>
-                                <p class="text-xs text-slate-400">Tidak ditemukan log aktivitas yang sesuai dengan kata kunci pencarian Anda.</p>
-                            </div>
-                        </td>
-                    </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- Pagination -->
         @if($activities->hasPages())
-            <div class="p-4 bg-slate-50 border-t border-slate-100">
+            <div id="activityPaginationContainer" class="p-4 bg-slate-50 border-t border-slate-100">
                 {{ $activities->links() }}
             </div>
         @endif
@@ -333,16 +335,24 @@
 </div>
 
 <script>
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('activityLogSearchInput');
     const tableBody = document.getElementById('activityLogTableBody');
     const resetContainer = document.getElementById('headerResetFilterContainer');
-    const emptyRow = document.getElementById('clientSearchEmptyRow');
+    const paginationContainer = document.getElementById('activityPaginationContainer');
+    const serverEmptyRow = document.getElementById('serverActivityEmptyRow');
     const hasServerFilters = {{ request()->anyFilled(['start_date', 'end_date', 'gate_id', 'direction', 'status']) ? 'true' : 'false' }};
 
     if (searchInput && tableBody) {
         searchInput.addEventListener('input', function (e) {
-            const query = e.target.value.toLowerCase().trim();
+            const rawValue = e.target.value;
+            const query = rawValue.toLowerCase().trim();
             const rows = tableBody.querySelectorAll('tr.activity-row');
             let visibleCount = 0;
 
@@ -356,16 +366,42 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            // Tampilkan pesan kosong jika tidak ada baris yang cocok secara instan
-            if (emptyRow) {
-                if (rows.length > 0 && visibleCount === 0) {
-                    emptyRow.classList.remove('hidden');
-                } else {
-                    emptyRow.classList.add('hidden');
-                }
+            if (paginationContainer) {
+                paginationContainer.style.display = query.length > 0 ? 'none' : '';
             }
 
-            // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
+            const existingEmptyRow = document.getElementById('clientSearchEmptyRow');
+            if (existingEmptyRow) existingEmptyRow.remove();
+
+            if (serverEmptyRow) {
+                serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+            }
+
+            if (visibleCount === 0 && query.length > 0) {
+                const emptyTr = document.createElement('tr');
+                emptyTr.id = 'clientSearchEmptyRow';
+                emptyTr.innerHTML = `
+                    <td colspan="11" class="py-12 px-4 text-center">
+                        <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                        <p class="text-sm font-semibold text-slate-700">
+                            Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                        </p>
+                        <p class="text-xs text-slate-400 mt-1">
+                            Pastikan kata kunci yang dicari sudah benar.
+                        </p>
+                        <div class="mt-4">
+                            <button type="button" 
+                                    onclick="const inp = document.getElementById('activityLogSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                <span>Hapus Pencarian</span>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(emptyTr);
+            }
+
             if (resetContainer) {
                 let resetBtn = document.getElementById('headerResetFilterBtn');
                 if (query.length > 0 || hasServerFilters) {
@@ -374,7 +410,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         resetBtn.href = "{{ route('qma.activity.log') }}";
                         resetBtn.id = 'headerResetFilterBtn';
                         resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition';
-
                         const resetIcon = document.createElement('i');
                         resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
                         const resetText = document.createElement('span');
@@ -384,10 +419,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         resetBtn.appendChild(resetText);
                         resetContainer.appendChild(resetBtn);
                     }
-                } else {
-                    if (resetBtn && !hasServerFilters) {
-                        resetBtn.remove();
-                    }
+                } else if (!hasServerFilters && resetBtn) {
+                    resetBtn.remove();
                 }
             }
         });

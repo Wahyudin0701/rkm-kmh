@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
@@ -13,6 +14,7 @@ class Employee extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'nik',
         'name',
         'unit_kerja',
@@ -51,5 +53,15 @@ class Employee extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(VehicleActivity::class, 'driver_id');
+    }
+
+    public function p2hRecords(): HasMany
+    {
+        return $this->hasMany(P2hRecord::class, 'employee_id')->orderByDesc('inspected_at');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

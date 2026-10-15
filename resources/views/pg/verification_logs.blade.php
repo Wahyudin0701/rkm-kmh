@@ -366,7 +366,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr>
+                        <tr id="serverVerificationEmptyRow">
                             <td colspan="10" class="py-12 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center space-y-2">
                                     <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg">
@@ -535,6 +535,11 @@
                     if (match) visibleCount++;
                 });
 
+                const serverEmptyRow = document.getElementById('serverVerificationEmptyRow');
+                if (serverEmptyRow) {
+                    serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
+                }
+
                 // Hapus baris pesan kosong pencarian jika ada sebelumnya
                 const existingEmptyRow = document.getElementById('verificationEmptySearchRow');
                 if (existingEmptyRow) {
@@ -542,7 +547,7 @@
                 }
 
                 // Tampilkan pesan instan jika tidak ada baris yang cocok di tabel
-                if (rows.length > 0 && visibleCount === 0 && query.length > 0) {
+                if (visibleCount === 0 && query.length > 0) {
                     const emptyTr = document.createElement('tr');
                     emptyTr.id = 'verificationEmptySearchRow';
                     emptyTr.innerHTML = `

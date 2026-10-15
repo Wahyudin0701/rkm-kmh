@@ -140,28 +140,41 @@ class AuthenticationTest extends TestCase
     }
 
     /**
-     * Memastikan Admin HSE dapat mengedit data karyawan & SIMPER.
+     * Memastikan Admin HSE hanya mengelola status driver & SIMPER tanpa mengubah master profil karyawan.
      */
     public function test_admin_hse_can_edit_employee_simper_data(): void
     {
         $hseUser = User::where('username', '1185')->first();
         $employee = \App\Models\Employee::first();
+        $originalName = $employee->name;
+        $originalPosition = $employee->position;
 
         $response = $this->actingAs($hseUser)->post("/hse/employees/{$employee->id}", [
-            'nik' => $employee->nik,
-            'name' => 'Nama Karyawan Diperbarui',
-            'unit_kerja' => 'Pembangkit',
-            'division' => 'Mechanical',
-            'position' => 'Senior Technician',
             'is_operator' => '1',
             'simper_expired_at' => '2028-12-31',
         ]);
 
         $response->assertSessionHas('success');
         $employee->refresh();
-        $this->assertEquals('Nama Karyawan Diperbarui', $employee->name);
-        $this->assertEquals('Senior Technician', $employee->position);
+        $this->assertEquals($originalName, $employee->name);
+        $this->assertEquals($originalPosition, $employee->position);
+        $this->assertTrue((bool) $employee->is_operator);
         $this->assertEquals('2028-12-31', $employee->simper_expired_at->format('Y-m-d'));
+    }
+
+    /**
+     * Memastikan Admin HSE tidak dapat menambahkan master karyawan baru (dialihkan ke Super Admin).
+     */
+    public function test_admin_hse_cannot_create_master_employee(): void
+    {
+        $hseUser = User::where('username', '1185')->first();
+
+        $response = $this->actingAs($hseUser)->post('/hse/employees', [
+            'nik' => '9999',
+            'name' => 'Karyawan Baru',
+        ]);
+
+        $response->assertSessionHas('error');
     }
 
     /**
