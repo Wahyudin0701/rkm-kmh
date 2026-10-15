@@ -1,0 +1,490 @@
+@extends('layouts.app')
+
+@section('title', 'Manajemen Pengguna - Super Admin RKM')
+
+@section('content')
+<div class="space-y-6">
+    <!-- Header Halaman -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
+                <span class="w-2.5 h-7 rounded-full bg-indigo-600 inline-block"></span>
+                Manajemen Pengguna Sistem
+            </h1>
+            <p class="text-xs text-slate-500 mt-1">
+                Kelola akun pengguna, ganti kata sandi, dan tetapkan role wewenang pada sistem RKM-KMH.
+            </p>
+        </div>
+        <div>
+            <button type="button" 
+                    onclick="openCreateUserModal()" 
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-user-plus text-sm"></i>
+                <span>Tambah Pengguna Baru</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Notifikasi Flash -->
+    @if(session('success'))
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-emerald-800 text-xs font-semibold">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between text-rose-800 text-xs font-semibold">
+            <div class="flex items-center gap-2.5">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs">
+            <div class="flex items-center gap-2 font-bold mb-1">
+                <i class="fa-solid fa-circle-xmark text-rose-600"></i>
+                <span>Terdapat kesalahan pada input Anda:</span>
+            </div>
+            <ul class="list-disc list-inside space-y-0.5 text-rose-700">
+                @foreach($errors->all() as $err)
+                    <li>{{ $err }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <!-- Card Filter & Pencarian -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
+        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" 
+                       name="search" 
+                       value="{{ request('search') }}" 
+                       placeholder="Cari nama, username, atau email pengguna..." 
+                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+            </div>
+
+            <div class="w-full sm:w-48">
+                <select name="role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                    <option value="">-- Semua Role --</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}" {{ request('role') === $role->name ? 'selected' : '' }}>
+                            {{ ucwords(str_replace('_', ' ', $role->name)) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-filter"></i>
+                    <span>Filter</span>
+                </button>
+                @if(request()->hasAny(['search', 'role']))
+                    <a href="{{ route('admin.users.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold transition" title="Reset Filter">
+                        <i class="fa-solid fa-arrow-rotate-left"></i>
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabel Data Pengguna -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-3 px-4">Pengguna</th>
+                        <th class="py-3 px-4">Email</th>
+                        <th class="py-3 px-4">Role RBAC</th>
+                        <th class="py-3 px-4">Penempatan Pos</th>
+                        <th class="py-3 px-4">Terdaftar</th>
+                        <th class="py-3 px-4 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                    @forelse($users as $user)
+                        @php
+                            $primaryRole = $user->roles->first()?->name ?? $user->role;
+                            $badgeStyle = match($primaryRole) {
+                                'super_admin' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                                'hse_admin' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                'qma_admin' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                'pg_admin' => 'bg-purple-50 text-purple-700 border-purple-200',
+                                'gate_officer' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                default => 'bg-slate-100 text-slate-600 border-slate-200',
+                            };
+                        @endphp
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3 px-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black flex items-center justify-center text-xs flex-shrink-0">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-900 text-xs">{{ $user->name }}</p>
+                                        <p class="text-[11px] text-slate-400 font-mono">@<span>{{ $user->username }}</span></p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 text-slate-600 font-normal">
+                                {{ $user->email }}
+                            </td>
+                            <td class="py-3 px-4">
+                                <div class="flex flex-col gap-1 items-start">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $badgeStyle }} capitalize">
+                                        {{ str_replace('_', ' ', $primaryRole) }}
+                                    </span>
+                                    @if($user->permissions->count() > 0)
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50/90 px-2 py-0.5 rounded-md border border-indigo-100" title="{{ $user->permissions->pluck('name')->implode(', ') }}">
+                                            <i class="fa-solid fa-key text-[9px]"></i>
+                                            +{{ $user->permissions->count() }} Izin Khusus
+                                        </span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="py-3 px-4 text-slate-600">
+                                @if($user->gate)
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-700">
+                                        <i class="fa-solid fa-location-dot text-slate-400"></i>
+                                        {{ $user->gate->name }}
+                                    </span>
+                                @else
+                                    <span class="text-slate-400 text-[11px]">-</span>
+                                @endif
+                            </td>
+                            <td class="py-3 px-4 text-slate-500 text-[11px]">
+                                {{ $user->created_at->format('d M Y') }}
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <button type="button" 
+                                            onclick='openEditUserModal(@json($user), "{{ $primaryRole }}", @json($user->permissions->pluck("name")))' 
+                                            class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 flex items-center justify-center transition" 
+                                            title="Edit Pengguna">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </button>
+
+                                    @if($user->id !== auth()->id() && $user->username !== 'superadmin')
+                                        <button type="button" 
+                                                onclick='openDeleteUserModal({{ $user->id }}, "{{ addslashes($user->name) }}")' 
+                                                class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 flex items-center justify-center transition" 
+                                                title="Hapus Pengguna">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-slate-400">
+                                <i class="fa-solid fa-user-slash text-2xl mb-2 text-slate-300 block"></i>
+                                Tidak ada data pengguna yang sesuai kriteria pencarian.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if($users->hasPages())
+            <div class="p-4 border-t border-slate-100">
+                {{ $users->links() }}
+            </div>
+        @endif
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: TAMBAH PENGGUNA BARU -->
+<!-- ========================================================================= -->
+<div id="createUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-indigo-600"></i>
+                Tambah Pengguna Baru
+            </h3>
+            <button type="button" onclick="closeCreateUserModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('admin.users.store') }}" method="POST" class="p-6 space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                <input type="text" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: Ahmad Rizky">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
+                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: ahmad.rizky">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
+                    <input type="email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="ahmad@kmh.co.id">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                    <select name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                        <option value="">-- Pilih Role --</option>
+                        @foreach($roles as $role)
+                            <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Penempatan Pos Gerbang</label>
+                    <select name="gate_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                        <option value="">-- Tanpa Pos Gerbang --</option>
+                        @foreach($gates as $gate)
+                            <option value="{{ $gate->id }}">{{ $gate->name }} ({{ $gate->code }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                    Simpan Pengguna
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: EDIT PENGGUNA -->
+<!-- ========================================================================= -->
+<div id="editUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-user-pen text-indigo-600"></i>
+                Edit Data Pengguna
+            </h3>
+            <button type="button" onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+        </div>
+
+        <form id="editUserForm" method="POST" class="p-6 space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
+                    <input type="text" id="edit_username" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
+                    <input type="email" id="edit_email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">
+                    Ganti Password <span class="text-slate-400 font-normal">(Kosongkan jika tidak ingin mengubah)</span>
+                </label>
+                <input type="password" name="password" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Masukkan password baru">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                    <select id="edit_role" name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                        @foreach($roles as $role)
+                            <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Penempatan Pos Gerbang</label>
+                    <select id="edit_gate_id" name="gate_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                        <option value="">-- Tanpa Pos Gerbang --</option>
+                        @foreach($gates as $gate)
+                            <option value="{{ $gate->id }}">{{ $gate->name }} ({{ $gate->code }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+
+            <!-- Accordion: Izin Tambahan Khusus (Direct Permissions) -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
+                <button type="button" 
+                        onclick="toggleDirectPermsAccordion()" 
+                        class="w-full px-4 py-2.5 bg-slate-100/70 hover:bg-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 transition">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-key text-indigo-600"></i>
+                        <span>Izin Tambahan Khusus (Direct Permissions)</span>
+                    </span>
+                    <i id="directPermsChevron" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+                </button>
+
+                <div id="directPermsContainer" class="hidden p-4 space-y-4 max-h-56 overflow-y-auto bg-white border-t border-slate-200 text-xs">
+                    <p class="text-[11px] text-slate-500 mb-1">
+                        Pilih izin individual tambahan di luar wewenang role bawaan pengguna ini:
+                    </p>
+                    @foreach($modules as $moduleKey => $module)
+                        <div class="space-y-1.5 pb-2.5 border-b border-slate-100 last:border-0">
+                            <p class="font-bold text-[11px] text-indigo-950 flex items-center gap-1.5">
+                                <i class="{{ $module['icon'] }} text-[10px] text-indigo-600"></i>
+                                <span>{{ $module['name'] }}</span>
+                            </p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-3">
+                                @foreach($module['permissions'] as $permKey => $permMeta)
+                                    <label class="flex items-start gap-2 text-[11px] text-slate-700 cursor-pointer select-none group">
+                                        <input type="checkbox" 
+                                               name="direct_permissions[]" 
+                                               value="{{ $permKey }}" 
+                                               id="edit_perm_{{ str_replace('.', '_', $permKey) }}"
+                                               class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 user-direct-perm-checkbox">
+                                        <div>
+                                            <span class="font-medium text-slate-800 group-hover:text-indigo-600 transition block">
+                                                {{ $permMeta['label'] }}
+                                            </span>
+                                            <span class="font-mono text-[9px] text-slate-400 block">{{ $permKey }}</span>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: HAPUS PENGGUNA -->
+<!-- ========================================================================= -->
+<div id="deleteUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden p-6 text-center animate-scale-in">
+        <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3 text-xl">
+            <i class="fa-solid fa-trash-can"></i>
+        </div>
+        <h3 class="text-sm font-bold text-slate-800 mb-1">Hapus Pengguna</h3>
+        <p class="text-xs text-slate-500 mb-5">
+            Apakah Anda yakin ingin menghapus pengguna <strong id="deleteUserName" class="text-slate-800"></strong>? Tindakan ini tidak dapat dibatalkan.
+        </p>
+
+        <form id="deleteUserForm" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="flex items-center justify-center gap-2.5">
+                <button type="button" onclick="closeDeleteUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                    Ya, Hapus Pengguna
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openCreateUserModal() {
+        document.getElementById('createUserModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+    }
+
+    function closeCreateUserModal() {
+        document.getElementById('createUserModal').classList.add('hidden');
+        document.documentElement.classList.remove('modal-open');
+    }
+
+    function toggleDirectPermsAccordion() {
+        const container = document.getElementById('directPermsContainer');
+        const chevron = document.getElementById('directPermsChevron');
+        if (container) {
+            container.classList.toggle('hidden');
+        }
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
+
+    function openEditUserModal(user, primaryRole, userDirectPerms) {
+        document.getElementById('editUserForm').action = `/admin/users/${user.id}`;
+        document.getElementById('edit_name').value = user.name;
+        document.getElementById('edit_username').value = user.username;
+        document.getElementById('edit_email').value = user.email;
+        document.getElementById('edit_role').value = primaryRole;
+        document.getElementById('edit_gate_id').value = user.gate_id || '';
+
+        // Uncheck all direct permission checkboxes first
+        document.querySelectorAll('.user-direct-perm-checkbox').forEach(cb => cb.checked = false);
+
+        // Check assigned direct permissions
+        if (Array.isArray(userDirectPerms)) {
+            userDirectPerms.forEach(permName => {
+                const el = document.getElementById('edit_perm_' + permName.replace(/\./g, '_'));
+                if (el) el.checked = true;
+            });
+        }
+
+        document.getElementById('editUserModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+    }
+
+    function closeEditUserModal() {
+        document.getElementById('editUserModal').classList.add('hidden');
+        document.documentElement.classList.remove('modal-open');
+    }
+
+    function openDeleteUserModal(userId, userName) {
+        document.getElementById('deleteUserForm').action = `/admin/users/${userId}`;
+        document.getElementById('deleteUserName').textContent = userName;
+
+        document.getElementById('deleteUserModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+    }
+
+    function closeDeleteUserModal() {
+        document.getElementById('deleteUserModal').classList.add('hidden');
+        document.documentElement.classList.remove('modal-open');
+    }
+</script>
+@endsection

@@ -35,11 +35,13 @@
                 <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
             </button>
 
+            @can('qma.vehicles.create')
             <button onclick="openAddModal()" 
                     class="bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center space-x-2 transition shadow-sm">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>Tambah Light Vehicle</span>
             </button>
+            @endcan
         </div>
     </div>
 
@@ -182,17 +184,21 @@
                                             title="Lihat Detail Kendaraan">
                                         <i class="fa-regular fa-eye text-sm"></i>
                                     </button>
+                                    @can('qma.vehicles.edit')
                                     <button onclick='openEditModal(@json($v))' 
                                             class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
                                             title="Edit Data Light Vehicle">
                                         <i class="fa-regular fa-pen-to-square text-sm"></i>
                                     </button>
+                                    @endcan
+                                    @can('qma.vehicles.delete')
                                     <button type="button" 
                                             onclick="openDeleteModal('{{ $v->id }}', '{{ $v->code }}', '{{ addslashes($v->brand_type ?? '') }}')"
                                             class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded-lg transition"
                                             title="Hapus Kendaraan">
                                         <i class="fa-regular fa-trash-can text-sm"></i>
                                     </button>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

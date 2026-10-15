@@ -267,5 +267,8 @@ class DatabaseSeeder extends Seeder
             'stnk_document' => 'STNK-BH-8412-AA',
             'kir_document' => 'KIR-2026/11',
         ]);
+
+        // 6. Seed RBAC Roles, Permissions & Super Admin
+        $this->call(RolePermissionSeeder::class);
     }
 }

@@ -71,6 +71,10 @@ class LoginController extends Controller
      */
     private function redirectBasedOnRole($user): RedirectResponse
     {
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('admin.dashboard');
+        }
+
         return match ($user->role) {
             'hse_admin' => redirect()->route('hse.dashboard'),
             'qma_admin' => redirect()->route('qma.dashboard'),

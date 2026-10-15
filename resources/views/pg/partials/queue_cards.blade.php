@@ -94,6 +94,7 @@
                 <span>Cek fisik kendaraan lalu klik verifikasi untuk membuka portal</span>
             </span>
 
+            @can('gate.approve')
             <form action="{{ route('pg.gate.approve', $act->id) }}" method="POST" class="w-full sm:w-auto m-0">
                 @csrf
                 @if($currentGuard)
@@ -109,6 +110,9 @@
                     <span>Verifikasi</span>
                 </button>
             </form>
+            @else
+            <span class="text-xs text-slate-400 italic">Tidak memiliki izin verifikasi</span>
+            @endcan
         </div>
 
     </div>

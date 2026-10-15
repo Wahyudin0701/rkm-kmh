@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Hse\EmployeeController;
@@ -35,53 +38,66 @@ Route::prefix('gate-activity')->name('vehicle.activity.')->group(function () {
 // Group Terproteksi Autentikasi Sistem
 Route::middleware('auth')->group(function () {
 
-    // 2. Modul HSE: Admin HSE (Mima - 1185) - Kelola Karyawan & SIMPER
-    Route::prefix('hse')->name('hse.')->middleware('role:hse_admin')->group(function () {
-        Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard');
-        Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
-        Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
-        Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update');
+    // 2. Modul HSE: Admin HSE - Kelola Karyawan & SIMPER
+    Route::prefix('hse')->name('hse.')->group(function () {
+        Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard')->middleware('permission:hse.employees.view');
+        Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index')->middleware('permission:hse.employees.view');
+        Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store')->middleware('permission:hse.employees.create');
+        Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
     });
 
-    // 3. Modul QMA: Admin QMA (Pinto Yuliandra - 1171) - Dashboard, Data Kendaraan & Log Aktivitas
-    Route::prefix('qma')->name('qma.')->middleware('role:qma_admin')->group(function () {
-        Route::get('/dashboard', [VehicleController::class, 'dashboard'])->name('dashboard');
+    // 3. Modul QMA: Admin QMA - Dashboard, Data Kendaraan & Log Aktivitas
+    Route::prefix('qma')->name('qma.')->group(function () {
+        Route::get('/dashboard', [VehicleController::class, 'dashboard'])->name('dashboard')->middleware('permission:qma.vehicles.view');
         
         // Halaman Data Kendaraan Terpisah: Light Vehicle (LV) dan Unit Support
-        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index');
-        Route::get('/vehicles/light-vehicle', [VehicleController::class, 'indexLv'])->name('vehicles.lv');
-        Route::get('/vehicles/unit-support', [VehicleController::class, 'indexSupport'])->name('vehicles.support');
+        Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/light-vehicle', [VehicleController::class, 'indexLv'])->name('vehicles.lv')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/unit-support', [VehicleController::class, 'indexSupport'])->name('vehicles.support')->middleware('permission:qma.vehicles.view');
         
-        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store');
-        Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update');
-        Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy');
-        Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log');
-        Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary');
+        Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store')->middleware('permission:qma.vehicles.create');
+        Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update')->middleware('permission:qma.vehicles.edit');
+        Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy')->middleware('permission:qma.vehicles.delete');
+        Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log')->middleware('permission:qma.logs.view');
+        Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
     });
 
     // 4. Modul Private Guard (PG): Admin PG & Pos Gerbang Satpam
     Route::prefix('pg')->name('pg.')->group(function () {
         // Modul Admin PG (Dashboard, Data Satpam & Log Verifikasi Gerbang)
-        Route::middleware('role:pg_admin')->group(function () {
-            Route::get('/dashboard', [PgDashboardController::class, 'index'])->name('dashboard');
-            Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index');
-            Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store');
-            Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update');
-            Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle');
-            Route::delete('/guards/{id}', [SecurityGuardController::class, 'destroy'])->name('guards.destroy');
-            Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index');
-        });
+        Route::get('/dashboard', [PgDashboardController::class, 'index'])->name('dashboard')->middleware('permission:pg.guards.view');
+        Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index')->middleware('permission:pg.guards.view');
+        Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store')->middleware('permission:pg.guards.create');
+        Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update')->middleware('permission:pg.guards.edit');
+        Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle')->middleware('permission:pg.guards.toggle');
+        Route::delete('/guards/{id}', [SecurityGuardController::class, 'destroy'])->name('guards.destroy')->middleware('permission:pg.guards.delete');
+        Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index')->middleware('permission:pg.logs.view');
 
         // Verifikasi Pos Gerbang (Khusus Petugas Satpam Pos Gerbang)
-        Route::middleware('role:gate_officer')->group(function () {
-            Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection');
-            Route::get('/gate-inspection/live-queue', [GateInspectionController::class, 'liveQueue'])->name('gate.live_queue');
-            Route::post('/gate-inspection/{id}/approve', [GateInspectionController::class, 'approve'])->name('gate.approve');
-            Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject');
-        });
+        Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection')->middleware('permission:gate.inspect');
+        Route::get('/gate-inspection/live-queue', [GateInspectionController::class, 'liveQueue'])->name('gate.live_queue')->middleware('permission:gate.inspect');
+        Route::post('/gate-inspection/{id}/approve', [GateInspectionController::class, 'approve'])->name('gate.approve')->middleware('permission:gate.approve');
+        Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject')->middleware('permission:gate.reject');
     });
 
     // 5. Modul Profil Saya (Seluruh Pengguna Terautentikasi)
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // 6. Modul Super Admin (RBAC, Manajemen Pengguna & Hak Akses)
+    Route::prefix('admin')->name('admin.')->middleware('role:super_admin')->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Manajemen User
+        Route::get('/users', [UserController::class, 'index'])->name('users.index')->middleware('permission:users.view');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store')->middleware('permission:users.create');
+        Route::post('/users/{id}', [UserController::class, 'update'])->name('users.update')->middleware('permission:users.edit');
+        Route::delete('/users/{id}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('permission:users.delete');
+
+        // Manajemen Roles & Permissions (RBAC Matrix)
+        Route::get('/roles', [RolePermissionController::class, 'index'])->name('roles.index')->middleware('permission:roles.view');
+        Route::post('/roles', [RolePermissionController::class, 'storeRole'])->name('roles.store')->middleware('permission:roles.create');
+        Route::post('/roles/{id}/permissions', [RolePermissionController::class, 'updatePermissions'])->name('roles.permissions.update')->middleware('permission:roles.edit_permissions');
+        Route::delete('/roles/{id}', [RolePermissionController::class, 'destroyRole'])->name('roles.destroy')->middleware('permission:roles.delete');
+    });
 });
