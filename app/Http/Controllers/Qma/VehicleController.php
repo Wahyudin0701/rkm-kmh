@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Qma;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\Gate;
+use App\Models\P2hRecord;
 use App\Models\P2hTemplate;
 use App\Models\Vehicle;
+use App\Models\VehicleActivity;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,10 +24,49 @@ class VehicleController extends Controller
     public function dashboard(): View
     {
         $totalLv = Vehicle::lightVehicles()->count();
-        $totalSupport = Vehicle::unitSupports()->count();
+        $totalSupport = Vehicle::unitSupportPhysical()->count() ?: Vehicle::unitSupports()->count();
         $totalVehicles = Vehicle::count();
 
-        return view('qma.dashboard', compact('totalLv', 'totalSupport', 'totalVehicles'));
+        $today = Carbon::today()->toDateString();
+        $todayActivitiesCount = VehicleActivity::whereDate('recorded_at', $today)->count();
+        $todayP2hCount = P2hRecord::whereDate('inspected_at', $today)->count();
+
+        // 1. Log Pergerakan Gerbang Terkini (6 data pergerakan armada terbaru)
+        $recentActivities = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
+            ->latest('recorded_at')
+            ->take(6)
+            ->get();
+
+        // 2. Monitoring Kelayakan P2H Terkini (5 checksheet inspeksi terbaru)
+        $recentP2hRecords = P2hRecord::with(['vehicle', 'employee', 'template'])
+            ->latest('inspected_at')
+            ->take(5)
+            ->get();
+
+        // 3. Status Kesiapan Unit Support
+        $supportOperation = Vehicle::unitSupports()->where('status', 'Operation')->count();
+        $supportStandby = Vehicle::unitSupports()->where('status', 'Standby')->count();
+        $supportBreakdown = Vehicle::unitSupports()->where('status', 'Breakdown')->count();
+
+        $recentUnits = Vehicle::unitSupports()
+            ->orderByRaw("CASE WHEN status = 'Breakdown' THEN 0 WHEN status = 'Standby' THEN 1 ELSE 2 END")
+            ->latest('updated_at')
+            ->take(4)
+            ->get();
+
+        return view('qma.dashboard', compact(
+            'totalLv',
+            'totalSupport',
+            'totalVehicles',
+            'todayActivitiesCount',
+            'todayP2hCount',
+            'recentActivities',
+            'recentP2hRecords',
+            'supportOperation',
+            'supportStandby',
+            'supportBreakdown',
+            'recentUnits'
+        ));
     }
 
     /**
