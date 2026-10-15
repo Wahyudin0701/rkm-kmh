@@ -60,7 +60,8 @@ COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Copy entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Copy application source code
 COPY . /var/www
