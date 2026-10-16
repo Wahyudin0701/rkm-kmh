@@ -26,22 +26,37 @@
         </div>
 
         <!-- Tombol Aksi Kanan -->
-        <div class="w-full sm:w-auto">
-            <!-- Tombol Ekspor Dropdown -->
-            <button type="button" 
-                    onclick="alert('Fitur ekspor spreadsheet SIMPER sedang disiapkan')" 
-                    class="w-full sm:w-auto border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
-                <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
-                <span>Ekspor Simper</span>
-                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
-            </button>
+        <div class="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block w-full sm:w-auto flex-1 sm:flex-none" id="exportSimperDropdownContainer">
+                <button type="button" 
+                        onclick="toggleSimperExportMenu(event)" 
+                        id="btnSimperExportTrigger"
+                        class="w-full sm:w-auto border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Simper</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
+                </button>
+                <div id="exportMenuSimper" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <a href="{{ route('hse.employees.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
+                        <i class="fa-regular fa-file-pdf text-rose-600 text-sm mr-2.5"></i>
+                        <span>Format PDF (Cetak)</span>
+                    </a>
+                    <div class="h-px bg-slate-100 mx-2"></div>
+                    <a href="{{ route('hse.employees.export_excel', request()->query()) }}" class="flex items-center px-4 py-3 text-xs text-emerald-700 hover:bg-emerald-50 font-bold transition">
+                        <i class="fa-regular fa-file-excel text-emerald-600 text-sm mr-2.5"></i>
+                        <span>Format Excel (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
+
             <!-- Tombol Tambah Karyawan (+ Tambah Karyawan Hijau Tua) -->
             @can('hse.employees.create')
-            <button type="button"
+            <button type="button" 
                     onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
-                    class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm">
+                    class="w-full sm:w-auto flex-1 sm:flex-none bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tambah Karyawan</span>
+                <span class="truncate">Tambah Karyawan</span>
             </button>
             @endcan
         </div>
@@ -601,10 +616,32 @@
         }
     });
 
+    // Toggle Menu Dropdown Ekspor Simper (Format it.allrole.web.id)
+    function toggleSimperExportMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportMenuSimper');
+        if (menu) {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    // Klik di luar dropdown untuk menutup menu
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('exportSimperDropdownContainer');
+        const menu = document.getElementById('exportMenuSimper');
+        if (container && !container.contains(event.target)) {
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        }
+    });
+
     // Keyboard ESC untuk menutup modal panduan
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            const exportMenu = document.getElementById('exportMenuSimper');
+            if (exportMenu) exportMenu.style.display = 'none';
         }
     });
 </script>

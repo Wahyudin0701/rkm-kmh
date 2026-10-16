@@ -52,6 +52,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('hse')->name('hse.')->group(function () {
         Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard')->middleware('permission:hse.employees.view');
         Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index')->middleware('permission:hse.employees.view');
+        Route::get('/employees/export-excel', [EmployeeController::class, 'exportExcel'])->name('employees.export_excel')->middleware('permission:hse.employees.view');
+        Route::get('/employees/export-pdf', [EmployeeController::class, 'exportPdf'])->name('employees.export_pdf')->middleware('permission:hse.employees.view');
         Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store')->middleware('permission:hse.employees.create');
         Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
     });
@@ -63,30 +65,46 @@ Route::middleware('auth')->group(function () {
         // Halaman Data Kendaraan Terpisah: Light Vehicle (LV) dan Unit Support
         Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index')->middleware('permission:qma.vehicles.view');
         Route::get('/vehicles/light-vehicle', [VehicleController::class, 'indexLv'])->name('vehicles.lv')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/light-vehicle/export-excel', [VehicleController::class, 'exportLvExcel'])->name('vehicles.lv.export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/light-vehicle/export-pdf', [VehicleController::class, 'exportLvPdf'])->name('vehicles.lv.export_pdf')->middleware('permission:qma.vehicles.view');
+
         Route::get('/vehicles/unit-support', [VehicleController::class, 'indexSupport'])->name('vehicles.support')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/unit-support/export-excel', [VehicleController::class, 'exportSupportExcel'])->name('vehicles.support.export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/unit-support/export-pdf', [VehicleController::class, 'exportSupportPdf'])->name('vehicles.support.export_pdf')->middleware('permission:qma.vehicles.view');
+
         Route::get('/vehicles/unit-support/{id}/units', [VehicleController::class, 'indexSupportUnits'])->name('vehicles.support.units')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/unit-support/{id}/units/export-excel', [VehicleController::class, 'exportSupportUnitsExcel'])->name('vehicles.support.units.export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/vehicles/unit-support/{id}/units/export-pdf', [VehicleController::class, 'exportSupportUnitsPdf'])->name('vehicles.support.units.export_pdf')->middleware('permission:qma.vehicles.view');
         Route::post('/vehicles/unit-support/{id}/units', [VehicleController::class, 'storeSupportUnit'])->name('vehicles.support.units.store')->middleware('permission:qma.vehicles.create');
         
         Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store')->middleware('permission:qma.vehicles.create');
         Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update')->middleware('permission:qma.vehicles.edit');
         Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy')->middleware('permission:qma.vehicles.delete');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log')->middleware('permission:qma.logs.view');
+        Route::get('/activity-log/export-excel', [ActivityLogController::class, 'exportExcel'])->name('activity.export_excel')->middleware('permission:qma.logs.view');
+        Route::get('/activity-log/export-pdf', [ActivityLogController::class, 'exportPdf'])->name('activity.export_pdf')->middleware('permission:qma.logs.view');
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
+        Route::get('/activity-summary/export-excel', [ActivityLogController::class, 'exportSummaryExcel'])->name('activity.summary.export_excel')->middleware('permission:qma.summary.view');
+        Route::get('/activity-summary/export-pdf', [ActivityLogController::class, 'exportSummaryPdf'])->name('activity.summary.export_pdf')->middleware('permission:qma.summary.view');
 
         // Log Pemeriksaan P2H Unit Support & Approval Admin QMA
-        Route::get('/p2h-records', [P2hInspectionController::class, 'index'])->name('p2h.index')->middleware('permission:qma.vehicles.view');
-        Route::get('/p2h-summary', [P2hInspectionController::class, 'summary'])->name('p2h.summary')->middleware('permission:qma.vehicles.view');
-        Route::get('/p2h-records/{id}', [P2hInspectionController::class, 'show'])->name('p2h.show')->middleware('permission:qma.vehicles.view');
-        Route::post('/p2h-records/{id}/approve', [P2hInspectionController::class, 'approve'])->name('p2h.approve')->middleware('permission:qma.vehicles.edit');
-        Route::post('/p2h-records/{id}/reject', [P2hInspectionController::class, 'reject'])->name('p2h.reject')->middleware('permission:qma.vehicles.edit');
+        Route::get('/p2h-records', [P2hInspectionController::class, 'index'])->name('p2h.index')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-records/export-excel', [P2hInspectionController::class, 'exportExcel'])->name('p2h.export_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-records/export-pdf', [P2hInspectionController::class, 'exportPdf'])->name('p2h.export_pdf')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-summary', [P2hInspectionController::class, 'summary'])->name('p2h.summary')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-summary/export-excel', [P2hInspectionController::class, 'exportSummaryExcel'])->name('p2h.summary.export_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-summary/export-pdf', [P2hInspectionController::class, 'exportSummaryPdf'])->name('p2h.summary.export_pdf')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-records/{id}', [P2hInspectionController::class, 'show'])->name('p2h.show')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::post('/p2h-records/{id}/approve', [P2hInspectionController::class, 'approve'])->name('p2h.approve')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
+        Route::post('/p2h-records/{id}/reject', [P2hInspectionController::class, 'reject'])->name('p2h.reject')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
 
         // Master 28 Template Checksheet P2H & Kelola Pertanyaan
-        Route::get('/p2h-templates', [P2hTemplateController::class, 'index'])->name('p2h.templates')->middleware('permission:qma.vehicles.view');
-        Route::get('/p2h-templates/{id}', [P2hTemplateController::class, 'show'])->name('p2h.templates.show')->middleware('permission:qma.vehicles.view');
-        Route::post('/p2h-templates/{templateId}/items', [P2hTemplateController::class, 'storeItem'])->name('p2h.templates.items.store')->middleware('permission:qma.vehicles.create');
-        Route::match(['PUT', 'POST'], '/p2h-templates/{templateId}/items/{itemId}', [P2hTemplateController::class, 'updateItem'])->name('p2h.templates.items.update')->middleware('permission:qma.vehicles.edit');
-        Route::delete('/p2h-templates/{templateId}/items/{itemId}', [P2hTemplateController::class, 'destroyItem'])->name('p2h.templates.items.destroy')->middleware('permission:qma.vehicles.delete');
-        Route::post('/p2h-templates/{templateId}/sections/reorder', [P2hTemplateController::class, 'reorderSections'])->name('p2h.templates.sections.reorder')->middleware('permission:qma.vehicles.edit');
+        Route::get('/p2h-templates', [P2hTemplateController::class, 'index'])->name('p2h.templates')->middleware('permission:qma.p2h.templates|qma.vehicles.view');
+        Route::get('/p2h-templates/{id}', [P2hTemplateController::class, 'show'])->name('p2h.templates.show')->middleware('permission:qma.p2h.templates|qma.vehicles.view');
+        Route::post('/p2h-templates/{templateId}/items', [P2hTemplateController::class, 'storeItem'])->name('p2h.templates.items.store')->middleware('permission:qma.p2h.templates|qma.vehicles.create');
+        Route::match(['PUT', 'POST'], '/p2h-templates/{templateId}/items/{itemId}', [P2hTemplateController::class, 'updateItem'])->name('p2h.templates.items.update')->middleware('permission:qma.p2h.templates|qma.vehicles.edit');
+        Route::delete('/p2h-templates/{templateId}/items/{itemId}', [P2hTemplateController::class, 'destroyItem'])->name('p2h.templates.items.destroy')->middleware('permission:qma.p2h.templates|qma.vehicles.delete');
+        Route::post('/p2h-templates/{templateId}/sections/reorder', [P2hTemplateController::class, 'reorderSections'])->name('p2h.templates.sections.reorder')->middleware('permission:qma.p2h.templates|qma.vehicles.edit');
     });
 
     // 4. Modul Private Guard (PG): Admin PG & Pos Gerbang Satpam
@@ -94,11 +112,15 @@ Route::middleware('auth')->group(function () {
         // Modul Admin PG (Dashboard, Data Satpam & Log Verifikasi Gerbang)
         Route::get('/dashboard', [PgDashboardController::class, 'index'])->name('dashboard')->middleware('permission:pg.guards.view');
         Route::get('/guards', [SecurityGuardController::class, 'index'])->name('guards.index')->middleware('permission:pg.guards.view');
+        Route::get('/guards/export-excel', [SecurityGuardController::class, 'exportExcel'])->name('guards.export_excel')->middleware('permission:pg.guards.view');
+        Route::get('/guards/export-pdf', [SecurityGuardController::class, 'exportPdf'])->name('guards.export_pdf')->middleware('permission:pg.guards.view');
         Route::post('/guards', [SecurityGuardController::class, 'store'])->name('guards.store')->middleware('permission:pg.guards.create');
         Route::post('/guards/{id}', [SecurityGuardController::class, 'update'])->name('guards.update')->middleware('permission:pg.guards.edit');
         Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle')->middleware('permission:pg.guards.toggle');
         Route::delete('/guards/{id}', [SecurityGuardController::class, 'destroy'])->name('guards.destroy')->middleware('permission:pg.guards.delete');
         Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index')->middleware('permission:pg.logs.view');
+        Route::get('/verification-logs/export-excel', [VerificationLogController::class, 'exportExcel'])->name('logs.export_excel')->middleware('permission:pg.logs.view');
+        Route::get('/verification-logs/export-pdf', [VerificationLogController::class, 'exportPdf'])->name('logs.export_pdf')->middleware('permission:pg.logs.view');
 
         // Verifikasi Pos Gerbang (Khusus Petugas Satpam Pos Gerbang)
         Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection')->middleware('permission:gate.inspect');
@@ -108,16 +130,16 @@ Route::middleware('auth')->group(function () {
     });
 
     // 5. Modul Pengisian Form P2H Unit Support (Operator Wajib Login)
-    Route::prefix('p2h')->name('p2h.')->group(function () {
+    Route::prefix('p2h')->name('p2h.')->middleware('permission:employee.p2h|qma.vehicles.view')->group(function () {
         Route::get('/', [P2hFormController::class, 'index'])->name('index');
         Route::get('/{code}', [P2hFormController::class, 'show'])->name('form');
         Route::post('/{code}', [P2hFormController::class, 'store'])->name('store');
     });
 
     // 6. Modul Karyawan (Dashboard, P2H, Timesheet)
-    Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard');
-    Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index');
-    Route::get('/mobilisasi', [VehicleActivityFormController::class, 'index'])->name('mobilisasi.index');
+    Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard')->middleware('permission:employee.dashboard|qma.vehicles.view');
+    Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
+    Route::get('/mobilisasi', [VehicleActivityFormController::class, 'index'])->name('mobilisasi.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
 
     // 7. Modul Profil Saya (Seluruh Pengguna Terautentikasi)
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');

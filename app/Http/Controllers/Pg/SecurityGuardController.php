@@ -6,18 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\User;
+use App\Services\PgTablePdfExporter;
+use App\Services\SimpleXlsxExporter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class SecurityGuardController extends Controller
 {
     /**
-     * Tampilkan daftar petugas Satpam beserta daftar pos gerbang.
+     * Bangun query petugas Satpam berdasarkan filter request.
      */
-    public function index(Request $request): View
+    protected function getGuardsQuery(Request $request)
     {
         $query = SecurityGuard::with(['gate', 'user']);
 
@@ -43,7 +46,16 @@ class SecurityGuardController extends Controller
             $query->where('gate_id', (int) $request->input('gate_id'));
         }
 
-        $guards = $query->orderBy('team')
+        return $query;
+    }
+
+    /**
+     * Tampilkan daftar petugas Satpam beserta daftar pos gerbang.
+     */
+    public function index(Request $request): View
+    {
+        $guards = $this->getGuardsQuery($request)
+            ->orderBy('team')
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
@@ -51,6 +63,147 @@ class SecurityGuardController extends Controller
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
 
         return view('pg.guards_index', compact('guards', 'gates'));
+    }
+
+    /**
+     * Ekspor data petugas Satpam ke format Excel (.xlsx).
+     */
+    public function exportExcel(Request $request): Response
+    {
+        $guards = $this->getGuardsQuery($request)
+            ->orderBy('team')
+            ->orderBy('name')
+            ->get();
+
+        $filters = [];
+        if ($request->filled('search')) {
+            $filters[] = "Pencarian: \"{$request->input('search')}\"";
+        }
+        if ($request->filled('team')) {
+            $filters[] = "Regu {$request->input('team')}";
+        }
+        if ($request->filled('gate_id')) {
+            $gate = Gate::find($request->input('gate_id'));
+            $filters[] = "Pos: " . ($gate ? $gate->name : 'ID ' . $request->input('gate_id'));
+        }
+        $filterDesc = empty($filters) ? 'Semua Petugas Satpam' : implode(' | ', $filters);
+
+        $metaLines = [
+            'Sistem: Modul Private Guard (PG) - PT Kerinci Merangin Hidro',
+            'Filter: ' . $filterDesc,
+            'Tanggal Cetak: ' . now()->translatedFormat('d F Y H:i') . ' WIB',
+            'Total Data: ' . $guards->count() . ' Personil Satpam',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'ID Satpam' => 16,
+            'Nama Lengkap' => 28,
+            'Regu' => 14,
+            'Penempatan Pos' => 24,
+            'Status' => 14,
+            'Username Akun' => 18,
+        ];
+
+        $rows = [];
+        foreach ($guards as $idx => $g) {
+            $badge = $g->badge_id ?? ('SEC-' . str_pad($g->id, 3, '0', STR_PAD_LEFT));
+            $rows[] = [
+                $idx + 1,
+                $badge,
+                $g->name,
+                'Regu ' . $g->team,
+                $g->gate ? $g->gate->name : 'Belum Ditentukan',
+                $g->is_active ? 'Aktif' : 'Nonaktif',
+                $g->user ? $g->user->username : ($g->badge_id ?? '-'),
+            ];
+        }
+
+        $alignments = ['center', 'center', 'left', 'center', 'left', 'center', 'center'];
+        $xlsxContent = SimpleXlsxExporter::create('DATA PETUGAS SATPAM - PT KMH', $metaLines, $headers, $rows, $alignments);
+
+        $fileName = 'data_satpam_' . date('Ymd_His') . '.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Ekspor data petugas Satpam ke format PDF (preview langsung di browser).
+     */
+    public function exportPdf(Request $request): Response
+    {
+        $guards = $this->getGuardsQuery($request)
+            ->orderBy('team')
+            ->orderBy('name')
+            ->get();
+
+        $teamDesc = $request->filled('team') ? 'Regu ' . $request->input('team') : 'Semua Regu';
+        $gateDesc = 'Semua Penempatan';
+        if ($request->filled('gate_id')) {
+            $gate = Gate::find($request->input('gate_id'));
+            $gateDesc = $gate ? $gate->name : 'ID ' . $request->input('gate_id');
+        }
+
+        $metaLeft = [
+            'Modul' => 'Data Petugas Satpam Lapangan',
+            'Filter Regu' => $teamDesc,
+            'Pos Gerbang' => $gateDesc,
+        ];
+
+        if ($request->filled('search')) {
+            $metaLeft['Pencarian'] = '"' . $request->input('search') . '"';
+        }
+
+        $metaRight = [
+            'Tanggal Cetak' => now()->translatedFormat('d M Y, H:i') . ' WIB',
+            'Total Personil' => $guards->count() . ' Orang',
+            'Dicetak Oleh' => auth()->user()->name ?? 'Administrator PG',
+        ];
+
+        $columns = [
+            ['title' => 'NO', 'width' => 12, 'align' => 'C', 'bold' => true],
+            ['title' => 'ID SATPAM', 'width' => 32, 'align' => 'C', 'bold' => true],
+            ['title' => 'NAMA LENGKAP', 'width' => 70, 'align' => 'L', 'bold' => true, 'max_char' => 38],
+            ['title' => 'REGU', 'width' => 28, 'align' => 'C', 'is_status' => true],
+            ['title' => 'PENEMPATAN POS', 'width' => 65, 'align' => 'L', 'max_char' => 34],
+            ['title' => 'STATUS', 'width' => 28, 'align' => 'C', 'is_status' => true],
+            ['title' => 'USERNAME AKUN', 'width' => 32, 'align' => 'C'],
+        ];
+
+        $rows = [];
+        foreach ($guards as $idx => $g) {
+            $badge = $g->badge_id ?? ('SEC-' . str_pad($g->id, 3, '0', STR_PAD_LEFT));
+            $rows[] = [
+                $idx + 1,
+                $badge,
+                $g->name,
+                'Regu ' . $g->team,
+                $g->gate ? $g->gate->name : 'Belum Ditentukan',
+                $g->is_active ? 'Aktif' : 'Nonaktif',
+                $g->user ? $g->user->username : ($g->badge_id ?? '-'),
+            ];
+        }
+
+        $pdfContent = PgTablePdfExporter::generate(
+            'Laporan Data Petugas Satpam',
+            'Rekapitulasi Personil Jaga & Penempatan Pos Gerbang',
+            'MODUL PRIVATE GUARD (PG) - RKM-KMH',
+            $metaLeft,
+            $metaRight,
+            $columns,
+            $rows
+        );
+
+        $fileName = 'laporan_data_satpam_' . date('Ymd_His') . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
     }
 
     /**

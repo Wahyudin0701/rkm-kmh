@@ -24,12 +24,35 @@
             </h2>
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
-            <a href="{{ route('qma.p2h.index') }}" class="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block flex-1 sm:flex-none" id="exportP2hSummaryDropdownContainer">
+                <button type="button" 
+                        onclick="toggleP2hSummaryExportMenu(event)" 
+                        id="btnP2hSummaryExportTrigger"
+                        class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Summary</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                </button>
+                <div id="exportMenuP2hSummary" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <a href="{{ route('qma.p2h.summary.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
+                        <i class="fa-regular fa-file-pdf text-rose-600 text-sm mr-2.5"></i>
+                        <span>Format PDF (Cetak)</span>
+                    </a>
+                    <div class="h-px bg-slate-100 mx-2"></div>
+                    <a href="{{ route('qma.p2h.summary.export_excel', request()->query()) }}" class="flex items-center px-4 py-3 text-xs text-emerald-700 hover:bg-emerald-50 font-bold transition">
+                        <i class="fa-regular fa-file-excel text-emerald-600 text-sm mr-2.5"></i>
+                        <span>Format Excel (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
+
+            <a href="{{ route('qma.p2h.index') }}" class="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-clipboard-check text-slate-400 group-hover:text-slate-700"></i>
                 <span class="truncate">Detail P2H</span>
             </a>
-            <a href="{{ route('qma.p2h.templates') }}" class="w-full sm:w-auto flex items-center justify-center space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
+            <a href="{{ route('qma.p2h.templates') }}" class="flex-1 sm:flex-none flex items-center justify-center space-x-2 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-layer-group text-slate-400 group-hover:text-slate-700"></i>
                 <span class="truncate">Master Template</span>
             </a>
@@ -452,9 +475,30 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Dropdown Menu Ekspor Summary P2H Unit Support
+    function toggleP2hSummaryExportMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportMenuP2hSummary');
+        if (menu) {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('exportP2hSummaryDropdownContainer');
+        const menu = document.getElementById('exportMenuP2hSummary');
+        if (container && !container.contains(event.target)) {
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        }
+    });
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            const exportMenu = document.getElementById('exportMenuP2hSummary');
+            if (exportMenu) exportMenu.style.display = 'none';
         }
     });
 </script>

@@ -6,16 +6,19 @@ use App\Http\Controllers\Controller;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\VehicleActivity;
+use App\Services\PgTablePdfExporter;
+use App\Services\SimpleXlsxExporter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class VerificationLogController extends Controller
 {
     /**
-     * Tampilkan rekapitulasi audit dan log riwayat verifikasi gerbang oleh petugas Satpam.
+     * Bangun query log verifikasi gerbang berdasarkan filter request.
      */
-    public function index(Request $request): View
+    protected function getVerificationLogsQuery(Request $request)
     {
         $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
             ->orderByRaw('COALESCE(validated_at, recorded_at) DESC');
@@ -86,10 +89,229 @@ class VerificationLogController extends Controller
             });
         }
 
-        $activities = $query->paginate(20)->withQueryString();
+        return $query;
+    }
+
+    /**
+     * Tampilkan rekapitulasi audit dan log riwayat verifikasi gerbang oleh petugas Satpam.
+     */
+    public function index(Request $request): View
+    {
+        $activities = $this->getVerificationLogsQuery($request)->paginate(20)->withQueryString();
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $guards = SecurityGuard::orderBy('name')->get();
 
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
+
         return view('pg.verification_logs', compact('activities', 'gates', 'guards', 'startDate', 'endDate'));
+    }
+
+    /**
+     * Ekspor data log verifikasi gerbang ke format Excel (.xlsx).
+     */
+    public function exportExcel(Request $request): Response
+    {
+        $activities = $this->getVerificationLogsQuery($request)->get();
+
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
+        $period = ($startDate && $endDate) ? "{$startDate} s/d {$endDate}" : ($startDate ? "Sejak {$startDate}" : 'Semua Periode');
+
+        $filters = ["Periode: {$period}"];
+        if ($request->filled('team')) {
+            $filters[] = "Regu {$request->input('team')}";
+        }
+        if ($request->filled('security_guard_id')) {
+            $guard = SecurityGuard::find($request->input('security_guard_id'));
+            $filters[] = "Satpam: " . ($guard ? $guard->name : 'ID ' . $request->input('security_guard_id'));
+        }
+        if ($request->filled('gate_id')) {
+            $gate = Gate::find($request->input('gate_id'));
+            $filters[] = "Pos: " . ($gate ? $gate->name : 'ID ' . $request->input('gate_id'));
+        }
+        if ($request->filled('direction')) {
+            $filters[] = "Arah: " . ($request->input('direction') === 'in' ? 'Masuk' : 'Keluar');
+        }
+        if ($request->filled('status')) {
+            $filters[] = "Status: " . ucfirst($request->input('status'));
+        }
+        if ($request->filled('search')) {
+            $filters[] = "Pencarian: \"{$request->input('search')}\"";
+        }
+
+        $metaLines = [
+            'Sistem: Modul Private Guard (PG) - PT Kerinci Merangin Hidro',
+            'Filter: ' . implode(' | ', $filters),
+            'Tanggal Cetak: ' . now()->translatedFormat('d F Y H:i') . ' WIB',
+            'Total Data: ' . $activities->count() . ' Riwayat Perlintasan Gerbang',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'Waktu Verifikasi' => 20,
+            'No. Transaksi' => 20,
+            'Petugas Satpam' => 24,
+            'Regu' => 12,
+            'Pos Gerbang' => 20,
+            'Plat Nomor' => 16,
+            'Merek & Tipe' => 24,
+            'Driver' => 24,
+            'NIK Driver' => 16,
+            'Arah' => 12,
+            'Odometer (KM)' => 16,
+            'Jarak (KM)' => 14,
+            'Status' => 14,
+            'Catatan Tolak' => 28,
+        ];
+
+        $rows = [];
+        foreach ($activities as $idx => $item) {
+            $validatedTime = $item->validated_at ?? $item->recorded_at;
+            $waktu = $validatedTime ? $validatedTime->format('d/m/Y H:i') : '-';
+            $satpam = $item->securityGuard ? $item->securityGuard->name : '-';
+            $regu = $item->securityGuard ? 'Regu ' . $item->securityGuard->team : '-';
+            $pos = $item->gate ? $item->gate->name : '-';
+            $plat = $item->vehicle ? $item->vehicle->license_plate : '-';
+            $merek = $item->vehicle ? ($item->vehicle->brand_type . ' (' . $item->vehicle->code . ')') : '-';
+            $driver = $item->driver ? $item->driver->name : '-';
+            $nik = $item->driver ? ($item->driver->nik ?? '-') : '-';
+            $arah = ($item->direction === 'in') ? 'Masuk' : 'Keluar';
+            $status = match($item->validation_status) {
+                'approved' => 'Disetujui',
+                'rejected' => 'Ditolak',
+                default => 'Menunggu',
+            };
+
+            $rows[] = [
+                $idx + 1,
+                $waktu,
+                $item->transaction_no,
+                $satpam,
+                $regu,
+                $pos,
+                $plat,
+                $merek,
+                $driver,
+                $nik,
+                $arah,
+                (int) $item->current_km,
+                $item->distance > 0 ? (int) $item->distance : 0,
+                $status,
+                $item->rejection_note ?? '-',
+            ];
+        }
+
+        $alignments = ['center', 'center', 'center', 'left', 'center', 'left', 'center', 'left', 'left', 'center', 'center', 'right', 'right', 'center', 'left'];
+        $xlsxContent = SimpleXlsxExporter::create('LOG AKTIVITAS GERBANG - PT KMH', $metaLines, $headers, $rows, $alignments);
+
+        $fileName = 'log_aktivitas_gerbang_' . date('Ymd_His') . '.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Ekspor data log verifikasi gerbang ke format PDF (preview langsung di browser).
+     */
+    public function exportPdf(Request $request): Response
+    {
+        $activities = $this->getVerificationLogsQuery($request)->get();
+
+        $today = Carbon::today()->toDateString();
+        $startDate = $request->input('start_date', $today);
+        $endDate = $request->input('end_date', $today);
+        $period = ($startDate && $endDate) ? "{$startDate} s/d {$endDate}" : ($startDate ? "Sejak {$startDate}" : 'Semua Periode');
+
+        $gateDesc = 'Semua Pos';
+        if ($request->filled('gate_id')) {
+            $gate = Gate::find($request->input('gate_id'));
+            $gateDesc = $gate ? $gate->name : 'ID ' . $request->input('gate_id');
+        }
+
+        $metaLeft = [
+            'Modul' => 'Log Verifikasi Pos Gerbang',
+            'Periode Tanggal' => $period,
+            'Pos Gerbang' => $gateDesc,
+        ];
+
+        if ($request->filled('team')) {
+            $metaLeft['Regu Satpam'] = 'Regu ' . $request->input('team');
+        }
+
+        if ($request->filled('direction')) {
+            $metaLeft['Arah Gerbang'] = ($request->input('direction') === 'in') ? 'Masuk' : 'Keluar';
+        }
+
+        $metaRight = [
+            'Tanggal Cetak' => now()->translatedFormat('d M Y, H:i') . ' WIB',
+            'Total Transaksi' => $activities->count() . ' Record',
+            'Dicetak Oleh' => auth()->user()->name ?? 'Administrator PG',
+        ];
+
+        $columns = [
+            ['title' => 'NO', 'width' => 9, 'align' => 'C', 'bold' => true],
+            ['title' => 'WAKTU', 'width' => 26, 'align' => 'C'],
+            ['title' => 'NO. TRANSAKSI', 'width' => 28, 'align' => 'C', 'bold' => true],
+            ['title' => 'PETUGAS SATPAM', 'width' => 34, 'align' => 'L', 'max_char' => 20],
+            ['title' => 'POS GERBANG', 'width' => 28, 'align' => 'L', 'max_char' => 16],
+            ['title' => 'KENDARAAN', 'width' => 35, 'align' => 'L', 'max_char' => 20],
+            ['title' => 'DRIVER / NIK', 'width' => 35, 'align' => 'L', 'max_char' => 20],
+            ['title' => 'ARAH', 'width' => 16, 'align' => 'C', 'is_status' => true],
+            ['title' => 'ODOMETER', 'width' => 22, 'align' => 'R'],
+            ['title' => 'STATUS', 'width' => 34, 'align' => 'C', 'is_status' => true, 'max_char' => 22],
+        ];
+
+        $rows = [];
+        foreach ($activities as $idx => $item) {
+            $validatedTime = $item->validated_at ?? $item->recorded_at;
+            $waktu = $validatedTime ? $validatedTime->format('d/m/Y H:i') : '-';
+            $satpam = $item->securityGuard ? $item->securityGuard->name : '-';
+            $pos = $item->gate ? $item->gate->name : '-';
+            $kendaraan = $item->vehicle ? ($item->vehicle->license_plate . ' (' . $item->vehicle->code . ')') : '-';
+            $driver = $item->driver ? ($item->driver->name . ' - ' . ($item->driver->nik ?? '')) : '-';
+            $arah = ($item->direction === 'in') ? 'Masuk' : 'Keluar';
+            $status = match($item->validation_status) {
+                'approved' => 'Disetujui',
+                'rejected' => 'Ditolak' . ($item->rejection_note ? ' (' . $item->rejection_note . ')' : ''),
+                default => 'Menunggu',
+            };
+            $odometer = number_format($item->current_km ?? 0, 0, ',', '.') . ' KM';
+
+            $rows[] = [
+                $idx + 1,
+                $waktu,
+                $item->transaction_no,
+                $satpam,
+                $pos,
+                $kendaraan,
+                $driver,
+                $arah,
+                $odometer,
+                $status,
+            ];
+        }
+
+        $pdfContent = PgTablePdfExporter::generate(
+            'Laporan Log Riwayat Verifikasi Gerbang',
+            'Rekapitulasi Audit Lalu Lintas Kendaraan Masuk & Keluar Pos Gerbang',
+            'MODUL PRIVATE GUARD (PG) - RKM-KMH',
+            $metaLeft,
+            $metaRight,
+            $columns,
+            $rows
+        );
+
+        $fileName = 'log_verifikasi_gerbang_' . date('Ymd_His') . '.pdf';
+
+        return response($pdfContent, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+        ]);
     }
 }

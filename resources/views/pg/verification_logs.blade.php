@@ -25,10 +25,33 @@
             </h2>
         </div>
 
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('pg.guards.index') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] shadow-sm transition group">
+        <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block w-full sm:w-auto" id="exportLogDropdownContainer">
+                <button type="button" 
+                        onclick="toggleLogExportMenu(event)" 
+                        id="btnLogExportTrigger"
+                        class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Log</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                </button>
+                <div id="exportMenuLog" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <a href="{{ route('pg.logs.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
+                        <i class="fa-regular fa-file-pdf text-rose-600 text-sm mr-2.5"></i>
+                        <span>Format PDF (Cetak)</span>
+                    </a>
+                    <div class="h-px bg-slate-100 mx-2"></div>
+                    <a href="{{ route('pg.logs.export_excel', request()->query()) }}" class="flex items-center px-4 py-3 text-xs text-emerald-700 hover:bg-emerald-50 font-bold transition">
+                        <i class="fa-regular fa-file-excel text-emerald-600 text-sm mr-2.5"></i>
+                        <span>Format Excel (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
+
+            <a href="{{ route('pg.guards.index') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] shadow-sm transition group cursor-pointer">
                 <i class="fa-solid fa-user-shield mr-2 group-hover:scale-110 transition-transform"></i>
-                <span>Kelola Data Satpam</span>
+                <span class="truncate">Kelola Data Satpam</span>
             </a>
         </div>
     </div>
@@ -497,6 +520,23 @@
 
 @section('scripts')
 <script>
+    // Dropdown Menu Ekspor Log Verifikasi Gerbang
+    function toggleLogExportMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportMenuLog');
+        if (menu) {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('exportLogDropdownContainer');
+        const menu = document.getElementById('exportMenuLog');
+        if (menu && container && !container.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
+
     // Toggle Card Filter Lanjutan
     function toggleFilterCard() {
         const card = document.getElementById('collapsibleFilterCard');

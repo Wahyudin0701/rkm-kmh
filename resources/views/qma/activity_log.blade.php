@@ -24,10 +24,33 @@
             </h2>
         </div>
 
-        <div class="flex items-center space-x-3 w-full sm:w-auto">
-            <a href="{{ route('qma.activity.summary') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
+        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block flex-1 sm:flex-none" id="exportActivityDropdownContainer">
+                <button type="button" 
+                        onclick="toggleActivityExportMenu(event)" 
+                        id="btnActivityExportTrigger"
+                        class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3.5 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Timesheet</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                </button>
+                <div id="exportMenuActivity" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <a href="{{ route('qma.activity.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
+                        <i class="fa-regular fa-file-pdf text-rose-600 text-sm mr-2.5"></i>
+                        <span>Format PDF (Cetak)</span>
+                    </a>
+                    <div class="h-px bg-slate-100 mx-2"></div>
+                    <a href="{{ route('qma.activity.export_excel', request()->query()) }}" class="flex items-center px-4 py-3 text-xs text-emerald-700 hover:bg-emerald-50 font-bold transition">
+                        <i class="fa-regular fa-file-excel text-emerald-600 text-sm mr-2.5"></i>
+                        <span>Format Excel (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
+
+            <a href="{{ route('qma.activity.summary') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-chart-pie mr-2 text-slate-500 group-hover:text-slate-800"></i>
-                <span>Summary Aktifitas</span>
+                <span class="whitespace-nowrap">Summary Aktifitas</span>
             </a>
         </div>
     </div>
@@ -458,9 +481,30 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Dropdown Menu Ekspor Timesheet LV
+    function toggleActivityExportMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportMenuActivity');
+        if (menu) {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('exportActivityDropdownContainer');
+        const menu = document.getElementById('exportMenuActivity');
+        if (container && !container.contains(event.target)) {
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        }
+    });
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            const exportMenu = document.getElementById('exportMenuActivity');
+            if (exportMenu) exportMenu.style.display = 'none';
         }
     });
 </script>

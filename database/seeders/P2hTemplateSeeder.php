@@ -21,97 +21,173 @@ class P2hTemplateSeeder extends Seeder
             $dir = 'C:/laragon/www/htdocs/Data_List_Questions_P2H';
         }
 
-        if (!is_dir($dir)) {
-            $this->command->error("Direktori {$dir} tidak ditemukan.");
-            return;
-        }
+        $files = is_dir($dir) ? glob("{$dir}/*.md") : [];
 
-        $files = glob("{$dir}/*.md");
-        $this->command->info("Ditemukan " . count($files) . " file template P2H.");
+        // 28 Kategori Template Master P2H Unit Support
+        $fallbackTemplates = [
+            'VGRM7Z' => ['name' => 'Boomlift', 'file_name' => 'P2H_Boomlift_VGRM7Z.md'],
+            'VGRM7X' => ['name' => 'Bore Pile Rig', 'file_name' => 'P2H_Bore_Pile_Rig_VGRM7X.md'],
+            'CDRM7C' => ['name' => 'Carry Deck Crane', 'file_name' => 'P2H_Carry_Deck_Crane_CDRM7C.md'],
+            'YMWL9T' => ['name' => 'Electric Compressor', 'file_name' => 'P2H_Compressor_Electric_YMWL9T.md'],
+            'YKWL9C' => ['name' => 'Engine Compressor', 'file_name' => 'P2H_Compressor_Engine_YKWL9C.md'],
+            'CPWL9P' => ['name' => 'Trailer Concrete Pump Electric', 'file_name' => 'P2H_Concrete_Pump_Electric_CPWL9P.md'],
+            'CPWL9E' => ['name' => 'Portable Concrete Pump Engine', 'file_name' => 'P2H_Concrete_Pump_Engine_CPWL9E.md'],
+            '29NVFP' => ['name' => 'Concrete Pump Truck', 'file_name' => 'P2H_Concrete_Pump_Truck_29NVFP.md'],
+            'CT723D' => ['name' => 'Crane Truck', 'file_name' => 'P2H_Crane_Truck_CT723D.md'],
+            'EH713B' => ['name' => 'Crawler Crane', 'file_name' => 'P2H_Crawler_Crane_EH713B.md'],
+            'CR77BD' => ['name' => 'Crawler Rig Drill', 'file_name' => 'P2H_Crawler_Rig_Drill_CR77BD.md'],
+            'DZ76BR' => ['name' => 'Dozer', 'file_name' => 'P2H_Dozer_DZ76BR.md'],
+            'R8D3SY' => ['name' => 'Dump Truck', 'file_name' => 'P2H_Dump_Truck_R8D3SY.md'],
+            'EXD4RP' => ['name' => 'Excavator', 'file_name' => 'P2H_Excavator_EXD4RP.md'],
+            'FKD4LY' => ['name' => 'Forklift', 'file_name' => 'P2H_Forklift_FKD4LY.md'],
+            'R5D3FT' => ['name' => 'Fuel Truck', 'file_name' => 'P2H_Fuel_Truck_R5D3FT.md'],
+            'JD7553D' => ['name' => 'Jumbo Drill', 'file_name' => 'P2H_Jumbo_Drill_JD7553D.md'],
+            'RF89BB' => ['name' => 'Manlift', 'file_name' => 'P2H_Manlift_RF89BB.md'],
+            'MG79KB' => ['name' => 'Motor Grader', 'file_name' => 'P2H_Motor_Grader_MG79KB.md'],
+            'ML71KB' => ['name' => 'Mucking Loader', 'file_name' => 'P2H_Mucking_Loader_ML71KB.md'],
+            'EH713C' => ['name' => 'Rough Terrain Crane', 'file_name' => 'P2H_Rough_Terrain_Crane_EH713C.md'],
+            'SSLS5W' => ['name' => 'Scissorlift', 'file_name' => 'P2H_Scissorlift_SSLS5W.md'],
+            'MS31AC' => ['name' => 'Shotcrete', 'file_name' => 'P2H_Shotcrete_MS31AC.md'],
+            'R8D3SW' => ['name' => 'Truk Mixer', 'file_name' => 'P2H_Truk_Mixer_R8D3SW.md'],
+            'MV54AH' => ['name' => 'Vibro', 'file_name' => 'P2H_Vibro_MV54AH.md'],
+            'CWPK3N' => ['name' => 'Water Pump', 'file_name' => 'P2H_Water_Pump_CWPK3N.md'],
+            'WT51DB' => ['name' => 'Water Truck', 'file_name' => 'P2H_Water_Truck_WT51DB.md'],
+            'R8D3ST' => ['name' => 'Wheel Loader', 'file_name' => 'P2H_Wheel_Loader_R8D3ST.md'],
+        ];
 
-        DB::transaction(function () use ($files) {
-            foreach ($files as $file) {
-                $content = file_get_contents($file);
-                $fileName = basename($file);
+        DB::transaction(function () use ($files, $fallbackTemplates) {
+            if (!empty($files)) {
+                $this->command->info("Ditemukan " . count($files) . " file template P2H.");
+                foreach ($files as $file) {
+                    $content = file_get_contents($file);
+                    $fileName = basename($file);
 
-                // 1. Ekstrak Judul Kategori
-                // Pola: # [P2H Excavator](url) atau # P2H Excavator
-                $categoryName = '';
-                if (preg_match('/#\s*\[?P2H\s+([^\]\(\r\n]+)/i', $content, $mTitle)) {
-                    $categoryName = trim($mTitle[1]);
-                }
+                    // 1. Ekstrak Judul Kategori
+                    // Pola: # [P2H Excavator](url) atau # P2H Excavator
+                    $categoryName = '';
+                    if (preg_match('/#\s*\[?P2H\s+([^\]\(\r\n]+)/i', $content, $mTitle)) {
+                        $categoryName = trim($mTitle[1]);
+                    }
 
-                // 2. Ekstrak Checksheet Code
-                // Pola: * **Checksheet Code:** `EXD4RP`
-                $checksheetCode = '';
-                if (preg_match('/Checksheet Code:\**\s*`?([A-Za-z0-9]+)`?/i', $content, $mCode)) {
-                    $checksheetCode = trim($mCode[1]);
-                }
+                    // 2. Ekstrak Checksheet Code
+                    // Pola: * **Checksheet Code:** `EXD4RP`
+                    $checksheetCode = '';
+                    if (preg_match('/Checksheet Code:\**\s*`?([A-Za-z0-9]+)`?/i', $content, $mCode)) {
+                        $checksheetCode = trim($mCode[1]);
+                    }
 
-                if (!$checksheetCode) {
-                    // Fallback kode dari nama file jika tidak ditemukan regex
-                    $checksheetCode = strtoupper(Str::slug($categoryName, '_'));
-                }
+                    if (!$checksheetCode) {
+                        // Fallback kode dari nama file jika tidak ditemukan regex
+                        $checksheetCode = strtoupper(Str::slug($categoryName, '_'));
+                    }
 
-                $template = P2hTemplate::updateOrCreate(
-                    ['code' => $checksheetCode],
-                    [
-                        'name' => $categoryName ?: pathinfo($fileName, PATHINFO_FILENAME),
-                        'file_name' => $fileName,
-                        'description' => "Template form inspeksi P2H resmi untuk kategori {$categoryName} (Kode: {$checksheetCode}).",
-                        'is_active' => true,
-                    ]
-                );
+                    $template = P2hTemplate::updateOrCreate(
+                        ['code' => $checksheetCode],
+                        [
+                            'name' => $categoryName ?: pathinfo($fileName, PATHINFO_FILENAME),
+                            'file_name' => $fileName,
+                            'description' => "Template form inspeksi P2H resmi untuk kategori {$categoryName} (Kode: {$checksheetCode}).",
+                            'is_active' => true,
+                        ]
+                    );
 
-                // Bersihkan item lama jika seeder dijalankan ulang
-                $template->items()->delete();
+                    // Bersihkan item lama jika seeder dijalankan ulang
+                    $template->items()->delete();
 
-                // 3. Parse Baris Tabel Markdown
-                $lines = explode("\n", $content);
-                $currentSection = 'General';
-                $sequence = 1;
+                    // 3. Parse Baris Tabel Markdown
+                    $lines = explode("\n", $content);
+                    $currentSection = 'General';
+                    $sequence = 1;
 
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if (str_starts_with($line, '|')) {
-                        $cols = array_map('trim', explode('|', $line));
-                        // cols format: [0]=>'', [1]=>No, [2]=>Section, [3]=>Title, [4]=>Question Type, [5]=>Sequence, [6]=>''
-                        if (count($cols) >= 6 && is_numeric($cols[1])) {
-                            $rawSection = trim(str_replace('**', '', $cols[2]));
-                            $title = trim($cols[3]);
-                            $rawType = trim($cols[4]);
+                    foreach ($lines as $line) {
+                        $line = trim($line);
+                        if (str_starts_with($line, '|')) {
+                            $cols = array_map('trim', explode('|', $line));
+                            // cols format: [0]=>'', [1]=>No, [2]=>Section, [3]=>Title, [4]=>Question Type, [5]=>Sequence, [6]=>''
+                            if (count($cols) >= 6 && is_numeric($cols[1])) {
+                                $rawSection = trim(str_replace('**', '', $cols[2]));
+                                $title = trim($cols[3]);
+                                $rawType = trim($cols[4]);
 
-                            // Jika baris adalah penanda Header Section
-                            if (stripos($title, 'Header Section') !== false || $rawType === '-') {
-                                if (!empty($rawSection)) {
+                                // Jika baris adalah penanda Header Section
+                                if (stripos($title, 'Header Section') !== false || $rawType === '-') {
+                                    if (!empty($rawSection)) {
+                                        $currentSection = $rawSection;
+                                    }
+                                    continue;
+                                }
+
+                                // Abaikan baris penutup jika berupa baris survey kosong
+                                if (stripos($title, 'Penutup') !== false || stripos($rawSection, 'Penutup') !== false) {
+                                    continue;
+                                }
+
+                                if (!empty($rawSection) && $rawSection !== $currentSection) {
                                     $currentSection = $rawSection;
                                 }
-                                continue;
+
+                                // Map question type
+                                $qType = match(true) {
+                                    stripos($rawType, 'Datetime') !== false => 'datetime',
+                                    stripos($rawType, 'Numerical') !== false => 'number',
+                                    stripos($rawType, 'Multiple Lines') !== false => 'text',
+                                    stripos($rawType, 'Single Line') !== false => 'text',
+                                    default => 'choice',
+                                };
+
+                                P2hTemplateItem::create([
+                                    'template_id' => $template->id,
+                                    'section' => $currentSection,
+                                    'title' => $title,
+                                    'question_type' => $qType,
+                                    'sequence' => $sequence++,
+                                ]);
                             }
+                        }
+                    }
+                }
+            } else {
+                // Fallback: Gunakan daftar 28 master template bawaan jika folder markdown tidak ada
+                $this->command->info("Menggunakan 28 template master P2H bawaan.");
+                $defaultQuestions = [
+                    'Pemeriksaan Keliling (Walk Around)' => [
+                        'Kondisi fisik bodi, struktur, dan kebersihan unit',
+                        'Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar',
+                        'Kondisi ban / track shoe, baut roda, dan tegangan track',
+                    ],
+                    'Ruang Mesin & Kompartemen' => [
+                        'Level oli mesin, oli hidrolik, dan minyak rem',
+                        'Level air radiator dan kondisi v-belt / fan belt',
+                        'Kondisi baterai / aki dan kebersihan terminal kabel',
+                    ],
+                    'Kabin & Fungsi Operasional' => [
+                        'Fungsi sistem rem (Service Brake & Parking Brake)',
+                        'Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator',
+                        'Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur',
+                        'Ketersediaan APD standar dan APAR yang valid di dalam kabin',
+                    ],
+                ];
 
-                            // Abaikan baris penutup jika berupa baris survey kosong
-                            if (stripos($title, 'Penutup') !== false || stripos($rawSection, 'Penutup') !== false) {
-                                continue;
-                            }
+                foreach ($fallbackTemplates as $code => $tmplData) {
+                    $template = P2hTemplate::updateOrCreate(
+                        ['code' => $code],
+                        [
+                            'name' => $tmplData['name'],
+                            'file_name' => $tmplData['file_name'],
+                            'description' => "Template form inspeksi P2H resmi untuk kategori {$tmplData['name']} (Kode: {$code}).",
+                            'is_active' => true,
+                        ]
+                    );
 
-                            if (!empty($rawSection) && $rawSection !== $currentSection) {
-                                $currentSection = $rawSection;
-                            }
-
-                            // Map question type
-                            $qType = match(true) {
-                                stripos($rawType, 'Datetime') !== false => 'datetime',
-                                stripos($rawType, 'Numerical') !== false => 'number',
-                                stripos($rawType, 'Multiple Lines') !== false => 'text',
-                                stripos($rawType, 'Single Line') !== false => 'text',
-                                default => 'choice',
-                            };
-
+                    $template->items()->delete();
+                    $sequence = 1;
+                    foreach ($defaultQuestions as $section => $questions) {
+                        foreach ($questions as $qTitle) {
                             P2hTemplateItem::create([
                                 'template_id' => $template->id,
-                                'section' => $currentSection,
-                                'title' => $title,
-                                'question_type' => $qType,
+                                'section' => $section,
+                                'title' => $qTitle,
+                                'question_type' => 'choice',
                                 'sequence' => $sequence++,
                             ]);
                         }

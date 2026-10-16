@@ -100,6 +100,18 @@ return [
                     'label' => 'Melihat Ringkasan Aktivitas & Statistik',
                     'description' => 'Melihat summary dan grafik agregat penggunaan kendaraan.',
                 ],
+                'qma.p2h.view' => [
+                    'label' => 'Melihat Log & Rekap P2H Unit Support',
+                    'description' => 'Melihat riwayat checksheet pemeriksaan pra-harian dan ringkasan kondisi operasional unit support.',
+                ],
+                'qma.p2h.approve' => [
+                    'label' => 'Menyetujui & Menolak P2H (Approval)',
+                    'description' => 'Memvalidasi kelayakan operasi unit support dan memberikan status approve/reject checksheet.',
+                ],
+                'qma.p2h.templates' => [
+                    'label' => 'Mengelola Master Template P2H',
+                    'description' => 'Mengatur 28 master template checksheet P2H, menambah, mengedit, dan menyusun urutan pertanyaan.',
+                ],
             ],
         ],
         'pg' => [
@@ -147,6 +159,24 @@ return [
                 'gate.reject' => [
                     'label' => 'Menolak Verifikasi Kendaraan (Reject)',
                     'description' => 'Menolak perlintasan kendaraan dengan memberikan catatan alasan.',
+                ],
+            ],
+        ],
+        'employee' => [
+            'name' => 'Modul Karyawan (Operator & Pengemudi Lapangan)',
+            'icon' => 'fa-solid fa-id-badge',
+            'permissions' => [
+                'employee.dashboard' => [
+                    'label' => 'Melihat Dashboard Karyawan',
+                    'description' => 'Mengakses dashboard personal karyawan, ringkasan masa berlaku SIMPER, dan shortcut pra-operasi.',
+                ],
+                'employee.p2h' => [
+                    'label' => 'Mengisi Form P2H Unit Support',
+                    'description' => 'Mengakses katalog unit support dan menginput checklist pra-harian P2H sebelum beroperasi.',
+                ],
+                'employee.timesheet' => [
+                    'label' => 'Mengisi Timesheet / Mobilisasi',
+                    'description' => 'Mencatat riwayat mobilisasi dan aktivitas operasional harian kendaraan.',
                 ],
             ],
         ],

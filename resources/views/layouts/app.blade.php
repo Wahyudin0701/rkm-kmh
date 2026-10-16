@@ -285,7 +285,7 @@
                 @endcan
 
                 <!-- Grup: Manajemen QMA -->
-                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view']))
+                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view', 'qma.p2h.view', 'qma.p2h.templates']))
                 <div>
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN QMA
@@ -322,7 +322,7 @@
                             </div>
                         @endcan
 
-                        @can('qma.logs.view')
+                        @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
                                 $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
@@ -340,18 +340,24 @@
 
                                 <!-- Submenu Dropdown: Timesheet LV & P2H Unit Support (Tanpa Icon) -->
                                 <div id="activitySubmenuDesktop" class="{{ $isActivityRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    @can('qma.logs.view')
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
                                     </a>
+                                    @endcan
 
+                                    @can('qma.p2h.view')
                                     <a href="{{ route('qma.p2h.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>P2H Unit Support</span>
                                     </a>
+                                    @endcan
                                 </div>
                             </div>
+                        @endif
 
+                        @can('qma.p2h.templates')
                             <a href="{{ route('qma.p2h.templates') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.p2h.templates*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-layer-group text-base w-5 text-center"></i>
@@ -574,7 +580,7 @@
                 @endcan
 
                 <!-- Grup: Manajemen QMA Mobile -->
-                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view']))
+                @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view', 'qma.p2h.view', 'qma.p2h.templates']))
                 <div>
                     <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN QMA
@@ -609,7 +615,7 @@
                             </div>
                         @endcan
 
-                        @can('qma.logs.view')
+                        @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
                                 $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
@@ -625,18 +631,24 @@
                                 </button>
 
                                 <div id="activitySubmenuMobile" class="{{ $isActivityRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    @can('qma.logs.view')
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
                                     </a>
+                                    @endcan
 
+                                    @can('qma.p2h.view')
                                     <a href="{{ route('qma.p2h.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>P2H Unit Support</span>
                                     </a>
+                                    @endcan
                                 </div>
                             </div>
+                        @endif
 
+                        @can('qma.p2h.templates')
                             <a href="{{ route('qma.p2h.templates') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.p2h.templates*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-layer-group w-5 text-center"></i>
                                 <span>Master Template P2H</span>

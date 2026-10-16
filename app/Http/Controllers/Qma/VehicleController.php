@@ -9,9 +9,13 @@ use App\Models\P2hRecord;
 use App\Models\P2hTemplate;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
+use App\Services\SimpleXlsxExporter;
+use App\Services\VehiclePdfExporter;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -78,9 +82,9 @@ class VehicleController extends Controller
     }
 
     /**
-     * Halaman khusus pengelolaan armada Kendaraan Ringan (Light Vehicle / LV).
+     * Helper query builder untuk memfilter data Light Vehicle (LV).
      */
-    public function indexLv(Request $request): View
+    private function getFilteredLvQuery(Request $request): Builder
     {
         $query = Vehicle::lightVehicles();
 
@@ -101,7 +105,15 @@ class VehicleController extends Controller
             });
         }
 
-        $vehicles = $query->orderBy('code')->paginate(15)->withQueryString();
+        return $query->orderBy('code');
+    }
+
+    /**
+     * Halaman khusus pengelolaan armada Kendaraan Ringan (Light Vehicle / LV).
+     */
+    public function indexLv(Request $request): View
+    {
+        $vehicles = $this->getFilteredLvQuery($request)->paginate(15)->withQueryString();
 
         // Statistik Ringkasan Khusus LV
         $totalLv = Vehicle::lightVehicles()->count();
@@ -120,6 +132,140 @@ class VehicleController extends Controller
             'totalBreakdown',
             'existingCodes'
         ));
+    }
+
+    /**
+     * Ekspor data Light Vehicle ke format Excel (.xlsx).
+     */
+    public function exportLvExcel(Request $request): Response
+    {
+        $vehicles = $this->getFilteredLvQuery($request)->get();
+
+        $today = now()->translatedFormat('d F Y, H:i');
+        $statusFilter = $request->filled('status') ? 'Status: ' . $request->input('status') : 'Semua Status Operasional';
+        $searchFilter = $request->filled('search') ? 'Pencarian: "' . $request->input('search') . '"' : '';
+
+        $metaLines = [
+            'Filter: ' . $statusFilter . ($searchFilter ? ' | ' . $searchFilter : ''),
+            'Total Data: ' . $vehicles->count() . ' Unit LV | Tanggal Dicetak: ' . $today . ' WIB',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'Kode LV' => 16,
+            'Merek & Tipe' => 32,
+            'No. Polisi' => 18,
+            'Divisi' => 24,
+            'Kepemilikan' => 20,
+            'Odometer (KM)' => 20,
+            'Status Operasional' => 22,
+        ];
+
+        $rows = [];
+        foreach ($vehicles as $idx => $v) {
+            $odo = $v->current_km ? number_format($v->current_km, 0, ',', '.') . ' KM' : '0 KM';
+            $rows[] = [
+                $idx + 1,
+                $v->code,
+                $v->brand_type ?: '-',
+                $v->license_plate ?: '-',
+                $v->division ?: '-',
+                $v->ownership ?: '-',
+                $odo,
+                $v->status ?: 'Standby',
+            ];
+        }
+
+        $alignments = ['center', 'center', 'left', 'center', 'left', 'left', 'center', 'center'];
+
+        $fileName = 'Laporan_Data_Light_Vehicle_' . now()->format('Ymd_Hi') . '.xlsx';
+        $binary = SimpleXlsxExporter::create(
+            'LAPORAN DATA KENDARAAN RINGAN (LIGHT VEHICLE) - PT KERINCI MERANGIN HIDRO',
+            $metaLines,
+            $headers,
+            $rows,
+            $alignments
+        );
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($binary),
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Ekspor data Light Vehicle ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     */
+    public function exportLvPdf(Request $request): Response
+    {
+        $vehicles = $this->getFilteredLvQuery($request)->get();
+
+        $today = now()->translatedFormat('d F Y, H:i');
+        $statusFilter = $request->filled('status') ? $request->input('status') : 'Semua Status Operasional';
+
+        $totalOp = $vehicles->where('status', 'Operation')->count();
+        $totalSt = $vehicles->where('status', 'Standby')->count();
+        $totalBd = $vehicles->where('status', 'Breakdown')->count();
+
+        $metaLeft = [
+            'Kategori' => 'Light Vehicle (LV)',
+            'Status Operasional' => $statusFilter,
+            'Tanggal Cetak' => $today . ' WIB',
+        ];
+
+        $metaRight = [
+            'Total Kendaraan' => $vehicles->count() . ' Unit LV',
+            'Rincian Status' => "{$totalOp} Operation, {$totalSt} Standby, {$totalBd} Breakdown",
+        ];
+
+        $columns = [
+            ['title' => 'NO', 'width' => 10, 'align' => 'C'],
+            ['title' => 'KODE LV', 'width' => 25, 'align' => 'C', 'bold' => true],
+            ['title' => 'MEREK & TIPE', 'width' => 64, 'align' => 'L', 'bold' => true, 'max_char' => 38],
+            ['title' => 'NO. POLISI', 'width' => 28, 'align' => 'C'],
+            ['title' => 'DIVISI', 'width' => 45, 'align' => 'L', 'max_char' => 28],
+            ['title' => 'KEPEMILIKAN', 'width' => 35, 'align' => 'L', 'max_char' => 22],
+            ['title' => 'ODOMETER', 'width' => 30, 'align' => 'C'],
+            ['title' => 'STATUS', 'width' => 30, 'align' => 'C', 'is_status' => true],
+        ];
+
+        $rows = [];
+        foreach ($vehicles as $idx => $v) {
+            $odo = $v->current_km ? number_format($v->current_km, 0, ',', '.') . ' KM' : '0 KM';
+            $rows[] = [
+                $idx + 1,
+                $v->code,
+                $v->brand_type ?: '-',
+                $v->license_plate ?: '-',
+                $v->division ?: '-',
+                $v->ownership ?: '-',
+                $odo,
+                $v->status ?: 'Standby',
+            ];
+        }
+
+        $subtitle = 'Armada Kendaraan Operasional Light Vehicle - ' . now()->translatedFormat('d F Y');
+        $pdfBinary = VehiclePdfExporter::generate(
+            'Laporan Data Light Vehicle (LV)',
+            $subtitle,
+            $metaLeft,
+            $metaRight,
+            $columns,
+            $rows
+        );
+
+        $fileName = 'Laporan_Light_Vehicle_' . now()->format('Ymd_Hi') . '.pdf';
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+        ]);
     }
 
     /**
@@ -280,6 +426,453 @@ class VehicleController extends Controller
             'existingCodes',
             'masterLocations'
         ));
+    }
+
+    /**
+     * Helper query builder untuk unit fisik alat berat (Unit Support Physical).
+     */
+    private function getFilteredSupportPhysicalQuery(Request $request): Builder
+    {
+        $query = Vehicle::unitSupportPhysical()->with('parent');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('unit_category')) {
+            $cat = $request->input('unit_category');
+            $query->where(function ($q) use ($cat) {
+                $q->where('unit_category', $cat)
+                  ->orWhereHas('parent', fn ($pq) => $pq->where('unit_category', $cat));
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('brand_type', 'like', "%{$search}%")
+                  ->orWhere('unit_category', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%")
+                  ->orWhereHas('parent', function ($pq) use ($search) {
+                      $pq->where('code', 'like', "%{$search}%")
+                         ->orWhere('unit_category', 'like', "%{$search}%")
+                         ->orWhere('brand_type', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->orderBy('code');
+    }
+
+    /**
+     * Helper query builder untuk master kategori Unit Support.
+     */
+    private function getFilteredSupportCategoriesQuery(Request $request): Builder
+    {
+        $query = Vehicle::unitSupportCategories()->withCount('units');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('unit_category')) {
+            $query->where('unit_category', $request->input('unit_category'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('brand_type', 'like', "%{$search}%")
+                  ->orWhere('unit_category', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('division', 'like', "%{$search}%");
+            });
+        }
+
+        return $query->orderBy('code');
+    }
+
+    /**
+     * Ekspor data Unit Support ke format Excel (.xlsx).
+     */
+    public function exportSupportExcel(Request $request): Response
+    {
+        $hasPhysical = Vehicle::unitSupportPhysical()->exists();
+        $today = now()->translatedFormat('d F Y, H:i');
+
+        if ($hasPhysical) {
+            $units = $this->getFilteredSupportPhysicalQuery($request)->get();
+
+            $metaLines = [
+                'Filter: ' . ($request->filled('status') ? 'Status: ' . $request->input('status') : 'Semua Status') .
+                ($request->filled('unit_category') ? ' | Kategori: ' . $request->input('unit_category') : '') .
+                ($request->filled('search') ? ' | Pencarian: "' . $request->input('search') . '"' : ''),
+                'Total Data: ' . $units->count() . ' Unit Fisik Alat Berat | Tanggal Dicetak: ' . $today . ' WIB',
+            ];
+
+            $headers = [
+                'No' => 6,
+                'Kode Unit' => 16,
+                'Kategori Alat' => 28,
+                'No. Seri / Rangka' => 24,
+                'Tahun' => 12,
+                'No. Polisi' => 18,
+                'Lokasi Kerja' => 24,
+                'Odometer (HM/KM)' => 20,
+                'Dokumen Izin' => 20,
+                'Status Operasional' => 22,
+            ];
+
+            $rows = [];
+            foreach ($units as $idx => $u) {
+                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Unit Support'));
+                $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
+                $docs = trim(($u->silo_document ? 'SILO ' : '') . ($u->kir_document ? 'KIR ' : '')) ?: '-';
+
+                $rows[] = [
+                    $idx + 1,
+                    $u->code,
+                    $categoryName,
+                    $u->serial_number ?: '-',
+                    $u->production_year ?: '-',
+                    $u->license_plate ?: '-',
+                    $u->location ?: '-',
+                    $odo,
+                    $docs,
+                    $u->status ?: 'Standby',
+                ];
+            }
+
+            $alignments = ['center', 'center', 'left', 'left', 'center', 'center', 'left', 'center', 'center', 'center'];
+            $title = 'LAPORAN DAFTAR UNIT FISIK ALAT BERAT (UNIT SUPPORT) - PT KERINCI MERANGIN HIDRO';
+            $fileName = 'Laporan_Unit_Support_Lengkap_' . now()->format('Ymd_Hi') . '.xlsx';
+        } else {
+            // Fallback ke master kategori jika unit fisik belum diinput
+            $categories = $this->getFilteredSupportCategoriesQuery($request)->get();
+
+            $metaLines = [
+                'Filter: ' . ($request->filled('status') ? 'Status: ' . $request->input('status') : 'Semua Status') .
+                ($request->filled('unit_category') ? ' | Kategori: ' . $request->input('unit_category') : ''),
+                'Total Data: ' . $categories->count() . ' Kategori Alat Berat | Tanggal Dicetak: ' . $today . ' WIB',
+            ];
+
+            $headers = [
+                'No' => 6,
+                'Kode Kategori' => 16,
+                'Kategori Alat Berat' => 30,
+                'Merek & Tipe Model' => 30,
+                'Total Unit Fisik' => 18,
+                'Lokasi Operasional' => 24,
+                'Status Operasional' => 22,
+            ];
+
+            $rows = [];
+            foreach ($categories as $idx => $cat) {
+                $rows[] = [
+                    $idx + 1,
+                    $cat->code,
+                    $cat->unit_category ?: $cat->brand_type,
+                    $cat->brand_type ?: '-',
+                    $cat->units_count . ' Unit',
+                    $cat->location ?: '-',
+                    $cat->status ?: 'Standby',
+                ];
+            }
+
+            $alignments = ['center', 'center', 'left', 'left', 'center', 'left', 'center'];
+            $title = 'LAPORAN MASTER KATEGORI ALAT BERAT (UNIT SUPPORT) - PT KERINCI MERANGIN HIDRO';
+            $fileName = 'Laporan_Kategori_Unit_Support_' . now()->format('Ymd_Hi') . '.xlsx';
+        }
+
+        $binary = SimpleXlsxExporter::create($title, $metaLines, $headers, $rows, $alignments);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($binary),
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Ekspor data Unit Support ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     */
+    public function exportSupportPdf(Request $request): Response
+    {
+        $hasPhysical = Vehicle::unitSupportPhysical()->exists();
+        $today = now()->translatedFormat('d F Y, H:i');
+        $statusFilter = $request->filled('status') ? $request->input('status') : 'Semua Status Operasional';
+
+        if ($hasPhysical) {
+            $units = $this->getFilteredSupportPhysicalQuery($request)->get();
+
+            $totalOp = $units->where('status', 'Operation')->count();
+            $totalSt = $units->where('status', 'Standby')->count();
+            $totalBd = $units->where('status', 'Breakdown')->count();
+
+            $metaLeft = [
+                'Kategori' => 'Unit Support (Alat Berat Fisik)',
+                'Status Operasional' => $statusFilter,
+                'Tanggal Cetak' => $today . ' WIB',
+            ];
+
+            $metaRight = [
+                'Total Unit Fisik' => $units->count() . ' Unit Alat Berat',
+                'Rincian Status' => "{$totalOp} Operation, {$totalSt} Standby, {$totalBd} Breakdown",
+            ];
+
+            $columns = [
+                ['title' => 'NO', 'width' => 10, 'align' => 'C'],
+                ['title' => 'KODE UNIT', 'width' => 24, 'align' => 'C', 'bold' => true],
+                ['title' => 'KATEGORI ALAT', 'width' => 45, 'align' => 'L', 'bold' => true, 'max_char' => 26],
+                ['title' => 'NO. SERI / RANGKA', 'width' => 42, 'align' => 'L', 'max_char' => 24],
+                ['title' => 'THN', 'width' => 14, 'align' => 'C'],
+                ['title' => 'NO. POLISI', 'width' => 24, 'align' => 'C'],
+                ['title' => 'LOKASI KERJA', 'width' => 50, 'align' => 'L', 'max_char' => 28],
+                ['title' => 'ODOMETER', 'width' => 28, 'align' => 'C'],
+                ['title' => 'STATUS', 'width' => 30, 'align' => 'C', 'is_status' => true],
+            ];
+
+            $rows = [];
+            foreach ($units as $idx => $u) {
+                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Unit Support'));
+                $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
+
+                $rows[] = [
+                    $idx + 1,
+                    $u->code,
+                    $categoryName,
+                    $u->serial_number ?: '-',
+                    $u->production_year ?: '-',
+                    $u->license_plate ?: '-',
+                    $u->location ?: '-',
+                    $odo,
+                    $u->status ?: 'Standby',
+                ];
+            }
+
+            $title = 'Laporan Data Unit Support (Alat Berat)';
+            $subtitle = 'Daftar Seluruh Unit Fisik Alat Berat Lapangan - ' . now()->translatedFormat('d F Y');
+            $fileName = 'Laporan_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+        } else {
+            $categories = $this->getFilteredSupportCategoriesQuery($request)->get();
+
+            $totalOp = $categories->where('status', 'Operation')->count();
+            $totalSt = $categories->where('status', 'Standby')->count();
+            $totalBd = $categories->where('status', 'Breakdown')->count();
+
+            $metaLeft = [
+                'Kategori' => 'Master Kategori Unit Support',
+                'Status Operasional' => $statusFilter,
+                'Tanggal Cetak' => $today . ' WIB',
+            ];
+
+            $metaRight = [
+                'Total Kategori' => $categories->count() . ' Kategori Alat',
+                'Rincian Status' => "{$totalOp} Operation, {$totalSt} Standby, {$totalBd} Breakdown",
+            ];
+
+            $columns = [
+                ['title' => 'NO', 'width' => 10, 'align' => 'C'],
+                ['title' => 'KODE', 'width' => 25, 'align' => 'C', 'bold' => true],
+                ['title' => 'KATEGORI ALAT BERAT', 'width' => 64, 'align' => 'L', 'bold' => true, 'max_char' => 38],
+                ['title' => 'MEREK & MODEL', 'width' => 55, 'align' => 'L', 'max_char' => 32],
+                ['title' => 'TOTAL UNIT', 'width' => 28, 'align' => 'C', 'bold' => true],
+                ['title' => 'LOKASI OPERASIONAL', 'width' => 55, 'align' => 'L', 'max_char' => 32],
+                ['title' => 'STATUS', 'width' => 30, 'align' => 'C', 'is_status' => true],
+            ];
+
+            $rows = [];
+            foreach ($categories as $idx => $cat) {
+                $rows[] = [
+                    $idx + 1,
+                    $cat->code,
+                    $cat->unit_category ?: $cat->brand_type,
+                    $cat->brand_type ?: '-',
+                    $cat->units_count . ' Unit',
+                    $cat->location ?: '-',
+                    $cat->status ?: 'Standby',
+                ];
+            }
+
+            $title = 'Laporan Master Kategori Unit Support';
+            $subtitle = 'Master 28 Kategori Alat Berat Proyek KMH - ' . now()->translatedFormat('d F Y');
+            $fileName = 'Laporan_Kategori_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+        }
+
+        $pdfBinary = VehiclePdfExporter::generate($title, $subtitle, $metaLeft, $metaRight, $columns, $rows);
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Ekspor data unit fisik khusus kategori tertentu ke format Excel (.xlsx).
+     */
+    public function exportSupportUnitsExcel(Request $request, int $id): Response
+    {
+        $category = Vehicle::unitSupportCategories()->withCount('units')->findOrFail($id);
+        $query = $category->units();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        $units = $query->orderBy('code')->get();
+        $today = now()->translatedFormat('d F Y, H:i');
+
+        $metaLines = [
+            'Kategori: ' . ($category->unit_category ?: $category->brand_type) . ' (' . $category->code . ')' .
+            ($request->filled('status') ? ' | Status: ' . $request->input('status') : '') .
+            ($request->filled('search') ? ' | Pencarian: "' . $request->input('search') . '"' : ''),
+            'Total Data: ' . $units->count() . ' Unit Fisik | Tanggal Dicetak: ' . $today . ' WIB',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'Kode Unit' => 16,
+            'No. Seri / Rangka' => 24,
+            'Tahun' => 12,
+            'No. Polisi' => 18,
+            'Lokasi Kerja' => 24,
+            'Odometer (HM/KM)' => 20,
+            'Dokumen Izin' => 20,
+            'Status Operasional' => 22,
+        ];
+
+        $rows = [];
+        foreach ($units as $idx => $u) {
+            $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
+            $docs = trim(($u->silo_document ? 'SILO ' : '') . ($u->kir_document ? 'KIR ' : '')) ?: '-';
+
+            $rows[] = [
+                $idx + 1,
+                $u->code,
+                $u->serial_number ?: '-',
+                $u->production_year ?: '-',
+                $u->license_plate ?: '-',
+                $u->location ?: '-',
+                $odo,
+                $docs,
+                $u->status ?: 'Standby',
+            ];
+        }
+
+        $alignments = ['center', 'center', 'left', 'center', 'center', 'left', 'center', 'center', 'center'];
+        $title = 'LAPORAN UNIT FISIK ' . strtoupper($category->unit_category ?: $category->brand_type) . ' - PT KERINCI MERANGIN HIDRO';
+        $fileName = 'Laporan_Unit_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $category->code) . '_' . now()->format('Ymd_Hi') . '.xlsx';
+
+        $binary = SimpleXlsxExporter::create($title, $metaLines, $headers, $rows, $alignments);
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($binary),
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Ekspor data unit fisik khusus kategori tertentu ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     */
+    public function exportSupportUnitsPdf(Request $request, int $id): Response
+    {
+        $category = Vehicle::unitSupportCategories()->withCount('units')->findOrFail($id);
+        $query = $category->units();
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%")
+                  ->orWhere('serial_number', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%");
+            });
+        }
+
+        $units = $query->orderBy('code')->get();
+        $today = now()->translatedFormat('d F Y, H:i');
+        $statusFilter = $request->filled('status') ? $request->input('status') : 'Semua Status Operasional';
+
+        $totalOp = $units->where('status', 'Operation')->count();
+        $totalSt = $units->where('status', 'Standby')->count();
+        $totalBd = $units->where('status', 'Breakdown')->count();
+
+        $metaLeft = [
+            'Kategori Alat' => ($category->unit_category ?: $category->brand_type) . ' (' . $category->code . ')',
+            'Status Operasional' => $statusFilter,
+            'Tanggal Cetak' => $today . ' WIB',
+        ];
+
+        $metaRight = [
+            'Total Unit Fisik' => $units->count() . ' Unit Terdaftar',
+            'Rincian Status' => "{$totalOp} Operation, {$totalSt} Standby, {$totalBd} Breakdown",
+        ];
+
+        $columns = [
+            ['title' => 'NO', 'width' => 10, 'align' => 'C'],
+            ['title' => 'KODE UNIT', 'width' => 28, 'align' => 'C', 'bold' => true],
+            ['title' => 'NO. SERI / RANGKA', 'width' => 50, 'align' => 'L', 'max_char' => 30],
+            ['title' => 'TAHUN', 'width' => 18, 'align' => 'C'],
+            ['title' => 'NO. POLISI', 'width' => 28, 'align' => 'C'],
+            ['title' => 'LOKASI KERJA', 'width' => 65, 'align' => 'L', 'max_char' => 38],
+            ['title' => 'ODOMETER', 'width' => 34, 'align' => 'C'],
+            ['title' => 'STATUS', 'width' => 34, 'align' => 'C', 'is_status' => true],
+        ];
+
+        $rows = [];
+        foreach ($units as $idx => $u) {
+            $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
+            $rows[] = [
+                $idx + 1,
+                $u->code,
+                $u->serial_number ?: '-',
+                $u->production_year ?: '-',
+                $u->license_plate ?: '-',
+                $u->location ?: '-',
+                $odo,
+                $u->status ?: 'Standby',
+            ];
+        }
+
+        $title = 'Laporan Unit Fisik ' . ($category->unit_category ?: $category->brand_type);
+        $subtitle = 'Kategori ' . $category->code . ' - ' . now()->translatedFormat('d F Y');
+        $fileName = 'Laporan_Unit_' . preg_replace('/[^A-Za-z0-9_-]/', '_', $category->code) . '_' . now()->format('Ymd_Hi') . '.pdf';
+
+        $pdfBinary = VehiclePdfExporter::generate($title, $subtitle, $metaLeft, $metaRight, $columns, $rows);
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+        ]);
     }
 
     /**

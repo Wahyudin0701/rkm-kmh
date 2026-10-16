@@ -48,6 +48,9 @@ class RolePermissionSeeder extends Seeder
                 'qma.vehicles.delete',
                 'qma.logs.view',
                 'qma.summary.view',
+                'qma.p2h.view',
+                'qma.p2h.approve',
+                'qma.p2h.templates',
             ],
             'pg_admin' => [
                 'pg.guards.view',
@@ -61,6 +64,11 @@ class RolePermissionSeeder extends Seeder
                 'gate.inspect',
                 'gate.approve',
                 'gate.reject',
+            ],
+            'employee' => [
+                'employee.dashboard',
+                'employee.p2h',
+                'employee.timesheet',
             ],
         ];
 

@@ -166,17 +166,32 @@ class SuperAdminRbacTest extends TestCase
     {
         $superAdmin = User::where('username', 'superadmin')->first();
 
-        // HSE Dashboard
+        // 1. HSE Module
         $response = $this->actingAs($superAdmin)->get(route('hse.dashboard'));
         $response->assertOk();
+        $this->actingAs($superAdmin)->get(route('hse.employees.index'))->assertOk();
 
-        // QMA Dashboard
+        // 2. QMA Module (LV, Support, Activity Logs, P2H Records, P2H Templates)
         $response = $this->actingAs($superAdmin)->get(route('qma.dashboard'));
         $response->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.vehicles.lv'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.vehicles.support'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.activity.log'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.activity.summary'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.p2h.index'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.p2h.summary'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('qma.p2h.templates'))->assertOk();
 
-        // PG Dashboard
+        // 3. PG Module (Guards, Logs, Gate Inspection)
         $response = $this->actingAs($superAdmin)->get(route('pg.dashboard'));
         $response->assertOk();
+        $this->actingAs($superAdmin)->get(route('pg.guards.index'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('pg.logs.index'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('pg.gate.inspection'))->assertOk();
+
+        // 4. Employee & P2H Public/Operator Module
+        $this->actingAs($superAdmin)->get(route('p2h.index'))->assertOk();
+        $this->actingAs($superAdmin)->get(route('employee.dashboard'))->assertOk();
     }
 
     public function test_permission_revocation_immediately_blocks_action_and_hides_button(): void

@@ -27,13 +27,28 @@
 
         <!-- Tombol Aksi Kanan -->
         <div class="grid grid-cols-2 gap-2.5 w-full sm:flex sm:items-center sm:gap-3 sm:w-auto">
-            <button type="button" 
-                    onclick="alert('Fitur ekspor spreadsheet Unit Support sedang disiapkan')" 
-                    class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm">
-                <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
-                <span class="truncate">Ekspor Data</span>
-                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
-            </button>
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block w-full sm:w-auto" id="exportSupportDropdownContainer">
+                <button type="button" 
+                        onclick="toggleSupportExportMenu(event)" 
+                        id="btnSupportExportTrigger"
+                        class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Data</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                </button>
+                <div id="exportMenuSupport" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                    <a href="{{ route('qma.vehicles.support.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
+                        <i class="fa-regular fa-file-pdf text-rose-600 text-sm mr-2.5"></i>
+                        <span>Format PDF (Cetak)</span>
+                    </a>
+                    <div class="h-px bg-slate-100 mx-2"></div>
+                    <a href="{{ route('qma.vehicles.support.export_excel', request()->query()) }}" class="flex items-center px-4 py-3 text-xs text-emerald-700 hover:bg-emerald-50 font-bold transition">
+                        <i class="fa-regular fa-file-excel text-emerald-600 text-sm mr-2.5"></i>
+                        <span>Format Excel (.xlsx)</span>
+                    </a>
+                </div>
+            </div>
 
             @can('qma.vehicles.create')
             <button onclick="openAddModal()" 
@@ -884,9 +899,30 @@
         }
     }
 
+    // Dropdown Menu Ekspor Unit Support
+    function toggleSupportExportMenu(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('exportMenuSupport');
+        if (menu) {
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+    }
+
+    document.addEventListener('click', function(event) {
+        const container = document.getElementById('exportSupportDropdownContainer');
+        const menu = document.getElementById('exportMenuSupport');
+        if (container && !container.contains(event.target)) {
+            if (menu) {
+                menu.style.display = 'none';
+            }
+        }
+    });
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            const exportMenu = document.getElementById('exportMenuSupport');
+            if (exportMenu) exportMenu.style.display = 'none';
         }
     });
 </script>
