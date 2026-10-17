@@ -258,6 +258,12 @@
                             <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
                             <span>Role & Permission</span>
                         </a>
+
+                        <a href="{{ route('admin.activity_logs.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.activity_logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
+                            <span>Log Aktivitas Admin</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -546,6 +552,10 @@
                         <a href="{{ route('admin.roles.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.roles.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                             <span>Role & Permission</span>
+                        </a>
+                        <a href="{{ route('admin.activity_logs.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.activity_logs.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
+                            <span>Log Aktivitas Admin</span>
                         </a>
                     </nav>
                 </div>

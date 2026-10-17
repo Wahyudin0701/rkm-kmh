@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Gate;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -101,6 +102,24 @@ class UserController extends Controller
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        $roleTitle = $this->getFriendlyRoleName($validated['role']);
+        AdminActivityLog::record(
+            actionType: 'create',
+            module: 'Manajemen Pengguna',
+            description: "Menambahkan akun pengguna baru: {$user->name} (Username: {$user->username}) dengan hak akses '{$roleTitle}'.",
+            targetType: 'User',
+            targetId: $user->id,
+            targetName: $user->name,
+            newValues: [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $validated['role'],
+                'gate_id' => $user->gate_id,
+            ]
+        );
+
         return redirect()->route('admin.users.index')
             ->with('success', "Akun pengguna [{$user->name}] berhasil dibuat dengan role [{$validated['role']}].");
     }
@@ -129,14 +148,25 @@ class UserController extends Controller
             'role.required' => 'Role wajib dipilih.',
         ]);
 
+        $oldValues = [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role' => $user->role,
+            'gate_id' => $user->gate_id,
+        ];
+
+        $oldRole = $user->role;
         $user->name = $validated['name'];
         $user->username = $validated['username'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
         $user->gate_id = $validated['gate_id'] ?? null;
 
+        $passwordUpdated = false;
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
+            $passwordUpdated = true;
         }
 
         $user->save();
@@ -149,6 +179,53 @@ class UserController extends Controller
 
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Susun deskripsi perubahan yang mudah dipahami non-IT
+        $roleChanged = $oldRole !== $validated['role'];
+        $changes = [];
+
+        if (($oldValues['name'] ?? '') !== $user->name) {
+            $changes[] = "nama dari '{$oldValues['name']}' menjadi '{$user->name}'";
+        }
+        if (($oldValues['username'] ?? '') !== $user->username) {
+            $changes[] = "username dari '{$oldValues['username']}' menjadi '{$user->username}'";
+        }
+        if (($oldValues['email'] ?? '') !== $user->email) {
+            $changes[] = "email menjadi '{$user->email}'";
+        }
+        if ($roleChanged) {
+            $oldRoleTitle = $this->getFriendlyRoleName($oldRole);
+            $newRoleTitle = $this->getFriendlyRoleName($validated['role']);
+            $changes[] = "hak akses dari '{$oldRoleTitle}' menjadi '{$newRoleTitle}'";
+        }
+        if ($passwordUpdated) {
+            $changes[] = "kata sandi (password) diperbarui";
+        }
+
+        $desc = "Memperbarui akun pengguna: {$user->name} ({$user->username})";
+        if (!empty($changes)) {
+            $desc .= " — " . implode(', ', $changes) . ".";
+        } else {
+            $desc .= " — Informasi profil disimpan.";
+        }
+
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        AdminActivityLog::record(
+            actionType: 'update',
+            module: 'Manajemen Pengguna',
+            description: $desc,
+            targetType: 'User',
+            targetId: $user->id,
+            targetName: $user->name,
+            oldValues: $oldValues,
+            newValues: [
+                'name' => $user->name,
+                'username' => $user->username,
+                'email' => $user->email,
+                'role' => $validated['role'],
+                'gate_id' => $user->gate_id,
+            ]
+        );
 
         return redirect()->route('admin.users.index')
             ->with('success', "Data pengguna [{$user->name}] berhasil diperbarui.");
@@ -173,11 +250,50 @@ class UserController extends Controller
                 ->with('error', 'Aksi Ditolak: Akun Super Administrator utama sistem tidak dapat dihapus.');
         }
 
+        $deletedSnapshot = [
+            'name' => $user->name,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role' => $user->role,
+            'gate_id' => $user->gate_id,
+        ];
+
         $name = $user->name;
+        $username = $user->username;
+        $userRole = $user->role ?? '';
+        $userId = $user->id;
+
         $user->syncRoles([]);
         $user->delete();
 
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        $roleTitle = $this->getFriendlyRoleName($userRole);
+        AdminActivityLog::record(
+            actionType: 'delete',
+            module: 'Manajemen Pengguna',
+            description: "Menghapus akun pengguna: {$name} (Username: {$username}) dengan hak akses '{$roleTitle}'.",
+            targetType: 'User',
+            targetId: $userId,
+            targetName: $name,
+            oldValues: $deletedSnapshot
+        );
+
         return redirect()->route('admin.users.index')
             ->with('success', "Akun pengguna [{$name}] berhasil dihapus dari sistem.");
+    }
+
+    /**
+     * Konversi kode role teknis menjadi nama peran yang mudah dipahami dalam Bahasa Indonesia.
+     */
+    private function getFriendlyRoleName(string $role): string
+    {
+        return match($role) {
+            'super_admin' => 'Super Administrator (Akses Penuh)',
+            'hse_admin' => 'Admin HSE (Keselamatan & Karyawan)',
+            'qma_admin' => 'Admin QMA (Armada Kendaraan)',
+            'pg_admin' => 'Admin PG (Keamanan & Satpam)',
+            'gate_officer' => 'Petugas Pos Gerbang',
+            default => ucwords(str_replace('_', ' ', $role))
+        };
     }
 }

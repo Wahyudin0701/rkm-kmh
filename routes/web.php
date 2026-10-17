@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminActivityLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\UserController;
@@ -162,5 +163,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/roles', [RolePermissionController::class, 'storeRole'])->name('roles.store')->middleware('permission:roles.create');
         Route::post('/roles/{id}/permissions', [RolePermissionController::class, 'updatePermissions'])->name('roles.permissions.update')->middleware('permission:roles.edit_permissions');
         Route::delete('/roles/{id}', [RolePermissionController::class, 'destroyRole'])->name('roles.destroy')->middleware('permission:roles.delete');
+
+        // Log Riwayat Aktivitas Super Admin
+        Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity_logs.index');
     });
 });

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -40,6 +41,18 @@ class RolePermissionController extends Controller
             'guard_name' => 'web',
         ]);
 
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        $roleNameClean = ucwords(str_replace('_', ' ', $role->name));
+        AdminActivityLog::record(
+            actionType: 'create',
+            module: 'Role & Hak Akses',
+            description: "Menambahkan peran hak akses baru: '{$roleNameClean}' ({$role->name}) ke dalam sistem.",
+            targetType: 'Role',
+            targetId: $role->id,
+            targetName: $role->name,
+            newValues: ['name' => $role->name]
+        );
+
         return redirect()->route('admin.roles.index')
             ->with('success', "Role [{$role->name}] berhasil ditambahkan ke sistem.");
     }
@@ -63,6 +76,19 @@ class RolePermissionController extends Controller
         // Reset permission cache
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        $roleNameClean = ucwords(str_replace('_', ' ', $role->name));
+        $count = count($selectedPermissions);
+        AdminActivityLog::record(
+            actionType: 'permission',
+            module: 'Role & Hak Akses',
+            description: "Memperbarui izin akses untuk peran '{$roleNameClean}' ({$count} izin akses aktif).",
+            targetType: 'Role',
+            targetId: $role->id,
+            targetName: $role->name,
+            newValues: ['permissions' => $selectedPermissions]
+        );
+
         return redirect()->route('admin.roles.index')
             ->with('success', "Matriks permission untuk role [{$role->name}] berhasil diperbarui.");
     }
@@ -85,6 +111,17 @@ class RolePermissionController extends Controller
         $role->delete();
 
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Rekam ke Log Riwayat Aktivitas Super Admin
+        $roleNameClean = ucwords(str_replace('_', ' ', $name));
+        AdminActivityLog::record(
+            actionType: 'delete',
+            module: 'Role & Hak Akses',
+            description: "Menghapus peran hak akses: '{$roleNameClean}' ({$name}) dari sistem.",
+            targetType: 'Role',
+            targetId: $roleId,
+            targetName: $name
+        );
 
         return redirect()->route('admin.roles.index')
             ->with('success', "Role [{$name}] berhasil dihapus dari sistem.");

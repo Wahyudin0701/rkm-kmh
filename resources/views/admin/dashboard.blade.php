@@ -26,6 +26,11 @@
                 <i class="fa-solid fa-shield-halved text-indigo-600 text-sm"></i>
                 <span>Matriks Role & Izin</span>
             </a>
+            <a href="{{ route('admin.activity_logs.index') }}" 
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-600 text-sm"></i>
+                <span>Log Aktivitas</span>
+            </a>
         </div>
     </div>
 
@@ -272,6 +277,72 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Log Riwayat Aktivitas Terkini (Super Admin) -->
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h2 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+                    Aktivitas Administratif Terkini
+                </h2>
+                <p class="text-xs text-slate-400 mt-0.5">5 tindakan terakhir yang dilakukan oleh Super Admin</p>
+            </div>
+            <a href="{{ route('admin.activity_logs.index') }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                <span>Lihat Semua Riwayat</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-slate-100 text-slate-400 font-semibold">
+                        <th class="pb-2.5 w-36">Tanggal & Waktu</th>
+                        <th class="pb-2.5 w-28 text-center">Jenis Aksi</th>
+                        <th class="pb-2.5 w-36">Bagian</th>
+                        <th class="pb-2.5">Keterangan Kegiatan</th>
+                        <th class="pb-2.5 text-right w-36">Admin</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    @forelse($recentAdminLogs as $log)
+                        <tr class="hover:bg-slate-50/60 transition">
+                            <td class="py-2.5 pr-2 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                                {{ $log->created_at->format('d M, H:i') }} WIB
+                            </td>
+                            <td class="py-2.5 pr-2 text-center">
+                                @if($log->action_type === 'create')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300">TAMBAH</span>
+                                @elseif($log->action_type === 'update')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-800 border border-amber-300">UBAH</span>
+                                @elseif($log->action_type === 'permission')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-800 border border-blue-300">HAK AKSES</span>
+                                @elseif($log->action_type === 'delete')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-rose-50 text-rose-800 border border-rose-300">HAPUS</span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700">{{ strtoupper($log->action_type) }}</span>
+                                @endif
+                            </td>
+                            <td class="py-2.5 pr-2 text-slate-600 font-medium">
+                                <span class="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[10px]">{{ $log->module }}</span>
+                            </td>
+                            <td class="py-2.5 pr-2 text-slate-800 font-medium">
+                                {{ $log->description }}
+                            </td>
+                            <td class="py-2.5 text-right font-bold text-slate-700">
+                                {{ $log->user_name ?? 'Super Admin' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="py-4 text-center text-slate-400">Belum ada riwayat aktivitas yang tercatat.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

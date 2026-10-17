@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Employee;
 use App\Models\SecurityGuard;
 use App\Models\User;
@@ -49,6 +50,10 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact('metrics', 'usersByRole', 'recentUsers', 'recentActivities'));
+        $recentAdminLogs = AdminActivityLog::latest()
+            ->take(5)
+            ->get();
+
+        return view('admin.dashboard', compact('metrics', 'usersByRole', 'recentUsers', 'recentActivities', 'recentAdminLogs'));
     }
 }
