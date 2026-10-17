@@ -299,4 +299,37 @@ class SuperAdminRbacTest extends TestCase
         $resDeniedAgain = $this->actingAs($gateUser->fresh())->get(route('qma.activity.log'));
         $resDeniedAgain->assertForbidden();
     }
+
+    public function test_super_admin_can_sort_users_by_latest_oldest_and_name(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        $userA = User::factory()->create([
+            'name' => 'AAA User First',
+            'username' => 'aaa_first',
+            'email' => 'aaa@test.com',
+            'created_at' => now()->subDays(10),
+        ]);
+        $userZ = User::factory()->create([
+            'name' => 'ZZZ User Last',
+            'username' => 'zzz_last',
+            'email' => 'zzz@test.com',
+            'created_at' => now()->subDays(1),
+        ]);
+
+        // Sort Name Ascending
+        $resAsc = $this->actingAs($superAdmin)->get(route('admin.users.index', ['sort' => 'name_asc']));
+        $resAsc->assertOk();
+        $resAsc->assertSeeInOrder(['AAA User First', 'ZZZ User Last']);
+
+        // Sort Name Descending
+        $resDesc = $this->actingAs($superAdmin)->get(route('admin.users.index', ['sort' => 'name_desc']));
+        $resDesc->assertOk();
+        $resDesc->assertSeeInOrder(['ZZZ User Last', 'AAA User First']);
+
+        // Sort Oldest
+        $resOldest = $this->actingAs($superAdmin)->get(route('admin.users.index', ['sort' => 'oldest']));
+        $resOldest->assertOk();
+        $resOldest->assertSee('Urutkan:');
+    }
 }

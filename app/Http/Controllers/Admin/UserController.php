@@ -21,7 +21,7 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = User::with(['roles', 'gate'])->latest();
+        $query = User::with(['roles', 'gate']);
 
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
@@ -39,6 +39,15 @@ class UserController extends Controller
                     ->orWhere('role', $roleFilter);
             });
         }
+
+        // Pengurutan data pengguna
+        $sort = $request->input('sort', 'latest');
+        match ($sort) {
+            'oldest' => $query->oldest('created_at'),
+            'name_asc' => $query->orderBy('name', 'asc'),
+            'name_desc' => $query->orderBy('name', 'desc'),
+            default => $query->latest('created_at'),
+        };
 
         $users = $query->with('permissions')->paginate(15)->withQueryString();
         $roles = Role::orderBy('name')->get();

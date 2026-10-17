@@ -66,9 +66,13 @@
 
     <!-- Card Filter & Pencarian -->
     <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm">
-        <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col sm:flex-row gap-3">
+        <form id="usersFilterForm" method="GET" action="{{ route('admin.users.index') }}" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <input type="hidden" name="sort" id="userSortInput" value="{{ request('sort', 'latest') }}">
+
             <div class="flex-1 relative">
-                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <button type="submit" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition text-xs" title="Cari pengguna">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
                 <input type="text" 
                        name="search" 
                        value="{{ request('search') }}" 
@@ -77,7 +81,7 @@
             </div>
 
             <div class="w-full sm:w-48">
-                <select name="role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+                <select name="role" onchange="document.getElementById('usersFilterForm').submit()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition cursor-pointer">
                     <option value="">-- Semua Role --</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->name }}" {{ request('role') === $role->name ? 'selected' : '' }}>
@@ -87,14 +91,89 @@
                 </select>
             </div>
 
-            <div class="flex gap-2">
-                <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-                    <i class="fa-solid fa-filter"></i>
-                    <span>Filter</span>
+            <!-- Tombol Menu Urutkan (Sorting Popover) -->
+            <div class="relative flex items-center gap-2" id="sortDropdownContainer">
+                @php
+                    $currentSort = request('sort', 'latest');
+                    $sortLabels = [
+                        'latest' => 'Terbaru',
+                        'oldest' => 'Terlama',
+                        'name_asc' => 'Nama (A-Z)',
+                        'name_desc' => 'Nama (Z-A)',
+                    ];
+                    $activeSortLabel = $sortLabels[$currentSort] ?? 'Terbaru';
+                    $isCustomSort = $currentSort !== 'latest';
+                @endphp
+
+                <button type="button" 
+                        id="sortDropdownBtn" 
+                        onclick="toggleSortDropdown()" 
+                        class="w-full sm:w-auto px-3.5 py-2 {{ $isCustomSort ? 'bg-indigo-50 border-indigo-200 text-indigo-700 shadow-sm' : 'bg-slate-800 hover:bg-slate-900 text-white' }} border rounded-xl text-xs font-bold transition flex items-center justify-between sm:justify-start gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-down-wide-short {{ $isCustomSort ? 'text-indigo-600' : 'text-slate-300' }}"></i>
+                        <span>Urutkan: <strong class="{{ $isCustomSort ? 'text-indigo-800 font-black' : 'text-white' }}">{{ $activeSortLabel }}</strong></span>
+                    </div>
+                    <i id="sortDropdownChevron" class="fa-solid fa-chevron-down text-[10px] {{ $isCustomSort ? 'text-indigo-500' : 'text-slate-300' }} transition-transform duration-200"></i>
                 </button>
-                @if(request()->hasAny(['search', 'role']))
-                    <a href="{{ route('admin.users.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold transition" title="Reset Filter">
+
+                <!-- Menu Popover Dropdown Urutkan -->
+                <div id="sortDropdownMenu" 
+                     class="hidden absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl z-30 py-2 divide-y divide-slate-100 animate-scale-in">
+                    <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Kriteria Pengurutan
+                    </div>
+                    <div class="py-1">
+                        <button type="button" 
+                                onclick="applyUserSort('latest')" 
+                                class="w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition {{ $currentSort === 'latest' ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-700 font-medium' }}">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-slate-400 text-[11px]"></i>
+                                <span>Terdaftar Terbaru</span>
+                            </span>
+                            @if($currentSort === 'latest')
+                                <i class="fa-solid fa-check text-indigo-600 text-[10px]"></i>
+                            @endif
+                        </button>
+                        <button type="button" 
+                                onclick="applyUserSort('oldest')" 
+                                class="w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition {{ $currentSort === 'oldest' ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-700 font-medium' }}">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-regular fa-clock text-slate-400 text-[11px]"></i>
+                                <span>Terdaftar Terlama</span>
+                            </span>
+                            @if($currentSort === 'oldest')
+                                <i class="fa-solid fa-check text-indigo-600 text-[10px]"></i>
+                            @endif
+                        </button>
+                        <button type="button" 
+                                onclick="applyUserSort('name_asc')" 
+                                class="w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition {{ $currentSort === 'name_asc' ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-700 font-medium' }}">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-down-a-z text-slate-400 text-[11px]"></i>
+                                <span>Nama Pengguna (A &rarr; Z)</span>
+                            </span>
+                            @if($currentSort === 'name_asc')
+                                <i class="fa-solid fa-check text-indigo-600 text-[10px]"></i>
+                            @endif
+                        </button>
+                        <button type="button" 
+                                onclick="applyUserSort('name_desc')" 
+                                class="w-full px-3.5 py-2 text-left text-xs flex items-center justify-between hover:bg-slate-50 transition {{ $currentSort === 'name_desc' ? 'text-indigo-600 font-bold bg-indigo-50/50' : 'text-slate-700 font-medium' }}">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-down-z-a text-slate-400 text-[11px]"></i>
+                                <span>Nama Pengguna (Z &rarr; A)</span>
+                            </span>
+                            @if($currentSort === 'name_desc')
+                                <i class="fa-solid fa-check text-indigo-600 text-[10px]"></i>
+                            @endif
+                        </button>
+                    </div>
+                </div>
+
+                @if(request()->anyFilled(['search', 'role']) || request('sort', 'latest') !== 'latest')
+                    <a href="{{ route('admin.users.index') }}" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold transition flex items-center gap-1.5" title="Reset Filter & Urutan">
                         <i class="fa-solid fa-arrow-rotate-left"></i>
+                        <span class="hidden sm:inline">Reset</span>
                     </a>
                 @endif
             </div>
@@ -486,5 +565,37 @@
         document.getElementById('deleteUserModal').classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
     }
+
+    function toggleSortDropdown() {
+        const menu = document.getElementById('sortDropdownMenu');
+        const chevron = document.getElementById('sortDropdownChevron');
+        if (menu) {
+            menu.classList.toggle('hidden');
+        }
+        if (chevron) {
+            chevron.classList.toggle('rotate-180');
+        }
+    }
+
+    function applyUserSort(sortValue) {
+        const sortInput = document.getElementById('userSortInput');
+        const form = document.getElementById('usersFilterForm');
+        if (sortInput && form) {
+            sortInput.value = sortValue;
+            form.submit();
+        }
+    }
+
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('sortDropdownContainer');
+        const menu = document.getElementById('sortDropdownMenu');
+        const chevron = document.getElementById('sortDropdownChevron');
+        if (container && menu && !container.contains(e.target)) {
+            menu.classList.add('hidden');
+            if (chevron) {
+                chevron.classList.remove('rotate-180');
+            }
+        }
+    });
 </script>
 @endsection

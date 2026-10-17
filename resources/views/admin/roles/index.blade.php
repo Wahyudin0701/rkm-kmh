@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Matriks Role & Permission (RBAC) - Super Admin RKM')
+@section('title', 'Matriks Peran & Hak Akses Pengguna - Super Admin | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="space-y-6">
@@ -9,10 +9,10 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
                 <span class="w-2.5 h-7 rounded-full bg-indigo-600 inline-block"></span>
-                Matriks Role & Hak Akses (RBAC)
+                Matriks Peran & Hak Akses Pengguna
             </h1>
             <p class="text-xs text-slate-500 mt-1">
-                Konfigurasi izin wewenang (permissions) untuk setiap role pengguna menggunakan paket Spatie Laravel Permission.
+                Atur wewenang dan batasan menu untuk setiap jabatan atau peran pengguna di lingkungan PT Kerinci Merangin Hidro.
             </p>
         </div>
         <div class="flex items-center gap-2.5">
@@ -61,9 +61,9 @@
             <i class="fa-solid fa-crown"></i>
         </div>
         <div>
-            <h2 class="font-bold text-indigo-950">Privilese Khusus Super Administrator (Gate::before Bypass)</h2>
+            <h2 class="font-bold text-indigo-950">Hak Akses Penuh Super Administrator</h2>
             <p class="text-indigo-800/80 mt-0.5 leading-relaxed">
-                Role <strong>super_admin</strong> secara otomatis memiliki hak akses tak terbatas ke seluruh modul sistem (HSE, QMA, PG, dan Pengaturan RBAC) melalui interceptor gerbang Laravel. Matriks centang di bawah ini berlaku aktif untuk role operasional lainnya.
+                Akun dengan peran <strong>Super Administrator</strong> secara otomatis memiliki akses penuh ke seluruh menu dan modul sistem tanpa batasan. Pilihan centang di bawah ini digunakan untuk mengatur batasan akses pada peran staf operasional lainnya.
             </p>
         </div>
     </div>
@@ -94,16 +94,16 @@
                                 <i class="fa-solid fa-trash-can text-xs"></i>
                             </button>
                         @else
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Core</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Peran Utama</span>
                         @endif
                     </div>
                     <h2 class="text-xs font-bold text-slate-800 capitalize">{{ str_replace('_', ' ', $role->name) }}</h2>
                     <p class="text-[10px] text-slate-400 mt-0.5 font-mono">{{ $role->name }}</p>
                 </div>
                 <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                    <span class="text-slate-500">Izin Aktif:</span>
+                    <span class="text-slate-500">Jumlah Hak Akses:</span>
                     <span class="font-bold text-indigo-700">
-                        {{ $role->name === 'super_admin' ? 'Semua' : $role->permissions->count() }}
+                        {{ $role->name === 'super_admin' ? 'Akses Lengkap' : $role->permissions->count() . ' Izin' }}
                     </span>
                 </div>
             </div>
@@ -121,12 +121,12 @@
                         </div>
                         <div>
                             <h2 class="text-sm font-bold text-slate-900 capitalize flex items-center gap-2">
-                                <span>Role: {{ str_replace('_', ' ', $role->name) }}</span>
+                                <span>Peran: {{ str_replace('_', ' ', $role->name) }}</span>
                                 @if($role->name === 'super_admin')
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800">UNRESTRICTED</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800">AKSES LENGKAP</span>
                                 @endif
                             </h2>
-                            <p class="text-[11px] text-slate-400">Atur centang hak akses yang diizinkan untuk peran pengguna ini.</p>
+                            <p class="text-[11px] text-slate-400">Atur centang hak akses menu yang diizinkan untuk peran pengguna ini.</p>
                         </div>
                     </div>
 
@@ -158,7 +158,7 @@
                                         <i class="{{ $module['icon'] }} text-indigo-600 text-xs"></i>
                                         <span>{{ $module['name'] }}</span>
                                     </span>
-                                    <span class="text-[10px] text-slate-400 font-semibold">{{ count($module['permissions']) }} izin</span>
+                                    <span class="text-[10px] text-slate-400 font-semibold">{{ count($module['permissions']) }} hak akses</span>
                                 </h3>
 
                                 <div class="space-y-2">

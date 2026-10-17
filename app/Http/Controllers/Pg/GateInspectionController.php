@@ -69,8 +69,25 @@ class GateInspectionController extends Controller
         $currentGuard = $user ? $user->securityGuard : null;
         $guards = SecurityGuard::where('is_active', true)->orderBy('name')->get();
 
+        $items = $pendingActivities->map(function ($act) {
+            $unitText = trim(($act->vehicle->brand_type ?? 'Kendaraan') . ' ' . ($act->vehicle->code ?? ''));
+            $driverText = $act->driver->name ?? 'Pengemudi';
+            $directionText = strtolower($act->direction) === 'in' ? 'akan masuk gerbang' : 'akan keluar gerbang';
+
+            return [
+                'id' => $act->id,
+                'code' => $act->vehicle->code ?? '',
+                'brand_type' => $act->vehicle->brand_type ?? '',
+                'license_plate' => $act->vehicle->license_plate ?? '',
+                'driver_name' => $driverText,
+                'direction' => strtolower($act->direction),
+                'announcement' => "Perhatian, Unit {$unitText}, pengemudi {$driverText}, {$directionText}.",
+            ];
+        });
+
         return response()->json([
             'count' => $pendingActivities->count(),
+            'items' => $items,
             'html' => view('pg.partials.queue_cards', compact('pendingActivities', 'currentGuard', 'guards'))->render(),
         ]);
     }

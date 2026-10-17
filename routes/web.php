@@ -54,6 +54,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index')->middleware('permission:hse.employees.view');
         Route::get('/employees/export-excel', [EmployeeController::class, 'exportExcel'])->name('employees.export_excel')->middleware('permission:hse.employees.view');
         Route::get('/employees/export-pdf', [EmployeeController::class, 'exportPdf'])->name('employees.export_pdf')->middleware('permission:hse.employees.view');
+        Route::get('/employees/template-import', [EmployeeController::class, 'downloadImportTemplate'])->name('employees.import_template')->middleware('permission:hse.employees.create');
+        Route::post('/employees/import', [EmployeeController::class, 'import'])->name('employees.import')->middleware('permission:hse.employees.create');
         Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store')->middleware('permission:hse.employees.create');
         Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
     });

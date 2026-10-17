@@ -50,11 +50,19 @@
                 </div>
             </div>
 
-            <!-- Tombol Tambah Karyawan (+ Tambah Karyawan Hijau Tua) -->
+            <!-- Tombol Tambah & Impor Karyawan (Diatur Hak Akses hse.employees.create) -->
             @can('hse.employees.create')
             <button type="button" 
-                    onclick="document.getElementById('addKaryawanModal').classList.remove('hidden')" 
-                    class="w-full sm:w-auto flex-1 sm:flex-none bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
+                    onclick="openImportKaryawanModal()" 
+                    class="w-full sm:w-auto flex-1 sm:flex-none border border-emerald-600/30 text-emerald-800 bg-emerald-50/60 hover:bg-emerald-100/70 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer"
+                    title="Impor Data Karyawan secara Massal dari File Excel / CSV">
+                <i class="fa-solid fa-file-arrow-up text-emerald-700 text-sm"></i>
+                <span class="truncate">Impor Data</span>
+            </button>
+            <button type="button" 
+                    onclick="openAddKaryawanModal()" 
+                    class="w-full sm:w-auto flex-1 sm:flex-none bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer"
+                    title="Tambah Karyawan Baru Secara Manual">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span class="truncate">Tambah Karyawan</span>
             </button>
@@ -138,7 +146,7 @@
                         @endphp
                         <tr class="simper-row hover:bg-slate-50/70 transition">
                             <!-- Nomor -->
-                            <td class="py-3.5 px-4 text-center font-medium text-slate-400">{{ $index + 1 }}</td>
+                            <td class="py-3.5 px-4 text-center font-medium text-slate-400">{{ $employees->firstItem() ? ($employees->firstItem() + $index) : ($index + 1) }}</td>
                             
                             <!-- NIK (Font Bold Hitam Tegas) -->
                             <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs">{{ $emp->nik }}</td>
@@ -246,6 +254,177 @@
 </div>
 
 
+
+<!-- ========================================================================= -->
+<!-- MODAL: TAMBAH KARYAWAN MANUAL -->
+<!-- ========================================================================= -->
+<div id="addKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus text-[#1b5e20]"></i>
+                    <span>Tambah Data Karyawan</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Daftarkan karyawan baru beserta informasi SIMPER jika pengemudi.</p>
+            </div>
+            <button type="button" onclick="closeAddKaryawanModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <form action="{{ route('hse.employees.store') }}" method="POST" class="mt-5 space-y-4">
+            @csrf
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">NIK (Nomor Induk Karyawan) <span class="text-rose-500">*</span></label>
+                    <input type="text" name="nik" required placeholder="Contoh: KMH-2026-101" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Lengkap <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" required placeholder="Contoh: Muhammad Rizki" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Unit Kerja <span class="text-rose-500">*</span></label>
+                    <select name="unit_kerja" required class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                        <option value="Pembangkit">Pembangkit</option>
+                        <option value="Bendungan">Bendungan</option>
+                        <option value="Teknik">Teknik</option>
+                        <option value="Umum" selected>Umum</option>
+                        <option value="Logistik">Logistik</option>
+                        <option value="HSE">HSE</option>
+                        <option value="QMA">QMA</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Divisi <span class="text-rose-500">*</span></label>
+                    <input type="text" name="division" required placeholder="Contoh: Operasi" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Posisi / Jabatan <span class="text-rose-500">*</span></label>
+                    <input type="text" name="position" required placeholder="Contoh: Driver" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Operator / Driver <span class="text-rose-500">*</span></label>
+                    <select name="is_operator" id="addOperatorSelect" onchange="toggleAddSimperDate(this.value)" required 
+                            class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                        <option value="1">YA (Aktif Mengemudi)</option>
+                        <option value="0">TIDAK (Bukan Driver)</option>
+                    </select>
+                </div>
+                <div id="addSimperDateWrapper">
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Masa Berlaku SIMPER</label>
+                    <input type="date" name="simper_expired_at" id="addSimperDateInput" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                </div>
+            </div>
+
+            <div class="pt-5 border-t border-slate-100 flex items-center justify-end gap-2.5 mt-5">
+                <button type="button" onclick="closeAddKaryawanModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
+                    Simpan Karyawan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL: IMPOR DATA KARYAWAN EXCEL -->
+<!-- ========================================================================= -->
+<div id="importKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                    <span>Impor Data Karyawan via Excel</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Unggah data karyawan secara massal menggunakan file Excel (.xlsx) atau CSV (.csv).</p>
+            </div>
+            <button type="button" onclick="closeImportKaryawanModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Banner Unduh Template -->
+        <div class="mt-4 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fa-regular fa-file-excel"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-emerald-950">Unduh Format Template</p>
+                    <p class="text-[11px] text-emerald-700">Format kolom resmi agar data dapat diproses otomatis tanpa kendala.</p>
+                </div>
+            </div>
+            <a href="{{ route('hse.employees.import_template') }}" 
+               class="px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 flex-shrink-0 shadow-xs"
+               title="Unduh Template Excel">
+                <i class="fa-solid fa-download text-[11px]"></i>
+                <span>Unduh</span>
+            </a>
+        </div>
+
+        <form action="{{ route('hse.employees.import') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
+            @csrf
+
+            <!-- Upload Box -->
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-2">Pilih File Spreadsheet <span class="text-rose-500">*</span></label>
+                <div class="border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-2xl p-6 text-center bg-slate-50/60 hover:bg-white transition cursor-pointer relative"
+                     onclick="document.getElementById('importFileInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-emerald-600 mb-2 block"></i>
+                    <p class="text-xs font-bold text-slate-800" id="importFileName">Klik untuk memilih file spreadsheet</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Mendukung format Microsoft Excel (.xlsx) atau file teks CSV (.csv)</p>
+                    <input type="file" 
+                           name="file" 
+                           id="importFileInput" 
+                           accept=".xlsx,.csv" 
+                           required 
+                           class="hidden" 
+                           onchange="handleImportFileChange(this)">
+                </div>
+            </div>
+
+            <!-- Petunjuk Ringkas -->
+            <div class="bg-slate-50 border border-slate-200/70 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
+                <p class="font-bold text-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-info text-emerald-600"></i>
+                    <span>Informasi Pemrosesan:</span>
+                </p>
+                <ul class="list-disc list-inside text-[11px] text-slate-500 space-y-0.5 pl-1">
+                    <li>Jika NIK sudah ada di database, data karyawan akan <strong>diperbarui (update)</strong>.</li>
+                    <li>Jika NIK baru, sistem otomatis <strong>menambahkan data & membuat akun login karyawan</strong>.</li>
+                    <li>Pastikan kolom NIK dan Nama tidak kosong pada setiap baris data.</li>
+                </ul>
+            </div>
+
+            <!-- Tombol Footer -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeImportKaryawanModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-import text-xs"></i>
+                    <span>Unggah & Proses Impor</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- Modal Dialog Perpanjang SIMPER (Clean White Card) -->
 <div id="renewModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
@@ -640,9 +819,53 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            closeAddKaryawanModal();
+            closeImportKaryawanModal();
             const exportMenu = document.getElementById('exportMenuSimper');
             if (exportMenu) exportMenu.style.display = 'none';
         }
     });
+
+    // Modal Tambah Karyawan Manual
+    function openAddKaryawanModal() {
+        const modal = document.getElementById('addKaryawanModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+    function closeAddKaryawanModal() {
+        const modal = document.getElementById('addKaryawanModal');
+        if (modal) modal.classList.add('hidden');
+    }
+    function toggleAddSimperDate(val) {
+        const wrapper = document.getElementById('addSimperDateWrapper');
+        const input = document.getElementById('addSimperDateInput');
+        if (wrapper) {
+            if (val === '1') {
+                wrapper.style.display = 'block';
+            } else {
+                wrapper.style.display = 'none';
+                if (input) input.value = '';
+            }
+        }
+    }
+
+    // Modal Impor Karyawan via Excel
+    function openImportKaryawanModal() {
+        const modal = document.getElementById('importKaryawanModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+    function closeImportKaryawanModal() {
+        const modal = document.getElementById('importKaryawanModal');
+        if (modal) modal.classList.add('hidden');
+    }
+    function handleImportFileChange(input) {
+        const display = document.getElementById('importFileName');
+        if (input.files && input.files[0]) {
+            display.textContent = 'File terpilih: ' + input.files[0].name;
+            display.classList.add('text-emerald-700');
+        } else {
+            display.textContent = 'Klik untuk memilih file spreadsheet';
+            display.classList.remove('text-emerald-700');
+        }
+    }
 </script>
 @endsection

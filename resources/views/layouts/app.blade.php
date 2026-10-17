@@ -160,7 +160,8 @@
 
             <!-- Menu Navigasi Sidebar -->
             <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6 no-scrollbar">
-                <!-- Grup: Navigasi Utama -->
+                <!-- Grup: Navigasi Utama (Dashboard Utama) -->
+                @if(!auth()->user()->isGateOfficer())
                 <div>
                     <nav class="space-y-1">
                         @if(auth()->user()->isSuperAdmin())
@@ -213,14 +214,6 @@
                                 <span>Dashboard</span>
                             </a>
                             @endcan
-                        @elseif(auth()->user()->isGateOfficer())
-                            @can('gate.inspect')
-                            <a href="{{ route('pg.gate.inspection') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
-                                <span>Verifikasi Pos Gerbang</span>
-                            </a>
-                            @endcan
                         @elseif(auth()->user()->isEmployee())
                             <a href="{{ route('employee.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
@@ -245,6 +238,7 @@
                         @endif
                     </nav>
                 </div>
+                @endif
 
                 <!-- Grup: Super Admin & RBAC -->
                 @if(auth()->user()->isSuperAdmin())
@@ -399,15 +393,13 @@
                             </a>
                         @endcan
 
-                        @if(!auth()->user()->isGateOfficer())
-                            @can('gate.inspect')
-                                <a href="{{ route('pg.gate.inspection') }}" 
-                                   class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                    <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
-                                    <span>Verifikasi Pos Gerbang</span>
-                                </a>
-                            @endcan
-                        @endif
+                        @can('gate.inspect')
+                            <a href="{{ route('pg.gate.inspection') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
+                                <span>Verifikasi Pos Gerbang</span>
+                            </a>
+                        @endcan
                     </nav>
                 </div>
                 @endif
@@ -468,6 +460,7 @@
 
             <div class="p-4 space-y-4 flex-1 overflow-y-auto no-scrollbar">
                 <!-- Grup: Navigasi Utama Mobile -->
+                @if(!auth()->user()->isGateOfficer())
                 <div>
                     <nav class="space-y-1">
                         @if(auth()->user()->isSuperAdmin())
@@ -516,13 +509,6 @@
                                 <span>Dashboard</span>
                             </a>
                             @endcan
-                        @elseif(auth()->user()->isGateOfficer())
-                            @can('gate.inspect')
-                            <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-shield-halved text-base w-5 text-center"></i>
-                                <span>Verifikasi Pos Gerbang</span>
-                            </a>
-                            @endcan
                         @elseif(auth()->user()->isEmployee())
                             <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -544,6 +530,7 @@
                         @endif
                     </nav>
                 </div>
+                @endif
 
                 <!-- Grup: Super Admin & RBAC Mobile -->
                 @if(auth()->user()->isSuperAdmin())
@@ -684,14 +671,12 @@
                                 <span>Log Verifikasi Gerbang</span>
                             </a>
                         @endcan
-                        @if(!auth()->user()->isGateOfficer())
-                            @can('gate.inspect')
-                                <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                    <i class="fa-solid fa-shield-halved w-5 text-center"></i>
-                                    <span>Verifikasi Pos Gerbang</span>
-                                </a>
-                            @endcan
-                        @endif
+                        @can('gate.inspect')
+                            <a href="{{ route('pg.gate.inspection') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('pg.gate.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-shield-halved w-5 text-center"></i>
+                                <span>Verifikasi Pos Gerbang</span>
+                            </a>
+                        @endcan
                     </nav>
                 </div>
                 @endif
@@ -988,40 +973,54 @@
             }
         }
 
-        let isBackdropClickTarget = false;
-        let activeBackdropTargetModal = null;
+        let isMouseDownOnBackdrop = false;
+        let activeBackdropModal = null;
 
         document.addEventListener('mousedown', function(e) {
             const modal = e.target.closest('[id$="Modal"], [id$="modal"], .fixed.inset-0.z-50');
             if (modal && !modal.classList.contains('hidden') && modal.id !== 'mobileDrawer') {
                 const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
+                // Tandai mousedown hanya jika terjadi langsung di luar kartu dialog (pada area backdrop)
                 if (dialogCard && !dialogCard.contains(e.target)) {
-                    isBackdropClickTarget = true;
-                    activeBackdropTargetModal = modal;
+                    isMouseDownOnBackdrop = true;
+                    activeBackdropModal = modal;
                     return;
                 }
             }
-            isBackdropClickTarget = false;
-            activeBackdropTargetModal = null;
+            isMouseDownOnBackdrop = false;
+            activeBackdropModal = null;
         });
 
-        document.addEventListener('mouseup', function(e) {
-            if (isBackdropClickTarget && activeBackdropTargetModal) {
-                const modal = activeBackdropTargetModal;
-                if (!modal.classList.contains('hidden')) {
-                    const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
-                    if (dialogCard && !dialogCard.contains(e.target)) {
-                        closeAnyActiveModal(modal);
+        // Dukungan klik langsung pada backdrop (hanya tutup jika mousedown & click keduanya murni pada backdrop dan tidak sedang memblok teks)
+        document.addEventListener('click', function(e) {
+            // Jika mousedown tidak bermula di area backdrop, abaikan klik
+            // (Mencegah modal tertutup saat pengguna memblok / drag teks dari dalam form input)
+            if (!isMouseDownOnBackdrop || !activeBackdropModal) {
+                isMouseDownOnBackdrop = false;
+                activeBackdropModal = null;
+                return;
+            }
+
+            const modal = activeBackdropModal;
+            isMouseDownOnBackdrop = false;
+            activeBackdropModal = null;
+
+            // Proteksi: jangan tutup modal jika pengguna sedang menyeleksi / memblok teks
+            const selection = window.getSelection();
+            if (selection && selection.toString().trim().length > 0) {
+                return;
+            }
+
+            const activeEl = document.activeElement;
+            if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA')) {
+                if (typeof activeEl.selectionStart === 'number' && typeof activeEl.selectionEnd === 'number') {
+                    if (activeEl.selectionStart !== activeEl.selectionEnd) {
+                        return;
                     }
                 }
             }
-            isBackdropClickTarget = false;
-            activeBackdropTargetModal = null;
-        });
 
-        // Dukungan klik langsung pada backdrop
-        document.addEventListener('click', function(e) {
-            const modal = e.target.closest('[id$="Modal"], [id$="modal"], .fixed.inset-0.z-50');
+            // Pastikan click target saat dilepas juga berada di area backdrop (di luar dialog card)
             if (modal && !modal.classList.contains('hidden') && modal.id !== 'mobileDrawer') {
                 const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
                 if (dialogCard && !dialogCard.contains(e.target)) {

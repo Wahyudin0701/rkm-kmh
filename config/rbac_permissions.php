@@ -3,7 +3,7 @@
 return [
     'modules' => [
         'users' => [
-            'name' => 'Manajemen Pengguna (User Management)',
+            'name' => 'Manajemen Akun Pengguna',
             'icon' => 'fa-solid fa-users',
             'permissions' => [
                 'users.view' => [
@@ -12,7 +12,7 @@ return [
                 ],
                 'users.create' => [
                     'label' => 'Menambah Pengguna Baru',
-                    'description' => 'Membuat akun pengguna baru dan menetapkan kredensial awal.',
+                    'description' => 'Membuat akun login baru untuk karyawan atau petugas lapangan.',
                 ],
                 'users.edit' => [
                     'label' => 'Mengubah Data Pengguna',
@@ -20,163 +20,163 @@ return [
                 ],
                 'users.change_password' => [
                     'label' => 'Mengubah Password Pengguna',
-                    'description' => 'Mereset atau memperbarui kata sandi pengguna dari panel admin.',
+                    'description' => 'Mengatur ulang kata sandi (password) akun pengguna.',
                 ],
                 'users.assign_role' => [
-                    'label' => 'Menetapkan Role Pengguna',
-                    'description' => 'Menetapkan atau mengubah wewenang role Spatie kepada pengguna.',
+                    'label' => 'Menentukan Peran Pengguna',
+                    'description' => 'Menentukan jabatan atau peran tugas pengguna di sistem (misal: Admin HSE, Petugas Satpam, Karyawan).',
                 ],
                 'users.delete' => [
                     'label' => 'Menghapus Pengguna',
-                    'description' => 'Menghapus akun pengguna dari sistem (dengan proteksi akun utama).',
+                    'description' => 'Menghapus akun pengguna dari sistem (akun administrator utama terlindungi).',
                 ],
             ],
         ],
         'roles' => [
-            'name' => 'Manajemen Role & RBAC (Role & Permissions)',
+            'name' => 'Pengaturan Peran & Hak Akses',
             'icon' => 'fa-solid fa-shield-halved',
             'permissions' => [
                 'roles.view' => [
-                    'label' => 'Melihat Matriks Role & Hak Akses',
-                    'description' => 'Melihat daftar role dan pemetaan centang izin wewenang sistem.',
+                    'label' => 'Melihat Daftar Peran & Hak Akses',
+                    'description' => 'Melihat daftar jabatan dan rincian menu yang boleh diakses.',
                 ],
                 'roles.create' => [
-                    'label' => 'Membuat Role Kustom Baru',
-                    'description' => 'Menambahkan role tingkatan wewenang baru ke dalam sistem.',
+                    'label' => 'Membuat Role Baru',
+                    'description' => 'Membuat jabatan atau peran baru di luar peran bawaan sistem.',
                 ],
                 'roles.edit_permissions' => [
-                    'label' => 'Mengubah Hak Akses Role',
-                    'description' => 'Memperbarui centang matriks izin/permissions untuk setiap role.',
+                    'label' => 'Mengatur Hak Akses Peran',
+                    'description' => 'Menentukan menu dan tindakan apa saja yang boleh dibuka oleh suatu peran.',
                 ],
                 'roles.delete' => [
-                    'label' => 'Menghapus Role Kustom',
-                    'description' => 'Menghapus role kustom yang sudah tidak digunakan (role inti terlindungi).',
+                    'label' => 'Menghapus Role Tambahan',
+                    'description' => 'Menghapus peran tambahan yang sudah tidak digunakan (peran utama sistem terlindungi).',
                 ],
             ],
         ],
         'hse' => [
-            'name' => 'Modul HSE (Karyawan & SIMPER)',
+            'name' => 'Modul K3 / HSE (Karyawan & SIMPER)',
             'icon' => 'fa-solid fa-id-card',
             'permissions' => [
                 'hse.employees.view' => [
                     'label' => 'Melihat Data Karyawan & SIMPER',
-                    'description' => 'Melihat daftar master karyawan, status operator/driver, dan masa berlaku SIMPER.',
+                    'description' => 'Melihat daftar karyawan, izin mengemudi (SIMPER), dan masa berlakunya.',
                 ],
                 'hse.employees.create' => [
-                    'label' => 'Menambah Data Karyawan / Driver',
-                    'description' => 'Menambahkan karyawan baru ke master data HSE.',
+                    'label' => 'Mendaftarkan Karyawan Baru',
+                    'description' => 'Mendaftarkan data karyawan atau pengemudi baru ke dalam sistem.',
                 ],
                 'hse.employees.edit' => [
-                    'label' => 'Mengubah Data Karyawan / SIMPER',
-                    'description' => 'Memperbarui status driver, unit kerja, divisi, dan perpanjangan tanggal SIMPER.',
+                    'label' => 'Memperbarui Data Karyawan & SIMPER',
+                    'description' => 'Mengubah data karyawan, status pengemudi, atau memperpanjang tanggal masa berlaku SIMPER.',
                 ],
             ],
         ],
         'qma' => [
-            'name' => 'Modul QMA (Kendaraan & Log Aktivitas)',
+            'name' => 'Modul Operasional Armada & Kendaraan',
             'icon' => 'fa-solid fa-car',
             'permissions' => [
                 'qma.vehicles.view' => [
-                    'label' => 'Melihat Master Kendaraan',
-                    'description' => 'Melihat master data kendaraan ringan (LV) dan unit support.',
+                    'label' => 'Melihat Daftar Kendaraan (LV & Alat Berat)',
+                    'description' => 'Melihat daftar armada mobil operasional (LV) dan unit alat berat proyek.',
                 ],
                 'qma.vehicles.create' => [
-                    'label' => 'Menambah Unit Kendaraan',
-                    'description' => 'Menambahkan unit kendaraan baru dan dokumen kendaraan.',
+                    'label' => 'Mendaftarkan Kendaraan Baru',
+                    'description' => 'Mendaftarkan unit kendaraan baru beserta kelengkapan surat dan dokumen teknisnya.',
                 ],
                 'qma.vehicles.edit' => [
-                    'label' => 'Mengubah Data Kendaraan',
-                    'description' => 'Memperbarui informasi status, HM/KM, dokumen STNK/KIR/SILO kendaraan.',
+                    'label' => 'Memperbarui Data Kendaraan',
+                    'description' => 'Mengubah status operasional, angka kilometer/HM, dan masa berlaku dokumen kendaraan (STNK/KIR/SILO).',
                 ],
                 'qma.vehicles.delete' => [
-                    'label' => 'Menghapus Data Kendaraan',
-                    'description' => 'Menghapus unit kendaraan (terlindungi jika memiliki riwayat aktivitas).',
+                    'label' => 'Menghapus Kendaraan',
+                    'description' => 'Menghapus data kendaraan dari sistem (terlindungi jika memiliki riwayat perjalanan).',
                 ],
                 'qma.logs.view' => [
-                    'label' => 'Melihat Log Aktivitas Kendaraan',
-                    'description' => 'Melihat riwayat 10 kolom pergerakan kendaraan masuk/keluar proyek.',
+                    'label' => 'Melihat Catatan Perjalanan (Timesheet LV)',
+                    'description' => 'Melihat riwayat mobilisasi kendaraan operasional, nama pengemudi, dan jarak tempuhnya.',
                 ],
                 'qma.summary.view' => [
-                    'label' => 'Melihat Ringkasan Aktivitas & Statistik',
-                    'description' => 'Melihat summary dan grafik agregat penggunaan kendaraan.',
+                    'label' => 'Melihat Rekapitulasi & Laporan Armada',
+                    'description' => 'Melihat total kilometer, jumlah perjalanan, dan ringkasan penggunaan armada per periode.',
                 ],
                 'qma.p2h.view' => [
-                    'label' => 'Melihat Log & Rekap P2H Unit Support',
-                    'description' => 'Melihat riwayat checksheet pemeriksaan pra-harian dan ringkasan kondisi operasional unit support.',
+                    'label' => 'Melihat Riwayat Pemeriksaan Harian (P2H)',
+                    'description' => 'Melihat riwayat lembar cek fisik alat berat sebelum mulai bekerja.',
                 ],
                 'qma.p2h.approve' => [
-                    'label' => 'Menyetujui & Menolak P2H (Approval)',
-                    'description' => 'Memvalidasi kelayakan operasi unit support dan memberikan status approve/reject checksheet.',
+                    'label' => 'Persetujuan Kelayakan Alat (Approval P2H)',
+                    'description' => 'Menyetujui atau menolak izin beroperasi alat berat berdasarkan hasil checklist operator.',
                 ],
                 'qma.p2h.templates' => [
-                    'label' => 'Mengelola Master Template P2H',
-                    'description' => 'Mengatur 28 master template checksheet P2H, menambah, mengedit, dan menyusun urutan pertanyaan.',
+                    'label' => 'Mengatur Formulir Checklist Pemeriksaan',
+                    'description' => 'Menambah, mengubah, dan menyusun butir pertanyaan pada formulir checklist pemeriksaan harian.',
                 ],
             ],
         ],
         'pg' => [
-            'name' => 'Modul Private Guard (Satpam & Verifikasi Gerbang)',
+            'name' => 'Modul Keamanan & Pos Satpam',
             'icon' => 'fa-solid fa-user-shield',
             'permissions' => [
                 'pg.guards.view' => [
-                    'label' => 'Melihat Data Satpam',
-                    'description' => 'Melihat daftar personil satpam, regu/tim jaga, dan penempatan pos gerbang.',
+                    'label' => 'Melihat Daftar Petugas Satpam',
+                    'description' => 'Melihat daftar personil satpam, pembagian regu piket, dan penempatan pos jaga.',
                 ],
                 'pg.guards.create' => [
-                    'label' => 'Menambah Personil Satpam Baru',
-                    'description' => 'Mendaftarkan satpam baru dan otomatis membuatkan akun login lapangan.',
+                    'label' => 'Mendaftarkan Petugas Satpam Baru',
+                    'description' => 'Menambahkan personil satpam baru dan otomatis membuatkan akun login pos jaga.',
                 ],
                 'pg.guards.edit' => [
-                    'label' => 'Mengubah Data Satpam',
-                    'description' => 'Mengubah regu, nama, nomor badge, dan pos penugasan satpam.',
+                    'label' => 'Memperbarui Data Petugas Satpam',
+                    'description' => 'Mengubah nama, nomor badge, regu jaga, atau memindahkan pos penugasan satpam.',
                 ],
                 'pg.guards.toggle' => [
-                    'label' => 'Mengaktifkan / Menonaktifkan Satpam',
-                    'description' => 'Mengubah status aktif personil satpam untuk bertugas di pos.',
+                    'label' => 'Mengubah Status Tugas Satpam',
+                    'description' => 'Mengaktifkan atau menonaktifkan status tugas personil satpam di lapangan.',
                 ],
                 'pg.guards.delete' => [
-                    'label' => 'Menghapus Data Satpam',
-                    'description' => 'Menghapus personil satpam dan akun login terkait.',
+                    'label' => 'Menghapus Petugas Satpam',
+                    'description' => 'Menghapus data personil satpam dan mencabut akun login posnya.',
                 ],
                 'pg.logs.view' => [
-                    'label' => 'Melihat Log Verifikasi Pos Gerbang',
-                    'description' => 'Melihat riwayat audit pemeriksaan yang telah disetujui / ditolak oleh satpam.',
+                    'label' => 'Melihat Riwayat Keluar-Masuk Gerbang',
+                    'description' => 'Melihat catatan kendaraan yang diperiksa, disetujui, atau ditolak oleh satpam di pos gerbang.',
                 ],
             ],
         ],
         'gate' => [
-            'name' => 'Pos Gerbang Lapangan (Gate Officer Verification)',
+            'name' => 'Pemeriksaan di Pos Gerbang',
             'icon' => 'fa-solid fa-shield-halved',
             'permissions' => [
                 'gate.inspect' => [
                     'label' => 'Membuka Layar Antrean Pos Gerbang',
-                    'description' => 'Melihat antrean live kendaraan yang masuk/keluar di pos gerbang.',
+                    'description' => 'Melihat antrean langsung kendaraan yang tiba di pos gerbang untuk diperiksa.',
                 ],
                 'gate.approve' => [
-                    'label' => 'Menyetujui Verifikasi Kendaraan (Approve)',
-                    'description' => 'Menyetujui perlintasan kendaraan dan memperbarui odometer master.',
+                    'label' => 'Mengizinkan Kendaraan Melintas (Setujui Gerbang)',
+                    'description' => 'Menyetujui kendaraan melintas dan mencatat angka kilometer terkini.',
                 ],
                 'gate.reject' => [
-                    'label' => 'Menolak Verifikasi Kendaraan (Reject)',
-                    'description' => 'Menolak perlintasan kendaraan dengan memberikan catatan alasan.',
+                    'label' => 'Menolak Kendaraan Melintas (Tolak Gerbang)',
+                    'description' => 'Menolak kendaraan melintas gerbang dan mencatat alasan penolakannya.',
                 ],
             ],
         ],
         'employee' => [
-            'name' => 'Modul Karyawan (Operator & Pengemudi Lapangan)',
+            'name' => 'Menu Mandiri Karyawan & Pengemudi',
             'icon' => 'fa-solid fa-id-badge',
             'permissions' => [
                 'employee.dashboard' => [
-                    'label' => 'Melihat Dashboard Karyawan',
-                    'description' => 'Mengakses dashboard personal karyawan, ringkasan masa berlaku SIMPER, dan shortcut pra-operasi.',
+                    'label' => 'Membuka Halaman Utama Karyawan',
+                    'description' => 'Melihat ringkasan data diri karyawan, masa berlaku SIMPER, dan menu kerja harian.',
                 ],
                 'employee.p2h' => [
                     'label' => 'Mengisi Form P2H Unit Support',
                     'description' => 'Mengakses katalog unit support dan menginput checklist pra-harian P2H sebelum beroperasi.',
                 ],
                 'employee.timesheet' => [
-                    'label' => 'Mengisi Timesheet / Mobilisasi',
-                    'description' => 'Mencatat riwayat mobilisasi dan aktivitas operasional harian kendaraan.',
+                    'label' => 'Mencatat Perjalanan Kendaraan (Timesheet / Scan QR)',
+                    'description' => 'Mengisi formulir keberangkatan dan kepulangan mobil operasional melalui scan stiker QR.',
                 ],
             ],
         ],

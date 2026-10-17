@@ -7,10 +7,12 @@ use App\Models\Employee;
 use App\Models\User;
 use App\Services\SimperPdfExporter;
 use App\Services\SimpleXlsxExporter;
+use App\Services\SimpleXlsxImporter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 
@@ -284,6 +286,244 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Unduh format template Excel untuk impor data karyawan.
+     */
+    public function downloadImportTemplate(): Response
+    {
+        $metaLines = [
+            'PETUNJUK PENGISIAN:',
+            '1. Kolom NIK dan Nama Lengkap WAJIB diisi.',
+            '2. Kolom Operator Driver diisi YA (jika pengemudi/operator alat) atau TIDAK.',
+            '3. Kolom Masa Berlaku SIMPER format YYYY-MM-DD (contoh: 2026-12-31). Kosongkan jika bukan driver.',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'NIK' => 18,
+            'Nama Lengkap' => 28,
+            'Unit Kerja' => 20,
+            'Divisi' => 20,
+            'Jabatan' => 24,
+            'Operator Driver' => 18,
+            'Masa Berlaku SIMPER' => 22,
+        ];
+
+        $rows = [
+            [1, 'KMH-2026-001', 'Ahmad Rizky Pratama', 'Pembangkit', 'Operasi', 'Operator Turbin', 'YA', '2026-12-31'],
+            [2, 'KMH-2026-002', 'Dewi Lestari', 'Umum', 'Keuangan', 'Staff Finance', 'TIDAK', ''],
+            [3, 'KMH-2026-003', 'Hendra Saputra', 'Bendungan', 'Civil Maintenance', 'Driver Operasional', 'YA', '2027-06-30'],
+        ];
+
+        $alignments = [
+            'center', // No
+            'center', // NIK
+            'left',   // Nama
+            'left',   // Unit Kerja
+            'left',   // Divisi
+            'left',   // Jabatan
+            'center', // Operator Driver
+            'center', // SIMPER Expired
+        ];
+
+        $binary = SimpleXlsxExporter::create(
+            'TEMPLATE IMPOR DATA KARYAWAN & SIMPER - PT KERINCI MERANGIN HIDRO',
+            $metaLines,
+            $headers,
+            $rows,
+            $alignments
+        );
+
+        $fileName = 'Template_Impor_Karyawan_KMH.xlsx';
+
+        return response($binary, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($binary),
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Proses impor data karyawan secara massal dari file Excel / CSV.
+     */
+    public function import(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'max:10240'], // Max 10MB
+        ], [
+            'file.required' => 'Silakan pilih file Excel (.xlsx) atau CSV yang akan diimpor.',
+            'file.file' => 'File yang diunggah tidak valid.',
+            'file.max' => 'Ukuran file maksimal adalah 10 MB.',
+        ]);
+
+        $file = $request->file('file');
+        $extension = strtolower($file->getClientOriginalExtension() ?: (string) $file->extension());
+
+        if (!in_array($extension, ['xlsx', 'csv'])) {
+            return back()->with('error', 'Format file harus berupa Excel (.xlsx) atau file teks CSV (.csv).');
+        }
+
+        try {
+            $rows = SimpleXlsxImporter::parse($file->getRealPath(), $extension);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Gagal membaca isi file: ' . $e->getMessage());
+        }
+
+        if (empty($rows)) {
+            return back()->with('error', 'File yang diunggah kosong atau tidak memiliki data yang dapat dibaca.');
+        }
+
+        // Cari baris header (mencari baris yang mengandung 'nik' atau 'nama')
+        $headerRowIndex = null;
+        $colMap = [
+            'nik' => null,
+            'name' => null,
+            'unit_kerja' => null,
+            'division' => null,
+            'position' => null,
+            'is_operator' => null,
+            'simper_expired_at' => null,
+        ];
+
+        foreach ($rows as $rIdx => $row) {
+            $normalizedRow = array_map(fn($v) => strtolower(trim((string)$v)), $row);
+            $hasNik = false;
+            $hasName = false;
+
+            foreach ($normalizedRow as $cIdx => $cellText) {
+                if (str_contains($cellText, 'nik')) {
+                    $colMap['nik'] = $cIdx;
+                    $hasNik = true;
+                } elseif (str_contains($cellText, 'nama')) {
+                    $colMap['name'] = $cIdx;
+                    $hasName = true;
+                } elseif (str_contains($cellText, 'unit')) {
+                    $colMap['unit_kerja'] = $cIdx;
+                } elseif (str_contains($cellText, 'divisi') || str_contains($cellText, 'division')) {
+                    $colMap['division'] = $cIdx;
+                } elseif (str_contains($cellText, 'jabatan') || str_contains($cellText, 'posisi') || str_contains($cellText, 'position')) {
+                    $colMap['position'] = $cIdx;
+                } elseif (str_contains($cellText, 'operator') || str_contains($cellText, 'driver')) {
+                    $colMap['is_operator'] = $cIdx;
+                } elseif (str_contains($cellText, 'simper') || str_contains($cellText, 'berlaku') || str_contains($cellText, 'expired')) {
+                    $colMap['simper_expired_at'] = $cIdx;
+                }
+            }
+
+            if ($hasNik && $hasName) {
+                $headerRowIndex = $rIdx;
+                break;
+            }
+        }
+
+        // Fallback jika tidak ditemukan header eksplisit (asumsi urutan standar)
+        if ($headerRowIndex === null) {
+            $headerRowIndex = 0;
+            $colMap = [
+                'nik' => 1,
+                'name' => 2,
+                'unit_kerja' => 3,
+                'division' => 4,
+                'position' => 5,
+                'is_operator' => 6,
+                'simper_expired_at' => 7,
+            ];
+        }
+
+        $insertedCount = 0;
+        $updatedCount = 0;
+        $skippedCount = 0;
+
+        DB::beginTransaction();
+        try {
+            for ($i = $headerRowIndex + 1; $i < count($rows); $i++) {
+                $row = $rows[$i];
+                $nik = trim((string) ($colMap['nik'] !== null ? ($row[$colMap['nik']] ?? '') : ''));
+                $name = trim((string) ($colMap['name'] !== null ? ($row[$colMap['name']] ?? '') : ''));
+
+                // Lewati jika NIK atau Nama kosong
+                if ($nik === '' || $name === '') {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $unitKerja = trim((string) ($colMap['unit_kerja'] !== null ? ($row[$colMap['unit_kerja']] ?? 'Umum') : 'Umum'));
+                $division = trim((string) ($colMap['division'] !== null ? ($row[$colMap['division']] ?? '-') : '-'));
+                $position = trim((string) ($colMap['position'] !== null ? ($row[$colMap['position']] ?? '-') : '-'));
+
+                // Deteksi status driver (jika kolom ada dan berisi ya/driver)
+                $operatorRaw = $colMap['is_operator'] !== null ? strtolower(trim((string) ($row[$colMap['is_operator']] ?? ''))) : '';
+                $isOperator = in_array($operatorRaw, ['ya', 'yes', '1', 'true', 'driver', 'operator', 'y']);
+
+                // Deteksi tanggal SIMPER
+                $simperRaw = $colMap['simper_expired_at'] !== null ? trim((string) ($row[$colMap['simper_expired_at']] ?? '')) : '';
+                $simperExpiredAt = $isOperator ? SimpleXlsxImporter::normalizeDate($simperRaw) : null;
+
+                // 1. Sinkronisasi Akun User untuk login karyawan
+                $cleanEmail = strtolower(str_replace(['-', ' '], '', $nik)) . '@kmh.co.id';
+                $user = User::firstOrCreate(
+                    ['username' => $nik],
+                    [
+                        'name' => $name,
+                        'email' => $cleanEmail,
+                        'password' => Hash::make('password'),
+                        'role' => 'employee',
+                    ]
+                );
+
+                if (!$user->hasRole('employee')) {
+                    $user->assignRole('employee');
+                }
+
+                // 2. Simpan atau perbarui data master Employee
+                $isExisting = Employee::where('nik', $nik)->first();
+                if ($isExisting) {
+                    $isExisting->update([
+                        'name' => $name,
+                        'unit_kerja' => $unitKerja ?: 'Umum',
+                        'division' => $division ?: '-',
+                        'position' => $position ?: '-',
+                        'is_operator' => $isOperator,
+                        'simper_expired_at' => $simperExpiredAt,
+                        'user_id' => $user->id,
+                    ]);
+                    $updatedCount++;
+                } else {
+                    Employee::create([
+                        'nik' => $nik,
+                        'name' => $name,
+                        'unit_kerja' => $unitKerja ?: 'Umum',
+                        'division' => $division ?: '-',
+                        'position' => $position ?: '-',
+                        'is_operator' => $isOperator,
+                        'simper_expired_at' => $simperExpiredAt,
+                        'user_id' => $user->id,
+                    ]);
+                    $insertedCount++;
+                }
+            }
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan saat memproses data: ' . $e->getMessage());
+        }
+
+        $totalProcessed = $insertedCount + $updatedCount;
+        if ($totalProcessed === 0) {
+            return back()->with('error', 'Tidak ada data valid yang dapat diimpor dari file tersebut. Pastikan kolom NIK dan Nama terisi.');
+        }
+
+        $message = "Berhasil mengimpor {$totalProcessed} data karyawan ({$insertedCount} data baru, {$updatedCount} data diperbarui).";
+        if ($skippedCount > 0) {
+            $message .= " Sebanyak {$skippedCount} baris kosong dilewati.";
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Simpan data karyawan baru beserta izin SIMPER (Form modal tambah karyawan).
      */
     public function store(Request $request): RedirectResponse
@@ -309,6 +549,20 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? null) : null;
 
+        $user = User::firstOrCreate(
+            ['username' => $validated['nik']],
+            [
+                'name' => $validated['name'],
+                'email' => strtolower(str_replace(['-', ' '], '', $validated['nik'])) . '@kmh.co.id',
+                'password' => Hash::make('password'),
+                'role' => 'employee',
+            ]
+        );
+
+        if (!$user->hasRole('employee')) {
+            $user->assignRole('employee');
+        }
+
         Employee::create([
             'nik' => $validated['nik'],
             'name' => $validated['name'],
@@ -317,6 +571,7 @@ class EmployeeController extends Controller
             'position' => $validated['position'],
             'is_operator' => $isOperator,
             'simper_expired_at' => $simperExpiredAt,
+            'user_id' => $user->id,
         ]);
 
         return back()->with('success', "Data karyawan {$validated['name']} berhasil ditambahkan.");

@@ -466,9 +466,16 @@ class VehicleActivityTest extends TestCase
 
         $response = $this->actingAs($gateOfficer)->get(route('pg.gate.live_queue'));
         $response->assertStatus(200);
-        $response->assertJsonStructure(['count', 'html']);
+        $response->assertJsonStructure(['count', 'html', 'items']);
         $this->assertGreaterThanOrEqual(1, $response->json('count'));
         $this->assertStringContainsString('BH 8893 DI', $response->json('html'));
         $this->assertStringContainsString('Pengujian Live Queue', $response->json('html'));
+
+        // Verifikasi item pengumuman audio untuk satpam pos gerbang
+        $firstItem = $response->json('items.0');
+        $this->assertNotNull($firstItem);
+        $this->assertArrayHasKey('announcement', $firstItem);
+        $this->assertStringContainsString('Perhatian, Unit', $firstItem['announcement']);
+        $this->assertStringContainsString('akan keluar gerbang', $firstItem['announcement']);
     }
 }
