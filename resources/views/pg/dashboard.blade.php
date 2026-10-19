@@ -77,9 +77,11 @@
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-sm font-bold text-slate-900">Log Verifikasi Gerbang Terkini</h3>
+                @can('pg.logs.view')
                 <a href="{{ route('pg.logs.index') }}" class="text-xs font-bold text-[#1b5e20] hover:underline">
                     Lihat Semua
                 </a>
+                @endcan
             </div>
 
             <div class="space-y-4">
@@ -140,9 +142,11 @@
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-5">
                     <h3 class="text-sm font-bold text-slate-900">Petugas Satpam per Regu</h3>
+                    @can('pg.guards.view')
                     <a href="{{ route('pg.guards.index') }}" class="text-xs font-bold text-[#1b5e20] hover:underline">
                         Lihat Semua
                     </a>
+                    @endcan
                 </div>
 
                 <div class="space-y-4">

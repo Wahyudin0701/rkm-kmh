@@ -158,7 +158,10 @@ class Vehicle extends Model
      */
     public function determineNextAllowedDirection(): string
     {
-        $last = $this->latestActivity;
+        $last = $this->activities()
+            ->whereNotIn('validation_status', ['cancelled', 'rejected'])
+            ->latest('recorded_at')
+            ->first();
 
         if (!$last) {
             return 'ANY';

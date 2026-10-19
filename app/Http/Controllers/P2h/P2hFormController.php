@@ -63,7 +63,7 @@ class P2hFormController extends Controller
             ->firstOrFail();
 
         $user = Auth::user();
-        $employee = $user->employee;
+        $employee = $user->getOrCreateEmployee();
 
         // Validasi identitas operator di sistem HSE
         $simperError = null;
@@ -116,7 +116,7 @@ class P2hFormController extends Controller
             ->firstOrFail();
 
         $user = Auth::user();
-        $employee = $user->employee;
+        $employee = $user->getOrCreateEmployee();
 
         if ($user->isQmaAdmin() || $user->isSuperAdmin()) {
             return back()->with('error', 'Admin QMA tidak memiliki wewenang untuk mengisi formulir P2H operator. Formulir wajib diisi langsung oleh Operator alat berlisensi SIMPER aktif.');

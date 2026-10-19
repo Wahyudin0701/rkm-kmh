@@ -26,7 +26,13 @@ class VehicleActivityTest extends TestCase
 
     public function test_form_qr_loads_successfully_for_light_vehicle(): void
     {
-        $response = $this->get('/gate-activity/LV62');
+        // 1. Guest yang scan QR diarahkan ke login
+        $guestResponse = $this->get('/gate-activity/LV62');
+        $guestResponse->assertRedirect(route('login'));
+
+        // 2. User terautentikasi dapat melihat form
+        $user = User::where('role', 'employee')->first();
+        $response = $this->actingAs($user)->get('/gate-activity/LV62');
         $response->assertStatus(200);
         $response->assertSee('Input Timesheet Unit');
         $response->assertSee('LV62');
@@ -34,6 +40,26 @@ class VehicleActivityTest extends TestCase
         $response->assertDontSee('<aside', false);
         $response->assertDontSee('userProfileDropdownBtn');
         $response->assertDontSee('openDrawerBtn');
+    }
+
+    public function test_guest_scanning_qr_is_redirected_to_login_and_intended_redirects_back_to_vehicle_form(): void
+    {
+        $vehicle = Vehicle::where('code', 'LV62')->first();
+        $targetUrl = "/gate-activity/{$vehicle->code}";
+
+        // Guest scan barcode / buka URL gate-activity
+        $response = $this->get($targetUrl);
+        $response->assertRedirect(route('login'));
+
+        // Setelah diarahkan ke login, user login dengan akun driver
+        $user = User::where('role', 'employee')->first();
+        $loginResponse = $this->post('/login', [
+            'login' => $user->username,
+            'password' => 'password',
+        ]);
+
+        // Berhasil login dan sistem mengembalikan ke formulir unit yang tadi di-scan
+        $loginResponse->assertRedirect($targetUrl);
     }
 
     public function test_form_qr_hides_sidebar_and_topbar_when_accessed_by_authenticated_admin(): void
@@ -96,12 +122,13 @@ class VehicleActivityTest extends TestCase
 
     public function test_form_qr_auto_fills_driver_when_valid_nik_provided(): void
     {
-        $response = $this->get('/gate-activity/LV62?nik=KMH-2022-001');
+        $user = User::where('role', 'employee')->first();
+        $response = $this->actingAs($user)->get('/gate-activity/LV62?nik=KMH-2022-001');
 
         $response->assertStatus(200);
         $response->assertSee('Eka Sufiatna');
         $response->assertSee('KMH-2022-001');
-        $response->assertSee('Otomatis Terisi');
+        $response->assertSee('Terverifikasi Akun');
         $response->assertSee('SIMPER Aktif');
     }
 
@@ -122,18 +149,20 @@ class VehicleActivityTest extends TestCase
 
     public function test_form_qr_shows_error_when_invalid_or_expired_or_non_driver_nik_provided_via_query(): void
     {
+        $user = User::where('role', 'employee')->first();
+
         // 1. NIK Tidak terdaftar
-        $responseUnregistered = $this->get('/gate-activity/LV62?nik=KMH-9999-999');
+        $responseUnregistered = $this->actingAs($user)->get('/gate-activity/LV62?nik=KMH-9999-999');
         $responseUnregistered->assertStatus(200);
         $responseUnregistered->assertSee('tidak terdaftar dalam database SIMPER');
 
         // 2. NIK Kedaluwarsa
-        $responseExpired = $this->get('/gate-activity/LV62?nik=KMH-2023-012');
+        $responseExpired = $this->actingAs($user)->get('/gate-activity/LV62?nik=KMH-2023-012');
         $responseExpired->assertStatus(200);
         $responseExpired->assertSee('telah KEDALUWARSA');
 
         // 3. NIK Karyawan Bukan Driver (Staff Finance)
-        $responseNotDriver = $this->get('/gate-activity/LV62?nik=KMH-2021-088');
+        $responseNotDriver = $this->actingAs($user)->get('/gate-activity/LV62?nik=KMH-2021-088');
         $responseNotDriver->assertStatus(200);
         $responseNotDriver->assertSee('Bukan Driver Terdaftar');
         $responseNotDriver->assertSee('terdaftar sebagai BUKAN DRIVER');
@@ -143,10 +172,11 @@ class VehicleActivityTest extends TestCase
     {
         $vehicle = Vehicle::where('code', 'LV62')->first();
         $gate = Gate::first();
+        $user = User::where('role', 'employee')->first();
         // Driver dengan SIMPER kedaluwarsa (Randi Kurniawan)
         $expiredDriver = Employee::where('nik', 'KMH-2023-012')->first();
 
-        $response = $this->post("/gate-activity/{$vehicle->code}", [
+        $response = $this->actingAs($user)->post("/gate-activity/{$vehicle->code}", [
             'driver_id' => $expiredDriver->id,
             'gate_id' => $gate->id,
             'direction' => 'out',
@@ -165,10 +195,11 @@ class VehicleActivityTest extends TestCase
     {
         $vehicle = Vehicle::where('code', 'LV62')->first(); // current_km: 12500
         $gate = Gate::first();
+        $user = User::where('role', 'employee')->first();
         $validDriver = Employee::where('nik', 'KMH-2022-001')->first(); // Eka Sufiatna (SIMPER Aktif)
 
         // Coba input KM lebih kecil dari 12500
-        $response = $this->post("/gate-activity/{$vehicle->code}", [
+        $response = $this->actingAs($user)->post("/gate-activity/{$vehicle->code}", [
             'driver_id' => $validDriver->id,
             'gate_id' => $gate->id,
             'direction' => 'out',
@@ -184,9 +215,10 @@ class VehicleActivityTest extends TestCase
         $vehicle = Vehicle::where('code', 'LV62')->first(); // current_km: 12500
         $gate = Gate::first();
         $validDriver = Employee::where('nik', 'KMH-2022-001')->first();
+        $user = User::where('role', 'employee')->first();
 
         // 1. Transaksi pertama: KELUAR (Out)
-        $response1 = $this->post("/gate-activity/{$vehicle->code}", [
+        $response1 = $this->actingAs($user)->post("/gate-activity/{$vehicle->code}", [
             'driver_id' => $validDriver->id,
             'gate_id' => $gate->id,
             'direction' => 'out',
@@ -204,7 +236,7 @@ class VehicleActivityTest extends TestCase
         ]);
 
         // 2. Coba kirim KELUAR (Out) lagi -> Wajib Ditolak karena harus MASUK (In)!
-        $response2 = $this->post("/gate-activity/{$vehicle->code}", [
+        $response2 = $this->actingAs($user)->post("/gate-activity/{$vehicle->code}", [
             'driver_id' => $validDriver->id,
             'gate_id' => $gate->id,
             'direction' => 'out', // Error: Harus 'in'
@@ -215,7 +247,7 @@ class VehicleActivityTest extends TestCase
         $response2->assertSessionHasErrors('direction');
 
         // 3. Kirim MASUK (In) -> Berhasil!
-        $response3 = $this->post("/gate-activity/{$vehicle->code}", [
+        $response3 = $this->actingAs($user)->post("/gate-activity/{$vehicle->code}", [
             'driver_id' => $validDriver->id,
             'gate_id' => $gate->id,
             'direction' => 'in',
@@ -477,5 +509,90 @@ class VehicleActivityTest extends TestCase
         $this->assertArrayHasKey('announcement', $firstItem);
         $this->assertStringContainsString('Perhatian, Unit', $firstItem['announcement']);
         $this->assertStringContainsString('akan keluar gerbang', $firstItem['announcement']);
+    }
+
+    public function test_authenticated_employee_without_preexisting_employee_row_auto_creates_profile_and_bypasses_nik_input(): void
+    {
+        // Simulasi akun user yang dibuat dari User Management tanpa baris Employee awal (seperti Ahmad Sukaya)
+        $user = User::create([
+            'name' => 'Ahmad Sukaya',
+            'username' => 'ahmad_test',
+            'email' => 'ahmad_test@kmh.co.id',
+            'password' => bcrypt('password'),
+            'role' => 'employee',
+        ]);
+        $user->assignRole('employee');
+
+        // Pastikan awalnya memang belum ada Employee terkait
+        $this->assertDatabaseMissing('employees', [
+            'user_id' => $user->id,
+        ]);
+
+        // Saat membuka form timesheet unit LV62
+        $response = $this->actingAs($user)->get('/gate-activity/LV62');
+
+        $response->assertStatus(200);
+        // Form langsung terisi data driver terverifikasi
+        $response->assertSee('Ahmad Sukaya');
+        $response->assertSee('ahmad_test');
+        $response->assertSee('SIMPER Aktif');
+        $response->assertSee('Terverifikasi Akun');
+
+        // Database sekarang otomatis memiliki record Employee untuk user ini
+        $this->assertDatabaseHas('employees', [
+            'user_id' => $user->id,
+            'nik' => 'ahmad_test',
+            'name' => 'Ahmad Sukaya',
+            'is_operator' => true,
+        ]);
+
+        $employee = Employee::where('user_id', $user->id)->first();
+        $this->assertNotNull($employee);
+        $this->assertTrue($employee->hasValidSimper());
+        $response->assertSee('value="' . $employee->id . '"', false);
+    }
+
+    public function test_authenticated_employee_views_mobilisasi_catalog_with_verified_profile(): void
+    {
+        $user = User::create([
+            'name' => 'Driver Baru',
+            'username' => 'driver_baru',
+            'email' => 'driver_baru@kmh.co.id',
+            'password' => bcrypt('password'),
+            'role' => 'employee',
+        ]);
+        $user->assignRole('employee');
+
+        $response = $this->actingAs($user)->get('/mobilisasi');
+        $response->assertStatus(200);
+        $response->assertSee('Driver Baru');
+        $response->assertSee('driver_baru');
+        $response->assertSee('SIMPER Aktif');
+    }
+
+    public function test_super_admin_creating_employee_user_auto_links_employee_profile(): void
+    {
+        $superAdmin = User::where('role', 'super_admin')->first();
+
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.store'), [
+            'name' => 'Karyawan Baru Admin',
+            'username' => 'karyawan_admin',
+            'email' => 'karyawan_admin@kmh.co.id',
+            'password' => 'password123',
+            'role' => 'employee',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'karyawan_admin',
+            'role' => 'employee',
+        ]);
+
+        $this->assertDatabaseHas('employees', [
+            'nik' => 'karyawan_admin',
+            'name' => 'Karyawan Baru Admin',
+            'is_operator' => true,
+        ]);
     }
 }

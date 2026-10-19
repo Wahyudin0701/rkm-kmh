@@ -36,6 +36,9 @@ class LoginController extends Controller
         ]);
 
         $remember = $request->boolean('remember');
+        if ($remember) {
+            Auth::guard('web')->setRememberDuration(43200); // 30 hari (30 * 24 * 60 menit)
+        }
         $loginField = filter_var($credentials['username'], FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         if (Auth::attempt([$loginField => $credentials['username'], 'password' => $credentials['password']], $remember)) {
@@ -43,6 +46,11 @@ class LoginController extends Controller
 
             /** @var \App\Models\User $user */
             $user = Auth::user();
+
+            if ($request->session()->has('url.intended')) {
+                return redirect()->intended()
+                    ->with('success', "Selamat datang kembali, {$user->name}!");
+            }
 
             return $this->redirectBasedOnRole($user)
                 ->with('success', "Selamat datang kembali, {$user->name}!");
@@ -75,14 +83,25 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
+        if ($user->role === 'employee') {
+            if ($user->can('employee.dashboard')) {
+                return redirect()->route('employee.dashboard');
+            } elseif ($user->can('employee.p2h')) {
+                return redirect()->route('p2h.index');
+            } elseif ($user->can('employee.timesheet')) {
+                return redirect()->route('timesheet.index');
+            } else {
+                return redirect()->route('profile.index');
+            }
+        }
+
         return match ($user->role) {
-            'super_admin', 'superadmin', 'admin' => redirect()->route('superadmin.dashboard'),
+            'super_admin', 'superadmin', 'admin' => redirect()->route('admin.dashboard'),
             'hse_admin' => redirect()->route('hse.dashboard'),
             'qma_admin' => redirect()->route('qma.dashboard'),
             'pg_admin' => redirect()->route('pg.dashboard'),
             'gate_officer' => redirect()->route('pg.gate.inspection'),
-            'employee' => redirect()->route('employee.dashboard'),
-            default => redirect()->route('superadmin.dashboard'),
+            default => redirect()->route('profile.index'),
         };
     }
 }

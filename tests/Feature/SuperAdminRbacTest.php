@@ -332,4 +332,56 @@ class SuperAdminRbacTest extends TestCase
         $resOldest->assertOk();
         $resOldest->assertSee('Urutkan:');
     }
+
+    public function test_employee_p2h_permission_revocation_hides_menu_and_dashboard_card_and_blocks_access(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $employeeUser = User::factory()->create([
+            'role' => 'employee',
+        ]);
+        $employeeUser->assignRole('employee');
+
+        // 1. Sebelum izin dicabut: bisa melihat menu Pemeriksaan P2H dan kartu P2H di dashboard
+        $resBefore = $this->actingAs($employeeUser)->get(route('employee.dashboard'));
+        $resBefore->assertOk();
+        $resBefore->assertSee('Pemeriksaan P2H');
+        $resBefore->assertSee('Buka Modul Pemeriksaan P2H');
+
+        $resP2hBefore = $this->actingAs($employeeUser)->get(route('p2h.index'));
+        $resP2hBefore->assertOk();
+
+        // 2. Super Admin mencabut izin 'employee.p2h' dari role employee
+        $employeeRole = Role::findByName('employee');
+        $this->actingAs($superAdmin)->post(route('admin.roles.permissions.update', $employeeRole->id), [
+            'permissions' => ['employee.dashboard', 'employee.timesheet'], // employee.p2h dicabut
+        ]);
+
+        // 3. Verifikasi: Menu di sidebar & kartu di dashboard hilang, akses URL diblokir 403
+        $resAfter = $this->actingAs($employeeUser->fresh())->get(route('employee.dashboard'));
+        $resAfter->assertOk();
+        $resAfter->assertDontSee('Pemeriksaan P2H');
+        $resAfter->assertDontSee('Buka Modul Pemeriksaan P2H');
+
+        $resP2hAfter = $this->actingAs($employeeUser->fresh())->get(route('p2h.index'));
+        $resP2hAfter->assertForbidden();
+    }
+
+    public function test_home_page_resolves_correct_role_route_for_employee_and_super_admin(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $employeeUser = User::factory()->create([
+            'role' => 'employee',
+        ]);
+        $employeeUser->assignRole('employee');
+
+        // Super Admin gets admin.dashboard link on home page
+        $resAdminHome = $this->actingAs($superAdmin)->get(route('home'));
+        $resAdminHome->assertOk();
+        $resAdminHome->assertSee(route('admin.dashboard'));
+
+        // Employee gets employee.dashboard link on home page
+        $resEmployeeHome = $this->actingAs($employeeUser)->get(route('home'));
+        $resEmployeeHome->assertOk();
+        $resEmployeeHome->assertSee(route('employee.dashboard'));
+    }
 }

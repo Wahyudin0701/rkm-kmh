@@ -47,6 +47,7 @@ class RolePermissionSeeder extends Seeder
                 'qma.vehicles.edit',
                 'qma.vehicles.delete',
                 'qma.logs.view',
+                'qma.logs.edit_odometer',
                 'qma.summary.view',
                 'qma.p2h.view',
                 'qma.p2h.approve',

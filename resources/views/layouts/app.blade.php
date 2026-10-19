@@ -215,6 +215,7 @@
                             </a>
                             @endcan
                         @elseif(auth()->user()->isEmployee())
+                            @can('employee.dashboard')
                             <a href="{{ route('employee.dashboard') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -225,16 +226,23 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
+
+                            @can('employee.p2h')
                             <a href="{{ route('p2h.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
                                 <span>Pemeriksaan P2H</span>
                             </a>
+                            @endcan
+
+                            @can('employee.timesheet')
                             <a href="{{ route('timesheet.index') }}" 
                                class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-car text-base w-5 text-center"></i>
                                 <span>Timesheet</span>
                             </a>
+                            @endcan
                         @endif
                     </nav>
                 </div>
@@ -516,6 +524,7 @@
                             </a>
                             @endcan
                         @elseif(auth()->user()->isEmployee())
+                            @can('employee.dashboard')
                             <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
@@ -525,14 +534,21 @@
                                 </svg>
                                 <span>Dashboard</span>
                             </a>
+                            @endcan
+
+                            @can('employee.p2h')
                             <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
                                 <span>Pemeriksaan P2H</span>
                             </a>
+                            @endcan
+
+                            @can('employee.timesheet')
                             <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <i class="fa-solid fa-car text-base w-5 text-center"></i>
                                 <span>Timesheet</span>
                             </a>
+                            @endcan
                         @endif
                     </nav>
                 </div>

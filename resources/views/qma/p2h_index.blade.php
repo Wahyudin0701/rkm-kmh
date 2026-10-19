@@ -48,10 +48,12 @@
                 </div>
             </div>
 
+            @can('qma.summary.view')
             <a href="{{ route('qma.p2h.summary') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-chart-pie text-slate-400 group-hover:text-slate-700"></i>
                 <span class="whitespace-nowrap">Summary Aktivitas</span>
             </a>
+            @endcan
         </div>
     </div>
 

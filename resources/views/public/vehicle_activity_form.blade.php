@@ -40,84 +40,73 @@
         </div>
     </div>
 
-    <!-- LANGKAH 1: FORM VERIFIKASI NIK PENGEMUDI (Tampil Saat Belum Terverifikasi) -->
-    <div id="nikVerificationCard" class="{{ $verifiedDriver ? 'hidden' : '' }} bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
-        <div class="flex items-center space-x-3.5 pb-3 border-b border-slate-100">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base flex-shrink-0">
-                <i class="fa-solid fa-id-card"></i>
+    @if(!$verifiedDriver)
+        <!-- Kartu Peringatan Izin Mengemudi (SIMPER / Non-Driver) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-rose-200 p-6 space-y-4">
+            <div class="flex items-center space-x-3.5 pb-3 border-b border-rose-100">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-bold text-base flex-shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base">{{ $nikErrorTitle ?? 'Izin Mengemudi Tidak Valid' }}</h3>
+                    <p class="text-xs text-slate-500">Pemeriksaan lisensi SIMPER di database Divisi HSE.</p>
+                </div>
             </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-base">Verifikasi Identitas Pengemudi</h3>
-                <p class="text-xs text-slate-500">Masukkan NIK Anda untuk verifikasi SIMPER sebelum mengisi timesheet unit.</p>
+
+            <div class="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start space-x-3">
+                <i class="fa-solid fa-circle-exclamation text-rose-600 text-base mt-0.5 flex-shrink-0"></i>
+                <div class="flex-1">
+                    <p class="leading-relaxed font-medium">{{ $nikError ?? 'Akun Anda tidak memiliki lisensi mengemudi aktif untuk mengoperasikan unit ini.' }}</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <a href="{{ route('employee.dashboard') }}" class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition text-center">
+                    <i class="fa-solid fa-arrow-left mr-1.5"></i> Kembali ke Dashboard
+                </a>
+                <form action="{{ route('logout') }}" method="POST" class="w-full sm:w-auto">
+                    @csrf
+                    <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-xs border border-rose-200 transition text-center cursor-pointer">
+                        <i class="fa-solid fa-arrow-right-from-bracket mr-1.5"></i> Ganti Akun Pengemudi Lain
+                    </button>
+                </form>
             </div>
         </div>
-
-        <!-- Banner Pesan Error Verifikasi NIK (Default Hidden) -->
-        <div id="nikErrorBox" class="{{ $nikError ? '' : 'hidden' }} p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs flex items-start space-x-3">
-            <i class="fa-solid fa-circle-exclamation text-rose-600 text-base mt-0.5 flex-shrink-0"></i>
-            <div class="flex-1">
-                <span class="font-bold block text-sm mb-0.5" id="nikErrorTitle">
-                    {{ $nikErrorTitle ?? 'Verifikasi Gagal' }}
-                </span>
-                <p id="nikErrorMessage" class="leading-relaxed">{{ $nikError }}</p>
-            </div>
-        </div>
-
-        <!-- Form Input NIK -->
-        <form id="nikForm" method="GET" action="{{ route('vehicle.activity.form', ['code' => $vehicle->code]) }}" onsubmit="handleCheckNik(event)" class="space-y-4">
-            <div>
-                <label for="input_nik" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Nomor Induk Karyawan (NIK) <span class="text-rose-500">*</span>
-                </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-user-tag text-sm"></i>
+    @else
+        <!-- FORM UTAMA INPUT TIMESHEET UNIT (DRIVER TERVERIFIKASI) -->
+        <div id="timesheetFormCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <!-- Header Driver Terverifikasi (Kompak, Bersih & Profesional) -->
+            <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-3">
+                <div class="flex items-center space-x-3 min-w-0">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-[#1b5e20] flex items-center justify-center font-bold text-base flex-shrink-0">
+                        <i class="fa-solid fa-user-check"></i>
                     </div>
-                    <input type="text" id="input_nik" name="nik" value="{{ old('nik', $inputNik ?? '') }}" required placeholder="Contoh: 0001" autocomplete="off" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 uppercase placeholder:normal-case transition">
-                </div>
-                <p class="mt-1.5 text-[11px] text-slate-500 flex items-center">
-                    <i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i> NIK akan dicocokkan dengan data SIMPER di Divisi HSE.
-                </p>
-            </div>
-
-            <button type="submit" id="btnCheckNik" class="w-full bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition flex items-center justify-center space-x-2 text-sm">
-                <span id="btnCheckNikText">Verifikasi NIK & Buka Form</span>
-                <i id="btnCheckNikIcon" class="fa-solid fa-arrow-right text-xs"></i>
-            </button>
-        </form>
-    </div>
-
-    <!-- LANGKAH 2: FORM UTAMA INPUT TIMESHEET UNIT (DITAMPILKAN SETELAH NIK VALID) -->
-    <div id="timesheetFormCard" class="{{ $verifiedDriver ? '' : 'hidden' }} bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        
-        <!-- Header Driver Terverifikasi (Kompak, Bersih & Profesional) -->
-        <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-3">
-            <div class="flex items-center space-x-3 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-emerald-100 text-[#1b5e20] flex items-center justify-center font-bold text-base flex-shrink-0">
-                    <i class="fa-solid fa-user-check"></i>
-                </div>
-                <div class="min-w-0">
-                    <div class="flex items-center space-x-2 flex-wrap">
-                        <span class="text-sm font-bold text-slate-900" id="verifiedDriverName">{{ $verifiedDriver->name ?? '' }}</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
-                            <i class="fa-solid fa-shield-check mr-1"></i> SIMPER Aktif
-                        </span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-600">
-                            <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Otomatis Terisi
-                        </span>
+                    <div class="min-w-0">
+                        <div class="flex items-center space-x-2 flex-wrap">
+                            <span class="text-sm font-bold text-slate-900" id="verifiedDriverName">{{ $verifiedDriver->name ?? '' }}</span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                                <i class="fa-solid fa-shield-check mr-1"></i> SIMPER Aktif
+                            </span>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-200/70 text-slate-600">
+                                <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Terverifikasi Akun
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5 truncate">
+                            <span id="verifiedDriverNik">NIK: {{ $verifiedDriver->nik ?? '' }}</span> &bull; 
+                            <span id="verifiedDriverDiv">{{ $verifiedDriver->division ?? 'Umum' }}</span> &bull; 
+                            <span class="text-emerald-700 font-medium" id="verifiedDriverExp">Berlaku s.d. {{ $verifiedDriver && $verifiedDriver->simper_expired_at ? $verifiedDriver->simper_expired_at->format('d/m/Y') : '' }}</span>
+                        </p>
                     </div>
-                    <p class="text-xs text-slate-500 mt-0.5 truncate">
-                        <span id="verifiedDriverNik">NIK: {{ $verifiedDriver->nik ?? '' }}</span> &bull; 
-                        <span id="verifiedDriverDiv">{{ $verifiedDriver->division ?? 'Umum' }}</span> &bull; 
-                        <span class="text-emerald-700 font-medium" id="verifiedDriverExp">Berlaku s.d. {{ $verifiedDriver && $verifiedDriver->simper_expired_at ? $verifiedDriver->simper_expired_at->format('d/m/Y') : '' }}</span>
-                    </p>
                 </div>
+                <form action="{{ route('logout') }}" method="POST" class="inline">
+                    @csrf
+                    <button type="submit" class="text-xs font-semibold text-slate-600 hover:text-rose-600 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 shadow-xs transition flex items-center space-x-1.5 flex-shrink-0 cursor-pointer" title="Keluar dari akun ini untuk berganti akun driver lain">
+                        <i class="fa-solid fa-arrow-right-from-bracket text-[10px] text-slate-400"></i>
+                        <span>Bukan Anda? Ganti Akun</span>
+                    </button>
+                </form>
             </div>
-            <button type="button" onclick="changeDriver()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm transition flex items-center space-x-1.5 flex-shrink-0" title="Ganti NIK Pengemudi">
-                <i class="fa-solid fa-rotate-left text-[10px] text-slate-400"></i>
-                <span>Ganti NIK</span>
-            </button>
-        </div>
 
         <!-- Form Body -->
         <form action="{{ route('vehicle.activity.store', ['code' => $vehicle->code]) }}" method="POST" id="timesheetForm" class="p-5 sm:p-6 space-y-4">
@@ -191,6 +180,11 @@
                     <span class="text-slate-400 font-medium">Minimal: {{ number_format($vehicle->current_km, 0, ',', '.') }} KM</span>
                     <span id="distancePreview" class="font-bold text-emerald-600">Estimasi Jarak: 0 KM</span>
                 </div>
+                {{-- Peringatan jika selisih jarak sangat jauh (misal > 200 KM) --}}
+                <div id="highDistanceWarning" class="hidden mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start space-x-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 flex-shrink-0"></i>
+                    <span><strong>Perhatian:</strong> Estimasi jarak tempuh tercatat sangat jauh (<span id="highDistanceValue" class="font-bold font-mono">0</span> KM). Pastikan angka yang Anda ketik sesuai dengan total odometer speedometer mobil (bukan trip meter dan tidak kelebihan digit 0).</span>
+                </div>
             </div>
 
             <!-- 4. Rencana Pekerjaan / Aktivitas -->
@@ -213,99 +207,35 @@
             </div>
         </form>
     </div>
+    @endif
 </div>
 @endsection
 
 @section('scripts')
 <script>
-    async function handleCheckNik(e) {
-        e.preventDefault();
-        const nikInput = document.getElementById('input_nik');
-        const nik = (nikInput.value || '').trim();
-        if (!nik) return;
-
-        const btn = document.getElementById('btnCheckNik');
-        const btnText = document.getElementById('btnCheckNikText');
-        const btnIcon = document.getElementById('btnCheckNikIcon');
-        const errorBox = document.getElementById('nikErrorBox');
-        const errorTitle = document.getElementById('nikErrorTitle');
-        const errorMessage = document.getElementById('nikErrorMessage');
-
-        // Loading state
-        btn.disabled = true;
-        btnText.textContent = 'Memeriksa NIK...';
-        btnIcon.className = 'fa-solid fa-spinner fa-spin text-xs';
-        errorBox.classList.add('hidden');
-
-        try {
-            const response = await fetch("{{ route('vehicle.activity.check.nik', ['code' => $vehicle->code]) }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ nik: nik })
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.status === 'valid') {
-                // Sukses: Tampilkan kartu terintegrasi & buka form
-                setupVerifiedDriver(data.employee);
-            } else {
-                // Tampilkan pesan error sesuai status
-                errorTitle.textContent = data.title || (data.status === 'expired' ? 'Peringatan: SIMPER Kedaluwarsa' : (data.status === 'not_driver' ? 'Bukan Driver Terdaftar' : 'Verifikasi Gagal'));
-                errorMessage.textContent = data.message || 'Terjadi kesalahan saat memeriksa NIK.';
-                errorBox.classList.remove('hidden');
-            }
-        } catch (err) {
-            errorTitle.textContent = 'Gagal Memeriksa';
-            errorMessage.textContent = 'Terjadi gangguan jaringan atau server. Silakan coba kembali.';
-            errorBox.classList.remove('hidden');
-        } finally {
-            btn.disabled = false;
-            btnText.textContent = 'Verifikasi NIK & Buka Form';
-            btnIcon.className = 'fa-solid fa-arrow-right text-xs';
-        }
-    }
-
-    function setupVerifiedDriver(emp) {
-        document.getElementById('driver_id').value = emp.id;
-        document.getElementById('verifiedDriverName').textContent = emp.name;
-        document.getElementById('verifiedDriverNik').textContent = 'NIK: ' + emp.nik;
-        document.getElementById('verifiedDriverDiv').textContent = emp.division;
-        document.getElementById('verifiedDriverExp').textContent = 'Berlaku s.d. ' + emp.simper_expired_at;
-
-        document.getElementById('nikVerificationCard').classList.add('hidden');
-        document.getElementById('timesheetFormCard').classList.remove('hidden');
-
-        setTimeout(() => {
-            document.getElementById('timesheetFormCard').scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    }
-
-    function changeDriver() {
-        document.getElementById('driver_id').value = '';
-        document.getElementById('timesheetFormCard').classList.add('hidden');
-        document.getElementById('nikVerificationCard').classList.remove('hidden');
-        document.getElementById('nikErrorBox').classList.add('hidden');
-        const input = document.getElementById('input_nik');
-        input.focus();
-        input.select();
-    }
-
     document.addEventListener('DOMContentLoaded', function () {
         const currentKmInput = document.getElementById('current_km');
         const distancePreview = document.getElementById('distancePreview');
         const previousKm = parseFloat("{{ $vehicle->current_km }}") || 0;
 
-        // Kalkulasi jarak real-time
+        // Kalkulasi jarak real-time & deteksi anomali jarak tinggi
         function calculateDistance() {
+            if (!currentKmInput) return;
             const inputKm = parseFloat(currentKmInput.value) || 0;
             const diff = Math.max(0, inputKm - previousKm);
             if (distancePreview) {
                 distancePreview.textContent = `Estimasi Jarak: ${diff.toLocaleString('id-ID')} KM`;
+            }
+
+            const highWarning = document.getElementById('highDistanceWarning');
+            const highVal = document.getElementById('highDistanceValue');
+            if (highWarning && highVal) {
+                if (diff >= 200) {
+                    highVal.textContent = '+' + diff.toLocaleString('id-ID');
+                    highWarning.classList.remove('hidden');
+                } else {
+                    highWarning.classList.add('hidden');
+                }
             }
         }
 

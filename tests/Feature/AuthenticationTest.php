@@ -276,4 +276,63 @@ class AuthenticationTest extends TestCase
         $responseEmpty->assertStatus(200);
         $responseEmpty->assertDontSee('<span>Reset Filter</span>', false);
     }
+
+    public function test_login_page_renders_remember_me_checkbox(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertStatus(200);
+        $response->assertSee('name="remember"', false);
+        $response->assertSee('Ingat Saya');
+        $response->assertSee('Tetap masuk selama 30 hari');
+        $response->assertSee('checked', false);
+    }
+
+    public function test_login_with_remember_me_generates_30_days_cookie_and_remembers_user(): void
+    {
+        $user = User::where('role', 'employee')->first();
+        $recallerName = \Illuminate\Support\Facades\Auth::guard('web')->getRecallerName();
+
+        $response = $this->post('/login', [
+            'username' => $user->username,
+            'password' => 'password',
+            'remember' => '1',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+
+        // Memastikan cookie remember_web terpasang pada response
+        $response->assertCookie($recallerName);
+
+        // Verifikasi durasi cookie adalah sekitar 30 hari (43.200 menit)
+        $cookie = collect($response->headers->getCookies())
+            ->first(fn ($c) => $c->getName() === $recallerName);
+
+        $this->assertNotNull($cookie);
+        $remainingDays = round(($cookie->getExpiresTime() - time()) / 86400);
+        $this->assertEquals(30, $remainingDays);
+
+        // Memastikan user di database memiliki remember_token terisi
+        $user->refresh();
+        $this->assertNotNull($user->remember_token);
+    }
+
+    public function test_login_without_remember_me_does_not_set_recaller_cookie(): void
+    {
+        $user = User::where('role', 'employee')->first();
+        $recallerName = \Illuminate\Support\Facades\Auth::guard('web')->getRecallerName();
+
+        $response = $this->post('/login', [
+            'username' => $user->username,
+            'password' => 'password',
+            // remember checkbox tidak dicentang
+        ]);
+
+        $response->assertRedirect();
+        $this->assertAuthenticatedAs($user);
+
+        // Memastikan cookie remember_web tidak terpasang
+        $response->assertCookieMissing($recallerName);
+    }
 }

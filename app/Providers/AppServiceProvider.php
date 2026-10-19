@@ -27,5 +27,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return ($user->role === 'super_admin' || $user->hasRole('super_admin')) ? true : null;
         });
+
+        // Konfigurasi durasi "Ingat Saya" (Remember Me) menjadi 30 hari (43.200 menit)
+        if (class_exists(\Illuminate\Support\Facades\Auth::class)) {
+            \Illuminate\Support\Facades\Auth::guard('web')->setRememberDuration(43200);
+        }
     }
 }

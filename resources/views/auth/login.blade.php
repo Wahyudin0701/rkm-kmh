@@ -136,7 +136,6 @@
                     <p class="text-[10px] font-semibold text-slate-400 tracking-[0.2em] uppercase">Sistem Operasional</p>
                     <h1 class="text-2xl font-black text-[#1b5e20] tracking-tight">RKM</h1>
                 </div>
-                <div class="w-px h-5 bg-slate-200 mt-4"></div>
             </div>
 
             <!-- Sambutan -->
@@ -211,6 +210,21 @@
                                placeholder="Masukkan password"
                                class="form-input w-full text-sm pl-11 pr-4 py-3.5 rounded-xl text-slate-800 placeholder-slate-400">
                     </div>
+                </div>
+
+                <!-- Opsi Ingat Saya (Tetap Login 30 Hari) -->
+                <div class="flex items-center justify-between pt-1">
+                    <label for="remember" class="flex items-center space-x-2.5 cursor-pointer select-none group">
+                        <input type="checkbox"
+                               name="remember"
+                               id="remember"
+                               value="1"
+                               {{ old('remember', true) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-slate-300 text-[#1b5e20] focus:ring-[#1b5e20]/20 focus:ring-2 focus:ring-offset-0 transition cursor-pointer accent-[#1b5e20]">
+                        <span class="text-xs font-semibold text-slate-600 group-hover:text-slate-800 transition">
+                            Ingat Saya <span class="text-[11px] font-normal text-slate-400">(Tetap masuk selama 30 hari)</span>
+                        </span>
+                    </label>
                 </div>
 
                 <!-- Tombol Masuk & Navigasi Kembali ke Beranda -->

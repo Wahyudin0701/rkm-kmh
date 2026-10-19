@@ -26,14 +26,22 @@ class VehicleActivity extends Model
         'validation_status',
         'rejection_note',
         'validated_at',
+        'is_corrected',
+        'original_current_km',
+        'correction_reason',
+        'corrected_by_user_id',
+        'corrected_at',
     ];
 
     protected $casts = [
         'previous_km' => 'decimal:2',
         'current_km' => 'decimal:2',
         'distance' => 'decimal:2',
+        'original_current_km' => 'decimal:2',
+        'is_corrected' => 'boolean',
         'recorded_at' => 'datetime',
         'validated_at' => 'datetime',
+        'corrected_at' => 'datetime',
     ];
 
     public function vehicle(): BelongsTo
@@ -54,6 +62,31 @@ class VehicleActivity extends Model
     public function securityGuard(): BelongsTo
     {
         return $this->belongsTo(SecurityGuard::class, 'security_guard_id');
+    }
+
+    public function correctedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'corrected_by_user_id');
+    }
+
+    public function isPending(): bool
+    {
+        return $this->validation_status === 'pending';
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->validation_status === 'approved';
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->validation_status === 'cancelled';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->validation_status === 'rejected';
     }
 
     public function scopePending(Builder $query): Builder

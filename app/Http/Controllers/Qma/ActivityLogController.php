@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Qma;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Gate;
 use App\Models\VehicleActivity;
 use App\Services\QmaTablePdfExporter;
 use App\Services\SimpleXlsxExporter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class ActivityLogController extends Controller
@@ -145,7 +148,10 @@ class ActivityLogController extends Controller
             $currKm = $act->current_km !== null ? number_format($act->current_km, 0, ',', '.') : '-';
             $diffKm = $act->distance !== null ? number_format($act->distance, 0, ',', '.') : '-';
             $purpose = $act->purpose ?: '-';
-            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : 'Menunggu PG');
+            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : ($act->validation_status === 'cancelled' ? 'Dibatalkan' : 'Menunggu PG'));
+            if ($act->is_corrected) {
+                $statusPg .= ' (Terkoreksi)';
+            }
             $guard = $act->securityGuard?->name ?: '-';
 
             $rows[] = [
@@ -246,7 +252,10 @@ class ActivityLogController extends Controller
             $currKm = $act->current_km !== null ? number_format($act->current_km, 0, ',', '.') : '-';
             $diffKm = $act->distance !== null ? number_format($act->distance, 0, ',', '.') . ' KM' : '-';
             $purpose = $act->purpose ?: '-';
-            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : 'Menunggu PG');
+            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : ($act->validation_status === 'cancelled' ? 'Dibatalkan' : 'Menunggu PG'));
+            if ($act->is_corrected) {
+                $statusPg .= ' (Terkoreksi)';
+            }
 
             $rows[] = [
                 $idx + 1,
@@ -650,5 +659,86 @@ class ActivityLogController extends Controller
             'Cache-Control' => 'private, max-age=0, must-revalidate',
             'Pragma' => 'public',
         ]);
+    }
+
+    /**
+     * Koreksi odometer perjalanan (Timesheet LV) oleh Admin QMA / Super Admin.
+     */
+    public function correctOdometer(Request $request, int $id): RedirectResponse
+    {
+        $activity = VehicleActivity::with(['vehicle', 'driver'])->findOrFail($id);
+
+        $validated = $request->validate([
+            'new_current_km' => ['required', 'numeric', 'min:0'],
+            'correction_reason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'new_current_km.required' => 'Nilai odometer koreksi wajib diisi.',
+            'new_current_km.numeric' => 'Nilai odometer harus berupa angka.',
+            'new_current_km.min' => 'Nilai odometer tidak boleh negatif.',
+            'correction_reason.required' => 'Alasan perbaikan odometer wajib diisi.',
+            'correction_reason.min' => 'Alasan perbaikan minimal 5 karakter.',
+            'correction_reason.max' => 'Alasan perbaikan maksimal 500 karakter.',
+        ]);
+
+        $previousKm = (float) $activity->previous_km;
+        $newCurrentKm = (float) $validated['new_current_km'];
+        $oldCurrentKm = (float) $activity->current_km;
+        $oldDistance = (float) $activity->distance;
+        $reason = trim($validated['correction_reason']);
+
+        if ($newCurrentKm < $previousKm) {
+            return back()->withInput()->with('error', "Nilai kilometer koreksi ({$newCurrentKm} KM) tidak boleh lebih kecil dari kilometer awal ({$previousKm} KM).");
+        }
+
+        $newDistance = max(0, $newCurrentKm - $previousKm);
+
+        DB::transaction(function () use ($activity, $newCurrentKm, $oldCurrentKm, $oldDistance, $newDistance, $reason) {
+            // 1. Simpan original_current_km jika baru pertama kali dikoreksi
+            $originalKm = $activity->is_corrected ? $activity->original_current_km : $oldCurrentKm;
+
+            $activity->update([
+                'current_km' => $newCurrentKm,
+                'distance' => $newDistance,
+                'is_corrected' => true,
+                'original_current_km' => $originalKm,
+                'correction_reason' => $reason,
+                'corrected_by_user_id' => auth()->id(),
+                'corrected_at' => Carbon::now(),
+            ]);
+
+            // 2. Sinkronkan Master Kendaraan jika ini adalah aktivitas approved terakhir / terbaru dari unit tersebut
+            $latestActivity = VehicleActivity::where('vehicle_id', $activity->vehicle_id)
+                ->where('validation_status', 'approved')
+                ->latest('recorded_at')
+                ->first();
+
+            if ($latestActivity && $latestActivity->id === $activity->id) {
+                $activity->vehicle->update([
+                    'current_km' => $newCurrentKm,
+                ]);
+            }
+
+            // 3. Rekam ke Riwayat Aktivitas Super Admin (Audit Trail)
+            $vehicleCode = $activity->vehicle->code;
+            AdminActivityLog::record(
+                actionType: 'update',
+                module: 'Operasional Kendaraan (QMA)',
+                description: "Mengoreksi angka odometer tiket {$activity->transaction_no} pada unit {$vehicleCode} dari " . number_format($oldCurrentKm, 0, ',', '.') . " KM menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM. Alasan: {$reason}",
+                targetType: 'VehicleActivity',
+                targetId: $activity->id,
+                targetName: "{$vehicleCode} ({$activity->transaction_no})",
+                oldValues: [
+                    'current_km' => $oldCurrentKm,
+                    'distance' => $oldDistance,
+                ],
+                newValues: [
+                    'current_km' => $newCurrentKm,
+                    'distance' => $newDistance,
+                    'correction_reason' => $reason,
+                ]
+            );
+        });
+
+        return back()->with('success', "Odometer transaksi {$activity->transaction_no} ({$activity->vehicle->code}) berhasil dikoreksi menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM.");
     }
 }

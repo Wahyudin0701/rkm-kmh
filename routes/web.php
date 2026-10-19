@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update')->middleware('permission:qma.vehicles.edit');
         Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy')->middleware('permission:qma.vehicles.delete');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log')->middleware('permission:qma.logs.view');
+        Route::post('/activity-log/{id}/correct-odometer', [ActivityLogController::class, 'correctOdometer'])->name('activity.correct_odometer')->middleware('permission:qma.logs.edit_odometer');
         Route::get('/activity-log/export-excel', [ActivityLogController::class, 'exportExcel'])->name('activity.export_excel')->middleware('permission:qma.logs.view');
         Route::get('/activity-log/export-pdf', [ActivityLogController::class, 'exportPdf'])->name('activity.export_pdf')->middleware('permission:qma.logs.view');
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
@@ -140,7 +141,9 @@ Route::middleware('auth')->group(function () {
     });
 
     // 6. Modul Karyawan (Dashboard, P2H, Timesheet)
-    Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard')->middleware('permission:employee.dashboard|qma.vehicles.view');
+    Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard');
+    Route::post('/karyawan/aktivitas/{id}/update-km', [\App\Http\Controllers\Employee\DashboardController::class, 'updateKm'])->name('employee.activity.update_km');
+    Route::post('/karyawan/aktivitas/{id}/cancel', [\App\Http\Controllers\Employee\DashboardController::class, 'cancelActivity'])->name('employee.activity.cancel');
     Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
     Route::get('/mobilisasi', [VehicleActivityFormController::class, 'index'])->name('mobilisasi.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
 

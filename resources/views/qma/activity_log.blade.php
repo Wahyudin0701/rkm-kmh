@@ -48,10 +48,12 @@
                 </div>
             </div>
 
+            @can('qma.summary.view')
             <a href="{{ route('qma.activity.summary') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 shadow-sm transition group">
                 <i class="fa-solid fa-chart-pie mr-2 text-slate-500 group-hover:text-slate-800"></i>
                 <span class="whitespace-nowrap">Summary Aktifitas</span>
             </a>
+            @endcan
         </div>
     </div>
 
@@ -209,6 +211,9 @@
                         <th class="py-3.5 px-4 text-right whitespace-nowrap">KM Berjalan</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Aktivitas</th>
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Status PG</th>
+                        @can('qma.logs.edit_odometer')
+                            <th class="py-3.5 px-4 text-center whitespace-nowrap">Aksi</th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody id="activityLogTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
@@ -284,6 +289,14 @@
                                 <div class="text-[10px] text-slate-400 font-normal">
                                     Akhir: {{ number_format($act->current_km, 0, ',', '.') }}
                                 </div>
+                                @if($act->is_corrected)
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 cursor-help"
+                                              title="Dikoreksi oleh: {{ $act->correctedBy->name ?? 'Admin' }} pada {{ $act->corrected_at ? $act->corrected_at->format('d/m/Y H:i') : '-' }} WIB. KM Semula: {{ number_format($act->original_current_km, 0, ',', '.') }} KM. Alasan: {{ $act->correction_reason }}">
+                                            <i class="fa-solid fa-pen-nib mr-1 text-amber-600"></i> Terkoreksi
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
 
                             <!-- Aktivitas -->
@@ -297,6 +310,10 @@
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Divalidasi oleh: {{ $act->securityGuard->name ?? 'Satpam' }}">
                                         <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Disetujui
                                     </span>
+                                @elseif($act->validation_status === 'cancelled')
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="{{ $act->rejection_note }}">
+                                        <i class="fa-solid fa-ban mr-1 text-slate-400"></i> Dibatalkan
+                                    </span>
                                 @elseif($act->validation_status === 'rejected')
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200" title="Alasan: {{ $act->rejection_note }}">
                                         <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> Ditolak
@@ -307,10 +324,35 @@
                                     </span>
                                 @endif
                             </td>
+
+                            <!-- Aksi Koreksi Odometer (RBAC Protected) -->
+                            @can('qma.logs.edit_odometer')
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <button type="button" 
+                                        onclick="openQmaOdometerModal({{ json_encode([
+                                            'id' => $act->id,
+                                            'trx' => $act->transaction_no,
+                                            'code' => $act->vehicle->code,
+                                            'unit' => $act->vehicle->brand_type,
+                                            'driver' => $act->driver->name,
+                                            'previous_km' => (float)$act->previous_km,
+                                            'current_km' => (float)$act->current_km,
+                                            'distance' => (float)$act->distance,
+                                            'is_corrected' => (bool)$act->is_corrected,
+                                            'original_km' => (float)($act->original_current_km ?? $act->current_km),
+                                            'reason' => $act->correction_reason ?? '',
+                                        ]) }})"
+                                        class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer shadow-2xs"
+                                        title="Koreksi Odometer Transaksi Ini">
+                                    <i class="fa-solid fa-screwdriver-wrench text-amber-600 text-[11px]"></i>
+                                    <span>Koreksi</span>
+                                </button>
+                            </td>
+                            @endcan
                         </tr>
                     @empty
                         <tr id="serverActivityEmptyRow">
-                            <td colspan="11" class="py-12 px-4 text-center">
+                            <td colspan="{{ auth()->user()->can('qma.logs.edit_odometer') ? 12 : 11 }}" class="py-12 px-4 text-center">
                                 <div class="flex flex-col items-center justify-center space-y-3">
                                     <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
                                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -591,4 +633,165 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
     </div>
 </div>
+
+@can('qma.logs.edit_odometer')
+{{-- MODAL KOREKSI ODOMETER QMA --}}
+<div id="qmaOdometerModal" 
+     onclick="if(event.target === this) closeQmaOdometerModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
+     aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="relative z-10 bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-lg w-full border border-slate-200 animate-scale-in">
+        <form id="qmaOdometerForm" method="POST" action="">
+                @csrf
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-base font-bold flex-shrink-0 border border-amber-200">
+                                <i class="fa-solid fa-screwdriver-wrench"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-sm sm:text-base">Koreksi Odometer Perjalanan</h3>
+                                <p class="text-xs text-slate-500">Perbaiki angka KM perjalanan dan sinkronkan master unit kendaraan.</p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="closeQmaOdometerModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    {{-- Info Transaksi --}}
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5 font-medium text-slate-600">
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Nomor Transaksi:</span>
+                            <span id="qmaTrxNo" class="font-mono font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Unit Kendaraan:</span>
+                            <span id="qmaVehicleInfo" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">Pengemudi:</span>
+                            <span id="qmaDriverName" class="font-bold text-slate-800">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">KM Awal Sebelumnya:</span>
+                            <span id="qmaPreviousKmText" class="font-mono font-bold text-slate-800">- KM</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-slate-400">KM Tercatat Saat Ini:</span>
+                            <span id="qmaCurrentKmOldText" class="font-mono font-bold text-rose-600">- KM</span>
+                        </div>
+                    </div>
+
+                    {{-- Input Angka KM Baru --}}
+                    <div>
+                        <label for="qmaInputNewKm" class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Angka Odometer Koreksi (KM) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="new_current_km" 
+                                   id="qmaInputNewKm" 
+                                   required 
+                                   oninput="calculateQmaDistancePreview()"
+                                   placeholder="Contoh: 50050"
+                                   class="w-full pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-300 text-sm font-mono font-bold text-slate-800 focus:border-[#1b5e20] focus:ring-3 focus:ring-[#1b5e20]/10 transition">
+                            <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-xs font-bold text-slate-400">
+                                KM
+                            </span>
+                        </div>
+                        <input type="hidden" id="qmaModalPreviousKm" value="0">
+                    </div>
+
+                    {{-- Live Preview Kalkulasi Jarak Tempuh --}}
+                    <div id="qmaDistancePreviewBox" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between">
+                        <span class="text-emerald-800 font-medium">Jarak Tempuh Baru (Terkalkulasi):</span>
+                        <span id="qmaDistancePreviewValue" class="font-mono font-bold text-emerald-800 text-sm">+0 KM</span>
+                    </div>
+
+                    {{-- Warning jika angka lebih kecil dari KM awal --}}
+                    <div id="qmaDistanceErrorBox" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium">
+                        <i class="fa-solid fa-triangle-exclamation mr-1 text-rose-600"></i>
+                        <span>Angka KM koreksi tidak boleh lebih kecil dari KM awal (<span id="qmaDistanceMinText">0</span> KM).</span>
+                    </div>
+
+                    {{-- Alasan Koreksi --}}
+                    <div>
+                        <label for="qmaCorrectionReason" class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">
+                            Alasan Koreksi / Perbaikan <span class="text-rose-500">*</span>
+                        </label>
+                        <textarea name="correction_reason" 
+                                  id="qmaCorrectionReason" 
+                                  rows="3" 
+                                  required 
+                                  minlength="5"
+                                  maxlength="500"
+                                  placeholder="Contoh: Salah ketik kelebihan digit nol oleh pengemudi saat scan QR form, diperbaiki sesuai odometer fisik."
+                                  class="w-full text-xs rounded-xl border border-slate-300 p-3 text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-3 focus:ring-[#1b5e20]/10 transition"></textarea>
+                        <p class="mt-1 text-[11px] text-slate-400">Alasan ini akan dicatat ke dalam Log Audit Super Admin sebagai pertanggungjawaban data.</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-100 flex items-center justify-end space-x-2">
+                    <button type="button" onclick="closeQmaOdometerModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" id="btnSubmitQmaOdometer" class="px-5 py-2 text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-check text-xs"></i>
+                        <span>Simpan Koreksi Odometer</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+<script>
+    function openQmaOdometerModal(data) {
+        document.getElementById('qmaTrxNo').innerText = data.trx;
+        document.getElementById('qmaVehicleInfo').innerText = data.code + ' (' + data.unit + ')';
+        document.getElementById('qmaDriverName').innerText = data.driver;
+        document.getElementById('qmaPreviousKmText').innerText = Number(data.previous_km).toLocaleString('id-ID') + ' KM';
+        document.getElementById('qmaCurrentKmOldText').innerText = Number(data.current_km).toLocaleString('id-ID') + ' KM (Jarak: +' + Number(data.distance).toLocaleString('id-ID') + ' KM)';
+        document.getElementById('qmaModalPreviousKm').value = data.previous_km;
+        document.getElementById('qmaInputNewKm').value = data.current_km;
+        document.getElementById('qmaDistanceMinText').innerText = Number(data.previous_km).toLocaleString('id-ID');
+        document.getElementById('qmaCorrectionReason').value = data.is_corrected ? data.reason : '';
+
+        const form = document.getElementById('qmaOdometerForm');
+        form.action = '/qma/activity-log/' + data.id + '/correct-odometer';
+
+        calculateQmaDistancePreview();
+        document.getElementById('qmaOdometerModal').classList.remove('hidden');
+    }
+
+    function closeQmaOdometerModal() {
+        document.getElementById('qmaOdometerModal').classList.add('hidden');
+    }
+
+    function calculateQmaDistancePreview() {
+        const prevKm = parseFloat(document.getElementById('qmaModalPreviousKm').value) || 0;
+        const inputVal = parseFloat(document.getElementById('qmaInputNewKm').value) || 0;
+        const diff = inputVal - prevKm;
+
+        const previewBox = document.getElementById('qmaDistancePreviewBox');
+        const errorBox = document.getElementById('qmaDistanceErrorBox');
+        const submitBtn = document.getElementById('btnSubmitQmaOdometer');
+        const valText = document.getElementById('qmaDistancePreviewValue');
+
+        if (inputVal < prevKm) {
+            previewBox.classList.add('hidden');
+            errorBox.classList.remove('hidden');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            previewBox.classList.remove('hidden');
+            errorBox.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            valText.innerText = '+' + diff.toLocaleString('id-ID') + ' KM';
+        }
+    }
+</script>
+@endcan
 @endsection

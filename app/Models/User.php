@@ -98,6 +98,45 @@ class User extends Authenticatable
         return $this->hasOne(Employee::class);
     }
 
+    /**
+     * Dapatkan profil Employee yang tertaut, atau cari berdasarkan NIK (username),
+     * atau buat profil Employee default jika akun berstatus employee / super admin penguji.
+     */
+    public function getOrCreateEmployee(): ?Employee
+    {
+        if ($this->relationLoaded('employee') && $this->employee) {
+            return $this->employee;
+        }
+
+        $emp = $this->employee()->first();
+        if ($emp) {
+            return $emp;
+        }
+
+        // Cek jika sudah ada master Employee dengan NIK sama dengan username
+        $emp = Employee::where('nik', $this->username)->first();
+        if ($emp) {
+            $emp->update(['user_id' => $this->id]);
+            return $emp;
+        }
+
+        // Jika user memiliki role employee atau admin yang memerlukan profil operasional
+        if ($this->isEmployee() || $this->isSuperAdmin()) {
+            return Employee::create([
+                'user_id' => $this->id,
+                'nik' => $this->username,
+                'name' => $this->name,
+                'unit_kerja' => 'Umum',
+                'division' => 'Operasional',
+                'position' => 'Driver Operasional',
+                'is_operator' => true,
+                'simper_expired_at' => now()->addYears(2),
+            ]);
+        }
+
+        return null;
+    }
+
     public function isEmployee(): bool
     {
         return $this->role === 'employee' || $this->hasRole('employee');

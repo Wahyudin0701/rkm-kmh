@@ -103,7 +103,13 @@ class HomePageTest extends TestCase
     {
         $this->seedBasicData();
 
-        $response = $this->get('/gate-activity/LV62');
+        // Guest diarahkan login
+        $guestResponse = $this->get('/gate-activity/LV62');
+        $guestResponse->assertRedirect(route('login'));
+
+        // Pengguna terautentikasi dapat mengakses formulir
+        $user = User::factory()->create(['role' => 'employee']);
+        $response = $this->actingAs($user)->get('/gate-activity/LV62');
 
         $response->assertStatus(200);
         $response->assertSee('Input Timesheet Unit');

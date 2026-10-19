@@ -101,11 +101,19 @@
                     @auth
                         @php
                             $roleRoute = match(auth()->user()->role) {
+                                'super_admin', 'superadmin', 'admin' => route('admin.dashboard'),
                                 'hse_admin' => route('hse.dashboard'),
                                 'qma_admin' => route('qma.dashboard'),
                                 'pg_admin' => route('pg.dashboard'),
                                 'gate_officer' => route('pg.gate.inspection'),
-                                default => route('qma.dashboard'),
+                                'employee' => (auth()->user()->can('employee.dashboard') 
+                                                ? route('employee.dashboard') 
+                                                : (auth()->user()->can('employee.p2h') 
+                                                    ? route('p2h.index') 
+                                                    : (auth()->user()->can('employee.timesheet') 
+                                                        ? route('timesheet.index') 
+                                                        : route('profile.index')))),
+                                default => route('profile.index'),
                             };
                         @endphp
                         <a href="{{ $roleRoute }}" 
@@ -123,6 +131,44 @@
             </div>
         </div>
     </nav>
+
+    <!-- ========================================================================= -->
+    <!-- FLASH ALERT NOTIFICATION (WARNING, ERROR, SUCCESS) -->
+    <!-- ========================================================================= -->
+    @if(session('warning') || session('error') || session('success'))
+    <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-4 pb-1">
+        @if(session('warning'))
+            <div class="flex items-center p-4 mb-2 text-amber-900 rounded-2xl bg-amber-50 border border-amber-300 shadow-sm transition" role="alert">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="text-xs sm:text-sm font-semibold flex-1">
+                    {{ session('warning') }}
+                </div>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="flex items-center p-4 mb-2 text-rose-900 rounded-2xl bg-rose-50 border border-rose-300 shadow-sm transition" role="alert">
+                <div class="w-8 h-8 rounded-xl bg-rose-500/20 text-rose-600 flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </div>
+                <div class="text-xs sm:text-sm font-semibold flex-1">
+                    {{ session('error') }}
+                </div>
+            </div>
+        @endif
+        @if(session('success'))
+            <div class="flex items-center p-4 mb-2 text-emerald-900 rounded-2xl bg-emerald-50 border border-emerald-300 shadow-sm transition" role="alert">
+                <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 flex items-center justify-center mr-3 flex-shrink-0 text-sm">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="text-xs sm:text-sm font-semibold flex-1">
+                    {{ session('success') }}
+                </div>
+            </div>
+        @endif
+    </div>
+    @endif
 
     <!-- ========================================================================= -->
     <!-- HERO SECTION: HEADLINE & CALL TO ACTION AKTIVITAS SISTEM -->
@@ -151,11 +197,19 @@
                     @auth
                         @php
                             $roleRoute = match(auth()->user()->role) {
+                                'super_admin', 'superadmin', 'admin' => route('admin.dashboard'),
                                 'hse_admin' => route('hse.dashboard'),
                                 'qma_admin' => route('qma.dashboard'),
                                 'pg_admin' => route('pg.dashboard'),
                                 'gate_officer' => route('pg.gate.inspection'),
-                                default => route('qma.dashboard'),
+                                'employee' => (auth()->user()->can('employee.dashboard') 
+                                                ? route('employee.dashboard') 
+                                                : (auth()->user()->can('employee.p2h') 
+                                                    ? route('p2h.index') 
+                                                    : (auth()->user()->can('employee.timesheet') 
+                                                        ? route('timesheet.index') 
+                                                        : route('profile.index')))),
+                                default => route('profile.index'),
                             };
                         @endphp
                         <a href="{{ $roleRoute }}" 

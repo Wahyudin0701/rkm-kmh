@@ -40,7 +40,7 @@ class VehicleActivityFormController extends Controller
 
         $employee = null;
         if (auth()->check()) {
-            $employee = auth()->user()->employee;
+            $employee = auth()->user()->getOrCreateEmployee();
         }
 
         return view('mobilisasi.index', compact('vehicles', 'employee'));
@@ -49,11 +49,17 @@ class VehicleActivityFormController extends Controller
     /**
      * Tampilkan form pencatatan aktivitas kendaraan saat scan QR code.
      */
-    public function show(Request $request, string $code): View
+    public function show(Request $request, string $code): View|RedirectResponse
     {
         $vehicle = Vehicle::where('code', $code)
             ->where('category', 'light_vehicle')
             ->firstOrFail();
+
+        // Jika pengemudi scan lewat kamera luar dan belum login, arahkan ke login dengan intended URL
+        if (!auth()->check()) {
+            return redirect()->guest(route('login'))
+                ->with('warning', "Silakan login terlebih dahulu untuk mengisi formulir timesheet unit {$vehicle->code}.");
+        }
 
         // Ambil daftar gerbang aktif
         $gates = Gate::where('is_active', true)
@@ -66,7 +72,7 @@ class VehicleActivityFormController extends Controller
         $verifiedDriver = null;
         $nikError = null;
         $nikErrorTitle = 'Verifikasi Gagal';
-        $inputNik = trim((string) $request->input('nik', ''));
+        $inputNik = trim((string) ($request->input('nik') ?? $request->input('driver_nik') ?? ''));
 
         // Cek jika ada pengemudi yang sudah terverifikasi sebelumnya (via form error redirect atau query string NIK)
         $oldDriverId = old('driver_id');
@@ -98,8 +104,8 @@ class VehicleActivityFormController extends Controller
             } else {
                 $verifiedDriver = $emp;
             }
-        } elseif (auth()->check() && auth()->user()->isEmployee()) {
-            $emp = auth()->user()->employee;
+        } else {
+            $emp = auth()->user()->getOrCreateEmployee();
             if ($emp) {
                 if (!$emp->is_operator) {
                     $nikErrorTitle = 'Bukan Driver Terdaftar';
@@ -219,6 +225,11 @@ class VehicleActivityFormController extends Controller
      */
     public function store(StoreVehicleActivityRequest $request, string $code): RedirectResponse
     {
+        if (!auth()->check()) {
+            return redirect()->guest(route('login'))
+                ->with('warning', 'Sesi login Anda telah berakhir. Silakan login kembali.');
+        }
+
         $vehicle = Vehicle::where('code', $code)
             ->where('category', 'light_vehicle')
             ->firstOrFail();

@@ -72,10 +72,12 @@
                     <h3 class="text-sm font-bold text-slate-900">Log Aktivitas Kendaraan Terkini</h3>
                     <p class="text-[11px] text-slate-500">Catatan pergerakan armada Light Vehicle di pos gerbang</p>
                 </div>
+                @can('qma.logs.view')
                 <a href="{{ route('qma.activity.log') }}" class="text-xs font-bold text-[#1b5e20] hover:underline flex items-center gap-1">
                     <span>Kelola Data</span>
                     <i class="fa-solid fa-arrow-right text-[10px]"></i>
                 </a>
+                @endcan
             </div>
 
             <div class="space-y-3.5">
@@ -155,10 +157,12 @@
                         <h3 class="text-sm font-bold text-slate-900">Monitoring Kelayakan P2H</h3>
                         <p class="text-[11px] text-slate-500">Prioritas kondisi lembar periksa pra-harian unit support</p>
                     </div>
+                    @can('qma.p2h.view')
                     <a href="{{ route('qma.p2h.index') }}" class="text-xs font-bold text-[#1b5e20] hover:underline flex items-center gap-1">
                         <span>Filter Data</span>
                         <i class="fa-solid fa-arrow-right text-[10px]"></i>
                     </a>
+                    @endcan
                 </div>
 
                 <div class="space-y-3.5">

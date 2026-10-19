@@ -96,6 +96,10 @@ return [
                     'label' => 'Melihat Catatan Perjalanan (Timesheet LV)',
                     'description' => 'Melihat riwayat mobilisasi kendaraan operasional, nama pengemudi, dan jarak tempuhnya.',
                 ],
+                'qma.logs.edit_odometer' => [
+                    'label' => 'Mengoreksi Odometer Perjalanan',
+                    'description' => 'Memperbaiki kesalahan input angka kilometer pada catatan perjalanan kendaraan dan menyinkronkan master odometer unit.',
+                ],
                 'qma.summary.view' => [
                     'label' => 'Melihat Rekapitulasi & Laporan Armada',
                     'description' => 'Melihat total kilometer, jumlah perjalanan, dan ringkasan penggunaan armada per periode.',

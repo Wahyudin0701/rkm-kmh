@@ -445,7 +445,7 @@ class P2hInspectionTest extends TestCase
         $resDashboard->assertStatus(200);
         $resDashboard->assertSee('Dashboard Karyawan');
         $resDashboard->assertSee('Buka Modul Pemeriksaan P2H');
-        $resDashboard->assertSee('Buka Modul Timesheet LV');
+        $resDashboard->assertSee('Scan Barcode Unit Mobil');
         $resDashboard->assertSee('Pemeriksaan P2H');
         $resDashboard->assertSee('Timesheet');
 

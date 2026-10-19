@@ -94,6 +94,11 @@ class UserController extends Controller
         // Assign Spatie Role
         $user->assignRole($validated['role']);
 
+        // Jika role employee, sinkronkan atau buat data master Employee
+        if ($validated['role'] === 'employee') {
+            $user->getOrCreateEmployee();
+        }
+
         // Sync Direct Permissions (jika ada izin khusus tambahan)
         if ($request->has('direct_permissions')) {
             $user->syncPermissions($request->input('direct_permissions', []));
@@ -173,6 +178,16 @@ class UserController extends Controller
 
         // Sync Spatie Role
         $user->syncRoles([$validated['role']]);
+
+        // Sinkronkan data master Employee jika pengguna berstatus employee
+        if ($user->employee) {
+            $user->employee->update([
+                'name' => $user->name,
+                'nik' => $user->username,
+            ]);
+        } elseif ($validated['role'] === 'employee') {
+            $user->getOrCreateEmployee();
+        }
 
         // Sync Direct Permissions
         $user->syncPermissions($request->input('direct_permissions', []));
