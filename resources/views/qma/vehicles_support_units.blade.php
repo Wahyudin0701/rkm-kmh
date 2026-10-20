@@ -154,9 +154,18 @@
                             </td>
 
                             <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs whitespace-nowrap">
-                                <span class="bg-blue-50 text-blue-800 px-2.5 py-1 rounded-lg border border-blue-200 font-bold">
-                                    {{ $u->code }}
-                                </span>
+                                <div class="flex items-center space-x-2.5">
+                                    @if($u->photo_path)
+                                        <img src="{{ $u->photo_url }}" alt="{{ $u->code }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs flex-shrink-0 cursor-pointer" onclick='openDetailModal(@json($u))'>
+                                    @else
+                                        <div class="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                            <i class="fa-solid fa-truck-pickup text-[10px]"></i>
+                                        </div>
+                                    @endif
+                                    <span class="bg-blue-50 text-blue-800 px-2.5 py-1 rounded-lg border border-blue-200 font-bold">
+                                        {{ $u->code }}
+                                    </span>
+                                </div>
                             </td>
 
                             <td class="py-3.5 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
@@ -331,8 +340,27 @@
                     Tambah Unit Baru
                 </h3>
 
-                <form method="POST" action="{{ route('qma.vehicles.support.units.store', $category->id) }}" id="addUnitForm" class="space-y-4">
+                <form method="POST" action="{{ route('qma.vehicles.support.units.store', $category->id) }}" id="addUnitForm" enctype="multipart/form-data" class="space-y-4">
                     @csrf
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Unit Fisik (Opsional)</label>
+                        <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                            <div id="addPhotoPreviewContainer" class="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                <img id="addPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                                <i id="addPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-base"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" 
+                                       name="photo" 
+                                       id="addPhotoInput" 
+                                       accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                       onchange="previewUnitImage(this, 'addPhotoPreview', 'addPhotoPlaceholder')"
+                                       class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                                <p class="text-[10px] text-slate-400 mt-1">Format: JPG, PNG, WebP (Maks. 10MB). Resolusi otomatis dikompresi hemat storage.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Aset Induk (Readonly) Sesuai Mockup -->
                     <div>
@@ -495,10 +523,29 @@
                 <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-5">
                     Edit Data Unit Fisik
                 </h3>
-                <form id="editUnitForm" method="POST" action="" class="space-y-4">
+                <form id="editUnitForm" method="POST" action="" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <input type="hidden" name="category" value="unit_support">
                     <input type="hidden" name="brand_type" id="edit_brand_type">
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Unit Fisik</label>
+                        <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                            <div id="editPhotoPreviewContainer" class="w-14 h-14 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                <img id="editPhotoPreview" src="" alt="Foto Unit" class="w-full h-full object-cover hidden">
+                                <i id="editPhotoPlaceholder" class="fa-solid fa-truck-pickup text-slate-400 text-base"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <input type="file" 
+                                       name="photo" 
+                                       id="editPhotoInput" 
+                                       accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                       onchange="previewUnitImage(this, 'editPhotoPreview', 'editPhotoPlaceholder')"
+                                       class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                                <p class="text-[10px] text-slate-400 mt-1">Pilih foto baru jika ingin mengganti. Otomatis dikompresi hemat storage.</p>
+                            </div>
+                        </div>
+                    </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Kode Unit <span class="text-rose-500">*</span></label>
@@ -589,6 +636,11 @@
                 </div>
 
                 <div class="py-4 space-y-3 text-xs">
+                    <!-- Foto Unit Fisik di Detail Modal -->
+                    <div id="detail_photo_container" class="w-full h-44 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden mb-3">
+                        <img id="detail_photo" src="" alt="Foto Unit Fisik" class="w-full h-full object-cover">
+                    </div>
+
                     <div class="flex justify-between py-1.5 border-b border-slate-50">
                         <span class="text-slate-400">Kategori Induk:</span>
                         <span class="font-bold text-slate-800">{{ $category->code }} - {{ $category->unit_category }}</span>
@@ -675,8 +727,37 @@
 <script>
     const categoryCode = "{{ $category->code }}";
 
+    function previewUnitImage(input, imgId, placeholderId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgId);
+                const placeholder = document.getElementById(placeholderId);
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openAddUnitModal() {
         document.getElementById('addUnitModal').classList.remove('hidden');
+        const addPhotoPreview = document.getElementById('addPhotoPreview');
+        const addPhotoPlaceholder = document.getElementById('addPhotoPlaceholder');
+        const addPhotoInput = document.getElementById('addPhotoInput');
+        if (addPhotoInput) addPhotoInput.value = '';
+        if (addPhotoPreview) {
+            addPhotoPreview.src = '';
+            addPhotoPreview.classList.add('hidden');
+        }
+        if (addPhotoPlaceholder) {
+            addPhotoPlaceholder.classList.remove('hidden');
+        }
         document.getElementById('unitNumberInput').focus();
     }
 
@@ -722,6 +803,24 @@
         document.getElementById('edit_silo').value = unit.silo_document || '';
         document.getElementById('edit_kir').value = unit.kir_document || '';
 
+        const editPhotoPreview = document.getElementById('editPhotoPreview');
+        const editPhotoPlaceholder = document.getElementById('editPhotoPlaceholder');
+        const editPhotoInput = document.getElementById('editPhotoInput');
+        if (editPhotoInput) editPhotoInput.value = '';
+        if (unit.photo_url) {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = unit.photo_url;
+                editPhotoPreview.classList.remove('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.add('hidden');
+        } else {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = '';
+                editPhotoPreview.classList.add('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
+        }
+
         document.getElementById('editModal').classList.remove('hidden');
     }
 
@@ -739,6 +838,16 @@
         document.getElementById('detail_location').textContent = unit.location || '-';
         document.getElementById('detail_silo').textContent = unit.silo_document || 'Tidak ada';
         document.getElementById('detail_kir').textContent = unit.kir_document || 'Tidak ada';
+
+        const detailPhotoContainer = document.getElementById('detail_photo_container');
+        const detailPhoto = document.getElementById('detail_photo');
+        if (unit.photo_url) {
+            if (detailPhoto) detailPhoto.src = unit.photo_url;
+            if (detailPhotoContainer) detailPhotoContainer.classList.remove('hidden');
+        } else {
+            if (detailPhoto) detailPhoto.src = '';
+            if (detailPhotoContainer) detailPhotoContainer.classList.add('hidden');
+        }
 
         document.getElementById('detailModal').classList.remove('hidden');
     }

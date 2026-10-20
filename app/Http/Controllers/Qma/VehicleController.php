@@ -9,6 +9,7 @@ use App\Models\P2hRecord;
 use App\Models\P2hTemplate;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
+use App\Services\ImageCompressionService;
 use App\Services\SimpleXlsxExporter;
 use App\Services\VehiclePdfExporter;
 use Carbon\Carbon;
@@ -895,6 +896,7 @@ class VehicleController extends Controller
             'kir_document' => ['nullable', 'string', 'max:150'],
             'ownership' => ['nullable', 'string', 'max:150'],
             'division' => ['nullable', 'string', 'max:100'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ]);
 
         return DB::transaction(function () use ($request, $category) {
@@ -918,6 +920,11 @@ class VehicleController extends Controller
                 return back()->withInput()->with('error', "Kode unit [{$code}] sudah terdaftar di sistem. Silakan gunakan nomor urut lain.");
             }
 
+            $photoPath = null;
+            if ($request->hasFile('photo')) {
+                $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'vehicles', 800, 800, 75);
+            }
+
             $unit = Vehicle::create([
                 'code' => $code,
                 'category' => 'unit_support',
@@ -939,6 +946,7 @@ class VehicleController extends Controller
                 'fuel_consumption' => $category->fuel_consumption,
                 'silo_document' => $request->input('silo_document'),
                 'kir_document' => $request->input('kir_document'),
+                'photo_path' => $photoPath,
             ]);
 
             return back()->with('success', "Unit fisik [{$unit->code}] berhasil ditambahkan ke kategori {$category->unit_category}.");
@@ -962,6 +970,7 @@ class VehicleController extends Controller
             'division' => ['nullable', 'string', 'max:100'],
             'status' => [$category === 'unit_support' ? 'nullable' : 'required', 'string', 'in:Operation,Standby,Breakdown,Maintenance'],
             'current_km' => [$category === 'unit_support' ? 'nullable' : 'required', 'numeric', 'min:0'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
 
         // Atribut opsional spesifik Unit Support (Kendaraan Berat)
@@ -993,6 +1002,11 @@ class VehicleController extends Controller
             $validated['status'] = $validated['status'] ?? 'Operation';
             $validated['current_km'] = $validated['current_km'] ?? 0;
         }
+
+        if ($request->hasFile('photo')) {
+            $validated['photo_path'] = ImageCompressionService::uploadAndCompress($request->file('photo'), 'vehicles', 800, 800, 75);
+        }
+        unset($validated['photo']);
 
         $vehicle = Vehicle::create($validated);
 
@@ -1045,6 +1059,7 @@ class VehicleController extends Controller
             'stnk_document' => ['nullable', 'string', 'max:150'],
             'pajak_document' => ['nullable', 'string', 'max:150'],
             'kir_document' => ['nullable', 'string', 'max:150'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
 
         $validated = $request->validate($rules, [
@@ -1053,6 +1068,12 @@ class VehicleController extends Controller
             'brand_type.required' => 'Merek dan tipe wajib diisi.',
             'current_km.required' => 'Nilai KM / HM wajib diisi.',
         ]);
+
+        if ($request->hasFile('photo')) {
+            ImageCompressionService::deleteIfExists($vehicle->photo_path);
+            $validated['photo_path'] = ImageCompressionService::uploadAndCompress($request->file('photo'), 'vehicles', 800, 800, 75);
+        }
+        unset($validated['photo']);
 
         DB::transaction(function () use ($vehicle, $validated, $oldCode, $newCode) {
             $vehicle->update($validated);
@@ -1132,6 +1153,13 @@ class VehicleController extends Controller
                 $template->delete();
             }
         }
+
+        if ($vehicle->isSupportCategory()) {
+            foreach ($vehicle->units as $u) {
+                ImageCompressionService::deleteIfExists($u->photo_path);
+            }
+        }
+        ImageCompressionService::deleteIfExists($vehicle->photo_path);
 
         $code = $vehicle->code;
         $vehicle->delete();

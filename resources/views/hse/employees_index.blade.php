@@ -151,8 +151,19 @@
                             <!-- NIK (Font Bold Hitam Tegas) -->
                             <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs">{{ $emp->nik }}</td>
                             
-                            <!-- Nama Lengkap (Font Bold Hitam) -->
-                            <td class="py-3.5 px-4 font-bold text-slate-900">{{ $emp->name }}</td>
+                            <!-- Nama Lengkap (Avatar + Font Bold Hitam) -->
+                            <td class="py-3.5 px-4 font-bold text-slate-900">
+                                <div class="flex items-center space-x-2.5">
+                                    @if($emp->photo_path)
+                                        <img src="{{ $emp->photo_url }}" alt="{{ $emp->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs flex-shrink-0 cursor-pointer" onclick='openEditModal(@json($emp))'>
+                                    @else
+                                        <div class="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 text-[#1b5e20] flex items-center justify-center text-xs font-bold uppercase flex-shrink-0">
+                                            {{ substr($emp->name, 0, 1) }}
+                                        </div>
+                                    @endif
+                                    <span class="truncate">{{ $emp->name }}</span>
+                                </div>
+                            </td>
                             
                             <!-- Jabatan -->
                             <td class="py-3.5 px-4 text-slate-600">{{ $emp->position ?? '-' }}</td>
@@ -273,8 +284,27 @@
             </button>
         </div>
 
-        <form action="{{ route('hse.employees.store') }}" method="POST" class="mt-5 space-y-4">
+        <form action="{{ route('hse.employees.store') }}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
             @csrf
+
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan (Opsional)</label>
+                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                    <div id="addEmpPhotoPreviewContainer" class="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="addEmpPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                        <i id="addEmpPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="file" 
+                               name="photo" 
+                               id="addEmpPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewEmployeeImage(this, 'addEmpPhotoPreview', 'addEmpPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Format: JPG, PNG, WebP (Maks. 10MB). Resolusi & file dikompresi otomatis.</p>
+                    </div>
+                </div>
+            </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">NIK (Nomor Induk Karyawan) <span class="text-rose-500">*</span></label>
@@ -485,8 +515,27 @@
             </button>
         </div>
 
-        <form id="editForm" method="POST" action="" class="mt-5 space-y-4">
+        <form id="editForm" method="POST" action="" enctype="multipart/form-data" class="mt-5 space-y-4">
             @csrf
+
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan</label>
+                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                    <div id="editEmpPhotoPreviewContainer" class="w-14 h-14 rounded-full border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="editEmpPhotoPreview" src="" alt="Foto Karyawan" class="w-full h-full object-cover hidden">
+                        <i id="editEmpPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="file" 
+                               name="photo" 
+                               id="editEmpPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewEmployeeImage(this, 'editEmpPhotoPreview', 'editEmpPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih foto baru jika ingin mengganti. Otomatis dikompresi hemat storage.</p>
+                    </div>
+                </div>
+            </div>
 
             <!-- Profil Master Data Karyawan (Read-Only Info Card) -->
             <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
@@ -680,6 +729,24 @@
         }
     }
 
+    function previewEmployeeImage(input, imgId, placeholderId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgId);
+                const placeholder = document.getElementById(placeholderId);
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openEditModal(emp) {
         document.getElementById('editNikDisplay').textContent = emp.nik || '-';
         document.getElementById('editNameDisplay').textContent = emp.name || '-';
@@ -687,6 +754,24 @@
         document.getElementById('editDivisionPositionDisplay').textContent = (emp.division || '-') + ' / ' + (emp.position || '-');
         document.getElementById('editOperator').value = emp.is_operator ? '1' : '0';
         
+        const editPhotoPreview = document.getElementById('editEmpPhotoPreview');
+        const editPhotoPlaceholder = document.getElementById('editEmpPhotoPlaceholder');
+        const editPhotoInput = document.getElementById('editEmpPhotoInput');
+        if (editPhotoInput) editPhotoInput.value = '';
+        if (emp.photo_url) {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = emp.photo_url;
+                editPhotoPreview.classList.remove('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.add('hidden');
+        } else {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = '';
+                editPhotoPreview.classList.add('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
+        }
+
         let expDate = '';
         if (emp.simper_expired_at) {
             expDate = emp.simper_expired_at.substring(0, 10);
@@ -829,6 +914,17 @@
     // Modal Tambah Karyawan Manual
     function openAddKaryawanModal() {
         const modal = document.getElementById('addKaryawanModal');
+        const addPhotoPreview = document.getElementById('addEmpPhotoPreview');
+        const addPhotoPlaceholder = document.getElementById('addEmpPhotoPlaceholder');
+        const addPhotoInput = document.getElementById('addEmpPhotoInput');
+        if (addPhotoInput) addPhotoInput.value = '';
+        if (addPhotoPreview) {
+            addPhotoPreview.src = '';
+            addPhotoPreview.classList.add('hidden');
+        }
+        if (addPhotoPlaceholder) {
+            addPhotoPlaceholder.classList.remove('hidden');
+        }
         if (modal) modal.classList.remove('hidden');
     }
     function closeAddKaryawanModal() {

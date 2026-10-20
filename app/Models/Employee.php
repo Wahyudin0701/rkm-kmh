@@ -30,6 +30,10 @@ class Employee extends Model
         'simper_expired_at' => 'date',
     ];
 
+    protected $appends = [
+        'photo_url',
+    ];
+
     /**
      * Cek apakah SIMPER masih aktif hari ini.
      */
@@ -40,6 +44,19 @@ class Employee extends Model
         }
 
         return $this->simper_expired_at->isFuture() || $this->simper_expired_at->isToday();
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->photo_path, 'http://') || str_starts_with($this->photo_path, 'https://')) {
+            return $this->photo_path;
+        }
+
+        return asset('storage/' . ltrim($this->photo_path, '/'));
     }
 
     /**

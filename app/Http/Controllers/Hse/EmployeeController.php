@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Hse;
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
 use App\Models\User;
+use App\Services\ImageCompressionService;
 use App\Services\SimperPdfExporter;
 use App\Services\SimpleXlsxExporter;
 use App\Services\SimpleXlsxImporter;
@@ -536,6 +537,7 @@ class EmployeeController extends Controller
             'position' => ['required', 'string'],
             'is_operator' => ['required', 'in:1,0'],
             'simper_expired_at' => ['nullable', 'date'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ], [
             'nik.required' => 'NIK wajib diisi.',
             'nik.unique' => 'NIK sudah terdaftar dalam sistem.',
@@ -563,6 +565,11 @@ class EmployeeController extends Controller
             $user->assignRole('employee');
         }
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
+        }
+
         Employee::create([
             'nik' => $validated['nik'],
             'name' => $validated['name'],
@@ -571,6 +578,7 @@ class EmployeeController extends Controller
             'position' => $validated['position'],
             'is_operator' => $isOperator,
             'simper_expired_at' => $simperExpiredAt,
+            'photo_path' => $photoPath,
             'user_id' => $user->id,
         ]);
 
@@ -592,6 +600,7 @@ class EmployeeController extends Controller
             'position' => ['sometimes', 'required', 'string'],
             'is_operator' => ['required', 'in:1,0'],
             'simper_expired_at' => ['nullable', 'date'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ], [
             'nik.unique' => 'NIK sudah digunakan oleh karyawan lain.',
             'name.required' => 'Nama lengkap wajib diisi.',
@@ -601,6 +610,12 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? $employee->simper_expired_at) : null;
 
+        $photoPath = $employee->photo_path;
+        if ($request->hasFile('photo')) {
+            ImageCompressionService::deleteIfExists($employee->photo_path);
+            $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
+        }
+
         $employee->update([
             'nik' => $validated['nik'] ?? $employee->nik,
             'name' => $validated['name'] ?? $employee->name,
@@ -609,6 +624,7 @@ class EmployeeController extends Controller
             'position' => $validated['position'] ?? $employee->position,
             'is_operator' => $isOperator,
             'simper_expired_at' => $simperExpiredAt,
+            'photo_path' => $photoPath,
         ]);
 
         return back()->with('success', "Data SIMPER untuk {$employee->name} berhasil diperbarui.");

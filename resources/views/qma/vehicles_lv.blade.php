@@ -145,7 +145,21 @@
                             </td>
 
                             <td class="py-3.5 px-4 font-bold text-slate-900">
-                                {{ $v->brand_type }}
+                                <div class="flex items-center space-x-3">
+                                    @if($v->photo_path)
+                                        <img src="{{ $v->photo_url }}" alt="{{ $v->code }}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-2xs flex-shrink-0 cursor-pointer" onclick='openDetailModal(@json($v))'>
+                                    @else
+                                        <div class="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
+                                            <i class="fa-solid fa-car text-xs"></i>
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0">
+                                        <div class="truncate">{{ $v->brand_type }}</div>
+                                        @if($v->serial_number)
+                                            <div class="text-[10px] text-slate-400 font-mono font-normal truncate">SN: {{ $v->serial_number }}</div>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -267,9 +281,28 @@
             </button>
         </div>
 
-        <form id="addVehicleForm" action="{{ route('qma.vehicles.store') }}" method="POST" class="space-y-4">
+        <form id="addVehicleForm" action="{{ route('qma.vehicles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="hidden" name="category" value="light_vehicle">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Unit Kendaraan (Opsional)</label>
+                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                    <div id="addPhotoPreviewContainer" class="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="addPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                        <i id="addPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="file" 
+                               name="photo" 
+                               id="addPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewVehicleImage(this, 'addPhotoPreview', 'addPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Format: JPG, PNG, WebP (Maks. 10MB). Otomatis dikompresi agar hemat storage.</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -364,9 +397,28 @@
             </button>
         </div>
 
-        <form id="editVehicleForm" action="" method="POST" class="space-y-4">
+        <form id="editVehicleForm" action="" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="hidden" name="category" value="light_vehicle">
+
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Unit Kendaraan</label>
+                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
+                    <div id="editPhotoPreviewContainer" class="w-14 h-14 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="editPhotoPreview" src="" alt="Foto Unit" class="w-full h-full object-cover hidden">
+                        <i id="editPhotoPlaceholder" class="fa-solid fa-car text-slate-400 text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <input type="file" 
+                               name="photo" 
+                               id="editPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewVehicleImage(this, 'editPhotoPreview', 'editPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih foto baru jika ingin mengganti. Otomatis dikompresi hemat storage server.</p>
+                    </div>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
@@ -456,6 +508,11 @@
         </div>
 
         <div class="space-y-4">
+            <!-- Foto Kendaraan di Detail Modal -->
+            <div id="detailPhotoContainer" class="w-full h-48 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden">
+                <img id="detailPhoto" src="" alt="Foto Unit LV" class="w-full h-full object-cover">
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode LV</label>
@@ -828,8 +885,37 @@
         });
     }
 
+    function previewVehicleImage(input, imgId, placeholderId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById(imgId);
+                const placeholder = document.getElementById(placeholderId);
+                if (img) {
+                    img.src = e.target.result;
+                    img.classList.remove('hidden');
+                }
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openAddModal() {
         document.getElementById('addVehicleModal').classList.remove('hidden');
+        const addPhotoPreview = document.getElementById('addPhotoPreview');
+        const addPhotoPlaceholder = document.getElementById('addPhotoPlaceholder');
+        const addPhotoInput = document.getElementById('addPhotoInput');
+        if (addPhotoInput) addPhotoInput.value = '';
+        if (addPhotoPreview) {
+            addPhotoPreview.src = '';
+            addPhotoPreview.classList.add('hidden');
+        }
+        if (addPhotoPlaceholder) {
+            addPhotoPlaceholder.classList.remove('hidden');
+        }
         if (addCodeInput) addCodeInput.focus();
     }
     function closeAddModal() {
@@ -849,6 +935,24 @@
         document.getElementById('editOwnership').value = v.ownership || '';
         document.getElementById('editStatus').value = v.status || 'Operation';
         document.getElementById('editCurrentKm').value = v.current_km || 0;
+
+        const editPhotoPreview = document.getElementById('editPhotoPreview');
+        const editPhotoPlaceholder = document.getElementById('editPhotoPlaceholder');
+        const editPhotoInput = document.getElementById('editPhotoInput');
+        if (editPhotoInput) editPhotoInput.value = '';
+        if (v.photo_url) {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = v.photo_url;
+                editPhotoPreview.classList.remove('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.add('hidden');
+        } else {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = '';
+                editPhotoPreview.classList.add('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
+        }
     }
     function closeEditModal() {
         document.getElementById('editVehicleModal').classList.add('hidden');
@@ -864,6 +968,16 @@
         document.getElementById('detailKm').innerText = Number(v.current_km || 0).toLocaleString('id-ID') + ' KM';
         document.getElementById('detailDivision').innerText = v.division || '-';
         document.getElementById('detailOwnership').innerText = v.ownership || '-';
+
+        const detailPhotoContainer = document.getElementById('detailPhotoContainer');
+        const detailPhoto = document.getElementById('detailPhoto');
+        if (v.photo_url) {
+            if (detailPhoto) detailPhoto.src = v.photo_url;
+            if (detailPhotoContainer) detailPhotoContainer.classList.remove('hidden');
+        } else {
+            if (detailPhoto) detailPhoto.src = '';
+            if (detailPhotoContainer) detailPhotoContainer.classList.add('hidden');
+        }
 
         const badge = document.getElementById('detailStatusBadge');
         if (badge) {

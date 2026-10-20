@@ -46,9 +46,26 @@ class Vehicle extends Model
         'parent_id' => 'integer',
     ];
 
+    protected $appends = [
+        'photo_url',
+    ];
+
     public function isLightVehicle(): bool
     {
         return $this->category === 'light_vehicle';
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (!$this->photo_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->photo_path, 'http://') || str_starts_with($this->photo_path, 'https://')) {
+            return $this->photo_path;
+        }
+
+        return asset('storage/' . ltrim($this->photo_path, '/'));
     }
 
     public function isUnitSupport(): bool
