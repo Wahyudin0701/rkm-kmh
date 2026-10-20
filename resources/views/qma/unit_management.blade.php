@@ -387,7 +387,18 @@
                                     <!-- Tombol Update Posisi -->
                                     @can('qma.vehicles.edit')
                                     <button type="button" 
-                                            onclick='openUpdateLocationModal(@json($u))'
+                                            data-unit="{{ json_encode([
+                                                'id' => $u->id,
+                                                'code' => $u->code,
+                                                'brand_type' => $u->brand_type,
+                                                'license_plate' => $u->license_plate,
+                                                'serial_number' => $u->serial_number,
+                                                'photo_url' => $u->photo_url,
+                                                'site_status' => $u->site_status ?? 'inside_site',
+                                                'location' => $u->location ?? '',
+                                                'location_note' => $u->location_note ?? '',
+                                            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
+                                            onclick="openUpdateLocationModalFromBtn(this)"
                                             class="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition font-bold text-[11px] cursor-pointer"
                                             title="Update Posisi Unit">
                                         <i class="fa-solid fa-location-pen text-xs"></i>
@@ -397,8 +408,9 @@
 
                                     <!-- Tombol Riwayat Posisi -->
                                     <button type="button" 
+                                            data-unit-id="{{ $u->id }}"
                                             onclick="openHistoryModal('{{ $u->id }}')"
-                                            class="inline-flex items-center space-x-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2 py-1.5 rounded-lg transition font-medium text-[11px] cursor-pointer"
+                                            class="inline-flex items-center space-x-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg transition font-medium text-[11px] cursor-pointer"
                                             title="Lihat Riwayat Pergerakan Posisi">
                                         <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                                         <span>Riwayat</span>
@@ -812,7 +824,7 @@
 
 @endsection
 
-@push('scripts')
+@section('scripts')
 <script>
     // 1. Dropdown Ekspor
     function toggleExportMenu(event) {
@@ -831,24 +843,43 @@
 
     // 2. Modal Panduan
     function openGuideModal() {
-        document.getElementById('guideModal').style.display = 'block';
+        const modal = document.getElementById('guideModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
     function closeGuideModal() {
-        document.getElementById('guideModal').style.display = 'none';
+        const modal = document.getElementById('guideModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     // 3. Modal Preview Foto
     function openPhotoPreview(url, title) {
         document.getElementById('photoPreviewImage').src = url;
         document.getElementById('photoPreviewTitle').textContent = title || 'Foto Unit';
-        document.getElementById('photoPreviewModal').style.display = 'block';
+        const modal = document.getElementById('photoPreviewModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
     function closePhotoPreview() {
-        document.getElementById('photoPreviewModal').style.display = 'none';
+        const modal = document.getElementById('photoPreviewModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     // 4. Modal Update Posisi Unit
+    function openUpdateLocationModalFromBtn(btn) {
+        try {
+            const raw = btn.getAttribute('data-unit');
+            const unit = JSON.parse(raw);
+            openUpdateLocationModal(unit);
+        } catch (err) {
+            console.error('Error parsing unit data:', err);
+        }
+    }
+
     function openUpdateLocationModal(unit) {
+        const modal = document.getElementById('updateLocationModal');
         const form = document.getElementById('updateLocationForm');
         form.action = `/qma/unit-management/${unit.id}/location`;
 
@@ -881,11 +912,14 @@
         document.getElementById('modalLocationInput').value = unit.location || '';
         document.getElementById('modalNoteInput').value = unit.location_note || '';
 
-        document.getElementById('updateLocationModal').style.display = 'block';
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
 
     function closeUpdateLocationModal() {
-        document.getElementById('updateLocationModal').style.display = 'none';
+        const modal = document.getElementById('updateLocationModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     function handleSiteStatusChange(status) {
@@ -918,13 +952,19 @@
         const empty = document.getElementById('historyEmpty');
         const list = document.getElementById('historyList');
 
+        modal.classList.remove('hidden');
         modal.style.display = 'block';
         loading.classList.remove('hidden');
         empty.classList.add('hidden');
         list.classList.add('hidden');
         list.innerHTML = '';
 
-        fetch(`/qma/unit-management/${unitId}/history`)
+        fetch(`/qma/unit-management/${unitId}/history`, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
             .then(res => {
                 if (!res.ok) throw new Error('Gagal memuat riwayat');
                 return res.json();
@@ -1039,7 +1079,9 @@
     }
 
     function closeHistoryModal() {
-        document.getElementById('historyModal').style.display = 'none';
+        const modal = document.getElementById('historyModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 </script>
-@endpush
+@endsection

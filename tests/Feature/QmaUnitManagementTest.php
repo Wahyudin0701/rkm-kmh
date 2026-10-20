@@ -117,6 +117,9 @@ class QmaUnitManagementTest extends TestCase
         $response->assertSee('Kota Bangko');
         $response->assertSee('Di Dalam Site');
         $response->assertSee('Di Luar Site');
+        $response->assertSee('openUpdateLocationModalFromBtn');
+        $response->assertSee('openHistoryModal');
+        $response->assertSee('data-unit=');
     }
 
     /**
