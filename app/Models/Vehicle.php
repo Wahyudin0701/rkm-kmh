@@ -227,6 +227,16 @@ class Vehicle extends Model
         return $this->hasOne(VehicleLocationHistory::class)->latestOfMany('recorded_at');
     }
 
+    public function supportTimesheets(): HasMany
+    {
+        return $this->hasMany(UnitSupportTimesheet::class)->orderByDesc('date')->orderByDesc('id');
+    }
+
+    public function latestSupportTimesheet(): HasOne
+    {
+        return $this->hasOne(UnitSupportTimesheet::class)->latestOfMany('date');
+    }
+
     /**
      * Tentukan arah gerbang berikutnya yang sah:
      * - 'ANY' jika belum pernah ada riwayat (kendaraan baru)

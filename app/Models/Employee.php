@@ -82,6 +82,11 @@ class Employee extends Model
         return $this->hasMany(P2hRecord::class, 'employee_id')->orderByDesc('inspected_at');
     }
 
+    public function supportTimesheets(): HasMany
+    {
+        return $this->hasMany(UnitSupportTimesheet::class, 'operator_id')->orderByDesc('date');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -17,6 +17,7 @@ use App\Http\Controllers\Public\VehicleActivityFormController;
 use App\Http\Controllers\Qma\ActivityLogController;
 use App\Http\Controllers\Qma\P2hInspectionController;
 use App\Http\Controllers\Qma\P2hTemplateController;
+use App\Http\Controllers\Qma\SupportTimesheetController;
 use App\Http\Controllers\Qma\UnitManagementController;
 use App\Http\Controllers\Qma\VehicleController;
 use Illuminate\Support\Facades\Auth;
@@ -91,6 +92,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
         Route::get('/activity-summary/export-excel', [ActivityLogController::class, 'exportSummaryExcel'])->name('activity.summary.export_excel')->middleware('permission:qma.summary.view');
         Route::get('/activity-summary/export-pdf', [ActivityLogController::class, 'exportSummaryPdf'])->name('activity.summary.export_pdf')->middleware('permission:qma.summary.view');
+
+        // Timesheet Unit Support (Pencatatan Jam Operasi Alat Berat / Support oleh QMA)
+        Route::get('/support-timesheet', [SupportTimesheetController::class, 'index'])->name('support_timesheet.index')->middleware('permission:qma.logs.view');
+        Route::post('/support-timesheet', [SupportTimesheetController::class, 'store'])->name('support_timesheet.store')->middleware('permission:qma.logs.edit_odometer|qma.vehicles.create');
+        Route::put('/support-timesheet/{id}', [SupportTimesheetController::class, 'update'])->name('support_timesheet.update')->middleware('permission:qma.logs.edit_odometer|qma.vehicles.edit');
+        Route::delete('/support-timesheet/{id}', [SupportTimesheetController::class, 'destroy'])->name('support_timesheet.destroy')->middleware('permission:qma.logs.edit_odometer|qma.vehicles.delete');
+        Route::get('/support-timesheet/export-excel', [SupportTimesheetController::class, 'exportExcel'])->name('support_timesheet.export_excel')->middleware('permission:qma.logs.view');
+        Route::get('/support-timesheet/export-pdf', [SupportTimesheetController::class, 'exportPdf'])->name('support_timesheet.export_pdf')->middleware('permission:qma.logs.view');
 
         // Manajemen Unit (Tracking & Monitoring Posisi LV & Unit Support)
         Route::get('/unit-management', [UnitManagementController::class, 'index'])->name('unit_management.index')->middleware('permission:qma.vehicles.view');
