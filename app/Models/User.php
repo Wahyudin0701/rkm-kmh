@@ -139,6 +139,10 @@ class User extends Authenticatable
 
     public function isEmployee(): bool
     {
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
         return $this->role === 'employee' 
             || $this->hasRole('employee') 
             || $this->can('employee.dashboard') 

@@ -39,6 +39,9 @@ class SuperAdminRbacTest extends TestCase
         $response = $this->actingAs($superAdmin)->get(route('admin.dashboard'));
         $response->assertOk();
         $response->assertSee('Dashboard Super Admin');
+        $response->assertSee('PORTAL KARYAWAN');
+        $response->assertSee('Pemeriksaan P2H');
+        $response->assertSee('Timesheet');
     }
 
     public function test_non_super_admin_cannot_access_admin_dashboard(): void

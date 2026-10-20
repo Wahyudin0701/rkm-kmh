@@ -220,22 +220,6 @@
                                 <span>Dashboard</span>
                             </a>
                         @endif
-
-                        @can('employee.p2h')
-                        <a href="{{ route('p2h.index') }}" 
-                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
-                            <span>Pemeriksaan P2H</span>
-                        </a>
-                        @endcan
-
-                        @can('employee.timesheet')
-                        <a href="{{ route('timesheet.index') }}" 
-                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-car text-base w-5 text-center"></i>
-                            <span>Timesheet</span>
-                        </a>
-                        @endcan
                     </nav>
                 </div>
                 @endif
@@ -410,6 +394,40 @@
                 </div>
                 @endif
 
+                <!-- Grup: Portal Karyawan & Driver -->
+                @if(auth()->user()->canAny(['employee.dashboard', 'employee.p2h', 'employee.timesheet']))
+                <div>
+                    <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        PORTAL KARYAWAN & DRIVER
+                    </p>
+                    <nav class="space-y-1">
+                        @if(auth()->user()->isSuperAdmin() || (!auth()->user()->isEmployee() && auth()->user()->can('employee.dashboard')))
+                            <a href="{{ route('employee.dashboard') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-id-badge text-base w-5 text-center"></i>
+                                <span>Portal Karyawan</span>
+                            </a>
+                        @endif
+
+                        @can('employee.p2h')
+                        <a href="{{ route('p2h.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
+                            <span>Pemeriksaan P2H</span>
+                        </a>
+                        @endcan
+
+                        @can('employee.timesheet')
+                        <a href="{{ route('timesheet.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-car text-base w-5 text-center"></i>
+                            <span>Timesheet</span>
+                        </a>
+                        @endcan
+                    </nav>
+                </div>
+                @endif
+
                 <!-- Grup: Pengaturan Akun -->
                 <div class="mt-6">
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
@@ -520,20 +538,6 @@
                                 <span>Dashboard</span>
                             </a>
                         @endif
-
-                        @can('employee.p2h')
-                        <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
-                            <span>Pemeriksaan P2H</span>
-                        </a>
-                        @endcan
-
-                        @can('employee.timesheet')
-                        <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                            <i class="fa-solid fa-car text-base w-5 text-center"></i>
-                            <span>Timesheet</span>
-                        </a>
-                        @endcan
                     </nav>
                 </div>
                 @endif
@@ -686,6 +690,37 @@
                                 <i class="fa-solid fa-shield-halved w-5 text-center"></i>
                                 <span>Verifikasi Pos Gerbang</span>
                             </a>
+                        @endcan
+                    </nav>
+                </div>
+                @endif
+
+                <!-- Grup: Portal Karyawan & Driver Mobile -->
+                @if(auth()->user()->canAny(['employee.dashboard', 'employee.p2h', 'employee.timesheet']))
+                <div>
+                    <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        PORTAL KARYAWAN & DRIVER
+                    </p>
+                    <nav class="space-y-1">
+                        @if(auth()->user()->isSuperAdmin() || (!auth()->user()->isEmployee() && auth()->user()->can('employee.dashboard')))
+                            <a href="{{ route('employee.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-id-badge w-5 text-center"></i>
+                                <span>Portal Karyawan</span>
+                            </a>
+                        @endif
+
+                        @can('employee.p2h')
+                        <a href="{{ route('p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('p2h.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clipboard-check w-5 text-center"></i>
+                            <span>Pemeriksaan P2H</span>
+                        </a>
+                        @endcan
+
+                        @can('employee.timesheet')
+                        <a href="{{ route('timesheet.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-car w-5 text-center"></i>
+                            <span>Timesheet</span>
+                        </a>
                         @endcan
                     </nav>
                 </div>
