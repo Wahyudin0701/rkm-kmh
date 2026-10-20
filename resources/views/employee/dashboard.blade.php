@@ -6,36 +6,52 @@
 <div class="w-full space-y-6">
 
     <!-- Header Halaman Simple Kayak Satpam (Seamless, Tanpa Card Wrapper) -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
-        <div class="min-w-0">
-            <div class="flex items-center flex-wrap gap-2.5">
-                <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                    Dashboard Karyawan
-                </h1>
-                @if($employee && $employee->hasValidSimper())
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        SIMPER Aktif
-                    </span>
-                @elseif($employee)
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-200">
-                        SIMPER Exp
-                    </span>
-                @endif
-            </div>
-            <div class="text-sm sm:text-base text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-1.5">
-                <span>Karyawan: <strong class="text-slate-900 font-bold">{{ $employee ? $employee->name : auth()->user()->name }}</strong></span>
-                @if($employee && $employee->nik)
-                    <span class="text-slate-500 font-mono text-xs sm:text-sm font-semibold">({{ $employee->nik }})</span>
-                @endif
-                @if($employee && $employee->division)
-                    <span class="text-slate-400">&bull;</span>
-                    <span class="text-slate-500 text-xs sm:text-sm">{{ $employee->division }}</span>
-                @endif
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80">
+        <div class="flex items-center space-x-3.5 min-w-0">
+            @php
+                $empPhoto = $employee?->photo_url ?: auth()->user()->photo_url;
+                $empName = $employee ? $employee->name : auth()->user()->name;
+            @endphp
+            @if($empPhoto)
+                <img src="{{ $empPhoto }}" alt="{{ $empName }}" class="w-12 h-12 rounded-2xl object-cover ring-2 ring-emerald-500/20 shadow-sm flex-shrink-0">
+            @else
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-700 to-[#1b5e20] text-white font-black text-lg flex items-center justify-center ring-2 ring-emerald-500/20 shadow-sm flex-shrink-0">
+                    {{ strtoupper(substr($empName, 0, 1)) }}
+                </div>
+            @endif
+            <div class="min-w-0">
+                <div class="flex items-center flex-wrap gap-2.5">
+                    <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                        {{ $empName }}
+                    </h1>
+                    @if($employee && $employee->hasValidSimper())
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            SIMPER Aktif
+                        </span>
+                    @elseif($employee)
+                        <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-rose-50 text-rose-700 border border-rose-200">
+                            SIMPER Exp
+                        </span>
+                    @endif
+                </div>
+                <div class="text-xs sm:text-sm text-slate-500 font-medium truncate mt-0.5 flex items-center flex-wrap gap-1.5">
+                    @if($employee && $employee->nik)
+                        <span class="text-slate-700 font-mono font-semibold">NIK: {{ $employee->nik }}</span>
+                    @endif
+                    @if($employee && $employee->division)
+                        <span class="text-slate-300">&bull;</span>
+                        <span class="text-slate-600">{{ $employee->division }}</span>
+                    @endif
+                    @if($employee && $employee->position)
+                        <span class="text-slate-300">&bull;</span>
+                        <span class="text-slate-600 font-semibold">{{ $employee->position }}</span>
+                    @endif
+                </div>
             </div>
         </div>
 
         @if($employee && $employee->simper_expired_at)
-            <div class="text-xs text-slate-500 font-medium self-start sm:self-center">
+            <div class="text-xs text-slate-500 font-medium self-start sm:self-center bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200/60">
                 Masa Berlaku SIMPER: <span class="font-bold text-slate-800">{{ $employee->simper_expired_at->format('d/m/Y') }}</span>
             </div>
         @endif

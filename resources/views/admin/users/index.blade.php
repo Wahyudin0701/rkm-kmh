@@ -210,9 +210,13 @@
                         <tr class="hover:bg-slate-50/70 transition">
                             <td class="py-3 px-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black flex items-center justify-center text-xs flex-shrink-0">
-                                        {{ strtoupper(substr($user->name, 0, 1)) }}
-                                    </div>
+                                    @if($user->photo_url)
+                                        <img src="{{ $user->photo_url }}" alt="{{ $user->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs flex-shrink-0">
+                                    @else
+                                        <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-black flex items-center justify-center text-xs flex-shrink-0">
+                                            {{ strtoupper(substr($user->name, 0, 1)) }}
+                                        </div>
+                                    @endif
                                     <div>
                                         <p class="font-bold text-slate-900 text-xs">{{ $user->name }}</p>
                                         <p class="text-[11px] text-slate-400 font-mono">@<span>{{ $user->username }}</span></p>
@@ -303,7 +307,7 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.users.store') }}" method="POST" class="p-6 space-y-4">
+        <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
@@ -324,6 +328,26 @@
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
                 <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
+            </div>
+
+            <!-- Upload Foto Profil (Opsional) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna (Opsional)</label>
+                <div class="flex items-center space-x-3">
+                    <div id="addUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="addUserPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                        <i id="addUserPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" 
+                               name="photo" 
+                               id="addUserPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewUserImage(this, 'addUserPhotoPreview', 'addUserPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Otomatis dikompresi hemat storage (Maks. 10MB).</p>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -374,7 +398,7 @@
             </button>
         </div>
 
-        <form id="editUserForm" method="POST" class="p-6 space-y-4">
+        <form id="editUserForm" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
@@ -397,6 +421,26 @@
                     Ganti Password <span class="text-slate-400 font-normal">(Kosongkan jika tidak ingin mengubah)</span>
                 </label>
                 <input type="password" name="password" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Masukkan password baru">
+            </div>
+
+            <!-- Upload / Ganti Foto Profil -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna</label>
+                <div class="flex items-center space-x-3">
+                    <div id="editUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="editUserPhotoPreview" src="" alt="Foto" class="w-full h-full object-cover hidden">
+                        <i id="editUserPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" 
+                               name="photo" 
+                               id="editUserPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewUserImage(this, 'editUserPhotoPreview', 'editUserPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Pilih file baru jika ingin mengganti foto profil.</p>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
@@ -519,6 +563,24 @@
     const rolePermissionsMap = @json($rolePermissionsMap ?? []);
     let currentUserDirectPerms = [];
 
+    function previewUserImage(input, previewId, placeholderId) {
+        const preview = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function openCreateUserModal() {
         document.getElementById('createUserModal').classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
@@ -527,6 +589,17 @@
     function closeCreateUserModal() {
         document.getElementById('createUserModal').classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
+        const input = document.getElementById('addUserPhotoInput');
+        const preview = document.getElementById('addUserPhotoPreview');
+        const placeholder = document.getElementById('addUserPhotoPlaceholder');
+        if (input) input.value = '';
+        if (preview) {
+            preview.src = '';
+            preview.classList.add('hidden');
+        }
+        if (placeholder) {
+            placeholder.classList.remove('hidden');
+        }
     }
 
     function toggleDirectPermsAccordion() {
@@ -633,6 +706,24 @@
         document.getElementById('edit_role').value = primaryRole;
         document.getElementById('edit_gate_id').value = user.gate_id || '';
 
+        const editPhotoPreview = document.getElementById('editUserPhotoPreview');
+        const editPhotoPlaceholder = document.getElementById('editUserPhotoPlaceholder');
+        const editPhotoInput = document.getElementById('editUserPhotoInput');
+        if (editPhotoInput) editPhotoInput.value = '';
+        if (user.photo_url) {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = user.photo_url;
+                editPhotoPreview.classList.remove('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.add('hidden');
+        } else {
+            if (editPhotoPreview) {
+                editPhotoPreview.src = '';
+                editPhotoPreview.classList.add('hidden');
+            }
+            if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
+        }
+
         currentUserDirectPerms = Array.isArray(userDirectPerms) ? [...userDirectPerms] : [];
         updatePermissionCheckboxes();
 
@@ -643,6 +734,15 @@
     function closeEditUserModal() {
         document.getElementById('editUserModal').classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
+        const editPhotoInput = document.getElementById('editUserPhotoInput');
+        const editPhotoPreview = document.getElementById('editUserPhotoPreview');
+        const editPhotoPlaceholder = document.getElementById('editUserPhotoPlaceholder');
+        if (editPhotoInput) editPhotoInput.value = '';
+        if (editPhotoPreview) {
+            editPhotoPreview.src = '';
+            editPhotoPreview.classList.add('hidden');
+        }
+        if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
     }
 
     function openDeleteUserModal(userId, userName) {

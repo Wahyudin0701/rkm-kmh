@@ -48,15 +48,20 @@ class Employee extends Model
 
     public function getPhotoUrlAttribute(): ?string
     {
-        if (!$this->photo_path) {
+        $path = $this->photo_path;
+        if (empty($path) && $this->user_id) {
+            $path = $this->user?->photo_path;
+        }
+
+        if (!$path) {
             return null;
         }
 
-        if (str_starts_with($this->photo_path, 'http://') || str_starts_with($this->photo_path, 'https://')) {
-            return $this->photo_path;
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
         }
 
-        return asset('storage/' . ltrim($this->photo_path, '/'));
+        return asset('storage/' . ltrim($path, '/'));
     }
 
     /**

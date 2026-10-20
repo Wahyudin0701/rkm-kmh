@@ -58,6 +58,16 @@ class User extends Authenticatable
         'password',
         'role',
         'gate_id',
+        'photo_path',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var list<string>
+     */
+    protected $appends = [
+        'photo_url',
     ];
 
     /**
@@ -96,6 +106,42 @@ class User extends Authenticatable
     public function employee(): HasOne
     {
         return $this->hasOne(Employee::class);
+    }
+
+    /**
+     * Dapatkan URL foto profil pengguna (mendukung delegasi otomatis ke foto master Employee).
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (!empty($this->photo_path)) {
+            if (str_starts_with($this->photo_path, 'http://') || str_starts_with($this->photo_path, 'https://')) {
+                return $this->photo_path;
+            }
+            return asset('storage/' . ltrim($this->photo_path, '/'));
+        }
+
+        // Delegasi ke profil employee tertaut
+        if ($this->relationLoaded('employee') && $this->employee) {
+            return $this->employee->photo_url;
+        }
+
+        $employee = $this->employee()->first();
+        if ($employee && $employee->photo_url) {
+            return $employee->photo_url;
+        }
+
+        // Fallback cari employee dengan NIK sama dengan username
+        if (!empty($this->username)) {
+            $employeeByNik = Employee::where('nik', $this->username)->first();
+            if ($employeeByNik) {
+                if (empty($employeeByNik->user_id)) {
+                    $employeeByNik->update(['user_id' => $this->id]);
+                }
+                return $employeeByNik->photo_url;
+            }
+        }
+
+        return null;
     }
 
     /**

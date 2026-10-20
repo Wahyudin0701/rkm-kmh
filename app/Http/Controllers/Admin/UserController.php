@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\Gate;
 use App\Models\User;
+use App\Services\ImageCompressionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -73,6 +74,7 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -85,6 +87,11 @@ class UserController extends Controller
             'role.exists' => 'Role yang dipilih tidak valid.',
         ]);
 
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
+        }
+
         $user = User::create([
             'name' => $validated['name'],
             'username' => $validated['username'],
@@ -92,6 +99,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'], // Simpan ke kolom legacy untuk backwards-compat
             'gate_id' => $validated['gate_id'] ?? null,
+            'photo_path' => $photoPath,
         ]);
 
         // Assign Spatie Role
@@ -110,7 +118,10 @@ class UserController extends Controller
 
         // Jika user berstatus employee (role employee atau memiliki wewenang operasional karyawan), pastikan profil master Employee ada
         if ($user->isEmployee()) {
-            $user->getOrCreateEmployee();
+            $emp = $user->getOrCreateEmployee();
+            if ($emp && $photoPath && empty($emp->photo_path)) {
+                $emp->update(['photo_path' => $photoPath]);
+            }
         }
 
         // Rekam ke Log Riwayat Aktivitas Super Admin
@@ -149,6 +160,7 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -180,6 +192,11 @@ class UserController extends Controller
             $passwordUpdated = true;
         }
 
+        if ($request->hasFile('photo')) {
+            ImageCompressionService::deleteIfExists($user->photo_path);
+            $user->photo_path = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
+        }
+
         $user->save();
 
         // Sync Spatie Role
@@ -199,9 +216,13 @@ class UserController extends Controller
             $user->employee->update([
                 'name' => $user->name,
                 'nik' => $user->username,
+                'photo_path' => $user->photo_path ?: $user->employee->photo_path,
             ]);
         } elseif ($user->isEmployee()) {
-            $user->getOrCreateEmployee();
+            $emp = $user->getOrCreateEmployee();
+            if ($emp && $user->photo_path) {
+                $emp->update(['photo_path' => $user->photo_path]);
+            }
         }
 
         // Susun deskripsi perubahan yang mudah dipahami non-IT

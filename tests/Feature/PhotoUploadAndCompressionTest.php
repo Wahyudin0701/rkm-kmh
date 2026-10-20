@@ -253,4 +253,81 @@ class PhotoUploadAndCompressionTest extends TestCase
         Storage::disk('public')->assertMissing($oldPath);
         Storage::disk('public')->assertExists($newPath);
     }
+
+    public function test_uploaded_employee_photo_syncs_to_user_and_displays_on_screens(): void
+    {
+        Storage::fake('public');
+
+        $avatar = UploadedFile::fake()->image('ahmad_avatar.png', 400, 400);
+
+        // HSE menambahkan karyawan Ahmad dengan foto
+        $this->actingAs($this->adminHse)->post(route('hse.employees.store'), [
+            'nik' => 'ahmad',
+            'name' => 'Ahmad Sukaya',
+            'unit_kerja' => 'Umum',
+            'division' => 'Operasional',
+            'position' => 'Driver Operasional',
+            'is_operator' => '1',
+            'simper_expired_at' => now()->addYear()->toDateString(),
+            'photo' => $avatar,
+        ]);
+
+        $user = User::where('username', 'ahmad')->firstOrFail();
+        $employee = Employee::where('nik', 'ahmad')->firstOrFail();
+
+        // 1. Verifikasi sinkronisasi photo_url antara User dan Employee
+        $this->assertNotNull($user->photo_url);
+        $this->assertNotNull($employee->photo_url);
+        $this->assertEquals($employee->photo_url, $user->photo_url);
+
+        // 2. Login sebagai Ahmad dan buka Dashboard Karyawan
+        $dashboardResponse = $this->actingAs($user)->get(route('employee.dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee($user->photo_url, false);
+
+        // 3. Buka Halaman Profil Saya
+        $profileResponse = $this->actingAs($user)->get(route('profile.index'));
+        $profileResponse->assertOk();
+        $profileResponse->assertSee($user->photo_url, false);
+    }
+
+    public function test_superadmin_can_upload_photo_and_sync_with_employee(): void
+    {
+        Storage::fake('public');
+
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_test',
+            'role' => 'super_admin',
+        ]);
+        $superAdmin->assignRole('super_admin');
+
+        $avatar = UploadedFile::fake()->image('user_avatar.png', 500, 500);
+
+        // Super Admin membuat user baru dengan role employee dan menyertakan foto
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.store'), [
+            'name' => 'Karyawan Baru',
+            'username' => 'karyawan_baru',
+            'email' => 'karyawan.baru@kmh.co.id',
+            'password' => 'password123',
+            'role' => 'employee',
+            'photo' => $avatar,
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+
+        $newUser = User::where('username', 'karyawan_baru')->firstOrFail();
+        $this->assertNotNull($newUser->photo_path);
+        Storage::disk('public')->assertExists($newUser->photo_path);
+
+        // Verifikasi otomatis sinkron ke profil Employee
+        $newEmployee = $newUser->employee;
+        $this->assertNotNull($newEmployee);
+        $this->assertEquals($newUser->photo_path, $newEmployee->photo_path);
+        $this->assertEquals($newUser->photo_url, $newEmployee->photo_url);
+
+        // Verifikasi foto muncul di tabel admin/users
+        $indexResponse = $this->actingAs($superAdmin)->get(route('admin.users.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee($newUser->photo_url, false);
+    }
 }

@@ -568,6 +568,7 @@ class EmployeeController extends Controller
         $photoPath = null;
         if ($request->hasFile('photo')) {
             $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
+            $user->update(['photo_path' => $photoPath]);
         }
 
         Employee::create([
@@ -626,6 +627,18 @@ class EmployeeController extends Controller
             'simper_expired_at' => $simperExpiredAt,
             'photo_path' => $photoPath,
         ]);
+
+        // Sinkronkan akun login User terkait
+        $linkedUser = $employee->user ?: User::where('username', $employee->nik)->first();
+        if ($linkedUser) {
+            if (!$employee->user_id) {
+                $employee->update(['user_id' => $linkedUser->id]);
+            }
+            $linkedUser->update([
+                'name' => $employee->name,
+                'photo_path' => $photoPath,
+            ]);
+        }
 
         return back()->with('success', "Data SIMPER untuk {$employee->name} berhasil diperbarui.");
     }

@@ -449,9 +449,13 @@
             <!-- Footer Bawah Sidebar: Profil Pengguna & Tombol Logout (Persis Gambar IT All Role) -->
             <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <a href="{{ route('profile.index') }}" class="flex items-center space-x-2.5 min-w-0 hover:opacity-80 transition group" title="Buka Profil Saya">
-                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
+                    @if(auth()->user()->photo_url)
+                        <img src="{{ auth()->user()->photo_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                    @else
+                        <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                    @endif
                     <div class="truncate">
                         <p class="text-xs font-bold text-slate-800 truncate leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
                         <p class="text-[10px] text-slate-400 capitalize truncate">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
@@ -740,9 +744,13 @@
 
             <div class="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <a href="{{ route('profile.index') }}" class="flex items-center space-x-2.5 min-w-0 hover:opacity-80 transition group" title="Buka Profil Saya">
-                    <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
-                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                    </div>
+                    @if(auth()->user()->photo_url)
+                        <img src="{{ auth()->user()->photo_url }}" alt="{{ auth()->user()->name }}" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                    @else
+                        <div class="w-8 h-8 rounded-full bg-[#1b5e20] text-white font-black text-xs flex items-center justify-center flex-shrink-0 shadow-sm group-hover:ring-2 ring-emerald-500/30">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                    @endif
                     <div class="truncate">
                         <p class="text-xs font-bold text-slate-800 truncate leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
                         <p class="text-[10px] text-slate-400 capitalize truncate">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
@@ -824,9 +832,13 @@
                     class="flex items-center space-x-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-50 transition group focus:outline-none cursor-pointer"
                     aria-expanded="false"
                     aria-haspopup="true">
-                <div class="w-9 h-9 rounded-full bg-[#1b5e20] text-white font-bold text-sm flex items-center justify-center shadow-sm group-hover:ring-2 ring-emerald-500/30 flex-shrink-0">
-                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                </div>
+                @if(auth()->user()->photo_url)
+                    <img src="{{ auth()->user()->photo_url }}" alt="{{ auth()->user()->name }}" class="w-9 h-9 rounded-full object-cover shadow-sm group-hover:ring-2 ring-emerald-500/30 flex-shrink-0">
+                @else
+                    <div class="w-9 h-9 rounded-full bg-[#1b5e20] text-white font-bold text-sm flex items-center justify-center shadow-sm group-hover:ring-2 ring-emerald-500/30 flex-shrink-0">
+                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                    </div>
+                @endif
                 <div class="text-left hidden sm:block">
                     <p class="text-xs font-bold text-slate-800 leading-tight group-hover:text-[#1b5e20]">{{ auth()->user()->name }}</p>
                     <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">

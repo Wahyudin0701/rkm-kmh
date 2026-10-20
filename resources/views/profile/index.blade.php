@@ -35,9 +35,13 @@
         <!-- Kolom Kiri: Kartu Ringkasan Pengguna -->
         <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col items-center text-center">
             <!-- Avatar Besar -->
-            <div class="w-24 h-24 rounded-full bg-[#1b5e20] text-white text-3xl font-black flex items-center justify-center shadow-lg mb-4 ring-4 ring-emerald-50">
-                {{ strtoupper(substr($user->name, 0, 1)) }}
-            </div>
+            @if($user->photo_url)
+                <img src="{{ $user->photo_url }}" alt="{{ $user->name }}" class="w-24 h-24 rounded-full object-cover shadow-lg mb-4 ring-4 ring-emerald-50">
+            @else
+                <div class="w-24 h-24 rounded-full bg-[#1b5e20] text-white text-3xl font-black flex items-center justify-center shadow-lg mb-4 ring-4 ring-emerald-50">
+                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                </div>
+            @endif
 
             <h3 class="text-lg font-bold text-slate-900">{{ $user->name }}</h3>
             <p class="text-xs font-mono text-slate-500 mt-0.5">NIK / Username: {{ $user->username ?? '-' }}</p>
@@ -62,6 +66,35 @@
                     <span class="text-slate-500">Unit Operasional</span>
                     <span class="font-semibold text-slate-800">PLTA Merangin 350 MW</span>
                 </div>
+                @if($user->employee || ($user->isEmployee() && $user->getOrCreateEmployee()))
+                    @php $emp = $user->employee ?: $user->getOrCreateEmployee(); @endphp
+                    @if($emp && $emp->division)
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500">Divisi</span>
+                        <span class="font-semibold text-slate-800">{{ $emp->division }}</span>
+                    </div>
+                    @endif
+                    @if($emp && $emp->position)
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500">Jabatan</span>
+                        <span class="font-semibold text-slate-800">{{ $emp->position }}</span>
+                    </div>
+                    @endif
+                    @if($emp && $emp->is_operator)
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500">Status SIMPER</span>
+                        @if($emp->hasValidSimper())
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                Aktif (s/d {{ $emp->simper_expired_at?->format('d/m/Y') }})
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-800">
+                                Kedaluwarsa
+                            </span>
+                        @endif
+                    </div>
+                    @endif
+                @endif
                 <div class="flex justify-between items-center py-1">
                     <span class="text-slate-500">Terdaftar Sejak</span>
                     <span class="font-semibold text-slate-800">{{ $user->created_at ? $user->created_at->format('d M Y') : '12 Okt 2026' }}</span>
