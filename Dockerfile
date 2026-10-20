@@ -19,9 +19,9 @@ COPY resources/ ./resources/
 RUN npm run build
 
 # =========================================================================
-# STAGE 2: PHP 8.2-FPM Alpine Production Runtime
+# STAGE 2: PHP 8.3-FPM Alpine Production Runtime
 # =========================================================================
-FROM php:8.2-fpm-alpine AS app
+FROM php:8.3-fpm-alpine AS app
 
 # Set working directory
 WORKDIR /var/www

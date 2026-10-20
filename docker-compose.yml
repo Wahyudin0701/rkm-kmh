@@ -1,6 +1,6 @@
 services:
   # ---------------------------------------------------------------------------
-  # 1. Aplikasi Laravel (PHP 8.2-FPM Alpine)
+  # 1. Aplikasi Laravel (PHP 8.3-FPM Alpine)
   # ---------------------------------------------------------------------------
   app:
     container_name: rkm_app
