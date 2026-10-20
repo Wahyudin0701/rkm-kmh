@@ -75,7 +75,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Redirect cerdas berdasarkan role pengguna setelah login.
+     * Redirect cerdas berdasarkan wewenang hak akses (permissions) dan role pengguna setelah login.
      */
     private function redirectBasedOnRole($user): RedirectResponse
     {
@@ -83,25 +83,42 @@ class LoginController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        if ($user->role === 'employee') {
-            if ($user->can('employee.dashboard')) {
-                return redirect()->route('employee.dashboard');
-            } elseif ($user->can('employee.p2h')) {
-                return redirect()->route('p2h.index');
-            } elseif ($user->can('employee.timesheet')) {
-                return redirect()->route('timesheet.index');
-            } else {
-                return redirect()->route('profile.index');
-            }
+        // 1. Cek Wewenang Super Admin / Manajemen RBAC
+        if ($user->can('admin.dashboard') || $user->can('roles.view') || $user->can('users.view')) {
+            return redirect()->route('admin.dashboard');
         }
 
-        return match ($user->role) {
-            'super_admin', 'superadmin', 'admin' => redirect()->route('admin.dashboard'),
-            'hse_admin' => redirect()->route('hse.dashboard'),
-            'qma_admin' => redirect()->route('qma.dashboard'),
-            'pg_admin' => redirect()->route('pg.dashboard'),
-            'gate_officer' => redirect()->route('pg.gate.inspection'),
-            default => redirect()->route('profile.index'),
-        };
+        // 2. Cek Wewenang QMA
+        if ($user->can('qma.vehicles.view') || $user->isQmaAdmin()) {
+            return redirect()->route('qma.dashboard');
+        }
+
+        // 3. Cek Wewenang HSE
+        if ($user->can('hse.employees.view') || $user->isHseAdmin()) {
+            return redirect()->route('hse.dashboard');
+        }
+
+        // 4. Cek Wewenang Private Guard (PG Admin)
+        if ($user->can('pg.guards.view') || $user->isPgAdmin()) {
+            return redirect()->route('pg.dashboard');
+        }
+
+        // 5. Cek Wewenang Pos Gerbang Satpam
+        if ($user->can('gate.inspect') || $user->isGateOfficer()) {
+            return redirect()->route('pg.gate.inspection');
+        }
+
+        // 6. Cek Wewenang Operasional Karyawan (Termasuk Role Baru Custom seperti Sukon, Vendor, Operator)
+        if ($user->can('employee.dashboard')) {
+            return redirect()->route('employee.dashboard');
+        }
+        if ($user->can('employee.p2h')) {
+            return redirect()->route('p2h.index');
+        }
+        if ($user->can('employee.timesheet')) {
+            return redirect()->route('timesheet.index');
+        }
+
+        return redirect()->route('profile.index');
     }
 }

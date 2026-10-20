@@ -402,7 +402,7 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                    <select id="edit_role" name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                    <select id="edit_role" name="role" required onchange="updatePermissionCheckboxes()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
                         @foreach($roles as $role)
                             <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
                         @endforeach
@@ -431,10 +431,16 @@
                     <i id="directPermsChevron" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
                 </button>
 
-                <div id="directPermsContainer" class="hidden p-4 space-y-4 max-h-56 overflow-y-auto bg-white border-t border-slate-200 text-xs">
-                    <p class="text-[11px] text-slate-500 mb-1">
-                        Pilih izin individual tambahan di luar wewenang role bawaan pengguna ini:
-                    </p>
+                <div id="directPermsContainer" class="hidden p-4 space-y-4 max-h-64 overflow-y-auto bg-white border-t border-slate-200 text-xs">
+                    <!-- Panduan Visual Matriks Izin -->
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-[11px] text-slate-600">
+                        <i class="fa-solid fa-circle-info text-indigo-600 text-sm mt-0.5 flex-shrink-0"></i>
+                        <div class="leading-relaxed">
+                            <span class="font-bold text-slate-800 block mb-0.5">Panduan Wewenang Pengguna:</span>
+                            Wewenang dengan tanda <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">✓ Bawaan Role</span> otomatis aktif dari Role utama yang dipilih di atas. Anda dapat mencentang kotak lainnya untuk memberikan <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">+ Izin Khusus</span> tambahan secara individual.
+                        </div>
+                    </div>
+
                     @foreach($modules as $moduleKey => $module)
                         <div class="space-y-1.5 pb-2.5 border-b border-slate-100 last:border-0">
                             <p class="font-bold text-[11px] text-indigo-950 flex items-center gap-1.5">
@@ -443,17 +449,23 @@
                             </p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-3">
                                 @foreach($module['permissions'] as $permKey => $permMeta)
-                                    <label class="flex items-start gap-2 text-[11px] text-slate-700 cursor-pointer select-none group">
-                                        <input type="checkbox" 
-                                               name="direct_permissions[]" 
-                                               value="{{ $permKey }}" 
-                                               id="edit_perm_{{ str_replace('.', '_', $permKey) }}"
-                                               class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 user-direct-perm-checkbox">
-                                        <div>
-                                            <span class="font-medium text-slate-800 group-hover:text-indigo-600 transition block">
-                                                {{ $permMeta['label'] }}
-                                            </span>
-                                            <span class="font-mono text-[9px] text-slate-400 block">{{ $permKey }}</span>
+                                    <label class="perm-item-wrapper flex items-start justify-between gap-2 text-[11px] text-slate-700 cursor-pointer select-none p-1.5 rounded-lg border border-transparent transition">
+                                        <div class="flex items-start gap-2 min-w-0">
+                                            <input type="checkbox" 
+                                                   name="direct_permissions[]" 
+                                                   value="{{ $permKey }}" 
+                                                   id="edit_perm_{{ str_replace('.', '_', $permKey) }}"
+                                                   onchange="onDirectPermCheckboxChange(this)"
+                                                   class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 user-direct-perm-checkbox flex-shrink-0">
+                                            <div class="min-w-0">
+                                                <span class="font-medium text-slate-800 transition block truncate">
+                                                    {{ $permMeta['label'] }}
+                                                </span>
+                                                <span class="font-mono text-[9px] text-slate-400 block">{{ $permKey }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0 pt-0.5">
+                                            <span id="badge_edit_perm_{{ str_replace('.', '_', $permKey) }}" class="hidden"></span>
                                         </div>
                                     </label>
                                 @endforeach
@@ -504,6 +516,9 @@
 </div>
 
 <script>
+    const rolePermissionsMap = @json($rolePermissionsMap ?? []);
+    let currentUserDirectPerms = [];
+
     function openCreateUserModal() {
         document.getElementById('createUserModal').classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
@@ -525,6 +540,91 @@
         }
     }
 
+    function updatePermissionCheckboxes() {
+        const roleSelect = document.getElementById('edit_role');
+        const selectedRole = roleSelect ? roleSelect.value : '';
+        const rolePerms = (rolePermissionsMap && rolePermissionsMap[selectedRole]) ? rolePermissionsMap[selectedRole] : [];
+
+        document.querySelectorAll('.user-direct-perm-checkbox').forEach(cb => {
+            const permKey = cb.value;
+            const safeKey = permKey.replace(/\./g, '_');
+            const badge = document.getElementById('badge_edit_perm_' + safeKey);
+            const wrapper = cb.closest('.perm-item-wrapper');
+
+            if (rolePerms.includes(permKey)) {
+                // Izin merupakan bawaan role utama
+                cb.checked = true;
+                cb.disabled = true;
+                cb.title = "Izin bawaan dari role " + selectedRole;
+                if (badge) {
+                    badge.className = "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200";
+                    badge.textContent = "✓ Bawaan Role";
+                    badge.classList.remove('hidden');
+                }
+                if (wrapper) {
+                    wrapper.classList.add('bg-emerald-50/50');
+                    wrapper.classList.remove('bg-indigo-50/50');
+                }
+            } else {
+                // Bukan bawaan role, bisa diaktifkan/dinonaktifkan sebagai izin khusus
+                cb.disabled = false;
+                cb.title = "";
+                const isDirect = currentUserDirectPerms.includes(permKey);
+                cb.checked = isDirect;
+                if (badge) {
+                    if (isDirect) {
+                        badge.className = "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200";
+                        badge.textContent = "+ Izin Khusus";
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.className = "hidden";
+                        badge.textContent = "";
+                    }
+                }
+                if (wrapper) {
+                    if (isDirect) {
+                        wrapper.classList.add('bg-indigo-50/50');
+                        wrapper.classList.remove('bg-emerald-50/50');
+                    } else {
+                        wrapper.classList.remove('bg-emerald-50/50', 'bg-indigo-50/50');
+                    }
+                }
+            }
+        });
+    }
+
+    function onDirectPermCheckboxChange(cb) {
+        if (cb.disabled) return;
+        const permKey = cb.value;
+        const safeKey = permKey.replace(/\./g, '_');
+        const badge = document.getElementById('badge_edit_perm_' + safeKey);
+        const wrapper = cb.closest('.perm-item-wrapper');
+
+        if (cb.checked) {
+            if (!currentUserDirectPerms.includes(permKey)) {
+                currentUserDirectPerms.push(permKey);
+            }
+            if (badge) {
+                badge.className = "inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200";
+                badge.textContent = "+ Izin Khusus";
+                badge.classList.remove('hidden');
+            }
+            if (wrapper) {
+                wrapper.classList.add('bg-indigo-50/50');
+                wrapper.classList.remove('bg-emerald-50/50');
+            }
+        } else {
+            currentUserDirectPerms = currentUserDirectPerms.filter(p => p !== permKey);
+            if (badge) {
+                badge.className = "hidden";
+                badge.textContent = "";
+            }
+            if (wrapper) {
+                wrapper.classList.remove('bg-indigo-50/50');
+            }
+        }
+    }
+
     function openEditUserModal(user, primaryRole, userDirectPerms) {
         document.getElementById('editUserForm').action = `/admin/users/${user.id}`;
         document.getElementById('edit_name').value = user.name;
@@ -533,16 +633,8 @@
         document.getElementById('edit_role').value = primaryRole;
         document.getElementById('edit_gate_id').value = user.gate_id || '';
 
-        // Uncheck all direct permission checkboxes first
-        document.querySelectorAll('.user-direct-perm-checkbox').forEach(cb => cb.checked = false);
-
-        // Check assigned direct permissions
-        if (Array.isArray(userDirectPerms)) {
-            userDirectPerms.forEach(permName => {
-                const el = document.getElementById('edit_perm_' + permName.replace(/\./g, '_'));
-                if (el) el.checked = true;
-            });
-        }
+        currentUserDirectPerms = Array.isArray(userDirectPerms) ? [...userDirectPerms] : [];
+        updatePermissionCheckboxes();
 
         document.getElementById('editUserModal').classList.remove('hidden');
         document.documentElement.classList.add('modal-open');

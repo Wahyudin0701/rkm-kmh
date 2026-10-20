@@ -384,4 +384,88 @@ class SuperAdminRbacTest extends TestCase
         $resEmployeeHome->assertOk();
         $resEmployeeHome->assertSee(route('employee.dashboard'));
     }
+
+    public function test_custom_role_sukon_with_employee_permissions_can_login_and_see_employee_dashboard_and_sidebar(): void
+    {
+        // 1. Buat custom role 'sukon' yang memiliki izin karyawan
+        $sukonRole = Role::create(['name' => 'sukon', 'guard_name' => 'web']);
+        $sukonRole->syncPermissions(['employee.dashboard', 'employee.timesheet', 'employee.p2h']);
+
+        // 2. Buat akun pengguna dengan custom role 'sukon'
+        $user = User::factory()->create([
+            'username' => 'sukon.user',
+            'password' => bcrypt('password123'),
+            'role' => 'sukon',
+        ]);
+        $user->assignRole('sukon');
+
+        // 3. Uji proses login pengguna custom role 'sukon'
+        $loginResponse = $this->post(route('login.post'), [
+            'username' => 'sukon.user',
+            'password' => 'password123',
+        ]);
+
+        // Harus diarahkan ke dashboard karyawan, bukan halaman kosong / profile
+        $loginResponse->assertRedirect(route('employee.dashboard'));
+        $this->assertAuthenticatedAs($user);
+
+        // 4. Akses dashboard karyawan dan periksa sidebar / menu
+        $dashboardResponse = $this->actingAs($user)->get(route('employee.dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertSee('Dashboard Karyawan');
+        $dashboardResponse->assertSee('Pemeriksaan P2H');
+        $dashboardResponse->assertSee('Timesheet');
+
+        // Profil master Employee harus otomatis terhubung
+        $this->assertNotNull($user->fresh()->employee);
+        $this->assertEquals('sukon.user', $user->fresh()->employee->nik);
+
+        // Halaman Home juga mengarahkan tombol dashboard ke portal karyawan
+        $homeResponse = $this->actingAs($user)->get(route('home'));
+        $homeResponse->assertOk();
+        $homeResponse->assertSee(route('employee.dashboard'));
+    }
+
+    public function test_user_management_passes_role_permissions_map_and_filters_duplicate_role_perms(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        // 1. Cek UserController@index menyediakan $rolePermissionsMap
+        $indexResponse = $this->actingAs($superAdmin)->get(route('admin.users.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertViewHas('rolePermissionsMap');
+
+        $map = $indexResponse->viewData('rolePermissionsMap');
+        $this->assertArrayHasKey('employee', $map);
+        $this->assertContains('employee.dashboard', $map['employee']);
+
+        // 2. Buat user dan simpan direct permissions yang bercampur antara izin bawaan role dan izin khusus
+        $targetUser = User::factory()->create([
+            'role' => 'employee',
+        ]);
+        $targetUser->assignRole('employee');
+
+        $updateResponse = $this->actingAs($superAdmin)->post(route('admin.users.update', $targetUser->id), [
+            'name' => 'Karyawan Multi Role',
+            'username' => $targetUser->username,
+            'email' => $targetUser->email,
+            'role' => 'employee',
+            'direct_permissions' => [
+                'employee.dashboard', // Izin bawaan employee role (harus disaring / tidak disimpan sebagai direct)
+                'employee.p2h',       // Izin bawaan employee role (harus disaring)
+                'qma.vehicles.view',  // Izin tambahan khusus di luar role
+            ],
+        ]);
+
+        $updateResponse->assertRedirect(route('admin.users.index'));
+        $updateResponse->assertSessionHas('success');
+
+        // Direct permissions yang tersimpan di user hanya 'qma.vehicles.view'
+        $directPermNames = $targetUser->fresh()->permissions->pluck('name')->toArray();
+        $this->assertEquals(['qma.vehicles.view'], $directPermNames);
+
+        // Namun user tetap memiliki wewenang employee.dashboard lewat rolenya
+        $this->assertTrue($targetUser->fresh()->can('employee.dashboard'));
+        $this->assertTrue($targetUser->fresh()->can('qma.vehicles.view'));
+    }
 }

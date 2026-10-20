@@ -120,8 +120,8 @@ class User extends Authenticatable
             return $emp;
         }
 
-        // Jika user memiliki role employee atau admin yang memerlukan profil operasional
-        if ($this->isEmployee() || $this->isSuperAdmin()) {
+        // Jika user memiliki role employee, wewenang operasional karyawan, atau admin
+        if ($this->isEmployee() || $this->can('employee.dashboard') || $this->can('employee.timesheet') || $this->can('employee.p2h') || $this->isSuperAdmin()) {
             return Employee::create([
                 'user_id' => $this->id,
                 'nik' => $this->username,
@@ -139,7 +139,11 @@ class User extends Authenticatable
 
     public function isEmployee(): bool
     {
-        return $this->role === 'employee' || $this->hasRole('employee');
+        return $this->role === 'employee' 
+            || $this->hasRole('employee') 
+            || $this->can('employee.dashboard') 
+            || $this->can('employee.timesheet') 
+            || $this->can('employee.p2h');
     }
 
     public function isGateOfficer(): bool

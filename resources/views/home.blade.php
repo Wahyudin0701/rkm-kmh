@@ -100,19 +100,16 @@
                     <!-- Tombol Auth: Login / Dashboard -->
                     @auth
                         @php
-                            $roleRoute = match(auth()->user()->role) {
-                                'super_admin', 'superadmin', 'admin' => route('admin.dashboard'),
-                                'hse_admin' => route('hse.dashboard'),
-                                'qma_admin' => route('qma.dashboard'),
-                                'pg_admin' => route('pg.dashboard'),
-                                'gate_officer' => route('pg.gate.inspection'),
-                                'employee' => (auth()->user()->can('employee.dashboard') 
-                                                ? route('employee.dashboard') 
-                                                : (auth()->user()->can('employee.p2h') 
-                                                    ? route('p2h.index') 
-                                                    : (auth()->user()->can('employee.timesheet') 
-                                                        ? route('timesheet.index') 
-                                                        : route('profile.index')))),
+                            $u = auth()->user();
+                            $roleRoute = match(true) {
+                                $u->isSuperAdmin() || $u->can('admin.dashboard') => route('admin.dashboard'),
+                                $u->can('qma.vehicles.view') => route('qma.dashboard'),
+                                $u->can('hse.employees.view') => route('hse.dashboard'),
+                                $u->can('pg.guards.view') => route('pg.dashboard'),
+                                $u->can('gate.inspect') => route('pg.gate.inspection'),
+                                $u->can('employee.dashboard') => route('employee.dashboard'),
+                                $u->can('employee.p2h') => route('p2h.index'),
+                                $u->can('employee.timesheet') => route('timesheet.index'),
                                 default => route('profile.index'),
                             };
                         @endphp
@@ -196,19 +193,16 @@
                     <!-- BUTTON LOGIN -->
                     @auth
                         @php
-                            $roleRoute = match(auth()->user()->role) {
-                                'super_admin', 'superadmin', 'admin' => route('admin.dashboard'),
-                                'hse_admin' => route('hse.dashboard'),
-                                'qma_admin' => route('qma.dashboard'),
-                                'pg_admin' => route('pg.dashboard'),
-                                'gate_officer' => route('pg.gate.inspection'),
-                                'employee' => (auth()->user()->can('employee.dashboard') 
-                                                ? route('employee.dashboard') 
-                                                : (auth()->user()->can('employee.p2h') 
-                                                    ? route('p2h.index') 
-                                                    : (auth()->user()->can('employee.timesheet') 
-                                                        ? route('timesheet.index') 
-                                                        : route('profile.index')))),
+                            $u = auth()->user();
+                            $roleRoute = match(true) {
+                                $u->isSuperAdmin() || $u->can('admin.dashboard') => route('admin.dashboard'),
+                                $u->can('qma.vehicles.view') => route('qma.dashboard'),
+                                $u->can('hse.employees.view') => route('hse.dashboard'),
+                                $u->can('pg.guards.view') => route('pg.dashboard'),
+                                $u->can('gate.inspect') => route('pg.gate.inspection'),
+                                $u->can('employee.dashboard') => route('employee.dashboard'),
+                                $u->can('employee.p2h') => route('p2h.index'),
+                                $u->can('employee.timesheet') => route('timesheet.index'),
                                 default => route('profile.index'),
                             };
                         @endphp

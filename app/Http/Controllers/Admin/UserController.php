@@ -51,11 +51,14 @@ class UserController extends Controller
         };
 
         $users = $query->with('permissions')->paginate(15)->withQueryString();
-        $roles = Role::orderBy('name')->get();
+        $roles = Role::with('permissions')->orderBy('name')->get();
+        $rolePermissionsMap = $roles->mapWithKeys(function ($r) {
+            return [$r->name => $r->permissions->pluck('name')->toArray()];
+        });
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $modules = config('rbac_permissions.modules', []);
 
-        return view('admin.users.index', compact('users', 'roles', 'gates', 'modules'));
+        return view('admin.users.index', compact('users', 'roles', 'gates', 'modules', 'rolePermissionsMap'));
     }
 
     /**
@@ -94,18 +97,21 @@ class UserController extends Controller
         // Assign Spatie Role
         $user->assignRole($validated['role']);
 
-        // Jika role employee, sinkronkan atau buat data master Employee
-        if ($validated['role'] === 'employee') {
-            $user->getOrCreateEmployee();
-        }
-
-        // Sync Direct Permissions (jika ada izin khusus tambahan)
+        // Sync Direct Permissions (jika ada izin khusus tambahan di luar bawaan role)
         if ($request->has('direct_permissions')) {
-            $user->syncPermissions($request->input('direct_permissions', []));
+            $role = Role::findByName($validated['role']);
+            $rolePermNames = $role ? $role->permissions->pluck('name')->toArray() : [];
+            $directPerms = array_diff($request->input('direct_permissions', []), $rolePermNames);
+            $user->syncPermissions(array_values($directPerms));
         }
 
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Jika user berstatus employee (role employee atau memiliki wewenang operasional karyawan), pastikan profil master Employee ada
+        if ($user->isEmployee()) {
+            $user->getOrCreateEmployee();
+        }
 
         // Rekam ke Log Riwayat Aktivitas Super Admin
         $roleTitle = $this->getFriendlyRoleName($validated['role']);
@@ -179,21 +185,24 @@ class UserController extends Controller
         // Sync Spatie Role
         $user->syncRoles([$validated['role']]);
 
+        // Sync Direct Permissions (hanya simpan izin khusus yang bukan bawaan role)
+        $role = Role::findByName($validated['role']);
+        $rolePermNames = $role ? $role->permissions->pluck('name')->toArray() : [];
+        $directPerms = array_diff($request->input('direct_permissions', []), $rolePermNames);
+        $user->syncPermissions(array_values($directPerms));
+
+        // Reset permission cache Spatie
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
         // Sinkronkan data master Employee jika pengguna berstatus employee
         if ($user->employee) {
             $user->employee->update([
                 'name' => $user->name,
                 'nik' => $user->username,
             ]);
-        } elseif ($validated['role'] === 'employee') {
+        } elseif ($user->isEmployee()) {
             $user->getOrCreateEmployee();
         }
-
-        // Sync Direct Permissions
-        $user->syncPermissions($request->input('direct_permissions', []));
-
-        // Reset permission cache Spatie
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Susun deskripsi perubahan yang mudah dipahami non-IT
         $roleChanged = $oldRole !== $validated['role'];
