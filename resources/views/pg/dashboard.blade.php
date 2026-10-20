@@ -88,10 +88,14 @@
                 @forelse($recentActivities as $act)
                     <div class="flex items-start justify-between py-2.5 border-b border-slate-50 last:border-b-0">
                         <div class="flex items-start space-x-3.5 min-w-0">
-                            <!-- Avatar Inisial Bulat Hijau Pastel -->
-                            <div class="w-9 h-9 rounded-full bg-[#eef7ee] text-[#1b5e20] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                                {{ strtoupper(substr($act->driver->name ?? 'G', 0, 1)) }}
-                            </div>
+                            <!-- Avatar Profil Driver / Inisial Bulat Hijau Pastel -->
+                            @if($act->driver && $act->driver->photo_url)
+                                <img src="{{ $act->driver->photo_url }}" alt="{{ $act->driver->name }}" class="w-9 h-9 rounded-full object-cover flex-shrink-0 mt-0.5 border border-slate-200 shadow-2xs">
+                            @else
+                                <div class="w-9 h-9 rounded-full bg-[#eef7ee] text-[#1b5e20] font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    {{ strtoupper(substr($act->driver->name ?? 'G', 0, 1)) }}
+                                </div>
+                            @endif
 
                             <div class="min-w-0">
                                 <p class="text-xs font-bold text-slate-900 leading-tight truncate">

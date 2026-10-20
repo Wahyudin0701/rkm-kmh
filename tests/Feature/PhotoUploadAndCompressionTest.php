@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Employee;
+use App\Models\Gate;
+use App\Models\SecurityGuard;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleActivity;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -329,5 +332,104 @@ class PhotoUploadAndCompressionTest extends TestCase
         $indexResponse = $this->actingAs($superAdmin)->get(route('admin.users.index'));
         $indexResponse->assertOk();
         $indexResponse->assertSee($newUser->photo_url, false);
+    }
+
+    public function test_gate_inspection_card_and_active_ticket_render_employee_and_lv_photos(): void
+    {
+        Storage::fake('public');
+
+        $gate = Gate::create([
+            'code' => 'GATE-MAIN',
+            'name' => 'Pos Gerbang Utama',
+            'is_active' => true,
+        ]);
+
+        $guardUser = User::factory()->create([
+            'username' => 'satpam_test',
+            'role' => 'gate_officer',
+            'gate_id' => $gate->id,
+        ]);
+        $guardUser->assignRole('gate_officer');
+
+        $guard = SecurityGuard::create([
+            'badge_id' => 'SEC-99',
+            'name' => 'Satpam Penguji',
+            'team' => 1,
+            'gate_id' => $gate->id,
+            'user_id' => $guardUser->id,
+            'is_active' => true,
+        ]);
+
+        // Kendaraan LV dengan foto
+        $vehicle = Vehicle::create([
+            'code' => 'LV-GATE-01',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Toyota Hilux 4x4',
+            'license_plate' => 'BH 1234 XY',
+            'status' => 'Operation',
+            'current_km' => 1000,
+            'photo_path' => 'vehicles/hilux_test.jpg',
+        ]);
+
+        // Karyawan Driver dengan foto
+        $driverUser = User::factory()->create([
+            'username' => 'driver_test',
+            'name' => 'Ahmad Supir',
+            'role' => 'employee',
+            'photo_path' => 'employees/ahmad_test.jpg',
+        ]);
+        $driverUser->assignRole('employee');
+
+        $driver = Employee::create([
+            'user_id' => $driverUser->id,
+            'nik' => 'driver_test',
+            'name' => 'Ahmad Supir',
+            'unit_kerja' => 'Operasional',
+            'division' => 'Logistik',
+            'position' => 'Driver Operasional',
+            'is_operator' => true,
+            'simper_expired_at' => now()->addYear(),
+            'photo_path' => 'employees/ahmad_test.jpg',
+        ]);
+
+        // Buat aktivitas perlintasan gerbang berstatus pending
+        $activity = VehicleActivity::create([
+            'transaction_no' => 'TRX-GATE-001',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $gate->id,
+            'direction' => 'out',
+            'previous_km' => 1000,
+            'current_km' => 1050,
+            'distance' => 50,
+            'purpose' => 'Antar Logistik Proyek',
+            'recorded_at' => now(),
+            'validation_status' => 'pending',
+        ]);
+
+        // 1. Verifikasi kartu antrean Satpam di Pos Gerbang merender foto driver dan mobil LV
+        $gateResponse = $this->actingAs($guardUser)->get(route('pg.gate.inspection'));
+        $gateResponse->assertOk();
+        $gateResponse->assertSee($vehicle->photo_url, false);
+        $gateResponse->assertSee($driver->photo_url, false);
+
+        // 2. Verifikasi live queue JSON endpoint juga membawa foto dalam HTML antrean
+        $liveQueueResponse = $this->actingAs($guardUser)->get(route('pg.gate.live_queue'));
+        $liveQueueResponse->assertOk();
+        $liveQueueJson = $liveQueueResponse->json();
+        $this->assertStringContainsString($vehicle->photo_url, $liveQueueJson['html']);
+        $this->assertStringContainsString($driver->photo_url, $liveQueueJson['html']);
+
+        // 3. Verifikasi tiket aktif pada dashboard karyawan driver juga merender foto mobil LV dan foto supir
+        $driverDashboardResponse = $this->actingAs($driverUser)->get(route('employee.dashboard'));
+        $driverDashboardResponse->assertOk();
+        $driverDashboardResponse->assertSee($vehicle->photo_url, false);
+        $driverDashboardResponse->assertSee($driver->photo_url, false);
+
+        // 4. Verifikasi halaman scan QR mobil juga merender foto mobil LV dan foto supir terverifikasi
+        $formResponse = $this->actingAs($driverUser)->get(route('vehicle.activity.form', ['code' => $vehicle->code]));
+        $formResponse->assertOk();
+        $formResponse->assertSee($vehicle->photo_url, false);
+        $formResponse->assertSee($driver->photo_url, false);
     }
 }

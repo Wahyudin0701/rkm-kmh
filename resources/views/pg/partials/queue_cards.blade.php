@@ -29,38 +29,64 @@
             </div>
         </div>
 
-        <!-- Baris 2: Rincian Driver, Mobil, dan Odometer (Tanpa Highlight Berlebihan) -->
+        <!-- Baris 2: Rincian Visual Driver, Kendaraan LV, dan Odometer -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3">
-            <!-- Pengemudi -->
-            <div class="flex items-center space-x-2.5 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-[#1b5e20] flex items-center justify-center text-xs flex-shrink-0">
-                    <i class="fa-solid fa-user"></i>
-                </div>
-                <div class="min-w-0">
+            <!-- Pengemudi (Driver) -->
+            <div class="flex items-center space-x-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                @if($act->driver && $act->driver->photo_url)
+                    <div class="relative group/pic flex-shrink-0">
+                        <img src="{{ $act->driver->photo_url }}" 
+                             alt="{{ $act->driver->name }}" 
+                             onclick="openImageLightbox('{{ $act->driver->photo_url }}', 'Foto Driver: {{ addslashes($act->driver->name) }} ({{ $act->driver->nik ?? '' }})')"
+                             class="w-12 h-12 rounded-xl object-cover ring-2 ring-emerald-500/30 shadow-2xs cursor-pointer hover:opacity-90 transition"
+                             title="Klik untuk memperbesar foto driver">
+                        <span class="absolute -bottom-1 -right-1 bg-emerald-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs pointer-events-none" title="Foto Driver">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </span>
+                    </div>
+                @else
+                    <div class="w-12 h-12 rounded-xl bg-emerald-100 text-[#1b5e20] flex items-center justify-center font-black text-sm flex-shrink-0 ring-1 ring-emerald-200">
+                        {{ strtoupper(substr($act->driver->name ?? 'D', 0, 1)) }}
+                    </div>
+                @endif
+                <div class="min-w-0 flex-1">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Pengemudi:</span>
                     <span class="text-xs font-bold text-slate-900 truncate block">{{ $act->driver->name }}</span>
-                    <span class="text-[10px] text-slate-500 block truncate">{{ $act->driver->division ?? 'Umum' }}</span>
+                    <span class="text-[10px] text-slate-500 block truncate">{{ $act->driver->division ?? 'Umum' }} @if($act->driver->nik) &bull; {{ $act->driver->nik }} @endif</span>
                 </div>
             </div>
 
-            <!-- Tipe Unit Mobil -->
-            <div class="flex items-center space-x-2.5 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-xs flex-shrink-0">
-                    <i class="fa-solid fa-car-side"></i>
-                </div>
-                <div class="min-w-0">
-                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Kendaraan:</span>
+            <!-- Tipe Unit Mobil (LV) -->
+            <div class="flex items-center space-x-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                @if($act->vehicle && $act->vehicle->photo_url)
+                    <div class="relative group/pic flex-shrink-0">
+                        <img src="{{ $act->vehicle->photo_url }}" 
+                             alt="{{ $act->vehicle->brand_type }}" 
+                             onclick="openImageLightbox('{{ $act->vehicle->photo_url }}', 'Foto Unit Kendaraan: {{ addslashes($act->vehicle->brand_type . ' (' . ($act->vehicle->license_plate ?? $act->vehicle->code) . ')') }}')"
+                             class="w-12 h-12 rounded-xl object-cover ring-2 ring-blue-500/30 shadow-2xs cursor-pointer hover:opacity-90 transition"
+                             title="Klik untuk memperbesar foto unit kendaraan">
+                        <span class="absolute -bottom-1 -right-1 bg-blue-600 text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs pointer-events-none" title="Foto LV">
+                            <i class="fa-solid fa-car"></i>
+                        </span>
+                    </div>
+                @else
+                    <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-base flex-shrink-0 ring-1 ring-blue-200">
+                        <i class="fa-solid fa-car-side"></i>
+                    </div>
+                @endif
+                <div class="min-w-0 flex-1">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Kendaraan (LV):</span>
                     <span class="text-xs font-bold text-slate-900 truncate block">{{ $act->vehicle->brand_type }}</span>
-                    <span class="text-[10px] text-slate-500 block truncate">{{ $act->vehicle->ownership ?? 'Operasional Proyek' }}</span>
+                    <span class="text-[10px] text-slate-500 block truncate">{{ $act->vehicle->code }} @if($act->vehicle->ownership) &bull; {{ $act->vehicle->ownership }} @endif</span>
                 </div>
             </div>
 
             <!-- Odometer / Spedometer KM (Tanpa Highlight) -->
-            <div class="flex items-center space-x-2.5 bg-slate-50/70 p-2.5 rounded-xl border border-slate-100">
-                <div class="w-8 h-8 rounded-lg bg-slate-200/80 text-slate-700 flex items-center justify-center text-xs flex-shrink-0">
+            <div class="flex items-center space-x-3 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80">
+                <div class="w-12 h-12 rounded-xl bg-slate-200/80 text-slate-700 flex items-center justify-center text-base flex-shrink-0 ring-1 ring-slate-300">
                     <i class="fa-solid fa-gauge-high"></i>
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1">
                     <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Spedometer / KM:</span>
                     <span class="text-xs font-bold font-mono text-slate-900 truncate block">
                         {{ number_format($act->current_km, 0, ',', '.') }} KM

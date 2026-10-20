@@ -308,11 +308,22 @@
                             <!-- Kendaraan -->
                             <td class="py-3 px-4">
                                 @if($item->vehicle)
-                                    <div class="font-bold text-slate-900">
-                                        {{ $item->vehicle->license_plate }}
-                                    </div>
-                                    <div class="text-[11px] text-slate-500">
-                                        {{ $item->vehicle->brand_type }}
+                                    <div class="flex items-center space-x-2.5">
+                                        @if($item->vehicle->photo_url)
+                                            <img src="{{ $item->vehicle->photo_url }}" alt="{{ $item->vehicle->brand_type }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shadow-2xs flex-shrink-0">
+                                        @else
+                                            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center text-xs flex-shrink-0">
+                                                <i class="fa-solid fa-car"></i>
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-slate-900 truncate">
+                                                {{ $item->vehicle->license_plate }}
+                                            </div>
+                                            <div class="text-[11px] text-slate-500 truncate">
+                                                {{ $item->vehicle->brand_type }} ({{ $item->vehicle->code }})
+                                            </div>
+                                        </div>
                                     </div>
                                 @else
                                     <span class="text-slate-400">-</span>
@@ -322,11 +333,22 @@
                             <!-- Driver / Pengemudi -->
                             <td class="py-3 px-4">
                                 @if($item->driver)
-                                    <div class="font-bold text-slate-900">
-                                        {{ $item->driver->name }}
-                                    </div>
-                                    <div class="text-[11px] text-slate-500 font-mono">
-                                        {{ $item->driver->nik }}
+                                    <div class="flex items-center space-x-2.5">
+                                        @if($item->driver->photo_url)
+                                            <img src="{{ $item->driver->photo_url }}" alt="{{ $item->driver->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs flex-shrink-0">
+                                        @else
+                                            <div class="w-8 h-8 rounded-full bg-emerald-100 text-[#1b5e20] font-black text-xs flex items-center justify-center flex-shrink-0">
+                                                {{ strtoupper(substr($item->driver->name, 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-slate-900 truncate">
+                                                {{ $item->driver->name }}
+                                            </div>
+                                            <div class="text-[11px] text-slate-500 font-mono truncate">
+                                                {{ $item->driver->nik }}
+                                            </div>
+                                        </div>
                                     </div>
                                 @else
                                     <span class="text-slate-400">-</span>

@@ -29,7 +29,15 @@
             </span>
         </div>
         
-        <h2 class="text-xl font-bold tracking-tight text-white mb-3">Input Timesheet Unit</h2>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div>
+                <h2 class="text-xl font-bold tracking-tight text-white">Input Timesheet Unit</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Pemeriksaan & Mobilisasi Kendaraan Pos Gerbang</p>
+            </div>
+            @if($vehicle->photo_url)
+                <img src="{{ $vehicle->photo_url }}" alt="{{ $vehicle->brand_type }}" class="w-16 h-16 rounded-xl object-cover ring-2 ring-emerald-500/30 shadow-sm flex-shrink-0">
+            @endif
+        </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
             <div><span class="text-slate-400 font-medium">Kode Unit:</span> <span class="font-bold text-white text-sm ml-1">{{ $vehicle->code }}</span></div>
@@ -79,9 +87,13 @@
             <!-- Header Driver Terverifikasi (Kompak, Bersih & Profesional) -->
             <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-50/70 via-slate-50 to-white border-b border-slate-100 flex items-center justify-between gap-3">
                 <div class="flex items-center space-x-3 min-w-0">
-                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-[#1b5e20] flex items-center justify-center font-bold text-base flex-shrink-0">
-                        <i class="fa-solid fa-user-check"></i>
-                    </div>
+                    @if($verifiedDriver && $verifiedDriver->photo_url)
+                        <img src="{{ $verifiedDriver->photo_url }}" alt="{{ $verifiedDriver->name }}" class="w-11 h-11 rounded-full object-cover ring-2 ring-emerald-500/40 shadow-xs flex-shrink-0">
+                    @else
+                        <div class="w-11 h-11 rounded-full bg-emerald-100 text-[#1b5e20] flex items-center justify-center font-bold text-base flex-shrink-0 ring-1 ring-emerald-200">
+                            {{ strtoupper(substr($verifiedDriver->name ?? 'D', 0, 1)) }}
+                        </div>
+                    @endif
                     <div class="min-w-0">
                         <div class="flex items-center space-x-2 flex-wrap">
                             <span class="text-sm font-bold text-slate-900" id="verifiedDriverName">{{ $verifiedDriver->name ?? '' }}</span>

@@ -410,5 +410,37 @@
 
     // Jalankan sync antrean realtime setiap 3 detik secara senyap di background
     setInterval(syncLiveQueue, 3000);
+
+    // Modal Lightbox Foto Driver & Mobil LV
+    function openImageLightbox(url, title) {
+        const modal = document.getElementById('imageLightboxModal');
+        const img = document.getElementById('lightboxImage');
+        const titleEl = document.getElementById('lightboxTitle');
+        if (modal && img) {
+            img.src = url;
+            if (titleEl) titleEl.textContent = title || 'Pratinjau Foto';
+            modal.classList.remove('hidden');
+        }
+    }
+
+    function closeImageLightbox() {
+        const modal = document.getElementById('imageLightboxModal');
+        if (modal) modal.classList.add('hidden');
+    }
 </script>
+
+<!-- MODAL LIGHTBOX PRATINJAU FOTO DRIVER & MOBIL LV -->
+<div id="imageLightboxModal" class="fixed inset-0 z-50 hidden bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4" onclick="closeImageLightbox()">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl p-4 space-y-3" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <h4 id="lightboxTitle" class="text-xs font-bold text-slate-800 truncate">Pratinjau Foto</h4>
+            <button type="button" onclick="closeImageLightbox()" class="text-slate-400 hover:text-slate-600 p-1">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+        <div class="rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[70vh]">
+            <img id="lightboxImage" src="" alt="Pratinjau" class="max-h-[68vh] w-auto max-w-full object-contain">
+        </div>
+    </div>
+</div>
 @endsection

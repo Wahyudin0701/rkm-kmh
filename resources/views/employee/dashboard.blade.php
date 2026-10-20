@@ -92,6 +92,42 @@
                 </div>
             </div>
 
+            {{-- Visual Foto Mobil LV & Foto Driver --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Foto Unit Kendaraan (LV) -->
+                <div class="flex items-center space-x-3 bg-white/95 p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                    @if($pendingActivity->vehicle && $pendingActivity->vehicle->photo_url)
+                        <img src="{{ $pendingActivity->vehicle->photo_url }}" alt="{{ $pendingActivity->vehicle->brand_type }}" class="w-14 h-14 rounded-xl object-cover ring-2 ring-blue-500/20 shadow-2xs flex-shrink-0">
+                    @else
+                        <div class="w-14 h-14 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-xl flex-shrink-0 ring-1 ring-blue-200">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Unit Kendaraan:</span>
+                        <p class="text-xs font-black text-slate-900 truncate">{{ $pendingActivity->vehicle->brand_type }}</p>
+                        <p class="text-[11px] font-mono font-bold text-amber-800">{{ $pendingActivity->vehicle->code }} &bull; {{ $pendingActivity->vehicle->license_plate ?? 'Tanpa Plat' }}</p>
+                    </div>
+                </div>
+
+                <!-- Foto Pengemudi / Driver -->
+                <div class="flex items-center space-x-3 bg-white/95 p-3 rounded-xl border border-amber-200/80 shadow-2xs">
+                    @php $driverPhoto = $pendingActivity->driver?->photo_url ?: auth()->user()->photo_url; @endphp
+                    @if($driverPhoto)
+                        <img src="{{ $driverPhoto }}" alt="{{ $pendingActivity->driver->name }}" class="w-14 h-14 rounded-xl object-cover ring-2 ring-emerald-500/20 shadow-2xs flex-shrink-0">
+                    @else
+                        <div class="w-14 h-14 rounded-xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center text-lg font-black flex-shrink-0 ring-1 ring-emerald-200">
+                            {{ strtoupper(substr($pendingActivity->driver->name ?? 'D', 0, 1)) }}
+                        </div>
+                    @endif
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Driver Terverifikasi:</span>
+                        <p class="text-xs font-black text-slate-900 truncate">{{ $pendingActivity->driver->name }}</p>
+                        <p class="text-[11px] text-slate-500 truncate">NIK: {{ $pendingActivity->driver->nik ?? '-' }} &bull; {{ $pendingActivity->driver->division ?? 'Operasional' }}</p>
+                    </div>
+                </div>
+            </div>
+
             {{-- Grid Rincian Tiket --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-4 rounded-xl border border-amber-200/70 text-xs shadow-xs">
                 <div>
