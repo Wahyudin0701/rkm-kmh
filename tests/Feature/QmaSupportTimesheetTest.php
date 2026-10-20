@@ -99,6 +99,7 @@ class QmaSupportTimesheetTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Timesheet Unit Support');
+        $response->assertSee('Catat Timesheet');
         $response->assertSee('TS-US-20261020-0001');
         $response->assertSee('EX01');
         $response->assertSee('Joko Operator');
@@ -107,7 +108,7 @@ class QmaSupportTimesheetTest extends TestCase
     }
 
     /**
-     * Admin QMA dapat mengakses riwayat timesheet melalui rute Log Aktifitas.
+     * Admin QMA dapat mengakses riwayat timesheet melalui rute Log Aktifitas (tanpa tombol penambahan).
      */
     public function test_qma_admin_can_view_support_timesheet_history_via_activity_log_route(): void
     {
@@ -116,6 +117,7 @@ class QmaSupportTimesheetTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('History Timesheet Unit Support');
+        $response->assertDontSee('Catat Timesheet');
     }
 
     /**

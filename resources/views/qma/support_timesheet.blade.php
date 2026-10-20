@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
-@section('title', (request()->routeIs('qma.activity.support_timesheet') ? 'History Timesheet Unit Support' : 'Timesheet Unit Support') . ' - Admin QMA | PT Kerinci Merangin Hidro')
+@php
+    $isHistoryRoute = request()->routeIs('qma.activity.support_timesheet');
+@endphp
+
+@section('title', ($isHistoryRoute ? 'History Timesheet Unit Support' : 'Timesheet Unit Support') . ' - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -14,14 +18,18 @@
                 </span>
                 <span class="text-slate-300">&bull;</span>
                 <span class="text-xs font-semibold text-slate-500">
-                    {{ request()->routeIs('qma.activity.support_timesheet') ? 'Log Aktifitas' : 'Operasional Unit' }}
+                    {{ $isHistoryRoute ? 'Log Aktifitas' : 'Operasional Unit' }}
                 </span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {{ request()->routeIs('qma.activity.support_timesheet') ? 'History Timesheet Unit Support' : 'Timesheet Unit Support' }}
+                {{ $isHistoryRoute ? 'History Timesheet Unit Support' : 'Timesheet Unit Support' }}
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Pencatatan jam kerja (HM/KM), penugasan operator, utilisasi shift, serta pemakaian solar alat berat.
+                @if($isHistoryRoute)
+                    Riwayat log operasional, utilisasi shift, pencatatan jam kerja mesin (HM/KM), serta konsumsi solar alat berat.
+                @else
+                    Pencatatan jam kerja (HM/KM), penugasan operator, utilisasi shift, serta pemakaian solar alat berat.
+                @endif
             </p>
         </div>
 
@@ -50,15 +58,17 @@
                 </div>
             </div>
 
-            <!-- Tombol Tambah Timesheet -->
-            @can('qma.logs.edit_odometer')
-            <button type="button" 
-                    onclick="openAddModal()" 
-                    class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Catat Timesheet</span>
-            </button>
-            @endcan
+            @if(!$isHistoryRoute)
+                <!-- Tombol Tambah Timesheet (Hanya pada modul operasional Timesheet Unit Support) -->
+                @can('qma.logs.edit_odometer')
+                <button type="button" 
+                        onclick="openAddModal()" 
+                        class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Catat Timesheet</span>
+                </button>
+                @endcan
+            @endif
         </div>
     </div>
 
@@ -367,21 +377,61 @@
                             <!-- Aksi -->
                             <td class="py-3.5 px-3.5 text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center space-x-1.5">
-                                    @can('qma.logs.edit_odometer')
+                                    <!-- Tombol Detail (Bisa dilihat di History maupun Operasional) -->
                                     <button type="button" 
-                                            data-timesheet="{{ json_encode($ts, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
-                                            onclick="openEditModalFromBtn(this)"
-                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-1.5 rounded-lg transition"
-                                            title="Edit Timesheet">
-                                        <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                            data-timesheet="{{ json_encode([
+                                                'timesheet_no' => $ts->timesheet_no,
+                                                'date' => $ts->date ? $ts->date->format('d/m/Y') : '-',
+                                                'shift' => $ts->shift,
+                                                'code' => $ts->vehicle?->code ?: '-',
+                                                'brand_type' => $ts->vehicle?->brand_type ?: '-',
+                                                'operator_name' => $ts->operator?->name ?: '-',
+                                                'operator_nik' => $ts->operator?->nik ?: '-',
+                                                'start_meter' => number_format($ts->start_meter, 1, ',', '.'),
+                                                'end_meter' => number_format($ts->end_meter, 1, ',', '.'),
+                                                'meter_type' => $ts->meter_type,
+                                                'operating_hours' => number_format($ts->operating_hours, 1, ',', '.'),
+                                                'standby_hours' => number_format($ts->standby_hours, 1, ',', '.'),
+                                                'breakdown_hours' => number_format($ts->breakdown_hours, 1, ',', '.'),
+                                                'fuel_liters' => $ts->fuel_liters ? number_format($ts->fuel_liters, 0, ',', '.') : '-',
+                                                'location' => $ts->location,
+                                                'activity_type' => $ts->activity_type,
+                                                'task_description' => $ts->task_description ?: '-',
+                                                'status' => $ts->status,
+                                                'notes' => $ts->notes ?: '-',
+                                            ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
+                                            onclick="openDetailModalFromBtn(this)"
+                                            class="inline-flex items-center space-x-1 text-slate-500 hover:text-slate-800 hover:bg-slate-100 p-1.5 rounded-lg transition cursor-pointer"
+                                            title="Lihat Detail Riwayat">
+                                        <i class="fa-regular fa-eye text-xs"></i>
                                     </button>
 
-                                    <button type="button" 
-                                            onclick="openDeleteModal('{{ $ts->id }}', '{{ $ts->timesheet_no }}')"
-                                            class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 p-1.5 rounded-lg transition"
-                                            title="Hapus Timesheet">
-                                        <i class="fa-regular fa-trash-can text-xs"></i>
-                                    </button>
+                                    @can('qma.logs.edit_odometer')
+                                        @if(!$isHistoryRoute)
+                                        <button type="button" 
+                                                data-timesheet="{{ json_encode($ts, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
+                                                onclick="openEditModalFromBtn(this)"
+                                                class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-1.5 rounded-lg transition cursor-pointer"
+                                                title="Edit Timesheet">
+                                            <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                        </button>
+
+                                        <button type="button" 
+                                                onclick="openDeleteModal('{{ $ts->id }}', '{{ $ts->timesheet_no }}')"
+                                                class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 p-1.5 rounded-lg transition cursor-pointer"
+                                                title="Hapus Timesheet">
+                                            <i class="fa-regular fa-trash-can text-xs"></i>
+                                        </button>
+                                        @else
+                                        <!-- Mode History: Opsi Koreksi -->
+                                        <button type="button" 
+                                                data-timesheet="{{ json_encode($ts, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) }}"
+                                                onclick="openEditModalFromBtn(this)"
+                                                class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-1.5 rounded-lg transition cursor-pointer"
+                                                title="Koreksi Data Timesheet">
+                                            <i class="fa-solid fa-pen-nib text-xs"></i>
+                                        </button>
+                                        @endif
                                     @endcan
                                 </div>
                             </td>
@@ -391,7 +441,11 @@
                             <td colspan="11" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-clipboard-list text-4xl mb-3 block text-slate-300"></i>
                                 <p class="text-sm font-semibold text-slate-700">Belum ada data timesheet unit support</p>
-                                <p class="text-xs text-slate-400 mt-1">Gunakan tombol "Catat Timesheet" di atas untuk menambahkan laporan harian.</p>
+                                @if(!$isHistoryRoute)
+                                    <p class="text-xs text-slate-400 mt-1">Gunakan tombol "Catat Timesheet" di atas untuk menambahkan laporan harian.</p>
+                                @else
+                                    <p class="text-xs text-slate-400 mt-1">Tidak ditemukan catatan timesheet yang sesuai dengan kriteria filter saat ini.</p>
+                                @endif
                                 @if(request()->anyFilled(['start_date', 'end_date', 'vehicle_id', 'shift', 'search']))
                                 <div class="mt-4">
                                     <a href="{{ url()->current() }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
@@ -422,6 +476,7 @@
 
 </div>
 
+@if(!$isHistoryRoute)
 <!-- ========================================== -->
 <!-- 1. MODAL TAMBAH TIMESHEET UNIT SUPPORT    -->
 <!-- ========================================== -->
@@ -680,6 +735,104 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+@endif
+
+<!-- ========================================== -->
+<!-- MODAL DETAIL TIMESHEET UNIT SUPPORT       -->
+<!-- ========================================== -->
+<div id="detailTimesheetModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeDetailModal()"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-sm">
+                        <i class="fa-regular fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900">Detail Riwayat Timesheet</h3>
+                        <p id="detailTimesheetNo" class="font-mono text-xs text-emerald-700 font-bold"></p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-lg hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Grid Data Rinci) -->
+            <div class="p-6 space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Tanggal & Shift</span>
+                        <span id="detailDateShift" class="font-bold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Status Operasi</span>
+                        <span id="detailStatus" class="font-bold text-slate-800"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Unit Support</span>
+                        <span id="detailUnit" class="font-bold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Operator Bertugas</span>
+                        <span id="detailOperator" class="font-bold text-slate-800"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Meter Awal - Akhir</span>
+                        <span id="detailMeter" class="font-mono font-bold text-slate-800"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Total Jam Operasi</span>
+                        <span id="detailHours" class="font-bold text-emerald-700 text-sm"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Standby / Breakdown</span>
+                        <span id="detailStandbyBreakdown" class="text-slate-700 font-medium"></span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Pengisian Solar</span>
+                        <span id="detailFuel" class="font-mono font-bold text-blue-700"></span>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/60 space-y-2">
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Lokasi & Tipe Aktivitas</span>
+                        <div class="font-bold text-slate-800 flex items-center space-x-1.5 mt-0.5">
+                            <i class="fa-solid fa-location-dot text-[#1b5e20] text-xs"></i>
+                            <span id="detailLocation"></span>
+                            <span class="text-slate-300">&bull;</span>
+                            <span id="detailActivity" class="text-emerald-700 font-semibold"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Uraian Tugas / Catatan</span>
+                        <p id="detailTask" class="text-slate-600 mt-0.5 italic"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-6 py-3.5 bg-slate-50/70 border-t border-slate-100 flex justify-end">
+                <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 transition cursor-pointer">
+                    Tutup
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -996,13 +1149,50 @@
     // 2. Modal Tambah Timesheet
     function openAddModal() {
         const modal = document.getElementById('addTimesheetModal');
-        modal.classList.remove('hidden');
-        modal.style.display = 'block';
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
+        }
     }
     function closeAddModal() {
         const modal = document.getElementById('addTimesheetModal');
-        modal.classList.add('hidden');
-        modal.style.display = 'none';
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
+
+    // Modal Detail Riwayat Timesheet
+    function openDetailModalFromBtn(btn) {
+        try {
+            const ts = JSON.parse(btn.getAttribute('data-timesheet'));
+            document.getElementById('detailTimesheetNo').textContent = ts.timesheet_no;
+            document.getElementById('detailDateShift').textContent = `${ts.date} • ${ts.shift}`;
+            document.getElementById('detailUnit').textContent = `${ts.code} - ${ts.brand_type}`;
+            document.getElementById('detailOperator').textContent = `${ts.operator_name} (NIK: ${ts.operator_nik})`;
+            document.getElementById('detailMeter').textContent = `${ts.start_meter} - ${ts.end_meter} ${ts.meter_type}`;
+            document.getElementById('detailHours').textContent = `${ts.operating_hours} ${ts.meter_type}`;
+            document.getElementById('detailStandbyBreakdown').textContent = `Standby: ${ts.standby_hours}h | Breakdown: ${ts.breakdown_hours}h`;
+            document.getElementById('detailFuel').textContent = ts.fuel_liters !== '-' ? `${ts.fuel_liters} L` : '-';
+            document.getElementById('detailLocation').textContent = ts.location;
+            document.getElementById('detailActivity').textContent = ts.activity_type;
+            document.getElementById('detailTask').textContent = ts.task_description !== '-' ? `"${ts.task_description}"` : '-';
+            document.getElementById('detailStatus').textContent = ts.status;
+
+            const modal = document.getElementById('detailTimesheetModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
+        } catch (err) {
+            console.error('Failed to parse detail timesheet data:', err);
+        }
+    }
+
+    function closeDetailModal() {
+        const modal = document.getElementById('detailTimesheetModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
     }
 
     // 3. Modal Edit Timesheet
