@@ -17,6 +17,7 @@ use App\Http\Controllers\Public\VehicleActivityFormController;
 use App\Http\Controllers\Qma\ActivityLogController;
 use App\Http\Controllers\Qma\P2hInspectionController;
 use App\Http\Controllers\Qma\P2hTemplateController;
+use App\Http\Controllers\Qma\UnitManagementController;
 use App\Http\Controllers\Qma\VehicleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -90,6 +91,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
         Route::get('/activity-summary/export-excel', [ActivityLogController::class, 'exportSummaryExcel'])->name('activity.summary.export_excel')->middleware('permission:qma.summary.view');
         Route::get('/activity-summary/export-pdf', [ActivityLogController::class, 'exportSummaryPdf'])->name('activity.summary.export_pdf')->middleware('permission:qma.summary.view');
+
+        // Manajemen Unit (Tracking & Monitoring Posisi LV & Unit Support)
+        Route::get('/unit-management', [UnitManagementController::class, 'index'])->name('unit_management.index')->middleware('permission:qma.vehicles.view');
+        Route::post('/unit-management/{id}/location', [UnitManagementController::class, 'updateLocation'])->name('unit_management.update_location')->middleware('permission:qma.vehicles.edit');
+        Route::get('/unit-management/{id}/history', [UnitManagementController::class, 'history'])->name('unit_management.history')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-management/export-excel', [UnitManagementController::class, 'exportExcel'])->name('unit_management.export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-management/export-pdf', [UnitManagementController::class, 'exportPdf'])->name('unit_management.export_pdf')->middleware('permission:qma.vehicles.view');
 
         // Log Pemeriksaan P2H Unit Support & Approval Admin QMA
         Route::get('/p2h-records', [P2hInspectionController::class, 'index'])->name('p2h.index')->middleware('permission:qma.p2h.view|qma.vehicles.view');

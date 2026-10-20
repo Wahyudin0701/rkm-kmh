@@ -183,6 +183,11 @@ class User extends Authenticatable
         return null;
     }
 
+    public function locationHistories(): HasMany
+    {
+        return $this->hasMany(VehicleLocationHistory::class);
+    }
+
     public function isEmployee(): bool
     {
         if ($this->isSuperAdmin()) {

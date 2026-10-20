@@ -32,6 +32,10 @@ class Vehicle extends Model
         'model_number',
         'production_year',
         'location',
+        'site_status',
+        'location_updated_at',
+        'location_updated_by',
+        'location_note',
         'fuel_consumption',
         'silo_document',
         'stnk_document',
@@ -44,11 +48,28 @@ class Vehicle extends Model
         'fuel_consumption' => 'decimal:2',
         'production_year' => 'integer',
         'parent_id' => 'integer',
+        'location_updated_at' => 'datetime',
     ];
 
     protected $appends = [
         'photo_url',
+        'site_status_label',
     ];
+
+    public function isInsideSite(): bool
+    {
+        return ($this->site_status ?? 'inside_site') === 'inside_site';
+    }
+
+    public function isOutsideSite(): bool
+    {
+        return ($this->site_status ?? 'inside_site') === 'outside_site';
+    }
+
+    public function getSiteStatusLabelAttribute(): string
+    {
+        return $this->isOutsideSite() ? 'Di Luar Site' : 'Di Dalam Site';
+    }
 
     public function isLightVehicle(): bool
     {
@@ -101,6 +122,35 @@ class Vehicle extends Model
     public function scopeUnitSupportPhysical(Builder $query): Builder
     {
         return $query->where('category', 'unit_support')->whereNotNull('parent_id');
+    }
+
+    /**
+     * Scope untuk seluruh unit operasional yang dapat dilacak posisinya:
+     * - Seluruh Light Vehicle
+     * - Seluruh Unit Support fisik (anak kategori) ATAU kategori tunggal yang belum memiliki anak unit
+     */
+    public function scopeTrackableUnits(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('category', 'light_vehicle')
+              ->orWhere(function (Builder $sq) {
+                  $sq->where('category', 'unit_support')
+                     ->where(function (Builder $sub) {
+                         $sub->whereNotNull('parent_id')
+                             ->orWhereDoesntHave('units');
+                     });
+              });
+        });
+    }
+
+    public function scopeInsideSite(Builder $query): Builder
+    {
+        return $query->where('site_status', 'inside_site');
+    }
+
+    public function scopeOutsideSite(Builder $query): Builder
+    {
+        return $query->where('site_status', 'outside_site');
     }
 
     public function parent(): BelongsTo
@@ -165,6 +215,16 @@ class Vehicle extends Model
     public function latestActivity(): HasOne
     {
         return $this->hasOne(VehicleActivity::class)->latestOfMany('recorded_at');
+    }
+
+    public function locationHistories(): HasMany
+    {
+        return $this->hasMany(VehicleLocationHistory::class)->orderByDesc('recorded_at');
+    }
+
+    public function latestLocationHistory(): HasOne
+    {
+        return $this->hasOne(VehicleLocationHistory::class)->latestOfMany('recorded_at');
     }
 
     /**

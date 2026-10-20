@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\VehicleActivity;
+use App\Models\VehicleLocationHistory;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -115,13 +116,16 @@ class GateInspectionController extends Controller
             }
         }
 
-        $activity = VehicleActivity::with('vehicle')->findOrFail($id);
+        $activity = VehicleActivity::with(['vehicle', 'gate'])->findOrFail($id);
 
         if ($activity->validation_status !== 'pending') {
             return back()->with('error', 'Aktivitas ini sudah pernah divalidasi sebelumnya.');
         }
 
-        DB::transaction(function () use ($guardId, $activity) {
+        $guard = SecurityGuard::find($guardId);
+        $guardName = $guard?->name ?? ($user?->name ?? 'Petugas Pos Gerbang');
+
+        DB::transaction(function () use ($guardId, $guardName, $activity, $user) {
             // 1. Update status aktivitas menjadi approved
             $activity->update([
                 'validation_status' => 'approved',
@@ -129,9 +133,42 @@ class GateInspectionController extends Controller
                 'validated_at' => Carbon::now(),
             ]);
 
-            // 2. Update odometer master kendaraan
+            // 2. Tentukan posisi site (in = inside_site, out = outside_site)
+            $isEntering = strtolower($activity->direction) === 'in';
+            $siteStatus = $isEntering ? 'inside_site' : 'outside_site';
+            $gateName = $activity->gate?->name ?? 'Pos Gerbang';
+
+            $detailLocation = $isEntering
+                ? $gateName
+                : ($activity->purpose ? 'Luar Site - ' . $activity->purpose : 'Luar Area Proyek');
+
+            $directionLabel = $isEntering ? 'Masuk' : 'Keluar';
+            $note = "{$directionLabel} perlintasan {$gateName} (Trx: {$activity->transaction_no})";
+            if (!$isEntering && $activity->purpose) {
+                $note .= " - Keperluan: {$activity->purpose}";
+            }
+
+            // 3. Update odometer dan status posisi master kendaraan
             $activity->vehicle->update([
                 'current_km' => $activity->current_km,
+                'site_status' => $siteStatus,
+                'location' => $detailLocation,
+                'location_updated_at' => Carbon::now(),
+                'location_updated_by' => $guardName,
+                'location_note' => $note,
+            ]);
+
+            // 4. Catat riwayat perubahan posisi kendaraan (Audit Trail)
+            VehicleLocationHistory::create([
+                'vehicle_id' => $activity->vehicle_id,
+                'site_status' => $siteStatus,
+                'location' => $detailLocation,
+                'note' => $note,
+                'source' => 'gate_crossing',
+                'vehicle_activity_id' => $activity->id,
+                'user_id' => $user?->id,
+                'user_name' => $guardName,
+                'recorded_at' => Carbon::now(),
             ]);
         });
 

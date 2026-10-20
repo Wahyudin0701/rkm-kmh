@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VehicleActivity extends Model
 {
@@ -67,6 +68,11 @@ class VehicleActivity extends Model
     public function correctedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'corrected_by_user_id');
+    }
+
+    public function locationHistories(): HasMany
+    {
+        return $this->hasMany(VehicleLocationHistory::class, 'vehicle_activity_id');
     }
 
     public function isPending(): bool

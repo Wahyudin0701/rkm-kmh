@@ -306,6 +306,14 @@
                             </div>
                         @endcan
 
+                        @can('qma.vehicles.view')
+                            <a href="{{ route('qma.unit_management.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.unit_management.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-map-location-dot text-base w-5 text-center"></i>
+                                <span>Manajemen Unit</span>
+                            </a>
+                        @endcan
+
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
                                 $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
@@ -620,6 +628,14 @@
                             </div>
                         @endcan
 
+                        @can('qma.vehicles.view')
+                            <a href="{{ route('qma.unit_management.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.unit_management.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-map-location-dot text-base w-5 text-center"></i>
+                                <span>Manajemen Unit</span>
+                            </a>
+                        @endcan
+
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
                                 $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
@@ -792,6 +808,8 @@
                     Unit Support
                 @elseif(request()->routeIs('qma.vehicles.*'))
                     Data Kendaraan
+                @elseif(request()->routeIs('qma.unit_management.*'))
+                    Manajemen Unit
                 @elseif(request()->routeIs('qma.activity.log'))
                     Timesheet LV
                 @elseif(request()->routeIs('qma.p2h.summary'))
