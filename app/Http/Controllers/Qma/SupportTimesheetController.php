@@ -133,8 +133,7 @@ class SupportTimesheetController extends Controller
             ->orderBy('code')
             ->get();
 
-        $operators = Employee::where('is_active', true)
-            ->orderBy('name')
+        $operators = Employee::orderBy('name')
             ->get(['id', 'nik', 'name', 'position', 'is_operator']);
 
         $shifts = self::SHIFTS;

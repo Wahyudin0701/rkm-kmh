@@ -61,7 +61,6 @@ class QmaSupportTimesheetTest extends TestCase
             'department' => 'Civil Construction',
             'is_operator' => true,
             'is_driver' => true,
-            'is_active' => true,
         ]);
     }
 

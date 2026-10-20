@@ -314,9 +314,17 @@
                             </a>
                         @endcan
 
+                        @can('qma.logs.view')
+                            <a href="{{ route('qma.support_timesheet.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.support_timesheet.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-stopwatch text-base w-5 text-center"></i>
+                                <span>Timesheet Unit Support</span>
+                            </a>
+                        @endcan
+
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
-                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
                             <!-- Dropdown Menu: Log Aktifitas -->
                             <div>
@@ -336,11 +344,6 @@
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
-                                    </a>
-
-                                    <a href="{{ route('qma.support_timesheet.index') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.support_timesheet.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Timesheet Unit Support</span>
                                     </a>
                                     @endcan
 
@@ -641,9 +644,17 @@
                             </a>
                         @endcan
 
+                        @can('qma.logs.view')
+                            <a href="{{ route('qma.support_timesheet.index') }}" 
+                               class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.support_timesheet.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-stopwatch w-5 text-center"></i>
+                                <span>Timesheet Unit Support</span>
+                            </a>
+                        @endcan
+
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
-                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
                             <div>
                                 <button type="button" 
@@ -661,11 +672,6 @@
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
-                                    </a>
-
-                                    <a href="{{ route('qma.support_timesheet.index') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.support_timesheet.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Timesheet Unit Support</span>
                                     </a>
                                     @endcan
 
