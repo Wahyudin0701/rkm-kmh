@@ -57,7 +57,7 @@
         @endif
     </div>
 
-    {{-- CARD TIKET PERJALANAN AKTIF (MENUNGGU PEMERIKSAAN SATPAM) --}}
+    {{-- CARD PERJALANAN AKTIF (MENUNGGU PEMERIKSAAN SATPAM) --}}
     @if(isset($pendingActivity) && $pendingActivity)
     <div class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
         {{-- Dekorasi Latar Belakang --}}
@@ -66,15 +66,15 @@
         </div>
 
         <div class="relative z-10 space-y-4">
-            {{-- Header Card Tiket --}}
+            {{-- Header Card Perjalanan --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-amber-200/60">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
-                        <i class="fa-solid fa-ticket"></i>
+                        <i class="fa-solid fa-route"></i>
                     </div>
                     <div>
                         <div class="flex items-center space-x-2">
-                            <span class="text-xs font-bold uppercase tracking-wider text-amber-900">Tiket Perjalanan Aktif</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-900">Perjalanan Aktif</span>
                             <span class="text-[11px] font-mono font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200">
                                 {{ $pendingActivity->transaction_no }}
                             </span>
@@ -128,7 +128,7 @@
                 </div>
             </div>
 
-            {{-- Grid Rincian Tiket --}}
+            {{-- Grid Rincian Perjalanan --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-white/90 p-4 rounded-xl border border-amber-200/70 text-xs shadow-xs">
                 <div>
                     <span class="text-[11px] text-slate-400 font-medium block">Kendaraan (Unit):</span>
@@ -172,7 +172,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                 <div class="text-[11px] text-slate-500 flex items-center">
                     <i class="fa-solid fa-circle-info text-amber-600 mr-1.5 flex-shrink-0"></i>
-                    <span>Tunjukkan tiket ini ke petugas Satpam di pos gerbang untuk verifikasi fisik speedometer.</span>
+                    <span>Tunjukkan data perjalanan ini ke petugas Satpam di pos gerbang untuk verifikasi fisik speedometer.</span>
                 </div>
 
                 <div class="flex items-center space-x-2 self-end sm:self-auto flex-shrink-0">
@@ -404,10 +404,10 @@
                     </button>
                 </div>
 
-                {{-- Info Unit & Tiket --}}
+                {{-- Info Unit & Perjalanan --}}
                 <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5 font-medium text-slate-600">
                     <div class="flex justify-between">
-                        <span class="text-slate-400">Nomor Tiket:</span>
+                        <span class="text-slate-400">Nomor Perjalanan:</span>
                         <span id="modalEditTrxNo" class="font-mono font-bold text-slate-800">-</span>
                     </div>
                     <div class="flex justify-between">
@@ -467,7 +467,7 @@
     </div>
 </div>
 
-{{-- MODAL 2: KONFIRMASI BATALKAN TIKET DRIVER --}}
+{{-- MODAL 2: KONFIRMASI BATALKAN PERJALANAN --}}
 <div id="driverCancelModal" 
      onclick="if(event.target === this) closeDriverCancelModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
@@ -481,8 +481,8 @@
                 </div>
 
                 <div class="text-center space-y-1">
-                    <h3 class="font-bold text-slate-900 text-base">Batalkan Tiket Perjalanan?</h3>
-                    <p class="text-xs text-slate-500">Tiket perjalanan untuk unit <strong id="modalCancelVehicleCode" class="text-slate-800 font-mono">-</strong> (<span id="modalCancelTrxNo">-</span>) akan dibatalkan dan dihapus dari antrean pos Satpam.</p>
+                    <h3 class="font-bold text-slate-900 text-base">Batalkan Perjalanan?</h3>
+                    <p class="text-xs text-slate-500">Perjalanan untuk unit <strong id="modalCancelVehicleCode" class="text-slate-800 font-mono">-</strong> (<span id="modalCancelTrxNo">-</span>) akan dibatalkan dan dihapus dari antrean pos Satpam.</p>
                 </div>
 
                 <div>
@@ -504,7 +504,7 @@
                 </button>
                 <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 active:scale-[0.99] rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
                     <i class="fa-solid fa-ban text-xs"></i>
-                    <span>Ya, Batalkan Tiket</span>
+                    <span>Ya, Batalkan Perjalanan</span>
                 </button>
             </div>
         </form>

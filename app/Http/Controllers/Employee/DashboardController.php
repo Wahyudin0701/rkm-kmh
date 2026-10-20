@@ -52,7 +52,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Koreksi angka KM pada tiket perjalanan yang masih berstatus pending oleh pengemudi.
+     * Koreksi angka KM pada perjalanan yang masih berstatus pending oleh pengemudi.
      */
     public function updateKm(Request $request, int $id): RedirectResponse
     {
@@ -64,12 +64,12 @@ class DashboardController extends Controller
         $activity = VehicleActivity::with('vehicle')->findOrFail($id);
 
         if ($activity->driver_id !== $employee->id) {
-            abort(403, 'Aksi Ditolak: Anda tidak memiliki akses untuk mengubah tiket ini.');
+            abort(403, 'Aksi Ditolak: Anda tidak memiliki akses untuk mengubah perjalanan ini.');
         }
 
         if ($activity->validation_status !== 'pending') {
             return redirect()->route('employee.dashboard')
-                ->with('error', 'Gagal: Tiket ini sudah diproses/disetujui oleh petugas Satpam di pos gerbang dan terkunci permanen.');
+                ->with('error', 'Gagal: Perjalanan ini sudah diproses/disetujui oleh petugas Satpam di pos gerbang dan terkunci permanen.');
         }
 
         $validated = $request->validate([
@@ -95,11 +95,11 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->route('employee.dashboard')
-            ->with('success', "Odometer tiket {$activity->transaction_no} ({$activity->vehicle->code}) berhasil diperbaiki menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM.");
+            ->with('success', "Odometer perjalanan {$activity->transaction_no} ({$activity->vehicle->code}) berhasil diperbaiki menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM.");
     }
 
     /**
-     * Batalkan tiket perjalanan yang masih berstatus pending oleh pengemudi.
+     * Batalkan perjalanan yang masih berstatus pending oleh pengemudi.
      */
     public function cancelActivity(Request $request, int $id): RedirectResponse
     {
@@ -111,12 +111,12 @@ class DashboardController extends Controller
         $activity = VehicleActivity::with('vehicle')->findOrFail($id);
 
         if ($activity->driver_id !== $employee->id) {
-            abort(403, 'Aksi Ditolak: Anda tidak memiliki akses untuk membatalkan tiket ini.');
+            abort(403, 'Aksi Ditolak: Anda tidak memiliki akses untuk membatalkan perjalanan ini.');
         }
 
         if ($activity->validation_status !== 'pending') {
             return redirect()->route('employee.dashboard')
-                ->with('error', 'Gagal: Tiket ini sudah diproses/disetujui oleh petugas Satpam di pos gerbang dan tidak dapat dibatalkan.');
+                ->with('error', 'Gagal: Perjalanan ini sudah diproses/disetujui oleh petugas Satpam di pos gerbang dan tidak dapat dibatalkan.');
         }
 
         $reason = trim($request->input('cancel_reason', 'Dibatalkan mandiri oleh pengemudi'));
@@ -127,6 +127,6 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->route('employee.dashboard')
-            ->with('success', "Tiket perjalanan {$activity->transaction_no} ({$activity->vehicle->code}) berhasil dibatalkan.");
+            ->with('success', "Perjalanan {$activity->transaction_no} ({$activity->vehicle->code}) berhasil dibatalkan.");
     }
 }

@@ -96,7 +96,7 @@ class OdometerCorrectionAndTicketManagementTest extends TestCase
 
         $response = $this->actingAs($this->driverUser)->get(route('employee.dashboard'));
         $response->assertOk();
-        $response->assertSee('Tiket Perjalanan Aktif');
+        $response->assertSee('Perjalanan Aktif');
         $response->assertSee('TRX-20261019-TEST1');
         $response->assertSee('LV-99');
         $response->assertSee('50.050 KM');

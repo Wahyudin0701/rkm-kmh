@@ -723,7 +723,7 @@ class ActivityLogController extends Controller
             AdminActivityLog::record(
                 actionType: 'update',
                 module: 'Operasional Kendaraan (QMA)',
-                description: "Mengoreksi angka odometer tiket {$activity->transaction_no} pada unit {$vehicleCode} dari " . number_format($oldCurrentKm, 0, ',', '.') . " KM menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM. Alasan: {$reason}",
+                description: "Mengoreksi angka odometer perjalanan {$activity->transaction_no} pada unit {$vehicleCode} dari " . number_format($oldCurrentKm, 0, ',', '.') . " KM menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM. Alasan: {$reason}",
                 targetType: 'VehicleActivity',
                 targetId: $activity->id,
                 targetName: "{$vehicleCode} ({$activity->transaction_no})",
