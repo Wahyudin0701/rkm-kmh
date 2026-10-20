@@ -5,28 +5,43 @@
 @section('content')
 <div class="w-full space-y-6">
     <!-- Top Action Bar -->
-    <div class="flex items-center justify-between pb-1">
-        <a href="{{ route('qma.p2h.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#1b5e20] transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 no-print">
+        <a href="{{ route('qma.p2h.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#1b5e20] transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm w-fit">
             <i class="fa-solid fa-arrow-left text-[11px]"></i>
             <span>Kembali ke P2H Unit Support</span>
         </a>
 
-        <!-- Badge Status Validasi -->
-        <div>
-            @if($record->isPending())
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></span>
-                    Menunggu Approval QMA
-                </span>
-            @elseif($record->isApproved())
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
-                    <i class="fa-solid fa-check mr-1.5 text-emerald-600"></i> Disetujui (Approved)
-                </span>
-            @else
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300">
-                    <i class="fa-solid fa-xmark mr-1.5 text-rose-600"></i> Ditolak (Rejected)
-                </span>
-            @endif
+        <!-- Action Buttons: Ekspor Data & Status Validasi -->
+        <div class="flex items-center flex-wrap gap-2.5">
+            <!-- Tombol Ekspor PDF -->
+            <a href="{{ route('qma.p2h.export_single_pdf', $record->id) }}" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1.5 rounded-xl transition shadow-xs">
+                <i class="fa-solid fa-file-pdf text-[13px] text-rose-600"></i>
+                <span>Cetak / Ekspor PDF</span>
+            </a>
+
+            <!-- Tombol Ekspor Excel -->
+            <a href="{{ route('qma.p2h.export_single_excel', $record->id) }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-xl transition shadow-xs">
+                <i class="fa-solid fa-file-excel text-[13px] text-emerald-600"></i>
+                <span>Ekspor Excel (.xlsx)</span>
+            </a>
+
+            <!-- Badge Status Validasi -->
+            <div>
+                @if($record->isPending())
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse mr-2"></span>
+                        Menunggu Approval QMA
+                    </span>
+                @elseif($record->isApproved())
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                        <i class="fa-solid fa-check mr-1.5 text-emerald-600"></i> Disetujui (Approved)
+                    </span>
+                @else
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-800 border border-rose-300">
+                        <i class="fa-solid fa-xmark mr-1.5 text-rose-600"></i> Ditolak (Rejected)
+                    </span>
+                @endif
+            </div>
         </div>
     </div>
 
@@ -214,4 +229,16 @@
         @endforeach
     </div>
 </div>
+
+<style>
+@media print {
+    .no-print, header, nav, aside, #mobileDrawer, #topNavbar, .sidebar-container {
+        display: none !important;
+    }
+    body {
+        background: #ffffff !important;
+        color: #000000 !important;
+    }
+}
+</style>
 @endsection

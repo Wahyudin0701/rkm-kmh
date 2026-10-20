@@ -219,13 +219,61 @@ class QmaActivityAndP2hExportTest extends TestCase
         $this->assertNotEmpty($content);
     }
 
+    public function test_admin_qma_can_export_single_p2h_record_pdf(): void
+    {
+        $record = P2hRecord::first();
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.p2h.export_single_pdf', $record->id));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringContainsString('inline; filename="Lembar_P2H_', (string) $response->headers->get('Content-Disposition'));
+
+        $content = $response->getContent();
+        $this->assertStringStartsWith('%PDF-', $content);
+        $this->assertNotEmpty($content);
+    }
+
+    public function test_admin_qma_can_export_single_p2h_record_excel(): void
+    {
+        $record = P2hRecord::first();
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.p2h.export_single_excel', $record->id));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $this->assertStringContainsString('P2H_', (string) $response->headers->get('Content-Disposition'));
+
+        $content = $response->getContent();
+        $this->assertStringStartsWith("PK\x03\x04", $content);
+    }
+
+    public function test_p2h_show_page_renders_export_buttons(): void
+    {
+        $record = P2hRecord::first();
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.p2h.show', $record->id));
+
+        $response->assertStatus(200);
+        $response->assertSee('Cetak / Ekspor PDF');
+        $response->assertSee('Ekspor Excel (.xlsx)');
+        $response->assertSee(route('qma.p2h.export_single_pdf', $record->id));
+        $response->assertSee(route('qma.p2h.export_single_excel', $record->id));
+    }
+
     public function test_unauthorized_user_cannot_export_activity_and_p2h(): void
     {
+        $record = P2hRecord::first();
         $routes = [
             route('qma.activity.export_excel'),
             route('qma.activity.export_pdf'),
             route('qma.p2h.export_excel'),
             route('qma.p2h.export_pdf'),
+            route('qma.p2h.export_single_pdf', $record->id),
+            route('qma.p2h.export_single_excel', $record->id),
         ];
 
         foreach ($routes as $routeUrl) {

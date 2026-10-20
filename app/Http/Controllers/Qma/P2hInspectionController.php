@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Qma;
 use App\Http\Controllers\Controller;
 use App\Models\P2hRecord;
 use App\Models\Vehicle;
+use App\Services\P2hInspectionPdfExporter;
 use App\Services\QmaTablePdfExporter;
 use App\Services\SimpleXlsxExporter;
 use Carbon\Carbon;
@@ -608,6 +609,110 @@ class P2hInspectionController extends Controller
         }
 
         return view('qma.p2h_show', compact('record', 'groupedItems'));
+    }
+
+    /**
+     * Ekspor lembar hasil pemeriksaan P2H tunggal ke format PDF resmi.
+     */
+    public function exportSinglePdf(int $id): Response
+    {
+        $record = P2hRecord::with(['vehicle', 'employee', 'template', 'validator', 'items'])->findOrFail($id);
+
+        $pdfBinary = P2hInspectionPdfExporter::generate($record);
+        $fileName = 'Lembar_P2H_' . ($record->vehicle->code ?? 'Unit') . '_' . $record->transaction_no . '.pdf';
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
+        ]);
+    }
+
+    /**
+     * Ekspor lembar hasil pemeriksaan P2H tunggal ke format Excel (.xlsx).
+     */
+    public function exportSingleExcel(int $id): Response
+    {
+        $record = P2hRecord::with(['vehicle', 'employee', 'template', 'validator', 'items'])->findOrFail($id);
+
+        $statusLabel = match($record->validation_status) {
+            'approved' => 'Disetujui QMA (Approved)',
+            'rejected' => 'Ditolak (Rejected)',
+            default => 'Menunggu Review QMA (Pending)',
+        };
+
+        $conditionLabel = $record->hasDefects() 
+            ? 'Ada Kerusakan (' . $record->defect_count . ' Item Rusak)' 
+            : 'Normal (Laik Operasi)';
+
+        $printedAt = now()->translatedFormat('d F Y, H:i');
+
+        $metaLines = [
+            'No. Transaksi: ' . $record->transaction_no . ' | Waktu Pemeriksaan: ' . ($record->inspected_at ? $record->inspected_at->format('d/m/Y H:i') : '-') . ' WIB | Shift: ' . $record->shift,
+            'Unit Support: ' . ($record->vehicle->code ?? '-') . ' (' . ($record->vehicle->brand_type ?? '-') . ') | Kategori: ' . ($record->vehicle->unit_category ?? ($record->template->name ?? '-')) . ' | Lokasi: ' . ($record->vehicle->location ?? '-'),
+            'Operator: ' . ($record->employee->name ?? '-') . ' (NIK: ' . ($record->employee->nik ?? '-') . ') | SIMPER: ' . ($record->employee?->simper_expired_at ? $record->employee->simper_expired_at->format('d/m/Y') : 'Non-SIMPER'),
+            'Hour Meter (HM): ' . number_format($record->start_hm, 1, ',', '.') . ' HM | Kondisi Fisik: ' . $conditionLabel . ' | Status QMA: ' . $statusLabel,
+            'Verifikator: ' . ($record->validator->name ?? '-') . ' | Waktu Validasi: ' . ($record->validated_at ? $record->validated_at->format('d/m/Y H:i') . ' WIB' : '-'),
+            'Catatan Verifikator: ' . ($record->validation_notes ?: '-') . ' | Catatan Operator: ' . ($record->general_notes ?: '-'),
+            'Dicetak pada: ' . $printedAt . ' WIB',
+        ];
+
+        $headers = [
+            'No' => 6,
+            'Seksi / Komponen' => 26,
+            'Butir Pemeriksaan' => 45,
+            'Status Kondisi' => 18,
+            'Nilai Jawaban' => 20,
+            'Catatan / Temuan Kerusakan' => 38,
+        ];
+
+        $rows = [];
+        $idx = 1;
+        foreach ($record->items as $item) {
+            $cond = strtolower((string)$item->condition_status);
+            $condText = match($cond) {
+                'baik' => 'BAIK',
+                'rusak' => 'RUSAK',
+                default => '-',
+            };
+
+            $rows[] = [
+                $idx++,
+                $item->section ?? '-',
+                $item->title ?? '-',
+                $condText,
+                $item->answer_value ?? '-',
+                $item->notes ?? '-',
+            ];
+        }
+
+        $alignments = [
+            0 => 'center',
+            1 => 'left',
+            2 => 'left',
+            3 => 'center',
+            4 => 'center',
+            5 => 'left',
+        ];
+
+        $xlsxContent = SimpleXlsxExporter::create(
+            'LEMBAR PEMERIKSAAN HARIAN (P2H) UNIT SUPPORT - ' . ($record->vehicle->code ?? 'UNIT'),
+            $metaLines,
+            $headers,
+            $rows,
+            $alignments
+        );
+
+        $fileName = 'P2H_' . ($record->vehicle->code ?? 'Unit') . '_' . $record->transaction_no . '.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($xlsxContent),
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
     /**

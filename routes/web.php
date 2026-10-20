@@ -99,6 +99,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/p2h-summary/export-excel', [P2hInspectionController::class, 'exportSummaryExcel'])->name('p2h.summary.export_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::get('/p2h-summary/export-pdf', [P2hInspectionController::class, 'exportSummaryPdf'])->name('p2h.summary.export_pdf')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::get('/p2h-records/{id}', [P2hInspectionController::class, 'show'])->name('p2h.show')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-records/{id}/export-pdf', [P2hInspectionController::class, 'exportSinglePdf'])->name('p2h.export_single_pdf')->middleware('permission:qma.p2h.view|qma.vehicles.view');
+        Route::get('/p2h-records/{id}/export-excel', [P2hInspectionController::class, 'exportSingleExcel'])->name('p2h.export_single_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::post('/p2h-records/{id}/approve', [P2hInspectionController::class, 'approve'])->name('p2h.approve')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
         Route::post('/p2h-records/{id}/reject', [P2hInspectionController::class, 'reject'])->name('p2h.reject')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
 

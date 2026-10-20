@@ -275,7 +275,14 @@
                         <tr class="p2h-summary-row hover:bg-slate-50/80 transition">
                             <td class="py-3.5 px-4 text-center text-slate-400 font-medium">{{ $loop->iteration }}</td>
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                <span class="font-bold text-slate-900">{{ $us['vehicle']->code ?? '-' }}</span>
+                                @if($us['vehicle'])
+                                    <a href="{{ route('qma.p2h.index', ['search' => $us['vehicle']->code]) }}" class="font-bold text-[#1b5e20] hover:underline flex items-center space-x-1" title="Lihat Riwayat P2H Unit Ini">
+                                        <span>{{ $us['vehicle']->code }}</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
+                                    </a>
+                                @else
+                                    <span class="font-bold text-slate-900">-</span>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="text-slate-800 font-semibold block">{{ $us['vehicle']->brand_type ?? '-' }}</span>

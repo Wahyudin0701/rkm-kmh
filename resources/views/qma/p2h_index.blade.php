@@ -182,10 +182,18 @@
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <a href="{{ route('qma.p2h.show', $rec->id) }}" class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] shadow-sm transition">
-                                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
-                                    <span>Review</span>
-                                </a>
+                                <div class="inline-flex items-center gap-1.5">
+                                    <a href="{{ route('qma.p2h.show', $rec->id) }}" class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] shadow-sm transition" title="Buka Review Detail P2H">
+                                        <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                                        <span>Review</span>
+                                    </a>
+                                    <a href="{{ route('qma.p2h.export_single_pdf', $rec->id) }}" target="_blank" class="w-7 h-7 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition border border-rose-200 shadow-2xs" title="Download Lembar P2H (PDF)">
+                                        <i class="fa-solid fa-file-pdf text-xs"></i>
+                                    </a>
+                                    <a href="{{ route('qma.p2h.export_single_excel', $rec->id) }}" class="w-7 h-7 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition border border-emerald-200 shadow-2xs" title="Download Lembar P2H (Excel)">
+                                        <i class="fa-solid fa-file-excel text-xs"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
