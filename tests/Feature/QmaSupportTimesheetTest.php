@@ -107,6 +107,18 @@ class QmaSupportTimesheetTest extends TestCase
     }
 
     /**
+     * Admin QMA dapat mengakses riwayat timesheet melalui rute Log Aktifitas.
+     */
+    public function test_qma_admin_can_view_support_timesheet_history_via_activity_log_route(): void
+    {
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.activity.support_timesheet'));
+
+        $response->assertStatus(200);
+        $response->assertSee('History Timesheet Unit Support');
+    }
+
+    /**
      * Admin QMA dapat menyimpan timesheet baru, yang mengupdate meter unit dan posisi di Manajemen Unit.
      */
     public function test_qma_admin_can_store_support_timesheet_and_syncs_vehicle_and_location(): void

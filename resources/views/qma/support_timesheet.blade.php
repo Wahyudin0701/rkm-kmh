@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Timesheet Unit Support - Admin QMA | PT Kerinci Merangin Hidro')
+@section('title', (request()->routeIs('qma.activity.support_timesheet') ? 'History Timesheet Unit Support' : 'Timesheet Unit Support') . ' - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -14,11 +14,11 @@
                 </span>
                 <span class="text-slate-300">&bull;</span>
                 <span class="text-xs font-semibold text-slate-500">
-                    Log Aktifitas
+                    {{ request()->routeIs('qma.activity.support_timesheet') ? 'Log Aktifitas' : 'Operasional Unit' }}
                 </span>
             </div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Timesheet Unit Support
+                {{ request()->routeIs('qma.activity.support_timesheet') ? 'History Timesheet Unit Support' : 'Timesheet Unit Support' }}
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Pencatatan jam kerja (HM/KM), penugasan operator, utilisasi shift, serta pemakaian solar alat berat.
@@ -127,7 +127,7 @@
 
     <!-- Filter & Pencarian -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
-        <form method="GET" action="{{ route('qma.support_timesheet.index') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2.5 items-center">
+        <form method="GET" action="{{ url()->current() }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2.5 items-center">
             
             <!-- Tanggal Mulai -->
             <div>
@@ -194,7 +194,7 @@
                 </button>
 
                 @if(request()->anyFilled(['start_date', 'end_date', 'vehicle_id', 'operator_id', 'shift', 'status', 'search']))
-                    <a href="{{ route('qma.support_timesheet.index') }}" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition whitespace-nowrap" title="Reset Semua Filter">
+                    <a href="{{ url()->current() }}" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition whitespace-nowrap" title="Reset Semua Filter">
                         <i class="fa-solid fa-rotate-left"></i>
                     </a>
                 @endif
@@ -394,7 +394,7 @@
                                 <p class="text-xs text-slate-400 mt-1">Gunakan tombol "Catat Timesheet" di atas untuk menambahkan laporan harian.</p>
                                 @if(request()->anyFilled(['start_date', 'end_date', 'vehicle_id', 'shift', 'search']))
                                 <div class="mt-4">
-                                    <a href="{{ route('qma.support_timesheet.index') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                    <a href="{{ url()->current() }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
                                         <i class="fa-solid fa-rotate-left text-[11px]"></i>
                                         <span>Reset Filter</span>
                                     </a>

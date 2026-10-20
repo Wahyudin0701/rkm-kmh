@@ -324,7 +324,7 @@
 
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
-                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
                             <!-- Dropdown Menu: Log Aktifitas -->
                             <div>
@@ -338,12 +338,17 @@
                                     <i id="activityChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
-                                <!-- Submenu Dropdown: Timesheet LV & P2H Unit Support (Tanpa Icon) -->
+                                <!-- Submenu Dropdown: Timesheet LV, History Timesheet Unit Support & P2H Unit Support (Tanpa Icon) -->
                                 <div id="activitySubmenuDesktop" class="{{ $isActivityRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
                                     @can('qma.logs.view')
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.activity.support_timesheet') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>History Timesheet Unit Support</span>
                                     </a>
                                     @endcan
 
@@ -654,7 +659,7 @@
 
                         @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
                             @php
-                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
                             @endphp
                             <div>
                                 <button type="button" 
@@ -672,6 +677,11 @@
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.activity.support_timesheet') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>History Timesheet Unit Support</span>
                                     </a>
                                     @endcan
 
@@ -828,6 +838,8 @@
                     Manajemen Unit
                 @elseif(request()->routeIs('qma.activity.log'))
                     Timesheet LV
+                @elseif(request()->routeIs('qma.activity.support_timesheet'))
+                    History Timesheet Unit Support
                 @elseif(request()->routeIs('qma.support_timesheet.*'))
                     Timesheet Unit Support
                 @elseif(request()->routeIs('qma.p2h.summary'))
