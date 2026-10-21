@@ -110,7 +110,7 @@ class QmaUnitManagementTest extends TestCase
         $response = $this->actingAs($this->qmaAdmin)->get(route('qma.unit_management.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Manajemen Unit');
+        $response->assertSee('Posisi Unit');
         $response->assertSee('LV-TEST-01');
         $response->assertSee('EX-TEST-01');
         $response->assertSee('Main Dam');
@@ -119,7 +119,7 @@ class QmaUnitManagementTest extends TestCase
         $response->assertSee('Di Luar Site');
         $response->assertSee('openUpdateLocationModalFromBtn');
         $response->assertSee('openHistoryModal');
-        $response->assertSee('data-unit=');
+        $response->assertSee(route('qma.unit_transfers.create', ['vehicle_id' => $support->id]));
     }
 
     /**

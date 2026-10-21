@@ -118,8 +118,10 @@ class UnitTransferController extends Controller
     /**
      * Tampilkan formulir pembuatan transfer unit alat berat baru.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
+        $selectedVehicleId = $request->filled('vehicle_id') ? (int) $request->input('vehicle_id') : null;
+
         // 1. Daftar unit alat berat yang bisa dipindahkan
         $heavyUnits = Vehicle::trackableUnits()
             ->where('category', 'unit_support')
@@ -150,7 +152,8 @@ class UnitTransferController extends Controller
             'transporterUnits',
             'drivers',
             'locationSuggestions',
-            'defaultDocNumber'
+            'defaultDocNumber',
+            'selectedVehicleId'
         ));
     }
 

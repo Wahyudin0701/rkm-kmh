@@ -72,7 +72,7 @@
                         required 
                         onchange="onHeavyUnitSelected(this)"
                         class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-semibold">
-                    <option value="" disabled {{ old('vehicle_id') ? '' : 'selected' }}>-- Pilih Unit Alat Berat / Support Unit --</option>
+                    <option value="" disabled {{ old('vehicle_id', $selectedVehicleId) ? '' : 'selected' }}>-- Pilih Unit Alat Berat / Support Unit --</option>
                     @foreach($heavyUnits as $unit)
                         <option value="{{ $unit->id }}" 
                                 data-code="{{ $unit->code }}"
@@ -81,7 +81,7 @@
                                 data-location="{{ $unit->location ?: 'Site Kerinci' }}"
                                 data-site-status="{{ $unit->site_status ?? 'inside_site' }}"
                                 data-photo="{{ $unit->photo_url }}"
-                                {{ old('vehicle_id') == $unit->id ? 'selected' : '' }}>
+                                {{ old('vehicle_id', $selectedVehicleId) == $unit->id ? 'selected' : '' }}>
                             {{ $unit->code }} - {{ $unit->brand_type }} (Lokasi Saat Ini: {{ $unit->location ?: 'Site Kerinci' }})
                         </option>
                     @endforeach

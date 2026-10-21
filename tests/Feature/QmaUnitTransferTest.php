@@ -292,4 +292,16 @@ class QmaUnitTransferTest extends TestCase
         $response->assertRedirect(route('qma.unit_transfers.index'));
         $this->assertDatabaseMissing('unit_transfers', ['id' => $transfer->id]);
     }
+
+    /**
+     * Form pembuatan transfer unit otomatis memilih alat berat jika parameter vehicle_id disertakan.
+     */
+    public function test_create_transfer_form_preselects_heavy_unit_when_vehicle_id_provided(): void
+    {
+        $response = $this->actingAs($this->qmaAdmin)->get(route('qma.unit_transfers.create', ['vehicle_id' => $this->heavyEquipment->id]));
+
+        $response->assertOk();
+        $response->assertSee('value="' . $this->heavyEquipment->id . '"', false);
+        $response->assertSee('selected', false);
+    }
 }

@@ -396,10 +396,19 @@
                                 <div class="flex items-center justify-center space-x-1.5">
                                     <!-- Tombol Update Posisi -->
                                     @can('qma.vehicles.edit')
+                                    @if($u->isUnitSupport())
+                                    <a href="{{ route('qma.unit_transfers.create', ['vehicle_id' => $u->id]) }}" 
+                                       class="inline-flex items-center space-x-1 text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition font-bold text-[11px] cursor-pointer"
+                                       title="Transfer Pemindahan Alat Berat">
+                                        <i class="fa-solid fa-truck-moving text-xs"></i>
+                                        <span>Update</span>
+                                    </a>
+                                    @else
                                     <button type="button" 
                                             data-unit="{{ json_encode([
                                                 'id' => $u->id,
                                                 'code' => $u->code,
+                                                'category' => $u->category,
                                                 'brand_type' => $u->brand_type,
                                                 'license_plate' => $u->license_plate,
                                                 'serial_number' => $u->serial_number,
@@ -414,6 +423,7 @@
                                         <i class="fa-solid fa-location-pen text-xs"></i>
                                         <span>Update</span>
                                     </button>
+                                    @endif
                                     @endcan
 
                                     <!-- Tombol Riwayat Posisi -->
@@ -889,6 +899,11 @@
     }
 
     function openUpdateLocationModal(unit) {
+        if (unit.category === 'unit_support') {
+            window.location.href = `/qma/unit-transfers/create?vehicle_id=${unit.id}`;
+            return;
+        }
+
         const modal = document.getElementById('updateLocationModal');
         const form = document.getElementById('updateLocationForm');
         form.action = `/qma/unit-management/${unit.id}/location`;
