@@ -34,9 +34,7 @@ class SupportTimesheetController extends Controller
     ];
 
     public const SHIFTS = [
-        'Shift 1 (Siang)',
-        'Shift 2 (Malam)',
-        'Non-Shift',
+        'Shift Siang',
     ];
 
     /**
@@ -162,16 +160,34 @@ class SupportTimesheetController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // 1. Tangani pencarian unit jika user mengetik kode/nama unit
+        if (!$request->filled('vehicle_id') && ($request->filled('vehicle_code') || $request->filled('vehicle_input'))) {
+            $typed = trim($request->input('vehicle_code') ?: $request->input('vehicle_input'));
+            $veh = Vehicle::where('code', $typed)
+                ->orWhere('code', 'like', $typed)
+                ->orWhere('serial_number', $typed)
+                ->orWhere('license_plate', $typed)
+                ->first();
+            if ($veh) {
+                $request->merge(['vehicle_id' => $veh->id]);
+            }
+        }
+
+        // 2. Defaultkan shift ke Shift Siang jika tidak diisi
+        if (!$request->filled('shift')) {
+            $request->merge(['shift' => 'Shift Siang']);
+        }
+
         $validated = $request->validate([
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'operator_id' => ['required', 'exists:employees,id'],
             'date' => ['required', 'date'],
-            'shift' => ['required', 'string', 'max:30'],
+            'shift' => ['nullable', 'string', 'max:30'],
             'meter_type' => ['required', 'in:HM,KM'],
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'start_meter' => ['required', 'numeric', 'min:0'],
-            'end_meter' => ['required', 'numeric', 'gte:start_meter'],
+            'end_meter' => ['nullable', 'numeric', 'gte:start_meter'],
             'standby_hours' => ['nullable', 'numeric', 'min:0'],
             'breakdown_hours' => ['nullable', 'numeric', 'min:0'],
             'location' => ['required', 'string', 'max:255'],
@@ -181,20 +197,23 @@ class SupportTimesheetController extends Controller
             'status' => ['required', 'in:Operation,Standby,Breakdown,Maintenance'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ], [
-            'vehicle_id.required' => 'Pilih unit support yang beroperasi.',
+            'vehicle_id.required' => 'Unit alat berat tidak ditemukan atau belum dipilih.',
             'operator_id.required' => 'Pilih pengemudi / operator unit.',
             'date.required' => 'Tanggal operasional wajib diisi.',
-            'end_meter.gte' => 'Angka meter akhir (End Meter) tidak boleh lebih kecil dari meter awal.',
+            'end_meter.gte' => 'Angka meter akhir tidak boleh lebih kecil dari meter awal.',
             'location.required' => 'Lokasi kerja wajib ditentukan.',
-            'activity_type.required' => 'Jenis aktivitas / pekerjaan wajib dipilih.',
+            'activity_type.required' => 'Kategori pekerjaan wajib diisi.',
         ]);
 
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
         $operator = Employee::findOrFail($validated['operator_id']);
 
         $startMeter = (float) $validated['start_meter'];
-        $endMeter = (float) $validated['end_meter'];
-        $operatingHours = max(0, $endMeter - $startMeter);
+        $endMeter = isset($validated['end_meter']) && $validated['end_meter'] !== '' && $validated['end_meter'] !== null
+            ? (float) $validated['end_meter']
+            : null;
+        $operatingHours = $endMeter !== null ? max(0, $endMeter - $startMeter) : null;
+        $shift = $validated['shift'] ?: 'Shift Siang';
 
         $timesheetNo = UnitSupportTimesheet::generateTimesheetNo(Carbon::parse($validated['date']));
         $updaterName = auth()->user()?->name ?? 'Admin QMA';
@@ -204,8 +223,10 @@ class SupportTimesheetController extends Controller
             $vehicle,
             $operator,
             $timesheetNo,
-            $operatingHours,
+            $startMeter,
             $endMeter,
+            $operatingHours,
+            $shift,
             $updaterName
         ) {
             // 1. Simpan Data Timesheet Unit Support
@@ -214,12 +235,12 @@ class SupportTimesheetController extends Controller
                 'vehicle_id' => $vehicle->id,
                 'operator_id' => $operator->id,
                 'date' => $validated['date'],
-                'shift' => $validated['shift'],
+                'shift' => $shift,
                 'meter_type' => $validated['meter_type'],
                 'start_time' => $validated['start_time'] ?? null,
                 'end_time' => $validated['end_time'] ?? null,
-                'start_meter' => $validated['start_meter'],
-                'end_meter' => $validated['end_meter'],
+                'start_meter' => $startMeter,
+                'end_meter' => $endMeter,
                 'operating_hours' => $operatingHours,
                 'standby_hours' => $validated['standby_hours'] ?? 0,
                 'breakdown_hours' => $validated['breakdown_hours'] ?? 0,
@@ -242,8 +263,9 @@ class SupportTimesheetController extends Controller
                 'location_note' => "Timesheet {$timesheetNo} ({$validated['activity_type']}) - Operator: {$operator->name}",
             ];
 
-            if ($endMeter > (float) $vehicle->current_km) {
-                $updateData['current_km'] = $endMeter;
+            $latestMeter = $endMeter !== null ? max($startMeter, $endMeter) : $startMeter;
+            if ($latestMeter > (float) $vehicle->current_km) {
+                $updateData['current_km'] = $latestMeter;
             }
 
             $vehicle->update($updateData);
@@ -271,16 +293,33 @@ class SupportTimesheetController extends Controller
     {
         $timesheet = UnitSupportTimesheet::findOrFail($id);
 
+        // 1. Tangani pencarian unit jika user mengetik kode/nama unit
+        if (!$request->filled('vehicle_id') && ($request->filled('vehicle_code') || $request->filled('vehicle_input'))) {
+            $typed = trim($request->input('vehicle_code') ?: $request->input('vehicle_input'));
+            $veh = Vehicle::where('code', $typed)
+                ->orWhere('code', 'like', $typed)
+                ->orWhere('serial_number', $typed)
+                ->orWhere('license_plate', $typed)
+                ->first();
+            if ($veh) {
+                $request->merge(['vehicle_id' => $veh->id]);
+            }
+        }
+
+        if (!$request->filled('shift')) {
+            $request->merge(['shift' => 'Shift Siang']);
+        }
+
         $validated = $request->validate([
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'operator_id' => ['required', 'exists:employees,id'],
             'date' => ['required', 'date'],
-            'shift' => ['required', 'string', 'max:30'],
+            'shift' => ['nullable', 'string', 'max:30'],
             'meter_type' => ['required', 'in:HM,KM'],
             'start_time' => ['nullable', 'date_format:H:i'],
             'end_time' => ['nullable', 'date_format:H:i'],
             'start_meter' => ['required', 'numeric', 'min:0'],
-            'end_meter' => ['required', 'numeric', 'gte:start_meter'],
+            'end_meter' => ['nullable', 'numeric', 'gte:start_meter'],
             'standby_hours' => ['nullable', 'numeric', 'min:0'],
             'breakdown_hours' => ['nullable', 'numeric', 'min:0'],
             'location' => ['required', 'string', 'max:255'],
@@ -292,19 +331,22 @@ class SupportTimesheetController extends Controller
         ]);
 
         $startMeter = (float) $validated['start_meter'];
-        $endMeter = (float) $validated['end_meter'];
-        $operatingHours = max(0, $endMeter - $startMeter);
+        $endMeter = isset($validated['end_meter']) && $validated['end_meter'] !== '' && $validated['end_meter'] !== null
+            ? (float) $validated['end_meter']
+            : null;
+        $operatingHours = $endMeter !== null ? max(0, $endMeter - $startMeter) : null;
+        $shift = $validated['shift'] ?: 'Shift Siang';
 
         $timesheet->update([
             'vehicle_id' => $validated['vehicle_id'],
             'operator_id' => $validated['operator_id'],
             'date' => $validated['date'],
-            'shift' => $validated['shift'],
+            'shift' => $shift,
             'meter_type' => $validated['meter_type'],
             'start_time' => $validated['start_time'] ?? null,
             'end_time' => $validated['end_time'] ?? null,
-            'start_meter' => $validated['start_meter'],
-            'end_meter' => $validated['end_meter'],
+            'start_meter' => $startMeter,
+            'end_meter' => $endMeter,
             'operating_hours' => $operatingHours,
             'standby_hours' => $validated['standby_hours'] ?? 0,
             'breakdown_hours' => $validated['breakdown_hours'] ?? 0,

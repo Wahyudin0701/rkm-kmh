@@ -73,7 +73,7 @@
     </div>
 
     <!-- KPI Ringkasan Data Timesheet -->
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- 1. Total Entri -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
@@ -98,19 +98,7 @@
             </div>
         </div>
 
-        <!-- 3. Total Solar (Liter) -->
-        <div class="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-blue-50/40">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-blue-700">Konsumsi Solar</p>
-                <h3 class="text-2xl font-black text-blue-800 mt-1">{{ number_format($totalFuelLiters, 0, ',', '.') }} <span class="text-sm font-bold text-blue-600">L</span></h3>
-                <span class="text-[10px] text-blue-600 font-semibold">Pengisian Bahan Bakar</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-100/80 flex items-center justify-center text-blue-700 text-lg">
-                <i class="fa-solid fa-gas-pump"></i>
-            </div>
-        </div>
-
-        <!-- 4. Unit Aktif -->
+        <!-- 3. Unit Aktif -->
         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Unit Beroperasi</p>
@@ -122,8 +110,8 @@
             </div>
         </div>
 
-        <!-- 5. Breakdown -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between col-span-2 sm:col-span-1">
+        <!-- 4. Breakdown -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kendala Breakdown</p>
                 <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
@@ -248,10 +236,8 @@
                         <th class="py-3 px-3.5">TANGGAL & SHIFT</th>
                         <th class="py-3 px-4">KODE & TIPE UNIT</th>
                         <th class="py-3 px-4">OPERATOR</th>
-                        <th class="py-3 px-3.5 text-right">METERAN (HM/KM)</th>
-                        <th class="py-3 px-3 text-center">JAM KERJA</th>
+                        <th class="py-3 px-4 text-center">ODOMETER AWAL</th>
                         <th class="py-3 px-4">LOKASI & AKTIVITAS</th>
-                        <th class="py-3 px-3 text-right">SOLAR</th>
                         <th class="py-3 px-3.5 text-center">STATUS</th>
                         <th class="py-3 px-3.5 text-center w-24">AKSI</th>
                     </tr>
@@ -304,27 +290,11 @@
                                 </div>
                             </td>
 
-                            <!-- Meteran Start - End -->
-                            <td class="py-3.5 px-3.5 text-right font-mono whitespace-nowrap">
-                                <div class="text-[11px] text-slate-600">
-                                    <span class="text-slate-400 text-[10px]">Awal:</span> {{ number_format($ts->start_meter, 1, ',', '.') }}
-                                </div>
-                                <div class="text-[11px] font-bold text-slate-900">
-                                    <span class="text-slate-400 text-[10px]">Akhir:</span> {{ number_format($ts->end_meter, 1, ',', '.') }}
-                                </div>
-                            </td>
-
-                            <!-- Jam Kerja (Operating Hours) -->
-                            <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                    {{ number_format($ts->operating_hours, 1, ',', '.') }} {{ $ts->meter_type }}
+                            <!-- Odometer Awal -->
+                            <td class="py-3.5 px-4 text-center font-mono whitespace-nowrap">
+                                <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                                    {{ number_format($ts->start_meter, 1, ',', '.') }} {{ $ts->meter_type }}
                                 </span>
-                                @if($ts->standby_hours > 0 || $ts->breakdown_hours > 0)
-                                    <div class="text-[9px] text-slate-400 mt-0.5">
-                                        @if($ts->standby_hours > 0) STB: {{ number_format($ts->standby_hours, 1) }}h @endif
-                                        @if($ts->breakdown_hours > 0) BD: {{ number_format($ts->breakdown_hours, 1) }}h @endif
-                                    </div>
-                                @endif
                             </td>
 
                             <!-- Lokasi & Aktivitas -->
@@ -340,16 +310,6 @@
                                     <p class="text-[10px] text-slate-500 mt-0.5 line-clamp-1 italic">
                                         "{{ $ts->task_description }}"
                                     </p>
-                                @endif
-                            </td>
-
-                            <!-- Solar (Liter) -->
-                            <td class="py-3.5 px-3 text-right font-mono whitespace-nowrap">
-                                @if($ts->fuel_liters)
-                                    <span class="font-bold text-blue-700">{{ number_format($ts->fuel_liters, 0, ',', '.') }}</span>
-                                    <span class="text-[10px] text-slate-400">L</span>
-                                @else
-                                    <span class="text-slate-400">-</span>
                                 @endif
                             </td>
 
@@ -505,27 +465,30 @@
             <form id="addTimesheetForm" method="POST" action="{{ route('qma.support_timesheet.store') }}" class="p-6 space-y-4">
                 @csrf
 
-                <!-- Baris 1: Unit Support & Operator -->
+                <!-- Baris 1: Unit Support (Ketik aja) & Operator -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Pilih Unit Support <span class="text-rose-500">*</span>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                            <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-slate-400 font-normal">Ketik kode atau nama unit</span>
                         </label>
-                        <select name="vehicle_id" 
-                                id="addVehicleSelect" 
-                                required 
-                                onchange="onVehicleSelected(this, 'add')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                            <option value="">-- Pilih Unit Support --</option>
-                            @foreach($unitSupports as $u)
-                                <option value="{{ $u->id }}" 
-                                        data-km="{{ $u->current_km ?? 0 }}"
-                                        data-brand="{{ $u->brand_type }}"
-                                        data-code="{{ $u->code }}">
-                                    {{ $u->code }} - {{ $u->brand_type }} (Terakhir: {{ number_format($u->current_km, 1) }})
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   name="vehicle_code" 
+                                   id="addVehicleInput" 
+                                   list="unitSupportDatalist" 
+                                   required 
+                                   autocomplete="off"
+                                   placeholder="Ketik kode unit (misal: EXCA-01, DT-05)..." 
+                                   oninput="onVehicleTyped(this, 'add')"
+                                   class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                            <input type="hidden" name="vehicle_id" id="addVehicleId">
+                        </div>
+                        <div id="addVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
+                            <span id="addVehiclePreviewText" class="font-bold"></span>
+                            <span id="addVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
+                        </div>
                     </div>
 
                     <div>
@@ -546,7 +509,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Tanggal, Shift, Satuan Meteran -->
+                <!-- Baris 2: Tanggal, Shift (Shift Siang), Satuan Meteran -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -561,13 +524,13 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Shift Kerja <span class="text-rose-500">*</span>
+                            Shift Kerja
                         </label>
-                        <select name="shift" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                            @foreach($shifts as $s)
-                                <option value="{{ $s }}">{{ $s }}</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="shift" value="Shift Siang">
+                        <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
+                            <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
+                            <span>Shift Siang</span>
+                        </div>
                     </div>
 
                     <div>
@@ -581,49 +544,22 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Start Meter, End Meter, Total Jam Kerja (Auto Calc) -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-800 mb-1">
-                                Meter Awal (Start) <span class="text-rose-500">*</span>
-                            </label>
+                <!-- Baris 3: Odometer Awal Saja -->
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                            <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
+                        </label>
+                        <div class="relative">
                             <input type="number" 
                                    step="0.01" 
                                    name="start_meter" 
                                    id="addStartMeter" 
                                    required 
                                    placeholder="0.00"
-                                   oninput="calculateOperatingHours('add')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20]">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-800 mb-1">
-                                Meter Akhir (End) <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="end_meter" 
-                                   id="addEndMeter" 
-                                   required 
-                                   placeholder="0.00"
-                                   oninput="calculateOperatingHours('add')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20]">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-emerald-800 mb-1">
-                                Total Jam Operasi (Auto)
-                            </label>
-                            <div class="flex items-center space-x-2">
-                                <input type="text" 
-                                       id="addOperatingHoursDisplay" 
-                                       readonly 
-                                       value="0.00"
-                                       class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold font-mono">
-                                <span id="addMeterUnitLabel" class="text-xs font-bold text-emerald-700">HM</span>
-                            </div>
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                            <span id="addMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                         </div>
                     </div>
 
@@ -654,7 +590,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 4: Lokasi Kerja & Aktivitas Pekerjaan -->
+                <!-- Baris 4: Lokasi Kerja & Kategori Pekerjaan (Ketik Aja) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -673,44 +609,27 @@
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Kategori Pekerjaan <span class="text-rose-500">*</span>
                         </label>
-                        <select name="activity_type" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                            <option value="">-- Pilih Aktivitas --</option>
-                            @foreach($activityTypes as $act)
-                                <option value="{{ $act }}">{{ $act }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" 
+                               name="activity_type" 
+                               id="addActivityType" 
+                               list="activityPresetList" 
+                               required 
+                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
                     </div>
                 </div>
 
-                <!-- Baris 5: Solar & Status Akhir Unit -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Konsumsi / Pengisian Solar <span class="text-slate-400 font-normal">(Liter, Opsional)</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                <i class="fa-solid fa-gas-pump text-xs"></i>
-                            </span>
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="fuel_liters" 
-                                   placeholder="Contoh: 150" 
-                                   class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Status Akhir Unit <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="status" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                            <option value="Operation">Operation (Siap Jalan)</option>
-                            <option value="Standby">Standby (Tersedia / Siaga)</option>
-                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                        </select>
-                    </div>
+                <!-- Baris 5: Status Akhir Unit -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        Status Akhir Unit <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="status" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <option value="Operation">Operation (Siap Jalan)</option>
+                        <option value="Standby">Standby (Tersedia / Siaga)</option>
+                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                    </select>
                 </div>
 
                 <!-- Baris 6: Rincian Tugas & Catatan -->
@@ -867,26 +786,30 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Baris 1: Unit Support & Operator -->
+                <!-- Baris 1: Unit Support (Ketik aja) & Operator -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Pilih Unit Support <span class="text-rose-500">*</span>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                            <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-slate-400 font-normal">Ketik kode atau nama unit</span>
                         </label>
-                        <select name="vehicle_id" 
-                                id="editVehicleSelect" 
-                                required 
-                                onchange="onVehicleSelected(this, 'edit')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                            @foreach($unitSupports as $u)
-                                <option value="{{ $u->id }}" 
-                                        data-km="{{ $u->current_km ?? 0 }}"
-                                        data-brand="{{ $u->brand_type }}"
-                                        data-code="{{ $u->code }}">
-                                    {{ $u->code }} - {{ $u->brand_type }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   name="vehicle_code" 
+                                   id="editVehicleInput" 
+                                   list="unitSupportDatalist" 
+                                   required 
+                                   autocomplete="off"
+                                   placeholder="Ketik kode unit (misal: EXCA-01, DT-05)..." 
+                                   oninput="onVehicleTyped(this, 'edit')"
+                                   class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                            <input type="hidden" name="vehicle_id" id="editVehicleId">
+                        </div>
+                        <div id="editVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
+                            <span id="editVehiclePreviewText" class="font-bold"></span>
+                            <span id="editVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
+                        </div>
                     </div>
 
                     <div>
@@ -906,7 +829,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 2: Tanggal, Shift, Satuan Meteran -->
+                <!-- Baris 2: Tanggal, Shift (Shift Siang), Satuan Meteran -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -921,13 +844,13 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Shift Kerja <span class="text-rose-500">*</span>
+                            Shift Kerja
                         </label>
-                        <select name="shift" id="editShift" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                            @foreach($shifts as $s)
-                                <option value="{{ $s }}">{{ $s }}</option>
-                            @endforeach
-                        </select>
+                        <input type="hidden" name="shift" id="editShift" value="Shift Siang">
+                        <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
+                            <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
+                            <span>Shift Siang</span>
+                        </div>
                     </div>
 
                     <div>
@@ -941,46 +864,22 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Start Meter, End Meter, Total Jam Kerja -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-800 mb-1">
-                                Meter Awal (Start) <span class="text-rose-500">*</span>
-                            </label>
+                <!-- Baris 3: Odometer Awal Saja -->
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                            <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
+                        </label>
+                        <div class="relative">
                             <input type="number" 
                                    step="0.01" 
                                    name="start_meter" 
                                    id="editStartMeter" 
                                    required 
-                                   oninput="calculateOperatingHours('edit')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20]">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-800 mb-1">
-                                Meter Akhir (End) <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="end_meter" 
-                                   id="editEndMeter" 
-                                   required 
-                                   oninput="calculateOperatingHours('edit')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20]">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-emerald-800 mb-1">
-                                Total Jam Operasi
-                            </label>
-                            <div class="flex items-center space-x-2">
-                                <input type="text" 
-                                       id="editOperatingHoursDisplay" 
-                                       readonly 
-                                       class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold font-mono">
-                                <span id="editMeterUnitLabel" class="text-xs font-bold text-emerald-700">HM</span>
-                            </div>
+                                   placeholder="0.00"
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                            <span id="editMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                         </div>
                     </div>
 
@@ -988,28 +887,32 @@
                     <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/60">
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Standby (Jam)
+                                Jam Standby <span class="text-slate-400 font-normal">(Jam Tunggu/Hujan)</span>
                             </label>
                             <input type="number" 
                                    step="0.1" 
                                    name="standby_hours" 
                                    id="editStandbyHours"
+                                   value="0" 
+                                   placeholder="0.0"
                                    class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
                         </div>
                         <div>
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Breakdown (Jam)
+                                Jam Breakdown <span class="text-slate-400 font-normal">(Jam Kerusakan Alat)</span>
                             </label>
                             <input type="number" 
                                    step="0.1" 
                                    name="breakdown_hours" 
                                    id="editBreakdownHours"
+                                   value="0" 
+                                   placeholder="0.0"
                                    class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
                         </div>
                     </div>
                 </div>
 
-                <!-- Baris 4: Lokasi Kerja & Aktivitas -->
+                <!-- Baris 4: Lokasi Kerja & Kategori Pekerjaan (Ketik Aja) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -1020,56 +923,47 @@
                                id="editLocationInput"
                                list="locationPresetList"
                                required 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                               placeholder="Contoh: Main Dam, Adit 1, Powerhouse..." 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Kategori Pekerjaan <span class="text-rose-500">*</span>
                         </label>
-                        <select name="activity_type" id="editActivityType" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                            @foreach($activityTypes as $act)
-                                <option value="{{ $act }}">{{ $act }}</option>
-                            @endforeach
-                        </select>
+                        <input type="text" 
+                               name="activity_type" 
+                               id="editActivityType" 
+                               list="activityPresetList" 
+                               required 
+                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
                     </div>
                 </div>
 
-                <!-- Baris 5: Solar & Status -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Konsumsi / Pengisian Solar (Liter)
-                        </label>
-                        <input type="number" 
-                               step="0.01" 
-                               name="fuel_liters" 
-                               id="editFuelLiters"
-                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Status Akhir Unit <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                            <option value="Operation">Operation (Siap Jalan)</option>
-                            <option value="Standby">Standby (Tersedia / Siaga)</option>
-                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                        </select>
-                    </div>
+                <!-- Baris 5: Status Akhir Unit -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        Status Akhir Unit <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <option value="Operation">Operation (Siap Jalan)</option>
+                        <option value="Standby">Standby (Tersedia / Siaga)</option>
+                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                    </select>
                 </div>
 
                 <!-- Baris 6: Deskripsi & Catatan -->
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                        Rincian Tugas / Catatan
+                        Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
                     </label>
                     <textarea name="task_description" 
                               id="editTaskDescription"
                               rows="2" 
-                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                              placeholder="Keterangan rincian galian, muatan ritase, kendala lapangan, atau catatan foreman..." 
+                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
                 </div>
 
                 <!-- Tombol Submit Edit -->
@@ -1120,6 +1014,20 @@
     </div>
 </div>
 
+<!-- Datalist Rekomendasi Unit Support -->
+<datalist id="unitSupportDatalist">
+    @foreach($unitSupports as $u)
+        <option value="{{ $u->code }}">{{ $u->brand_type }} (Terakhir: {{ number_format($u->current_km ?? 0, 1, ',', '.') }})</option>
+    @endforeach
+</datalist>
+
+<!-- Datalist Rekomendasi Kategori Pekerjaan -->
+<datalist id="activityPresetList">
+    @foreach($activityTypes as $act)
+        <option value="{{ $act }}">
+    @endforeach
+</datalist>
+
 <!-- Datalist Rekomendasi Lokasi Global -->
 <datalist id="locationPresetList">
     @foreach($locationSuggestions as $loc)
@@ -1131,6 +1039,8 @@
 
 @section('scripts')
 <script>
+    window.unitSupportsData = @json($unitSupports);
+
     // 1. Dropdown Ekspor
     function toggleExportMenu(event) {
         event.stopPropagation();
@@ -1170,10 +1080,10 @@
             document.getElementById('detailDateShift').textContent = `${ts.date} • ${ts.shift}`;
             document.getElementById('detailUnit').textContent = `${ts.code} - ${ts.brand_type}`;
             document.getElementById('detailOperator').textContent = `${ts.operator_name} (NIK: ${ts.operator_nik})`;
-            document.getElementById('detailMeter').textContent = `${ts.start_meter} - ${ts.end_meter} ${ts.meter_type}`;
-            document.getElementById('detailHours').textContent = `${ts.operating_hours} ${ts.meter_type}`;
+            document.getElementById('detailMeter').textContent = `${ts.start_meter} ${ts.meter_type}`;
+            document.getElementById('detailHours').textContent = ts.operating_hours && ts.operating_hours !== '0,0' ? `${ts.operating_hours} ${ts.meter_type}` : '-';
             document.getElementById('detailStandbyBreakdown').textContent = `Standby: ${ts.standby_hours}h | Breakdown: ${ts.breakdown_hours}h`;
-            document.getElementById('detailFuel').textContent = ts.fuel_liters !== '-' ? `${ts.fuel_liters} L` : '-';
+            document.getElementById('detailFuel').textContent = ts.fuel_liters && ts.fuel_liters !== '-' ? `${ts.fuel_liters} L` : '-';
             document.getElementById('detailLocation').textContent = ts.location;
             document.getElementById('detailActivity').textContent = ts.activity_type;
             document.getElementById('detailTask').textContent = ts.task_description !== '-' ? `"${ts.task_description}"` : '-';
@@ -1210,28 +1120,35 @@
         const form = document.getElementById('editTimesheetForm');
         form.action = `/qma/support-timesheet/${ts.id}`;
 
-        document.getElementById('editTimesheetSubtitle').textContent = `No: ${ts.timesheet_no} (${ts.vehicle?.code || '-'})`;
-        document.getElementById('editVehicleSelect').value = ts.vehicle_id;
+        const unitCode = ts.vehicle ? ts.vehicle.code : (ts.vehicle_code || '');
+        document.getElementById('editTimesheetSubtitle').textContent = `No: ${ts.timesheet_no} (${unitCode || '-'})`;
+        
+        const editVehicleInput = document.getElementById('editVehicleInput');
+        const editVehicleId = document.getElementById('editVehicleId');
+        if (editVehicleInput) {
+            editVehicleInput.value = unitCode;
+            editVehicleId.value = ts.vehicle_id;
+            onVehicleTyped(editVehicleInput, 'edit');
+        }
+
         document.getElementById('editOperatorSelect').value = ts.operator_id;
         
         // Format tanggal YYYY-MM-DD
         const d = ts.date ? ts.date.split('T')[0] : '';
         document.getElementById('editDate').value = d;
-        document.getElementById('editShift').value = ts.shift;
+        document.getElementById('editShift').value = ts.shift || 'Shift Siang';
         document.getElementById('editMeterType').value = ts.meter_type || 'HM';
 
         document.getElementById('editStartMeter').value = ts.start_meter;
-        document.getElementById('editEndMeter').value = ts.end_meter;
         document.getElementById('editStandbyHours').value = ts.standby_hours || 0;
         document.getElementById('editBreakdownHours').value = ts.breakdown_hours || 0;
 
         document.getElementById('editLocationInput').value = ts.location;
         document.getElementById('editActivityType').value = ts.activity_type;
-        document.getElementById('editFuelLiters').value = ts.fuel_liters || '';
         document.getElementById('editStatus').value = ts.status || 'Operation';
         document.getElementById('editTaskDescription').value = ts.task_description || ts.notes || '';
 
-        calculateOperatingHours('edit');
+        updateMeterUnitLabels('edit');
 
         const modal = document.getElementById('editTimesheetModal');
         modal.classList.remove('hidden');
@@ -1259,43 +1176,55 @@
         modal.style.display = 'none';
     }
 
-    // 5. Handler saat Unit Dipilih (Auto-isi meter awal)
-    function onVehicleSelected(selectEl, prefix) {
-        const selectedOpt = selectEl.options[selectEl.selectedIndex];
-        if (!selectedOpt || !selectedOpt.value) return;
-
-        const lastKm = parseFloat(selectedOpt.getAttribute('data-km')) || 0;
-        const startMeterInput = document.getElementById(`${prefix}StartMeter`);
-        if (startMeterInput && (!startMeterInput.value || parseFloat(startMeterInput.value) === 0)) {
-            startMeterInput.value = lastKm.toFixed(2);
-        }
-
-        const code = (selectedOpt.getAttribute('data-code') || '').toUpperCase();
+    // 5. Handler saat Unit Diketik (Auto-detect kode/nama unit & auto isi meter awal)
+    function onVehicleTyped(inputEl, prefix) {
+        const val = (inputEl.value || '').trim().toLowerCase();
+        const previewEl = document.getElementById(`${prefix}VehiclePreview`);
+        const previewText = document.getElementById(`${prefix}VehiclePreviewText`);
+        const lastKmText = document.getElementById(`${prefix}VehicleLastKmText`);
+        const hiddenId = document.getElementById(`${prefix}VehicleId`);
         const meterTypeSelect = document.getElementById(`${prefix}MeterType`);
-        if (meterTypeSelect) {
-            // Jika kode diawali DT (Dump Truck), defaultkan KM, selain itu HM
-            if (code.startsWith('DT')) {
-                meterTypeSelect.value = 'KM';
-            } else {
-                meterTypeSelect.value = 'HM';
+        const startMeterInput = document.getElementById(`${prefix}StartMeter`);
+
+        if (!val) {
+            if (previewEl) previewEl.classList.add('hidden');
+            if (hiddenId) hiddenId.value = '';
+            return;
+        }
+
+        const found = (window.unitSupportsData || []).find(u => 
+            (u.code && u.code.toLowerCase() === val) || 
+            (u.brand_type && u.brand_type.toLowerCase() === val) ||
+            (u.code && u.code.toLowerCase().startsWith(val))
+        );
+
+        if (found) {
+            if (hiddenId) hiddenId.value = found.id;
+            if (previewEl) {
+                previewEl.classList.remove('hidden');
+                previewText.textContent = `${found.code} - ${found.brand_type || ''}`;
+                const lastKm = parseFloat(found.current_km) || 0;
+                lastKmText.textContent = `Meter Terakhir: ${lastKm.toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2})}`;
             }
-            updateMeterUnitLabels(prefix);
+
+            // Auto isi meter awal jika belum diisi atau bernilai 0
+            if (startMeterInput && (!startMeterInput.value || parseFloat(startMeterInput.value) === 0)) {
+                startMeterInput.value = (parseFloat(found.current_km) || 0).toFixed(2);
+            }
+
+            // Auto pilih tipe meter: jika diawali DT -> KM, selainnya -> HM
+            if (meterTypeSelect) {
+                if ((found.code || '').toUpperCase().startsWith('DT')) {
+                    meterTypeSelect.value = 'KM';
+                } else {
+                    meterTypeSelect.value = 'HM';
+                }
+                updateMeterUnitLabels(prefix);
+            }
+        } else {
+            if (previewEl) previewEl.classList.add('hidden');
+            if (hiddenId) hiddenId.value = '';
         }
-
-        calculateOperatingHours(prefix);
-    }
-
-    // 6. Hitung Jam Operasi Otomatis (End - Start)
-    function calculateOperatingHours(prefix) {
-        const start = parseFloat(document.getElementById(`${prefix}StartMeter`).value) || 0;
-        const end = parseFloat(document.getElementById(`${prefix}EndMeter`).value) || 0;
-        const diff = Math.max(0, end - start);
-
-        const display = document.getElementById(`${prefix}OperatingHoursDisplay`);
-        if (display) {
-            display.value = diff.toFixed(2);
-        }
-        updateMeterUnitLabels(prefix);
     }
 
     function updateMeterUnitLabels(prefix) {

@@ -103,8 +103,54 @@ class QmaSupportTimesheetTest extends TestCase
         $response->assertSee('TS-US-20261020-0001');
         $response->assertSee('EX01');
         $response->assertSee('Joko Operator');
-        $response->assertSee('8,5 HM');
+        $response->assertSee('1.250,0 HM');
         $response->assertSee('Main Dam');
+    }
+
+    /**
+     * Admin QMA dapat menginput timesheet unit support yang disederhanakan:
+     * - Unit support diketik (vehicle_code)
+     * - Shift default 'Shift Siang'
+     * - Odometer hanya awal saja (start_meter) tanpa end_meter & fuel_liters
+     * - Kategori pekerjaan teks bebas
+     */
+    public function test_store_streamlined_support_timesheet_with_typed_unit_and_start_meter_only(): void
+    {
+        $data = [
+            'vehicle_code' => 'EX01', // Diketik langsung
+            'operator_id' => $this->operator->id,
+            'date' => Carbon::today()->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 1265.50, // Odometer awal saja
+            'location' => 'Inlet Portal Adit 3',
+            'activity_type' => 'Perapihan Dinding Batuan', // Ketik bebas
+            'status' => 'Operation',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->post(route('qma.support_timesheet.store'), $data);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('unit_support_timesheets', [
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $this->operator->id,
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 1265.50,
+            'end_meter' => null,
+            'operating_hours' => null,
+            'location' => 'Inlet Portal Adit 3',
+            'activity_type' => 'Perapihan Dinding Batuan',
+            'status' => 'Operation',
+        ]);
+
+        // Verifikasi odometer kendaraan terupdate ke start_meter terbaru
+        $this->supportUnit->refresh();
+        $this->assertEquals(1265.50, (float) $this->supportUnit->current_km);
+        $this->assertEquals('Inlet Portal Adit 3', $this->supportUnit->location);
     }
 
     /**
