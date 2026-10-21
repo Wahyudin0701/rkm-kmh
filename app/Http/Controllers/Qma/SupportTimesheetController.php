@@ -138,6 +138,15 @@ class SupportTimesheetController extends Controller
         $activityTypes = self::PRESET_ACTIVITIES;
         $locationSuggestions = UnitManagementController::getAllLocationSuggestions();
 
+        $unitLocations = $unitSupports->groupBy(function ($u) {
+            return trim($u->location) ?: 'Site Kerinci';
+        })->map(fn($group) => $group->count())->sortKeys();
+
+        $otherLocations = collect($locationSuggestions)
+            ->diff($unitLocations->keys())
+            ->values()
+            ->all();
+
         return view('qma.support_timesheet', compact(
             'timesheets',
             'startDate',
@@ -151,7 +160,9 @@ class SupportTimesheetController extends Controller
             'operators',
             'shifts',
             'activityTypes',
-            'locationSuggestions'
+            'locationSuggestions',
+            'unitLocations',
+            'otherLocations'
         ));
     }
 
@@ -173,7 +184,15 @@ class SupportTimesheetController extends Controller
             }
         }
 
-        // 2. Defaultkan shift ke Shift Siang jika tidak diisi
+        // 2. Tangani normalisasi lokasi kerja jika custom atau ALL
+        if ($request->input('location') === '__CUSTOM__' && $request->filled('custom_location')) {
+            $request->merge(['location' => trim($request->input('custom_location'))]);
+        } elseif (!$request->filled('location') || $request->input('location') === 'ALL') {
+            $veh = $request->filled('vehicle_id') ? Vehicle::find($request->input('vehicle_id')) : null;
+            $request->merge(['location' => $veh?->location ?: 'Site Kerinci']);
+        }
+
+        // 3. Defaultkan shift ke Shift Siang jika tidak diisi
         if (!$request->filled('shift')) {
             $request->merge(['shift' => 'Shift Siang']);
         }
@@ -304,6 +323,14 @@ class SupportTimesheetController extends Controller
             if ($veh) {
                 $request->merge(['vehicle_id' => $veh->id]);
             }
+        }
+
+        // 2. Tangani normalisasi lokasi kerja jika custom atau ALL
+        if ($request->input('location') === '__CUSTOM__' && $request->filled('custom_location')) {
+            $request->merge(['location' => trim($request->input('custom_location'))]);
+        } elseif (!$request->filled('location') || $request->input('location') === 'ALL') {
+            $veh = $request->filled('vehicle_id') ? Vehicle::find($request->input('vehicle_id')) : null;
+            $request->merge(['location' => $veh?->location ?: $timesheet->location ?: 'Site Kerinci']);
         }
 
         if (!$request->filled('shift')) {

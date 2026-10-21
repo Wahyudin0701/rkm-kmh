@@ -413,4 +413,49 @@ class QmaSupportTimesheetTest extends TestCase
             'application/pdf'
         ));
     }
+
+    /**
+     * Halaman index memuat unitLocations dan merefleksikan posisi unit.
+     */
+    public function test_index_passes_unit_locations_for_location_first_workflow(): void
+    {
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.index'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('unitLocations');
+        $response->assertSee('Tentukan Lokasi Dulu');
+        $response->assertSee('Adit 1 (1 Unit Ready)');
+    }
+
+    /**
+     * Penyimpanan dengan lokasi custom atau normalisasi fallback.
+     */
+    public function test_store_handles_custom_location_input(): void
+    {
+        $data = [
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $this->operator->id,
+            'date' => Carbon::today()->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 1300.00,
+            'location' => '__CUSTOM__',
+            'custom_location' => 'Quarry Batu KM 12',
+            'activity_type' => 'Galian Quarry',
+            'status' => 'Operation',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->post(route('qma.support_timesheet.store'), $data);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('unit_support_timesheets', [
+            'vehicle_id' => $this->supportUnit->id,
+            'location' => 'Quarry Batu KM 12',
+        ]);
+
+        $this->supportUnit->refresh();
+        $this->assertEquals('Quarry Batu KM 12', $this->supportUnit->location);
+    }
 }

@@ -465,32 +465,70 @@
             <form id="addTimesheetForm" method="POST" action="{{ route('qma.support_timesheet.store') }}" class="p-6 space-y-4">
                 @csrf
 
-                <!-- Baris 1: Unit Support (Ketik aja) & Operator -->
+                <!-- Baris 1: Lokasi Kerja (Tentukan Terlebih Dahulu) & Unit Support yang Ready di Lokasi -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Tentukan Lokasi Dulu</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1b5e20] text-xs"></i>
+                            <select id="addLocationSelect" 
+                                    required 
+                                    onchange="onTimesheetLocationChanged(this.value, 'add')"
+                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
+                                <option value="ALL">[Tampilkan Semua Lokasi / Semua Unit]</option>
+                                @foreach($unitLocations as $locName => $count)
+                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                                @endforeach
+                                @if(isset($otherLocations) && count($otherLocations))
+                                    <optgroup label="Lokasi Lainnya di Site">
+                                        @foreach($otherLocations as $otherLoc)
+                                            <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
+                            </select>
+                        </div>
+                        <div id="addCustomLocationWrapper" class="hidden mt-2">
+                            <input type="text" 
+                                   id="addCustomLocationInput" 
+                                   name="custom_location"
+                                   placeholder="Ketik nama lokasi kerja baru..." 
+                                   oninput="onCustomLocationTyped(this.value, 'add')"
+                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                        </div>
+                        <input type="hidden" name="location" id="addFinalLocation" required>
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih lokasi agar sistem memfilter unit yang ready di area tersebut.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
                             <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-slate-400 font-normal">Ketik kode atau nama unit</span>
+                            <span id="addUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
                         <div class="relative">
                             <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" 
-                                   name="vehicle_code" 
-                                   id="addVehicleInput" 
-                                   list="unitSupportDatalist" 
-                                   required 
-                                   autocomplete="off"
-                                   placeholder="Ketik kode unit (misal: EXCA-01, DT-05)..." 
-                                   oninput="onVehicleTyped(this, 'add')"
-                                   class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                            <input type="hidden" name="vehicle_id" id="addVehicleId">
+                            <select name="vehicle_id" 
+                                    id="addVehicleSelect" 
+                                    required 
+                                    onchange="onVehicleSelectChanged(this, 'add')"
+                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                            </select>
                         </div>
                         <div id="addVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="addVehiclePreviewText" class="font-bold"></span>
                             <span id="addVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
                         </div>
                     </div>
+                </div>
 
+                <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Pengemudi / Operator <span class="text-rose-500">*</span>
@@ -507,9 +545,22 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                            Kategori Pekerjaan <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="activity_type" 
+                               id="addActivityType" 
+                               list="activityPresetList" 
+                               required 
+                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
+                    </div>
                 </div>
 
-                <!-- Baris 2: Tanggal, Shift (Shift Siang), Satuan Meteran -->
+                <!-- Baris 3: Tanggal, Shift (Shift Siang), Satuan Meteran -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -544,7 +595,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Odometer Awal Saja -->
+                <!-- Baris 4: Odometer Awal Saja -->
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
@@ -587,35 +638,6 @@
                                    placeholder="0.0"
                                    class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
                         </div>
-                    </div>
-                </div>
-
-                <!-- Baris 4: Lokasi Kerja & Kategori Pekerjaan (Ketik Aja) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Lokasi Kerja <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="location" 
-                               id="addLocationInput"
-                               list="locationPresetList"
-                               required 
-                               placeholder="Contoh: Main Dam, Adit 1, Powerhouse..." 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Kategori Pekerjaan <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="activity_type" 
-                               id="addActivityType" 
-                               list="activityPresetList" 
-                               required 
-                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
                     </div>
                 </div>
 
@@ -786,32 +808,70 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Baris 1: Unit Support (Ketik aja) & Operator -->
+                <!-- Baris 1: Lokasi Kerja (Tentukan Terlebih Dahulu) & Unit Support yang Ready di Lokasi -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Tentukan Lokasi Dulu</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1b5e20] text-xs"></i>
+                            <select id="editLocationSelect" 
+                                    required 
+                                    onchange="onTimesheetLocationChanged(this.value, 'edit')"
+                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
+                                <option value="ALL">[Tampilkan Semua Lokasi / Semua Unit]</option>
+                                @foreach($unitLocations as $locName => $count)
+                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                                @endforeach
+                                @if(isset($otherLocations) && count($otherLocations))
+                                    <optgroup label="Lokasi Lainnya di Site">
+                                        @foreach($otherLocations as $otherLoc)
+                                            <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endif
+                                <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
+                            </select>
+                        </div>
+                        <div id="editCustomLocationWrapper" class="hidden mt-2">
+                            <input type="text" 
+                                   id="editCustomLocationInput" 
+                                   name="custom_location"
+                                   placeholder="Ketik nama lokasi kerja baru..." 
+                                   oninput="onCustomLocationTyped(this.value, 'edit')"
+                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                        </div>
+                        <input type="hidden" name="location" id="editFinalLocation" required>
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih lokasi agar sistem memfilter unit yang ready di area tersebut.</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
                             <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-slate-400 font-normal">Ketik kode atau nama unit</span>
+                            <span id="editUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
                         <div class="relative">
                             <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <input type="text" 
-                                   name="vehicle_code" 
-                                   id="editVehicleInput" 
-                                   list="unitSupportDatalist" 
-                                   required 
-                                   autocomplete="off"
-                                   placeholder="Ketik kode unit (misal: EXCA-01, DT-05)..." 
-                                   oninput="onVehicleTyped(this, 'edit')"
-                                   class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                            <input type="hidden" name="vehicle_id" id="editVehicleId">
+                            <select name="vehicle_id" 
+                                    id="editVehicleSelect" 
+                                    required 
+                                    onchange="onVehicleSelectChanged(this, 'edit')"
+                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                            </select>
                         </div>
                         <div id="editVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="editVehiclePreviewText" class="font-bold"></span>
                             <span id="editVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
                         </div>
                     </div>
+                </div>
 
+                <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Pengemudi / Operator <span class="text-rose-500">*</span>
@@ -827,9 +887,22 @@
                             @endforeach
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                            Kategori Pekerjaan <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="activity_type" 
+                               id="editActivityType" 
+                               list="activityPresetList" 
+                               required 
+                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
+                    </div>
                 </div>
 
-                <!-- Baris 2: Tanggal, Shift (Shift Siang), Satuan Meteran -->
+                <!-- Baris 3: Tanggal, Shift (Shift Siang), Satuan Meteran -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -864,7 +937,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Odometer Awal Saja -->
+                <!-- Baris 4: Odometer Awal Saja -->
                 <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
@@ -912,35 +985,6 @@
                     </div>
                 </div>
 
-                <!-- Baris 4: Lokasi Kerja & Kategori Pekerjaan (Ketik Aja) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Lokasi Kerja <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="location" 
-                               id="editLocationInput"
-                               list="locationPresetList"
-                               required 
-                               placeholder="Contoh: Main Dam, Adit 1, Powerhouse..." 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Kategori Pekerjaan <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" 
-                               name="activity_type" 
-                               id="editActivityType" 
-                               list="activityPresetList" 
-                               required 
-                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
-                    </div>
-                </div>
-
                 <!-- Baris 5: Status Akhir Unit -->
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -956,6 +1000,15 @@
 
                 <!-- Baris 6: Deskripsi & Catatan -->
                 <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
+                    </label>
+                    <textarea name="task_description" 
+                              id="editTaskDescription"
+                              rows="2" 
+                              placeholder="Keterangan rincian galian, muatan ritase, kendala lapangan, atau catatan foreman..." 
+                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                </div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">
                         Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
                     </label>
@@ -1060,6 +1113,28 @@
     function openAddModal() {
         const modal = document.getElementById('addTimesheetModal');
         if (modal) {
+            // Reset form pilihan lokasi & unit
+            const addLocSelect = document.getElementById('addLocationSelect');
+            if (addLocSelect) addLocSelect.selectedIndex = 0;
+            const customWrap = document.getElementById('addCustomLocationWrapper');
+            if (customWrap) customWrap.classList.add('hidden');
+            const customInput = document.getElementById('addCustomLocationInput');
+            if (customInput) customInput.value = '';
+            const finalLoc = document.getElementById('addFinalLocation');
+            if (finalLoc) finalLoc.value = '';
+
+            const vehSelect = document.getElementById('addVehicleSelect');
+            if (vehSelect) {
+                vehSelect.innerHTML = '<option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>';
+            }
+            const counter = document.getElementById('addUnitCounterBadge');
+            if (counter) counter.classList.add('hidden');
+            const preview = document.getElementById('addVehiclePreview');
+            if (preview) preview.classList.add('hidden');
+
+            const startMeter = document.getElementById('addStartMeter');
+            if (startMeter) startMeter.value = '';
+
             modal.classList.remove('hidden');
             modal.style.display = 'block';
         }
@@ -1122,14 +1197,39 @@
 
         const unitCode = ts.vehicle ? ts.vehicle.code : (ts.vehicle_code || '');
         document.getElementById('editTimesheetSubtitle').textContent = `No: ${ts.timesheet_no} (${unitCode || '-'})`;
-        
-        const editVehicleInput = document.getElementById('editVehicleInput');
-        const editVehicleId = document.getElementById('editVehicleId');
-        if (editVehicleInput) {
-            editVehicleInput.value = unitCode;
-            editVehicleId.value = ts.vehicle_id;
-            onVehicleTyped(editVehicleInput, 'edit');
+
+        // 1. Sinkronisasi Lokasi Kerja
+        const locSelect = document.getElementById('editLocationSelect');
+        const finalLoc = document.getElementById('editFinalLocation');
+        const customWrap = document.getElementById('editCustomLocationWrapper');
+        const targetLoc = ts.location || '';
+
+        finalLoc.value = targetLoc;
+
+        let matched = false;
+        if (locSelect) {
+            for (let i = 0; i < locSelect.options.length; i++) {
+                if (locSelect.options[i].value.toLowerCase() === targetLoc.toLowerCase()) {
+                    locSelect.selectedIndex = i;
+                    matched = true;
+                    break;
+                }
+            }
+
+            if (!matched && targetLoc) {
+                // Tambahkan option lokasi baru jika belum terdaftar
+                const newOpt = document.createElement('option');
+                newOpt.value = targetLoc;
+                newOpt.textContent = `${targetLoc} (Lokasi Riwayat)`;
+                locSelect.appendChild(newOpt);
+                locSelect.value = targetLoc;
+            }
         }
+
+        if (customWrap) customWrap.classList.add('hidden');
+
+        // Filter unit pada lokasi ini dengan memilih ts.vehicle_id
+        onTimesheetLocationChanged(locSelect ? locSelect.value : targetLoc, 'edit', ts.vehicle_id);
 
         document.getElementById('editOperatorSelect').value = ts.operator_id;
         
@@ -1143,7 +1243,6 @@
         document.getElementById('editStandbyHours').value = ts.standby_hours || 0;
         document.getElementById('editBreakdownHours').value = ts.breakdown_hours || 0;
 
-        document.getElementById('editLocationInput').value = ts.location;
         document.getElementById('editActivityType').value = ts.activity_type;
         document.getElementById('editStatus').value = ts.status || 'Operation';
         document.getElementById('editTaskDescription').value = ts.task_description || ts.notes || '';
@@ -1176,54 +1275,159 @@
         modal.style.display = 'none';
     }
 
-    // 5. Handler saat Unit Diketik (Auto-detect kode/nama unit & auto isi meter awal)
-    function onVehicleTyped(inputEl, prefix) {
-        const val = (inputEl.value || '').trim().toLowerCase();
+    // 5. Handler saat Lokasi Kerja Dipilih (Filter Unit Support yang Ready di Lokasi tersebut)
+    function onTimesheetLocationChanged(selectedLoc, prefix, preselectVehicleId = null) {
+        const customWrapper = document.getElementById(`${prefix}CustomLocationWrapper`);
+        const customInput = document.getElementById(`${prefix}CustomLocationInput`);
+        const finalLocation = document.getElementById(`${prefix}FinalLocation`);
+        const vehicleSelect = document.getElementById(`${prefix}VehicleSelect`);
+        const counterBadge = document.getElementById(`${prefix}UnitCounterBadge`);
+        const previewEl = document.getElementById(`${prefix}VehiclePreview`);
+
+        if (!vehicleSelect) return;
+
+        // Tangani pilihan custom atau ALL
+        if (selectedLoc === '__CUSTOM__') {
+            if (customWrapper) customWrapper.classList.remove('hidden');
+            if (customInput) {
+                customInput.focus();
+                if (finalLocation) finalLocation.value = customInput.value.trim();
+            }
+        } else {
+            if (customWrapper) customWrapper.classList.add('hidden');
+            if (finalLocation) {
+                finalLocation.value = (selectedLoc === 'ALL' || !selectedLoc) ? '' : selectedLoc;
+            }
+        }
+
+        const allUnits = window.unitSupportsData || [];
+        let filteredUnits = [];
+
+        if (!selectedLoc) {
+            vehicleSelect.innerHTML = '<option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>';
+            if (counterBadge) counterBadge.classList.add('hidden');
+            if (previewEl) previewEl.classList.add('hidden');
+            return;
+        } else if (selectedLoc === 'ALL' || selectedLoc === '__CUSTOM__') {
+            filteredUnits = allUnits;
+        } else {
+            const norm = selectedLoc.trim().toLowerCase();
+            filteredUnits = allUnits.filter(u => {
+                const uLoc = (u.location || 'Site Kerinci').trim().toLowerCase();
+                return uLoc === norm;
+            });
+
+            // Jika dalam mode edit dan preselectVehicleId tidak ditemukan di lokasi ini (misal unit berpindah setelah ts dicatat), sertakan unit tersebut
+            if (preselectVehicleId) {
+                const foundInFiltered = filteredUnits.some(u => String(u.id) === String(preselectVehicleId));
+                if (!foundInFiltered) {
+                    const extra = allUnits.find(u => String(u.id) === String(preselectVehicleId));
+                    if (extra) filteredUnits.unshift(extra);
+                }
+            }
+        }
+
+        // Update badge counter
+        if (counterBadge) {
+            counterBadge.classList.remove('hidden');
+            if (selectedLoc === 'ALL' || selectedLoc === '__CUSTOM__') {
+                counterBadge.textContent = `${filteredUnits.length} Total Unit`;
+            } else {
+                counterBadge.textContent = `${filteredUnits.length} Unit Ready`;
+            }
+        }
+
+        // Render option unit support
+        vehicleSelect.innerHTML = '';
+        const defaultPrompt = document.createElement('option');
+        defaultPrompt.value = '';
+        defaultPrompt.disabled = true;
+        defaultPrompt.textContent = filteredUnits.length > 0 
+            ? `-- Pilih Unit Support (${filteredUnits.length} Unit Ready) --` 
+            : `-- Tidak ada unit di lokasi ini (Pilih 'Semua Unit') --`;
+        vehicleSelect.appendChild(defaultPrompt);
+
+        let hasSelected = false;
+        filteredUnits.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.id;
+            opt.setAttribute('data-km', u.current_km ?? 0);
+            opt.setAttribute('data-code', u.code || '');
+            opt.setAttribute('data-brand', u.brand_type || '');
+            opt.setAttribute('data-location', u.location || 'Site Kerinci');
+
+            const lastKm = parseFloat(u.current_km) || 0;
+            const code = (u.code || '').toUpperCase();
+            const meterType = code.startsWith('DT') ? 'KM' : 'HM';
+            const kmFormatted = lastKm.toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2});
+
+            opt.textContent = `${u.code} - ${u.brand_type || ''} (Meter: ${kmFormatted} ${meterType})`;
+
+            if (preselectVehicleId && String(u.id) === String(preselectVehicleId)) {
+                opt.selected = true;
+                hasSelected = true;
+            }
+            vehicleSelect.appendChild(opt);
+        });
+
+        if (hasSelected) {
+            onVehicleSelectChanged(vehicleSelect, prefix);
+        } else {
+            defaultPrompt.selected = true;
+            if (previewEl) previewEl.classList.add('hidden');
+        }
+    }
+
+    // 6. Handler saat Custom Lokasi Diketik
+    function onCustomLocationTyped(val, prefix) {
+        const finalLocation = document.getElementById(`${prefix}FinalLocation`);
+        if (finalLocation) {
+            finalLocation.value = val.trim();
+        }
+    }
+
+    // 7. Handler saat Unit Support Dipilih
+    function onVehicleSelectChanged(selectEl, prefix) {
+        const opt = selectEl.options[selectEl.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        const code = opt.getAttribute('data-code') || '';
+        const brand = opt.getAttribute('data-brand') || '';
+        const lastKm = parseFloat(opt.getAttribute('data-km')) || 0;
+        const unitLocation = opt.getAttribute('data-location') || 'Site Kerinci';
+
+        // Tampilkan info preview
         const previewEl = document.getElementById(`${prefix}VehiclePreview`);
         const previewText = document.getElementById(`${prefix}VehiclePreviewText`);
         const lastKmText = document.getElementById(`${prefix}VehicleLastKmText`);
-        const hiddenId = document.getElementById(`${prefix}VehicleId`);
-        const meterTypeSelect = document.getElementById(`${prefix}MeterType`);
-        const startMeterInput = document.getElementById(`${prefix}StartMeter`);
-
-        if (!val) {
-            if (previewEl) previewEl.classList.add('hidden');
-            if (hiddenId) hiddenId.value = '';
-            return;
+        if (previewEl) {
+            previewEl.classList.remove('hidden');
+            previewText.textContent = `${code} - ${brand}`;
+            lastKmText.textContent = `Meter Terakhir: ${lastKm.toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2})}`;
         }
 
-        const found = (window.unitSupportsData || []).find(u => 
-            (u.code && u.code.toLowerCase() === val) || 
-            (u.brand_type && u.brand_type.toLowerCase() === val) ||
-            (u.code && u.code.toLowerCase().startsWith(val))
-        );
+        // Auto-isi start_meter jika kosong atau 0
+        const startMeterInput = document.getElementById(`${prefix}StartMeter`);
+        if (startMeterInput && (!startMeterInput.value || parseFloat(startMeterInput.value) === 0)) {
+            startMeterInput.value = lastKm.toFixed(2);
+        }
 
-        if (found) {
-            if (hiddenId) hiddenId.value = found.id;
-            if (previewEl) {
-                previewEl.classList.remove('hidden');
-                previewText.textContent = `${found.code} - ${found.brand_type || ''}`;
-                const lastKm = parseFloat(found.current_km) || 0;
-                lastKmText.textContent = `Meter Terakhir: ${lastKm.toLocaleString('id-ID', {minimumFractionDigits: 1, maximumFractionDigits: 2})}`;
+        // Auto-deteksi tipe meteran: DT -> KM, selainnya -> HM
+        const meterTypeSelect = document.getElementById(`${prefix}MeterType`);
+        if (meterTypeSelect) {
+            if (code.toUpperCase().startsWith('DT')) {
+                meterTypeSelect.value = 'KM';
+            } else {
+                meterTypeSelect.value = 'HM';
             }
+            updateMeterUnitLabels(prefix);
+        }
 
-            // Auto isi meter awal jika belum diisi atau bernilai 0
-            if (startMeterInput && (!startMeterInput.value || parseFloat(startMeterInput.value) === 0)) {
-                startMeterInput.value = (parseFloat(found.current_km) || 0).toFixed(2);
-            }
-
-            // Auto pilih tipe meter: jika diawali DT -> KM, selainnya -> HM
-            if (meterTypeSelect) {
-                if ((found.code || '').toUpperCase().startsWith('DT')) {
-                    meterTypeSelect.value = 'KM';
-                } else {
-                    meterTypeSelect.value = 'HM';
-                }
-                updateMeterUnitLabels(prefix);
-            }
-        } else {
-            if (previewEl) previewEl.classList.add('hidden');
-            if (hiddenId) hiddenId.value = '';
+        // Jika lokasi kerja dipilih 'ALL', sinkronkan finalLocation ke lokasi unit
+        const locSelect = document.getElementById(`${prefix}LocationSelect`);
+        const finalLoc = document.getElementById(`${prefix}FinalLocation`);
+        if (locSelect && locSelect.value === 'ALL' && finalLoc && !finalLoc.value) {
+            finalLoc.value = unitLocation;
         }
     }
 
