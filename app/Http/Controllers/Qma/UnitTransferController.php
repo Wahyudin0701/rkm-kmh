@@ -129,6 +129,20 @@ class UnitTransferController extends Controller
             ->orderBy('code')
             ->get();
 
+        // Cari lokasi awal jika vehicle_id disertakan
+        $selectedOriginLocation = null;
+        if ($selectedVehicleId) {
+            $selectedVeh = $heavyUnits->firstWhere('id', $selectedVehicleId);
+            if ($selectedVeh) {
+                $selectedOriginLocation = $selectedVeh->location ?: 'Site Kerinci';
+            }
+        }
+
+        // Daftar lokasi awal unik yang saat ini memiliki unit alat berat beserta jumlah unitnya
+        $originLocations = $heavyUnits->groupBy(fn($u) => $u->location ?: 'Site Kerinci')
+            ->map(fn($group) => $group->count())
+            ->sortKeys();
+
         // 2. Daftar unit kendaraan kita untuk armada pengangkut (Truk, Flatbed, Lowbed, Towing, LV, dsb.)
         $transporterUnits = Vehicle::trackableUnits()
             ->orderBy('category')
@@ -149,6 +163,8 @@ class UnitTransferController extends Controller
 
         return view('qma.unit_transfers_create', compact(
             'heavyUnits',
+            'originLocations',
+            'selectedOriginLocation',
             'transporterUnits',
             'drivers',
             'locationSuggestions',
@@ -164,6 +180,7 @@ class UnitTransferController extends Controller
     {
         $validated = $request->validate([
             'vehicle_id' => ['required', 'integer', 'exists:vehicles,id'],
+            'from_location' => ['nullable', 'string', 'max:255'],
             'transfer_date' => ['required', 'date'],
             'to_location' => ['required', 'string', 'max:255'],
             'to_site_status' => ['required', 'in:inside_site,outside_site'],
@@ -174,6 +191,7 @@ class UnitTransferController extends Controller
             'transporter_driver_id' => ['nullable', 'integer', 'exists:employees,id'],
             'transporter_driver_name' => ['nullable', 'string', 'max:255'],
             'transporter_description' => ['nullable', 'string', 'max:2000'],
+            'update_transporter_location' => ['nullable', 'boolean'],
             'document_number' => ['required', 'string', 'max:255'],
             'document_title' => ['required', 'string', 'max:255'],
             'document_file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
@@ -194,11 +212,13 @@ class UnitTransferController extends Controller
             $filePath = $request->file('document_file')->store('transfers/documents', 'public');
         }
 
-        $transfer = DB::transaction(function () use ($validated, $filePath) {
+        $updateTransporter = $request->boolean('update_transporter_location', true);
+
+        $transfer = DB::transaction(function () use ($validated, $filePath, $updateTransporter) {
             $vehicle = Vehicle::trackableUnits()->findOrFail($validated['vehicle_id']);
 
             // Lokasi dan status site awal sebelum dipindahkan
-            $fromLocation = $vehicle->location ?: 'Site Kerinci';
+            $fromLocation = $vehicle->location ?: ($validated['from_location'] ?? 'Site Kerinci');
             $fromSiteStatus = $vehicle->site_status ?: 'inside_site';
 
             // Nama armada pengangkut
@@ -277,6 +297,31 @@ class UnitTransferController extends Controller
                 'user_name' => $reportedBy,
                 'recorded_at' => Carbon::now(),
             ]);
+
+            // 4. Jika opsi perbarui posisi truk pengangkut aktif
+            if ($updateTransporter && !empty($validated['transporter_vehicle_id'])) {
+                $transporterVeh = Vehicle::find($validated['transporter_vehicle_id']);
+                if ($transporterVeh && $transporterVeh->id !== $vehicle->id) {
+                    $transporterVeh->update([
+                        'location' => $toLocation,
+                        'site_status' => $validated['to_site_status'],
+                        'location_updated_at' => Carbon::now(),
+                        'location_updated_by' => $reportedBy,
+                        'location_note' => "Armada Pengangkut BAST {$validated['document_number']} untuk {$vehicle->code} ke {$toLocation}",
+                    ]);
+
+                    VehicleLocationHistory::create([
+                        'vehicle_id' => $transporterVeh->id,
+                        'site_status' => $validated['to_site_status'],
+                        'location' => $toLocation,
+                        'note' => "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) via BAST {$validated['document_number']} ke {$toLocation}",
+                        'source' => 'transfer',
+                        'user_id' => auth()->id(),
+                        'user_name' => $reportedBy,
+                        'recorded_at' => Carbon::now(),
+                    ]);
+                }
+            }
 
             return $transfer;
         });

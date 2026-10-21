@@ -304,4 +304,43 @@ class QmaUnitTransferTest extends TestCase
         $response->assertSee('value="' . $this->heavyEquipment->id . '"', false);
         $response->assertSee('selected', false);
     }
+
+    /**
+     * Jika opsi update_transporter_location dicentang, armada pengangkut juga diperbarui posisinya
+     * dan dicatat di riwayat mutasi lokasi.
+     */
+    public function test_store_transfer_updates_transporter_truck_location_when_checked(): void
+    {
+        Storage::fake('public');
+
+        $payload = [
+            'vehicle_id' => $this->heavyEquipment->id,
+            'from_location' => 'Main Dam',
+            'transfer_date' => Carbon::now()->format('Y-m-d'),
+            'to_location' => 'Adit 2 Intake',
+            'to_site_status' => 'inside_site',
+            'reported_by' => 'Staff QMA Logistik',
+            'transporter_vehicle_id' => $this->transporterTruck->id,
+            'transporter_unit_name' => 'DT-05',
+            'update_transporter_location' => '1',
+            'document_number' => '020/BAST-AB/QMA-KMH/X/2026',
+            'document_title' => 'BAST Pemindahan Unit & Mobilisasi Truk',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)->post(route('qma.unit_transfers.store'), $payload);
+        $response->assertSessionHas('success');
+
+        // Posisi truk pengangkut harus terupdate ke Adit 2 Intake
+        $freshTransporter = $this->transporterTruck->fresh();
+        $this->assertEquals('Adit 2 Intake', $freshTransporter->location);
+
+        // Riwayat lokasi truk pengangkut harus tercatat
+        $transporterHistory = VehicleLocationHistory::where('vehicle_id', $this->transporterTruck->id)
+            ->where('source', 'transfer')
+            ->first();
+
+        $this->assertNotNull($transporterHistory);
+        $this->assertEquals('Adit 2 Intake', $transporterHistory->location);
+        $this->assertStringContainsString('Mengantar EXCA-01', $transporterHistory->note);
+    }
 }
