@@ -62,12 +62,12 @@
                 </div>
             </div>
 
-            <!-- Grid 2 Kolom: Langkah 1 (Lokasi Awal) & Langkah 2 (Pilih Alat Berat) -->
+            <!-- Grid 2 Kolom: Lokasi Awal & Pilih Alat Berat -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- LANGKAH 1: PILIH LOKASI AWAL (ORIGIN LOCATION) -->
+                <!-- PILIH LOKASI AWAL (ORIGIN LOCATION) -->
                 <div>
                     <label for="origin_location" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                        <span>Langkah 1: Pilih Lokasi Awal (Asal) <span class="text-rose-500">*</span></span>
+                        <span>Lokasi Awal (Asal Unit) <span class="text-rose-500">*</span></span>
                         <span class="text-[10px] text-emerald-700 font-semibold">Filter Berdasarkan Posisi</span>
                     </label>
                     <div class="relative">
@@ -93,10 +93,10 @@
                     <p class="text-[10px] text-slate-400 mt-1">Memilih lokasi awal akan memfilter unit alat berat yang berada di titik tersebut.</p>
                 </div>
 
-                <!-- LANGKAH 2: PILIH ALAT BERAT YANG AKAN DIPINDAHKAN -->
+                <!-- PILIH ALAT BERAT YANG AKAN DIPINDAHKAN -->
                 <div>
                     <label for="vehicle_id" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                        <span>Langkah 2: Pilih Unit Alat Berat <span class="text-rose-500">*</span></span>
+                        <span>Unit Alat Berat yang Dipindahkan <span class="text-rose-500">*</span></span>
                         <span id="unitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                     </label>
                     <select name="vehicle_id" 
@@ -168,7 +168,7 @@
                 <!-- Lokasi Tujuan -->
                 <div>
                     <label for="to_location" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                        <span>Langkah 3: Lokasi Tujuan Baru <span class="text-rose-500">*</span></span>
+                        <span>Lokasi Tujuan Baru <span class="text-rose-500">*</span></span>
                         <span class="text-[10px] text-slate-400 font-normal">Pilih / Ketik Lokasi</span>
                     </label>
                     <div class="relative">

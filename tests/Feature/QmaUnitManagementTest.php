@@ -419,4 +419,100 @@ class QmaUnitManagementTest extends TestCase
             'application/pdf'
         ));
     }
+
+    /**
+     * Admin QMA dapat membuka halaman khusus riwayat posisi unit (view baru yang lega).
+     */
+    public function test_qma_admin_can_view_unit_location_history_page(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'EXCA-HIST-01',
+            'category' => 'unit_support',
+            'brand_type' => 'Komatsu PC200',
+            'site_status' => 'inside_site',
+            'location' => 'Main Dam',
+            'status' => 'Operation',
+        ]);
+
+        VehicleLocationHistory::create([
+            'vehicle_id' => $vehicle->id,
+            'site_status' => 'inside_site',
+            'location' => 'Main Dam',
+            'note' => 'Update posisi awal proyek',
+            'source' => 'manual',
+            'recorded_at' => Carbon::now(),
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)->get(route('qma.unit_management.history_view', $vehicle->id));
+
+        $response->assertOk();
+        $response->assertViewIs('qma.unit_location_history');
+        $response->assertSee('Riwayat Posisi: EXCA-HIST-01');
+        $response->assertSee('Main Dam');
+        $response->assertSee('Update posisi awal proyek');
+    }
+
+    /**
+     * Admin QMA dapat mengekspor riwayat posisi unit spesifik ke Excel.
+     */
+    public function test_qma_admin_can_export_unit_location_history_excel(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV-HIST-EXP-01',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Toyota Hilux 4x4',
+            'site_status' => 'inside_site',
+            'location' => 'Workshop GA',
+            'status' => 'Operation',
+        ]);
+
+        VehicleLocationHistory::create([
+            'vehicle_id' => $vehicle->id,
+            'site_status' => 'inside_site',
+            'location' => 'Workshop GA',
+            'note' => 'Servis berkala',
+            'source' => 'manual',
+            'recorded_at' => Carbon::now(),
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)->get(route('qma.unit_management.history_export_excel', $vehicle->id));
+
+        $response->assertOk();
+        $this->assertTrue(str_contains(
+            $response->headers->get('content-type') ?? '',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ));
+    }
+
+    /**
+     * Admin QMA dapat mengekspor riwayat posisi unit spesifik ke PDF.
+     */
+    public function test_qma_admin_can_export_unit_location_history_pdf(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV-HIST-EXP-02',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Mitsubishi Triton',
+            'site_status' => 'outside_site',
+            'location' => 'Kota Jambi',
+            'status' => 'Operation',
+        ]);
+
+        VehicleLocationHistory::create([
+            'vehicle_id' => $vehicle->id,
+            'site_status' => 'outside_site',
+            'location' => 'Kota Jambi',
+            'note' => 'Dinas luar kota logistik',
+            'source' => 'manual',
+            'recorded_at' => Carbon::now(),
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)->get(route('qma.unit_management.history_export_pdf', $vehicle->id));
+
+        $response->assertOk();
+        $this->assertTrue(str_contains(
+            $response->headers->get('content-type') ?? '',
+            'application/pdf'
+        ));
+    }
 }

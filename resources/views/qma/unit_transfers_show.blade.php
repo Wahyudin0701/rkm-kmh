@@ -69,9 +69,9 @@
         <!-- KOP SURAT RESMI PERUSAHAAN -->
         <div class="border-b-2 border-slate-900 pb-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#1b5e20] text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-sm">
-                    KMH
-                </div>
+                <img src="{{ asset('images/logo-kerinci.png') }}" 
+                     alt="PT Kerinci Merangin Hidro" 
+                     class="h-12 sm:h-14 w-auto object-contain shrink-0">
                 <div>
                     <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-tight uppercase">
                         PT KERINCI MERANGIN HIDRO

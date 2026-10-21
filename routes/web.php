@@ -107,6 +107,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/unit-management', [UnitManagementController::class, 'index'])->name('unit_management.index')->middleware('permission:qma.vehicles.view');
         Route::post('/unit-management/{id}/location', [UnitManagementController::class, 'updateLocation'])->name('unit_management.update_location')->middleware('permission:qma.vehicles.edit');
         Route::get('/unit-management/{id}/history', [UnitManagementController::class, 'history'])->name('unit_management.history')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-management/{id}/riwayat', [UnitManagementController::class, 'historyView'])->name('unit_management.history_view')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-management/{id}/riwayat/export-excel', [UnitManagementController::class, 'exportHistoryExcel'])->name('unit_management.history_export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-management/{id}/riwayat/export-pdf', [UnitManagementController::class, 'exportHistoryPdf'])->name('unit_management.history_export_pdf')->middleware('permission:qma.vehicles.view');
         Route::get('/unit-management/export-excel', [UnitManagementController::class, 'exportExcel'])->name('unit_management.export_excel')->middleware('permission:qma.vehicles.view');
         Route::get('/unit-management/export-pdf', [UnitManagementController::class, 'exportPdf'])->name('unit_management.export_pdf')->middleware('permission:qma.vehicles.view');
 

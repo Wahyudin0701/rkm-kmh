@@ -238,6 +238,7 @@ class QmaUnitTransferTest extends TestCase
         $response->assertSee('001/BAST-TEST/2026');
         $response->assertSee('Adit 1');
         $response->assertSee('Cetak BAST');
+        $response->assertSee('images/logo-kerinci.png');
     }
 
     /**

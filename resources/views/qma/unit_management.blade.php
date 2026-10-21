@@ -427,14 +427,12 @@
                                     @endcan
 
                                     <!-- Tombol Riwayat Posisi -->
-                                    <button type="button" 
-                                            data-unit-id="{{ $u->id }}"
-                                            onclick="openHistoryModal('{{ $u->id }}')"
-                                            class="inline-flex items-center space-x-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2.5 py-1.5 rounded-lg transition font-medium text-[11px] cursor-pointer"
-                                            title="Lihat Riwayat Pergerakan Posisi">
-                                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                                    <a href="{{ route('qma.unit_management.history_view', $u->id) }}" 
+                                       class="inline-flex items-center space-x-1 text-slate-600 hover:text-[#1b5e20] hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg transition font-bold text-[11px]"
+                                       title="Buka Halaman Riwayat Posisi Lengkap">
+                                        <i class="fa-solid fa-clock-rotate-left text-xs text-slate-400"></i>
                                         <span>Riwayat</span>
-                                    </button>
+                                    </a>
                                 </div>
                             </td>
                         </tr>

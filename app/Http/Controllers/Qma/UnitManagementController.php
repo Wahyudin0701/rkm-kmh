@@ -263,6 +263,204 @@ class UnitManagementController extends Controller
     }
 
     /**
+     * Helper query pencarian riwayat lokasi per unit dengan filter.
+     */
+    protected function getVehicleHistoryQuery(Vehicle $vehicle, Request $request): Builder
+    {
+        $query = VehicleLocationHistory::where('vehicle_id', $vehicle->id)
+            ->with(['user', 'activity.gate'])
+            ->latest('recorded_at');
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('recorded_at', '>=', $request->input('date_from'));
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('recorded_at', '<=', $request->input('date_to'));
+        }
+
+        if ($request->filled('site_status') && $request->input('site_status') !== 'all') {
+            $query->where('site_status', $request->input('site_status'));
+        }
+
+        if ($request->filled('source') && $request->input('source') !== 'all') {
+            $query->where('source', $request->input('source'));
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('location', 'like', "%{$search}%")
+                    ->orWhere('note', 'like', "%{$search}%")
+                    ->orWhere('user_name', 'like', "%{$search}%");
+            });
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tampilan view khusus riwayat pergerakan posisi unit (Halaman Lega & Lengkap).
+     */
+    public function historyView(Request $request, int $id): View
+    {
+        $vehicle = Vehicle::trackableUnits()->findOrFail($id);
+        $query = $this->getVehicleHistoryQuery($vehicle, $request);
+
+        $totalHistories = (clone $query)->count();
+        $insideCount = (clone $query)->where('site_status', 'inside_site')->count();
+        $outsideCount = (clone $query)->where('site_status', 'outside_site')->count();
+        $gateCount = (clone $query)->where('source', 'gate_crossing')->count();
+        $transferCount = (clone $query)->where('source', 'transfer')->count();
+        $manualCount = (clone $query)->where('source', 'manual')->count();
+
+        $histories = $query->paginate(20)->withQueryString();
+
+        return view('qma.unit_location_history', compact(
+            'vehicle',
+            'histories',
+            'totalHistories',
+            'insideCount',
+            'outsideCount',
+            'gateCount',
+            'transferCount',
+            'manualCount'
+        ));
+    }
+
+    /**
+     * Ekspor riwayat pergerakan posisi unit ke Excel (.xlsx).
+     */
+    public function exportHistoryExcel(Request $request, int $id): Response
+    {
+        $vehicle = Vehicle::trackableUnits()->findOrFail($id);
+        $histories = $this->getVehicleHistoryQuery($vehicle, $request)->get();
+
+        $metaLines = [
+            'Laporan Riwayat Mutasi Posisi Kendaraan',
+            "Unit: {$vehicle->code} - {$vehicle->brand_type} (" . ($vehicle->license_plate ?: ($vehicle->serial_number ?: '-')) . ")",
+            'Posisi Terkini: ' . ($vehicle->location ?: 'Belum diisi') . ' (' . $vehicle->site_status_label . ')',
+            'Waktu Ekspor: ' . Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB',
+            'Diekspor Oleh: ' . (auth()->user()?->name ?? 'Admin QMA'),
+        ];
+
+        $headers = [
+            'NO' => 6,
+            'WAKTU & TANGGAL' => 20,
+            'STATUS AREA' => 16,
+            'LOKASI TERDATA' => 26,
+            'SUMBER MUTASI' => 22,
+            'PETUGAS / USER' => 22,
+            'KETERANGAN / AUDIT NOTE' => 50,
+        ];
+
+        $rows = [];
+        foreach ($histories as $idx => $h) {
+            $rows[] = [
+                $idx + 1,
+                $h->recorded_at ? $h->recorded_at->format('d/m/Y H:i') : '-',
+                $h->site_status_label,
+                $h->location ?: '-',
+                $h->source_label,
+                $h->user_name ?: ($h->user?->name ?? 'Sistem'),
+                $h->note ?: '-',
+            ];
+        }
+
+        $alignments = [
+            'NO' => 'center',
+            'WAKTU & TANGGAL' => 'center',
+            'STATUS AREA' => 'center',
+            'SUMBER MUTASI' => 'center',
+        ];
+
+        $xlsxContent = SimpleXlsxExporter::create(
+            "Riwayat Posisi {$vehicle->code}",
+            $headers,
+            $rows,
+            $metaLines,
+            $alignments
+        );
+
+        $cleanCode = preg_replace('/[^A-Za-z0-9_-]/', '_', $vehicle->code);
+        $fileName = 'Riwayat_Posisi_' . $cleanCode . '_' . Carbon::now()->format('Ymd_His') . '.xlsx';
+
+        return response($xlsxContent, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="' . $fileName . '"',
+            'Content-Length' => strlen($xlsxContent),
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Ekspor riwayat pergerakan posisi unit ke format PDF resmi.
+     */
+    public function exportHistoryPdf(Request $request, int $id): Response
+    {
+        $vehicle = Vehicle::trackableUnits()->findOrFail($id);
+        $histories = $this->getVehicleHistoryQuery($vehicle, $request)->get();
+
+        $metaLeft = [
+            'Unit' => "{$vehicle->code} ({$vehicle->brand_type})",
+            'Identitas' => $vehicle->license_plate ?: ($vehicle->serial_number ?: '-'),
+            'Kategori' => $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Unit Support',
+            'Posisi Saat Ini' => ($vehicle->location ?: 'Belum diisi') . ' (' . $vehicle->site_status_label . ')',
+        ];
+
+        $metaRight = [
+            'Waktu Cetak' => Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB',
+            'Dicetak Oleh' => auth()->user()?->name ?? 'Admin QMA',
+            'Total Riwayat' => $histories->count() . ' Mutasi',
+        ];
+
+        $columns = [
+            ['title' => 'NO', 'width' => 10, 'align' => 'C', 'bold' => true],
+            ['title' => 'WAKTU', 'width' => 32, 'align' => 'C'],
+            ['title' => 'STATUS', 'width' => 26, 'align' => 'C', 'is_status' => true],
+            ['title' => 'LOKASI', 'width' => 45, 'align' => 'L', 'max_char' => 28],
+            ['title' => 'SUMBER', 'width' => 36, 'align' => 'C'],
+            ['title' => 'PETUGAS', 'width' => 32, 'align' => 'L', 'max_char' => 20],
+            ['title' => 'KETERANGAN', 'width' => 96, 'align' => 'L', 'max_char' => 64],
+        ];
+
+        $rows = [];
+        foreach ($histories as $idx => $h) {
+            $rows[] = [
+                $idx + 1,
+                $h->recorded_at ? $h->recorded_at->format('d/m/Y H:i') : '-',
+                $h->site_status_label,
+                $h->location ?: '-',
+                $h->source_label,
+                $h->user_name ?: ($h->user?->name ?? 'Sistem'),
+                $h->note ?: '-',
+            ];
+        }
+
+        $title = "Riwayat Posisi Unit {$vehicle->code}";
+        $subtitle = "Audit Trail Pergerakan Armada Proyek Kerinci Hydropower (350 MW)";
+
+        $pdfBinary = QmaTablePdfExporter::generate(
+            $title,
+            $subtitle,
+            'SISTEM QMA RKM-KMH',
+            $metaLeft,
+            $metaRight,
+            $columns,
+            $rows
+        );
+
+        $cleanCode = preg_replace('/[^A-Za-z0-9_-]/', '_', $vehicle->code);
+        $fileName = 'Riwayat_Posisi_' . $cleanCode . '_' . Carbon::now()->format('Ymd_His') . '.pdf';
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+        ]);
+    }
+
+    /**
      * Ekspor data monitoring posisi unit ke format Excel (.xlsx).
      */
     public function exportExcel(Request $request): Response
