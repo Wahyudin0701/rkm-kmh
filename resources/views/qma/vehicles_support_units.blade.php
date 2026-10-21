@@ -327,21 +327,18 @@
 </div>
 
 <!-- Modal Tambah Unit Baru (Sesuai Referensi Gambar media_1792028135493_30b2da2e.png) -->
-<div id="addUnitModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-xs" aria-hidden="true" onclick="closeAddUnitModal()"></div>
+<div id="addUnitModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" aria-hidden="true" onclick="closeAddUnitModal()"></div>
 
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative z-10 w-full max-w-lg bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all border border-slate-200 p-6">
+            <!-- Judul Modal -->
+            <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-5" id="modal-title">
+                Tambah Unit Baru
+            </h3>
 
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200">
-            <div class="p-6">
-                <!-- Judul Modal -->
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-5" id="modal-title">
-                    Tambah Unit Baru
-                </h3>
-
-                <form method="POST" action="{{ route('qma.vehicles.support.units.store', $category->id) }}" id="addUnitForm" enctype="multipart/form-data" class="space-y-4">
-                    @csrf
+            <form method="POST" action="{{ route('qma.vehicles.support.units.store', $category->id) }}" id="addUnitForm" enctype="multipart/form-data" class="space-y-4">
+                @csrf
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Foto Unit Fisik (Opsional)</label>
@@ -508,21 +505,18 @@
                         </button>
                     </div>
                 </form>
-            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Edit Data Unit Fisik -->
-<div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-xs" onclick="closeEditModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-slate-200">
-            <div class="p-6">
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-5">
-                    Edit Data Unit Fisik
-                </h3>
+<div id="editModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeEditModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative z-10 w-full max-w-lg bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all border border-slate-200 p-6">
+            <h3 class="text-xl font-extrabold text-slate-900 tracking-tight mb-5">
+                Edit Data Unit Fisik
+            </h3>
                 <form id="editUnitForm" method="POST" action="" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <input type="hidden" name="category" value="unit_support">
@@ -613,113 +607,106 @@
                         <button type="submit" class="px-5 py-2.5 text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] rounded-xl transition shadow-sm cursor-pointer">Simpan Perubahan</button>
                     </div>
                 </form>
-            </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Detail Unit Fisik -->
-<div id="detailModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-xs" onclick="closeDetailModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border border-slate-200">
-            <div class="p-6">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">DETAIL UNIT FISIK</span>
-                        <h3 class="text-xl font-extrabold text-slate-900" id="detail_code">-</h3>
-                    </div>
-                    <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600">
-                        <i class="fa-solid fa-xmark text-lg"></i>
-                    </button>
+<div id="detailModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeDetailModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative z-10 w-full max-w-md bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all border border-slate-200 p-6">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">DETAIL UNIT FISIK</span>
+                    <h3 class="text-xl font-extrabold text-slate-900" id="detail_code">-</h3>
+                </div>
+                <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="py-4 space-y-3 text-xs">
+                <!-- Foto Unit Fisik di Detail Modal -->
+                <div id="detail_photo_container" class="w-full h-44 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden mb-3">
+                    <img id="detail_photo" src="" alt="Foto Unit Fisik" class="w-full h-full object-cover">
                 </div>
 
-                <div class="py-4 space-y-3 text-xs">
-                    <!-- Foto Unit Fisik di Detail Modal -->
-                    <div id="detail_photo_container" class="w-full h-44 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden mb-3">
-                        <img id="detail_photo" src="" alt="Foto Unit Fisik" class="w-full h-full object-cover">
-                    </div>
-
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Kategori Induk:</span>
-                        <span class="font-bold text-slate-800">{{ $category->code }} - {{ $category->unit_category }}</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Merek & Tipe:</span>
-                        <span class="font-semibold text-slate-800">{{ $category->brand_type }}</span>
-                    </div>
-                    @if($category->model_number)
-                        <div class="flex justify-between py-1.5 border-b border-slate-50">
-                            <span class="text-slate-400">Nomor Model:</span>
-                            <span class="font-mono font-medium text-slate-800">{{ $category->model_number }}</span>
-                        </div>
-                    @endif
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">No. Seri / Rangka:</span>
-                        <span id="detail_serial_number" class="font-mono font-medium text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Nomor Polisi / Plat:</span>
-                        <span id="detail_plate" class="font-mono font-medium text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Tahun Produksi:</span>
-                        <span id="detail_year" class="font-medium text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Status Operasi:</span>
-                        <span id="detail_status" class="font-bold">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Odometer:</span>
-                        <span id="detail_km" class="font-mono font-bold text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Lokasi Kerja:</span>
-                        <span id="detail_location" class="font-medium text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Dokumen SILO:</span>
-                        <span id="detail_silo" class="font-medium text-slate-800">-</span>
-                    </div>
-                    <div class="flex justify-between py-1.5 border-b border-slate-50">
-                        <span class="text-slate-400">Dokumen KIR:</span>
-                        <span id="detail_kir" class="font-medium text-slate-800">-</span>
-                    </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Kategori Induk:</span>
+                    <span class="font-bold text-slate-800">{{ $category->code }} - {{ $category->unit_category }}</span>
                 </div>
-
-                <div class="pt-3 border-t border-slate-100 flex justify-end">
-                    <button onclick="closeDetailModal()" class="px-5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Tutup</button>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Merek & Tipe:</span>
+                    <span class="font-semibold text-slate-800">{{ $category->brand_type }}</span>
                 </div>
+                @if($category->model_number)
+                    <div class="flex justify-between py-1.5 border-b border-slate-50">
+                        <span class="text-slate-400">Nomor Model:</span>
+                        <span class="font-mono font-medium text-slate-800">{{ $category->model_number }}</span>
+                    </div>
+                @endif
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">No. Seri / Rangka:</span>
+                    <span id="detail_serial_number" class="font-mono font-medium text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Nomor Polisi / Plat:</span>
+                    <span id="detail_plate" class="font-mono font-medium text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Tahun Produksi:</span>
+                    <span id="detail_year" class="font-medium text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Status Operasi:</span>
+                    <span id="detail_status" class="font-bold">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Odometer:</span>
+                    <span id="detail_km" class="font-mono font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Lokasi Kerja:</span>
+                    <span id="detail_location" class="font-medium text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Dokumen SILO:</span>
+                    <span id="detail_silo" class="font-medium text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                    <span class="text-slate-400">Dokumen KIR:</span>
+                    <span id="detail_kir" class="font-medium text-slate-800">-</span>
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex justify-end">
+                <button onclick="closeDetailModal()" class="px-5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">Tutup</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Modal Hapus Unit Fisik -->
-<div id="deleteModal" class="fixed inset-0 z-50 hidden overflow-y-auto" role="dialog" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-xs" onclick="closeDeleteModal()"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full border border-slate-200">
-            <div class="p-6 text-center">
-                <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
-                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-900 mb-2">Hapus Unit Fisik?</h3>
-                <p class="text-xs text-slate-500 mb-6">
-                    Apakah Anda yakin ingin menghapus unit <span id="deleteUnitCode" class="font-mono font-bold text-slate-800"></span>? Data yang sudah dihapus tidak dapat dipulihkan.
-                </p>
-                <form id="deleteForm" method="POST" action="">
-                    @csrf
-                    @method('DELETE')
-                    <div class="flex items-center justify-center space-x-3">
-                        <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer">Batal</button>
-                        <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm cursor-pointer">Ya, Hapus Unit</button>
-                    </div>
-                </form>
+<div id="deleteModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeDeleteModal()"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative z-10 w-full max-w-sm bg-white rounded-2xl text-center overflow-hidden shadow-2xl transform transition-all border border-slate-200 p-6">
+            <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
             </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Hapus Unit Fisik?</h3>
+            <p class="text-xs text-slate-500 mb-6">
+                Apakah Anda yakin ingin menghapus unit <span id="deleteUnitCode" class="font-mono font-bold text-slate-800"></span>? Data yang sudah dihapus tidak dapat dipulihkan.
+            </p>
+            <form id="deleteForm" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="flex items-center justify-center space-x-3">
+                    <button type="button" onclick="closeDeleteModal()" class="px-5 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition shadow-sm cursor-pointer">Ya, Hapus Unit</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -746,7 +733,9 @@
     }
 
     function openAddUnitModal() {
-        document.getElementById('addUnitModal').classList.remove('hidden');
+        const modal = document.getElementById('addUnitModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
         const addPhotoPreview = document.getElementById('addPhotoPreview');
         const addPhotoPlaceholder = document.getElementById('addPhotoPlaceholder');
         const addPhotoInput = document.getElementById('addPhotoInput');
@@ -762,7 +751,9 @@
     }
 
     function closeAddUnitModal() {
-        document.getElementById('addUnitModal').classList.add('hidden');
+        const modal = document.getElementById('addUnitModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     // Live preview kode lengkap
@@ -821,11 +812,15 @@
             if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
         }
 
-        document.getElementById('editModal').classList.remove('hidden');
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
 
     function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
+        const modal = document.getElementById('editModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     function openDetailModal(unit) {
@@ -849,22 +844,30 @@
             if (detailPhotoContainer) detailPhotoContainer.classList.add('hidden');
         }
 
-        document.getElementById('detailModal').classList.remove('hidden');
+        const modal = document.getElementById('detailModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
 
     function closeDetailModal() {
-        document.getElementById('detailModal').classList.add('hidden');
+        const modal = document.getElementById('detailModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     function openDeleteModal(id, code) {
         const form = document.getElementById('deleteForm');
         form.action = "{{ url('qma/vehicles') }}/" + id;
         document.getElementById('deleteUnitCode').textContent = code;
-        document.getElementById('deleteModal').classList.remove('hidden');
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        modal.style.display = 'block';
     }
 
     function closeDeleteModal() {
-        document.getElementById('deleteModal').classList.add('hidden');
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
     }
 
     // =========================================================================

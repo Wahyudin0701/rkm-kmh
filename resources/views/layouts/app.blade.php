@@ -322,9 +322,9 @@
                             </a>
                         @endcan
 
-                        @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
+                        @can('qma.logs.view')
                             @php
-                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet');
                             @endphp
                             <!-- Dropdown Menu: Log Aktifitas -->
                             <div>
@@ -338,9 +338,8 @@
                                     <i id="activityChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
-                                <!-- Submenu Dropdown: Timesheet LV, History Timesheet Unit Support & P2H Unit Support (Tanpa Icon) -->
+                                <!-- Submenu Dropdown: Timesheet LV & History Timesheet Unit Support (Tanpa Icon) -->
                                 <div id="activitySubmenuDesktop" class="{{ $isActivityRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
-                                    @can('qma.logs.view')
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
@@ -350,17 +349,17 @@
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>History Timesheet Unit Support</span>
                                     </a>
-                                    @endcan
-
-                                    @can('qma.p2h.view')
-                                    <a href="{{ route('qma.p2h.index') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>P2H Unit Support</span>
-                                    </a>
-                                    @endcan
                                 </div>
                             </div>
-                        @endif
+                        @endcan
+
+                        @can('qma.p2h.view')
+                            <a href="{{ route('qma.p2h.index') }}" 
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-check text-base w-5 text-center"></i>
+                                <span>P2H Unit Support</span>
+                            </a>
+                        @endcan
 
                         @can('qma.p2h.templates')
                             <a href="{{ route('qma.p2h.templates') }}" 
@@ -370,13 +369,40 @@
                             </a>
                         @endcan
 
-                        @can('qma.summary.view')
-                            <a href="{{ route('qma.activity.summary') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-chart-pie text-base w-5 text-center"></i>
-                                <span>Summary Aktivitas</span>
-                            </a>
-                        @endcan
+                        @if(auth()->user()->canAny(['qma.summary.view', 'qma.p2h.view']))
+                            @php
+                                $isSummaryRoute = request()->routeIs('qma.activity.summary*') || request()->routeIs('qma.p2h.summary*');
+                            @endphp
+                            <!-- Dropdown Menu: Summary Aktivitas -->
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleSummaryMenu('desktop')" 
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isSummaryRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-chart-pie text-base w-5 text-center {{ $isSummaryRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Summary Aktivitas</span>
+                                    </div>
+                                    <i id="summaryChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isSummaryRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <!-- Submenu Dropdown: Summary Timesheet LV & Summary P2H Unit Support (Tanpa Icon) -->
+                                <div id="summarySubmenuDesktop" class="{{ $isSummaryRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    @can('qma.summary.view')
+                                    <a href="{{ route('qma.activity.summary') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Summary Timesheet LV</span>
+                                    </a>
+                                    @endcan
+
+                                    @if(auth()->user()->canAny(['qma.p2h.view', 'qma.vehicles.view']))
+                                    <a href="{{ route('qma.p2h.summary') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Summary P2H Unit Support</span>
+                                    </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </nav>
                 </div>
                 @endif
@@ -657,9 +683,9 @@
                             </a>
                         @endcan
 
-                        @if(auth()->user()->canAny(['qma.logs.view', 'qma.p2h.view']))
+                        @can('qma.logs.view')
                             @php
-                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet') || request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show');
+                                $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.activity.support_timesheet');
                             @endphp
                             <div>
                                 <button type="button" 
@@ -673,7 +699,6 @@
                                 </button>
 
                                 <div id="activitySubmenuMobile" class="{{ $isActivityRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
-                                    @can('qma.logs.view')
                                     <a href="{{ route('qma.activity.log') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.log') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>Timesheet LV</span>
@@ -683,17 +708,16 @@
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
                                         <span>History Timesheet Unit Support</span>
                                     </a>
-                                    @endcan
-
-                                    @can('qma.p2h.view')
-                                    <a href="{{ route('qma.p2h.index') }}" 
-                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>P2H Unit Support</span>
-                                    </a>
-                                    @endcan
                                 </div>
                             </div>
-                        @endif
+                        @endcan
+
+                        @can('qma.p2h.view')
+                            <a href="{{ route('qma.p2h.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                                <i class="fa-solid fa-clipboard-check w-5 text-center"></i>
+                                <span>P2H Unit Support</span>
+                            </a>
+                        @endcan
 
                         @can('qma.p2h.templates')
                             <a href="{{ route('qma.p2h.templates') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.p2h.templates*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
@@ -702,12 +726,38 @@
                             </a>
                         @endcan
 
-                        @can('qma.summary.view')
-                            <a href="{{ route('qma.activity.summary') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('qma.activity.summary') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                                <span>Summary Aktivitas</span>
-                            </a>
-                        @endcan
+                        @if(auth()->user()->canAny(['qma.summary.view', 'qma.p2h.view']))
+                            @php
+                                $isSummaryRouteMob = request()->routeIs('qma.activity.summary*') || request()->routeIs('qma.p2h.summary*');
+                            @endphp
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleSummaryMenu('mobile')" 
+                                        class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isSummaryRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-chart-pie w-5 text-center {{ $isSummaryRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Summary Aktivitas</span>
+                                    </div>
+                                    <i id="summaryChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isSummaryRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <div id="summarySubmenuMobile" class="{{ $isSummaryRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    @can('qma.summary.view')
+                                    <a href="{{ route('qma.activity.summary') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.activity.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Summary Timesheet LV</span>
+                                    </a>
+                                    @endcan
+
+                                    @if(auth()->user()->canAny(['qma.p2h.view', 'qma.vehicles.view']))
+                                    <a href="{{ route('qma.p2h.summary') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Summary P2H Unit Support</span>
+                                    </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </nav>
                 </div>
                 @endif
@@ -849,7 +899,7 @@
                 @elseif(request()->routeIs('qma.p2h.*'))
                     P2H Unit Support
                 @elseif(request()->routeIs('qma.activity.summary'))
-                    Summary Aktivitas
+                    Summary Timesheet LV
                 @elseif(request()->routeIs('profile.*'))
                     Profil Saya
                 @elseif(request()->routeIs('pg.dashboard'))
@@ -1213,6 +1263,18 @@
         function toggleActivityMenu(target) {
             const submenu = document.getElementById(target === 'desktop' ? 'activitySubmenuDesktop' : 'activitySubmenuMobile');
             const chevron = document.getElementById(target === 'desktop' ? 'activityChevronDesktop' : 'activityChevronMobile');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        // Toggle Dropdown Menu Summary Aktivitas (Desktop & Mobile)
+        function toggleSummaryMenu(target) {
+            const submenu = document.getElementById(target === 'desktop' ? 'summarySubmenuDesktop' : 'summarySubmenuMobile');
+            const chevron = document.getElementById(target === 'desktop' ? 'summaryChevronDesktop' : 'summaryChevronMobile');
             if (submenu) {
                 submenu.classList.toggle('hidden');
             }
