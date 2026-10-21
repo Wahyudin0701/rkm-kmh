@@ -307,11 +307,34 @@
                         @endcan
 
                         @can('qma.vehicles.view')
-                            <a href="{{ route('qma.unit_management.index') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.unit_management.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-map-location-dot text-base w-5 text-center"></i>
-                                <span>Manajemen Unit</span>
-                            </a>
+                            @php
+                                $isUnitMenuRoute = request()->routeIs('qma.unit_management.*') || request()->routeIs('qma.unit_transfers.*');
+                            @endphp
+                            <!-- Dropdown Menu: Manajemen Unit (Posisi Unit & Transfer Unit) Desktop -->
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleUnitManagementMenu('desktop')" 
+                                        class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isUnitMenuRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-map-location-dot text-base w-5 text-center {{ $isUnitMenuRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Manajemen Unit</span>
+                                    </div>
+                                    <i id="unitManagementChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isUnitMenuRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <!-- Submenu Dropdown: Posisi Unit & Transfer Unit Desktop -->
+                                <div id="unitManagementSubmenuDesktop" class="{{ $isUnitMenuRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.unit_management.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.unit_management.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Posisi Unit</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.unit_transfers.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.unit_transfers.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Transfer Unit</span>
+                                    </a>
+                                </div>
+                            </div>
                         @endcan
 
                         @can('qma.logs.view')
@@ -668,11 +691,34 @@
                         @endcan
 
                         @can('qma.vehicles.view')
-                            <a href="{{ route('qma.unit_management.index') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('qma.unit_management.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
-                                <i class="fa-solid fa-map-location-dot text-base w-5 text-center"></i>
-                                <span>Manajemen Unit</span>
-                            </a>
+                            @php
+                                $isUnitMenuRouteMob = request()->routeIs('qma.unit_management.*') || request()->routeIs('qma.unit_transfers.*');
+                            @endphp
+                            <!-- Dropdown Menu: Manajemen Unit (Posisi Unit & Transfer Unit) Mobile -->
+                            <div>
+                                <button type="button" 
+                                        onclick="toggleUnitManagementMenu('mobile')" 
+                                        class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isUnitMenuRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fa-solid fa-map-location-dot w-5 text-center {{ $isUnitMenuRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span>Manajemen Unit</span>
+                                    </div>
+                                    <i id="unitManagementChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isUnitMenuRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                </button>
+
+                                <!-- Submenu Dropdown: Posisi Unit & Transfer Unit Mobile -->
+                                <div id="unitManagementSubmenuMobile" class="{{ $isUnitMenuRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
+                                    <a href="{{ route('qma.unit_management.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.unit_management.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Posisi Unit</span>
+                                    </a>
+
+                                    <a href="{{ route('qma.unit_transfers.index') }}" 
+                                       class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.unit_transfers.*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
+                                        <span>Transfer Unit</span>
+                                    </a>
+                                </div>
+                            </div>
                         @endcan
 
                         @can('qma.logs.view')
@@ -884,8 +930,14 @@
                     Unit Support
                 @elseif(request()->routeIs('qma.vehicles.*'))
                     Data Kendaraan
+                @elseif(request()->routeIs('qma.unit_transfers.create'))
+                    Form Pemindahan Unit Alat Berat
+                @elseif(request()->routeIs('qma.unit_transfers.show'))
+                    Berita Acara Transfer Unit
+                @elseif(request()->routeIs('qma.unit_transfers.*'))
+                    Transfer Unit Alat Berat
                 @elseif(request()->routeIs('qma.unit_management.*'))
-                    Manajemen Unit
+                    Posisi Unit
                 @elseif(request()->routeIs('qma.activity.log'))
                     Timesheet LV
                 @elseif(request()->routeIs('qma.activity.support_timesheet'))
@@ -1251,6 +1303,18 @@
         function toggleVehicleMenu(target) {
             const submenu = document.getElementById(target === 'desktop' ? 'vehicleSubmenuDesktop' : 'vehicleSubmenuMobile');
             const chevron = document.getElementById(target === 'desktop' ? 'vehicleChevronDesktop' : 'vehicleChevronMobile');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+            if (chevron) {
+                chevron.classList.toggle('rotate-180');
+            }
+        }
+
+        // Toggle Dropdown Menu Manajemen Unit (Desktop & Mobile)
+        function toggleUnitManagementMenu(target) {
+            const submenu = document.getElementById(target === 'desktop' ? 'unitManagementSubmenuDesktop' : 'unitManagementSubmenuMobile');
+            const chevron = document.getElementById(target === 'desktop' ? 'unitManagementChevronDesktop' : 'unitManagementChevronMobile');
             if (submenu) {
                 submenu.classList.toggle('hidden');
             }

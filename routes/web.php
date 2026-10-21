@@ -19,6 +19,7 @@ use App\Http\Controllers\Qma\P2hInspectionController;
 use App\Http\Controllers\Qma\P2hTemplateController;
 use App\Http\Controllers\Qma\SupportTimesheetController;
 use App\Http\Controllers\Qma\UnitManagementController;
+use App\Http\Controllers\Qma\UnitTransferController;
 use App\Http\Controllers\Qma\VehicleController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -102,12 +103,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/support-timesheet/export-excel', [SupportTimesheetController::class, 'exportExcel'])->name('support_timesheet.export_excel')->middleware('permission:qma.logs.view');
         Route::get('/support-timesheet/export-pdf', [SupportTimesheetController::class, 'exportPdf'])->name('support_timesheet.export_pdf')->middleware('permission:qma.logs.view');
 
-        // Manajemen Unit (Tracking & Monitoring Posisi LV & Unit Support)
+        // Manajemen Unit: Posisi Unit (Tracking & Monitoring Posisi LV & Unit Support)
         Route::get('/unit-management', [UnitManagementController::class, 'index'])->name('unit_management.index')->middleware('permission:qma.vehicles.view');
         Route::post('/unit-management/{id}/location', [UnitManagementController::class, 'updateLocation'])->name('unit_management.update_location')->middleware('permission:qma.vehicles.edit');
         Route::get('/unit-management/{id}/history', [UnitManagementController::class, 'history'])->name('unit_management.history')->middleware('permission:qma.vehicles.view');
         Route::get('/unit-management/export-excel', [UnitManagementController::class, 'exportExcel'])->name('unit_management.export_excel')->middleware('permission:qma.vehicles.view');
         Route::get('/unit-management/export-pdf', [UnitManagementController::class, 'exportPdf'])->name('unit_management.export_pdf')->middleware('permission:qma.vehicles.view');
+
+        // Manajemen Unit: Transfer Unit Alat Berat (Pemindahan Lokasi, Truk Pengangkut & Berita Acara BAST)
+        Route::get('/unit-transfers', [UnitTransferController::class, 'index'])->name('unit_transfers.index')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-transfers/create', [UnitTransferController::class, 'create'])->name('unit_transfers.create')->middleware('permission:qma.vehicles.edit|qma.vehicles.create');
+        Route::post('/unit-transfers', [UnitTransferController::class, 'store'])->name('unit_transfers.store')->middleware('permission:qma.vehicles.edit|qma.vehicles.create');
+        Route::get('/unit-transfers/export-excel', [UnitTransferController::class, 'exportExcel'])->name('unit_transfers.export_excel')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-transfers/export-pdf', [UnitTransferController::class, 'exportPdf'])->name('unit_transfers.export_pdf')->middleware('permission:qma.vehicles.view');
+        Route::get('/unit-transfers/{id}', [UnitTransferController::class, 'show'])->name('unit_transfers.show')->middleware('permission:qma.vehicles.view');
+        Route::delete('/unit-transfers/{id}', [UnitTransferController::class, 'destroy'])->name('unit_transfers.destroy')->middleware('permission:qma.vehicles.delete');
 
         // Log Pemeriksaan P2H Unit Support & Approval Admin QMA
         Route::get('/p2h-records', [P2hInspectionController::class, 'index'])->name('p2h.index')->middleware('permission:qma.p2h.view|qma.vehicles.view');

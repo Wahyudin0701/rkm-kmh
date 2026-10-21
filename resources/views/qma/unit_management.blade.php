@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Unit - Admin QMA | PT Kerinci Merangin Hidro')
+@section('title', 'Posisi Unit - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -21,7 +21,7 @@
                 </button>
             </div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Manajemen Unit
+                Posisi Unit
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Monitoring posisi terkini, tracking pergerakan, dan audit log riwayat lokasi armada LV & Unit Support.
@@ -31,7 +31,7 @@
         <!-- Tombol Aksi Kanan -->
         <div class="flex items-center space-x-2.5 w-full sm:w-auto">
             <!-- Dropdown Menu Ekspor -->
-            <div class="relative inline-block w-full sm:w-auto" id="exportDropdownContainer">
+            <div class="relative inline-block" id="exportDropdownContainer">
                 <button type="button" 
                         onclick="toggleExportMenu(event)" 
                         id="btnExportTrigger"
@@ -52,6 +52,16 @@
                     </a>
                 </div>
             </div>
+
+            <!-- Tombol Pintas Transfer Alat Berat -->
+            @canany(['qma.vehicles.create', 'qma.vehicles.edit'])
+            <a href="{{ route('qma.unit_transfers.create') }}" 
+               class="flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap">
+                <i class="fa-solid fa-truck-moving text-sm"></i>
+                <span class="hidden sm:inline">Transfer Alat Berat</span>
+                <span class="sm:hidden">Transfer</span>
+            </a>
+            @endcanany
         </div>
     </div>
 
@@ -1051,7 +1061,7 @@
 
                                 <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
                                     <div class="flex items-center space-x-1.5">
-                                        <i class="fa-solid ${isGate ? 'fa-shield-halved text-emerald-600' : 'fa-user-pen text-blue-600'} text-[10px]"></i>
+                                        <i class="fa-solid ${isGate ? 'fa-shield-halved text-emerald-600' : (item.source === 'transfer' ? 'fa-truck-moving text-amber-600' : 'fa-user-pen text-blue-600')} text-[10px]"></i>
                                         <span>Sumber: <strong>${item.source_label}</strong></span>
                                         ${item.trx_no ? `<span class="font-mono text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-bold">${item.trx_no}</span>` : ''}
                                     </div>

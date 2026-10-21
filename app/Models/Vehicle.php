@@ -237,6 +237,16 @@ class Vehicle extends Model
         return $this->hasOne(UnitSupportTimesheet::class)->latestOfMany('date');
     }
 
+    public function transfers(): HasMany
+    {
+        return $this->hasMany(UnitTransfer::class, 'vehicle_id');
+    }
+
+    public function transporterTrips(): HasMany
+    {
+        return $this->hasMany(UnitTransfer::class, 'transporter_vehicle_id');
+    }
+
     /**
      * Tentukan arah gerbang berikutnya yang sah:
      * - 'ANY' jika belum pernah ada riwayat (kendaraan baru)

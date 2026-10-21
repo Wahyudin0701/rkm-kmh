@@ -58,6 +58,12 @@ class VehicleLocationHistory extends Model
 
     public function getSourceLabelAttribute(): string
     {
-        return $this->source === 'gate_crossing' ? 'Pos Gerbang (Otomatis)' : 'Manual QMA';
+        if ($this->source === 'gate_crossing') {
+            return 'Pos Gerbang (Otomatis)';
+        }
+        if ($this->source === 'transfer') {
+            return 'Transfer Unit (BAST)';
+        }
+        return 'Manual QMA';
     }
 }
