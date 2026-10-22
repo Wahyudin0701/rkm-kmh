@@ -45,7 +45,7 @@ class AuthenticationTest extends TestCase
 
         $user = auth()->user();
         $this->assertEquals('1185', $user->username);
-        $this->assertEquals('Mima', $user->name);
+        $this->assertEquals(config('auth.hse_admin.name', 'Mima'), $user->name);
         $this->assertEquals('hse_admin', $user->role);
     }
 
@@ -64,7 +64,7 @@ class AuthenticationTest extends TestCase
 
         $user = auth()->user();
         $this->assertEquals('1171', $user->username);
-        $this->assertEquals('Pinto Yuliandra', $user->name);
+        $this->assertEquals(config('auth.qma_admin.name', 'Pinto Yuliandra'), $user->name);
         $this->assertEquals('qma_admin', $user->role);
     }
 

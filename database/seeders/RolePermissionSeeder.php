@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -78,25 +77,7 @@ class RolePermissionSeeder extends Seeder
             $role->syncPermissions($perms);
         }
 
-        // 4. Buat Akun Default Super Admin (Murni dibaca dari config/auth.php & .env)
-        $superAdminConfig = config('auth.superadmin');
-        if ($superAdminConfig && !empty($superAdminConfig['username']) && !empty($superAdminConfig['password'])) {
-            $superAdmin = User::firstOrCreate(
-                ['username' => $superAdminConfig['username']],
-                [
-                    'name' => $superAdminConfig['name'] ?? 'Super Administrator',
-                    'email' => $superAdminConfig['email'] ?? 'superadmin@kmh.co.id',
-                    'password' => Hash::make($superAdminConfig['password']),
-                    'role' => 'super_admin',
-                ]
-            );
-
-            if (!$superAdmin->hasRole('super_admin')) {
-                $superAdmin->assignRole('super_admin');
-            }
-        }
-
-        // 5. Sinkronisasi Akun Existing ke Spatie Roles
+        // 4. Sinkronisasi Akun Existing ke Spatie Roles (jika sebelumnya sudah ada akun di DB)
         $existingUsers = User::all();
         foreach ($existingUsers as $user) {
             if ($user->role && in_array($user->role, array_keys($rolesWithPermissions))) {

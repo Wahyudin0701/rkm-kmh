@@ -22,6 +22,20 @@ abstract class TestCase extends BaseTestCase
         if (Schema::hasTable('permissions') && \Spatie\Permission\Models\Permission::count() === 0) {
             $this->seed(RolePermissionSeeder::class);
         }
+
+        if (Schema::hasTable('users') && User::where('username', 'superadmin')->count() === 0) {
+            $superAdmin = User::firstOrCreate([
+                'username' => config('auth.superadmin.username', 'superadmin'),
+            ], [
+                'name' => config('auth.superadmin.name', 'Super Administrator'),
+                'email' => config('auth.superadmin.email', 'superadmin@kmh.co.id'),
+                'password' => Hash::make(config('auth.superadmin.password', 'password')),
+                'role' => 'super_admin',
+            ]);
+            if (!$superAdmin->hasRole('super_admin')) {
+                $superAdmin->assignRole('super_admin');
+            }
+        }
     }
 
     /**
