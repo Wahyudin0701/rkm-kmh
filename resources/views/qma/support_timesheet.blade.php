@@ -448,20 +448,18 @@
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeAddModal()"></div>
 
     <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#1b5e20] flex items-center justify-center text-sm">
-                        <i class="fa-solid fa-plus"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-extrabold text-slate-900">Catat Timesheet Unit Support</h3>
-                        <p class="text-[11px] text-slate-500">Input laporan kerja alat berat & penugasan operator harian.</p>
-                    </div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-[#1b5e20]"></span>
+                        Catat Timesheet Unit Support
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Input laporan kerja alat berat & penugasan operator harian.</p>
                 </div>
-                <button type="button" onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-lg hover:bg-slate-100 transition">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="closeAddModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -469,34 +467,31 @@
             <form id="addTimesheetForm" method="POST" action="{{ route('qma.support_timesheet.store') }}" class="p-6 space-y-4">
                 @csrf
 
-                <!-- Baris 1: Lokasi Kerja (Tentukan Terlebih Dahulu) & Unit Support yang Ready di Lokasi -->
+                <!-- Baris 1: Lokasi Kerja & Unit Support -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-emerald-700 font-semibold">Tentukan Lokasi Dulu</span>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Lokasi Kerja <span class="text-rose-500">*</span>
+                            <span class="sr-only">Tentukan Lokasi Dulu</span>
                         </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1b5e20] text-xs"></i>
-                            <select id="addLocationSelect" 
-                                    required 
-                                    onchange="onTimesheetLocationChanged(this.value, 'add')"
-                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                                <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
-                                <option value="ALL">[Tampilkan Semua Lokasi / Semua Unit]</option>
-                                @foreach($unitLocations as $locName => $count)
-                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
-                                @endforeach
-                                @if(isset($otherLocations) && count($otherLocations))
-                                    <optgroup label="Lokasi Lainnya di Site">
-                                        @foreach($otherLocations as $otherLoc)
-                                            <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
-                                        @endforeach
-                                    </optgroup>
-                                @endif
-                                <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
-                            </select>
-                        </div>
+                        <select id="addLocationSelect" 
+                                required 
+                                onchange="onTimesheetLocationChanged(this.value, 'add')"
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
+                            <option value="ALL">[Semua Lokasi / Semua Unit]</option>
+                            @foreach($unitLocations as $locName => $count)
+                                <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                            @endforeach
+                            @if(isset($otherLocations) && count($otherLocations))
+                                <optgroup label="Lokasi Lainnya di Site">
+                                    @foreach($otherLocations as $otherLoc)
+                                        <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
+                        </select>
                         <div id="addCustomLocationWrapper" class="hidden mt-2">
                             <input type="text" 
                                    id="addCustomLocationInput" 
@@ -506,25 +501,21 @@
                                    class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
                         </div>
                         <input type="hidden" name="location" id="addFinalLocation" required>
-                        <p class="text-[10px] text-slate-400 mt-1">Pilih lokasi agar sistem memfilter unit yang ready di area tersebut.</p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
                             <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
                             <span id="addUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <select name="vehicle_id" 
-                                    id="addVehicleSelect" 
-                                    required 
-                                    onchange="onVehicleSelectChanged(this, 'add')"
-                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
-                            </select>
-                        </div>
-                        <div id="addVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
+                        <select name="vehicle_id" 
+                                id="addVehicleSelect" 
+                                required 
+                                onchange="onVehicleSelectChanged(this, 'add')"
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                        </select>
+                        <div id="addVehiclePreview" class="hidden mt-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="addVehiclePreviewText" class="font-bold"></span>
                             <span id="addVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
                         </div>
@@ -534,13 +525,13 @@
                 <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Pengemudi / Operator <span class="text-rose-500">*</span>
                         </label>
                         <select name="operator_id" 
                                 id="addOperatorSelect" 
                                 required 
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                             <option value="">-- Pilih Operator --</option>
                             @foreach($operators as $op)
                                 <option value="{{ $op->id }}">
@@ -551,7 +542,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Kategori Pekerjaan <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" 
@@ -559,15 +550,15 @@
                                id="addActivityType" 
                                list="activityPresetList" 
                                required 
-                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
+                               placeholder="Contoh: Galian, Loading, Hauling..." 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
                 </div>
 
-                <!-- Baris 3: Tanggal, Jam Mulai, Shift (Shift Siang), Satuan Meteran -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <!-- Baris 3: Tanggal & Jam Mulai -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Tanggal <span class="text-rose-500">*</span>
                         </label>
                         <input type="date" 
@@ -575,11 +566,11 @@
                                id="addDate"
                                value="{{ date('Y-m-d') }}" 
                                required 
-                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Jam Mulai <span class="text-rose-500">*</span>
                         </label>
                         <input type="time" 
@@ -587,79 +578,82 @@
                                id="addStartTime" 
                                value="08:00" 
                                required 
-                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
+                </div>
 
+                <!-- Baris 4: Meter Awal & Satuan Meteran -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Shift Kerja
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Meter Awal (Start Meter) <span class="text-rose-500">*</span>
                         </label>
-                        <input type="hidden" name="shift" value="Shift Siang">
-                        <div class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
-                            <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
-                            <span class="truncate">Shift Siang</span>
+                        <div class="relative">
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="start_meter" 
+                                   id="addStartMeter" 
+                                   required 
+                                   placeholder="0.00"
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <span id="addMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
-                        <select name="meter_type" id="addMeterType" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <select name="meter_type" id="addMeterType" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                             <option value="HM">HM (Hour Meter)</option>
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Baris 4: Odometer / Meter Awal Saja -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90">
-                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
-                        <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" 
-                               step="0.01" 
-                               name="start_meter" 
-                               id="addStartMeter" 
-                               required 
-                               placeholder="0.00"
-                               class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
-                        <span id="addMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
+                <!-- Baris 5: Shift Kerja & Status Unit -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Shift Kerja
+                        </label>
+                        <select name="shift" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            @foreach($shifts as $s)
+                                <option value="{{ $s }}" {{ $s === 'Shift Siang' ? 'selected' : '' }}>{{ $s }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </div>
 
-                <!-- Baris 5: Status Akhir Unit -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                        Status Akhir Unit <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="status" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                        <option value="Operation">Operation (Siap Jalan)</option>
-                        <option value="Standby">Standby (Tersedia / Siaga)</option>
-                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                    </select>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Status Akhir Unit <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="status" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="Operation">Operation (Siap Jalan)</option>
+                            <option value="Standby">Standby (Tersedia / Siaga)</option>
+                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Baris 6: Rincian Tugas & Catatan -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
                     </label>
                     <textarea name="task_description" 
                               rows="2" 
-                              placeholder="Keterangan rincian galian, muatan ritase, kendala lapangan, atau catatan foreman..." 
-                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                              placeholder="Keterangan rincian tugas atau catatan foreman..." 
+                              class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition resize-none"></textarea>
                 </div>
 
                 <!-- Tombol Submit Modal -->
-                <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeAddModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer">
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeAddModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="bg-[#1b5e20] hover:bg-[#144919] text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer">
+                    <button type="submit" class="bg-[#1b5e20] hover:bg-[#144919] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-floppy-disk text-xs"></i>
                         <span>Simpan Timesheet</span>
                     </button>
@@ -679,18 +673,16 @@
     <div class="flex min-h-full items-center justify-center p-4">
         <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-slate-200 text-slate-700 flex items-center justify-center text-sm">
-                        <i class="fa-regular fa-file-lines"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-extrabold text-slate-900">Detail Riwayat Timesheet</h3>
-                        <p id="detailTimesheetNo" class="font-mono text-xs text-emerald-700 font-bold"></p>
-                    </div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        Detail Riwayat Timesheet
+                    </h3>
+                    <p id="detailTimesheetNo" class="font-mono text-xs text-emerald-700 font-bold mt-0.5"></p>
                 </div>
-                <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-lg hover:bg-slate-100 transition">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="closeDetailModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -764,20 +756,18 @@
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeEditModal()"></div>
 
     <div class="flex min-h-full items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/70">
-                <div class="flex items-center space-x-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center text-sm">
-                        <i class="fa-regular fa-pen-to-square"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-extrabold text-slate-900">Edit Timesheet Unit Support</h3>
-                        <p id="editTimesheetSubtitle" class="text-[11px] text-slate-500">Koreksi data jam kerja atau aktivitas operasional.</p>
-                    </div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        Edit Timesheet Unit Support
+                    </h3>
+                    <p id="editTimesheetSubtitle" class="text-xs text-slate-500 font-mono mt-0.5">Koreksi data jam kerja atau aktivitas operasional.</p>
                 </div>
-                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-sm p-1 rounded-lg hover:bg-slate-100 transition">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="closeEditModal()" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
                 </button>
             </div>
 
@@ -786,34 +776,31 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Baris 1: Lokasi Kerja (Tentukan Terlebih Dahulu) & Unit Support yang Ready di Lokasi -->
+                <!-- Baris 1: Lokasi Kerja & Unit Support -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-emerald-700 font-semibold">Tentukan Lokasi Dulu</span>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Lokasi Kerja <span class="text-rose-500">*</span>
+                            <span class="sr-only">Tentukan Lokasi Dulu</span>
                         </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1b5e20] text-xs"></i>
-                            <select id="editLocationSelect" 
-                                    required 
-                                    onchange="onTimesheetLocationChanged(this.value, 'edit')"
-                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                                <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
-                                <option value="ALL">[Tampilkan Semua Lokasi / Semua Unit]</option>
-                                @foreach($unitLocations as $locName => $count)
-                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
-                                @endforeach
-                                @if(isset($otherLocations) && count($otherLocations))
-                                    <optgroup label="Lokasi Lainnya di Site">
-                                        @foreach($otherLocations as $otherLoc)
-                                            <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
-                                        @endforeach
-                                    </optgroup>
-                                @endif
-                                <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
-                            </select>
-                        </div>
+                        <select id="editLocationSelect" 
+                                required 
+                                onchange="onTimesheetLocationChanged(this.value, 'edit')"
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
+                            <option value="ALL">[Semua Lokasi / Semua Unit]</option>
+                            @foreach($unitLocations as $locName => $count)
+                                <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                            @endforeach
+                            @if(isset($otherLocations) && count($otherLocations))
+                                <optgroup label="Lokasi Lainnya di Site">
+                                    @foreach($otherLocations as $otherLoc)
+                                        <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                            <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
+                        </select>
                         <div id="editCustomLocationWrapper" class="hidden mt-2">
                             <input type="text" 
                                    id="editCustomLocationInput" 
@@ -823,25 +810,21 @@
                                    class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
                         </div>
                         <input type="hidden" name="location" id="editFinalLocation" required>
-                        <p class="text-[10px] text-slate-400 mt-1">Pilih lokasi agar sistem memfilter unit yang ready di area tersebut.</p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
                             <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
                             <span id="editUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-truck-monster absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                            <select name="vehicle_id" 
-                                    id="editVehicleSelect" 
-                                    required 
-                                    onchange="onVehicleSelectChanged(this, 'edit')"
-                                    class="w-full text-xs pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
-                            </select>
-                        </div>
-                        <div id="editVehiclePreview" class="hidden mt-1.5 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-[11px] text-emerald-900 flex items-center justify-between">
+                        <select name="vehicle_id" 
+                                id="editVehicleSelect" 
+                                required 
+                                onchange="onVehicleSelectChanged(this, 'edit')"
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                        </select>
+                        <div id="editVehiclePreview" class="hidden mt-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="editVehiclePreviewText" class="font-bold"></span>
                             <span id="editVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
                         </div>
@@ -851,13 +834,13 @@
                 <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Pengemudi / Operator <span class="text-rose-500">*</span>
                         </label>
                         <select name="operator_id" 
                                 id="editOperatorSelect" 
                                 required 
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                             @foreach($operators as $op)
                                 <option value="{{ $op->id }}">
                                     {{ $op->name }} ({{ $op->nik }})
@@ -867,7 +850,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Kategori Pekerjaan <span class="text-rose-500">*</span>
                         </label>
                         <input type="text" 
@@ -875,106 +858,109 @@
                                id="editActivityType" 
                                list="activityPresetList" 
                                required 
-                               placeholder="Ketik kategori pekerjaan (misal: Galian, Loading, Timbunan...)" 
-                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition">
+                               placeholder="Contoh: Galian, Loading, Hauling..." 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
                 </div>
 
-                <!-- Baris 3: Tanggal, Jam Mulai, Shift (Shift Siang), Satuan Meteran -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <!-- Baris 3: Tanggal & Jam Mulai -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Tanggal <span class="text-rose-500">*</span>
                         </label>
                         <input type="date" 
                                name="date" 
                                id="editDate"
                                required 
-                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Jam Mulai <span class="text-rose-500">*</span>
                         </label>
                         <input type="time" 
                                name="start_time" 
                                id="editStartTime" 
                                required 
-                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
+                </div>
 
+                <!-- Baris 4: Meter Awal & Satuan Meteran -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                            Shift Kerja
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Meter Awal (Start Meter) <span class="text-rose-500">*</span>
                         </label>
-                        <input type="hidden" name="shift" id="editShift" value="Shift Siang">
-                        <div class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
-                            <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
-                            <span class="truncate">Shift Siang</span>
+                        <div class="relative">
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="start_meter" 
+                                   id="editStartMeter" 
+                                   required 
+                                   placeholder="0.00"
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <span id="editMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
-                        <select name="meter_type" id="editMeterType" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <select name="meter_type" id="editMeterType" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                             <option value="HM">HM (Hour Meter)</option>
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Baris 4: Odometer / Meter Awal Saja -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90">
-                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
-                        <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
-                    </label>
-                    <div class="relative">
-                        <input type="number" 
-                               step="0.01" 
-                               name="start_meter" 
-                               id="editStartMeter" 
-                               required 
-                               placeholder="0.00"
-                               class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
-                        <span id="editMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
+                <!-- Baris 5: Shift Kerja & Status Unit -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Shift Kerja
+                        </label>
+                        <select name="shift" id="editShift" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            @foreach($shifts as $s)
+                                <option value="{{ $s }}">{{ $s }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </div>
 
-                <!-- Baris 5: Status Akhir Unit -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                        Status Akhir Unit <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                        <option value="Operation">Operation (Siap Jalan)</option>
-                        <option value="Standby">Standby (Tersedia / Siaga)</option>
-                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                    </select>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Status Akhir Unit <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="Operation">Operation (Siap Jalan)</option>
+                            <option value="Standby">Standby (Tersedia / Siaga)</option>
+                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Baris 6: Deskripsi & Catatan -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
                         Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
                     </label>
                     <textarea name="task_description" 
                               id="editTaskDescription"
                               rows="2" 
-                              placeholder="Keterangan rincian galian, muatan ritase, kendala lapangan, atau catatan foreman..." 
-                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                              placeholder="Keterangan rincian tugas atau catatan foreman..." 
+                              class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition resize-none"></textarea>
                 </div>
 
                 <!-- Tombol Submit Edit -->
-                <div class="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer">
+                <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer">
                         Batal
                     </button>
-                    <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-xs flex items-center space-x-1.5 cursor-pointer">
+                    <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-floppy-disk text-xs"></i>
                         <span>Simpan Perubahan</span>
                     </button>
