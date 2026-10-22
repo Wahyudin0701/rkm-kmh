@@ -27,7 +27,7 @@ return new class extends Migration
                 [
                     'name' => $emp->name,
                     'email' => $cleanNik . '@kmh.co.id',
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make(config('auth.default_employee_password', '123456')),
                     'role' => 'employee',
                 ]
             );
