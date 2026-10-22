@@ -265,6 +265,9 @@
                                 <span class="inline-flex items-center text-[10px] font-medium text-slate-500 mt-0.5">
                                     <i class="fa-regular fa-clock mr-1 text-[9px] text-slate-400"></i>
                                     {{ $ts->shift }}
+                                    @if($ts->start_time)
+                                        <span class="ml-1 text-slate-700 font-bold">• {{ \Carbon\Carbon::parse($ts->start_time)->format('H:i') }}</span>
+                                    @endif
                                 </span>
                             </td>
 
@@ -342,6 +345,7 @@
                                             data-timesheet="{{ json_encode([
                                                 'timesheet_no' => $ts->timesheet_no,
                                                 'date' => $ts->date ? $ts->date->format('d/m/Y') : '-',
+                                                'start_time' => $ts->start_time ? \Carbon\Carbon::parse($ts->start_time)->format('H:i') : null,
                                                 'shift' => $ts->shift,
                                                 'code' => $ts->vehicle?->code ?: '-',
                                                 'brand_type' => $ts->vehicle?->brand_type ?: '-',
@@ -560,14 +564,15 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Tanggal, Shift (Shift Siang), Satuan Meteran -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Baris 3: Tanggal, Jam Mulai, Shift (Shift Siang), Satuan Meteran -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Tanggal <span class="text-rose-500">*</span>
                         </label>
                         <input type="date" 
                                name="date" 
+                               id="addDate"
                                value="{{ date('Y-m-d') }}" 
                                required 
                                class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
@@ -575,12 +580,24 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                            Jam Mulai <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="time" 
+                               name="start_time" 
+                               id="addStartTime" 
+                               value="08:00" 
+                               required 
+                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Shift Kerja
                         </label>
                         <input type="hidden" name="shift" value="Shift Siang">
-                        <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
+                        <div class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
                             <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
-                            <span>Shift Siang</span>
+                            <span class="truncate">Shift Siang</span>
                         </div>
                     </div>
 
@@ -588,56 +605,28 @@
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
-                        <select name="meter_type" id="addMeterType" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <select name="meter_type" id="addMeterType" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
                             <option value="HM">HM (Hour Meter)</option>
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Baris 4: Odometer Awal Saja -->
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
-                            <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
-                        </label>
-                        <div class="relative">
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="start_meter" 
-                                   id="addStartMeter" 
-                                   required 
-                                   placeholder="0.00"
-                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
-                            <span id="addMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
-                        </div>
-                    </div>
-
-                    <!-- Input Opsional Jam Standby & Breakdown -->
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/60">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Standby <span class="text-slate-400 font-normal">(Jam Tunggu/Hujan)</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.1" 
-                                   name="standby_hours" 
-                                   value="0" 
-                                   placeholder="0.0"
-                                   class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Breakdown <span class="text-slate-400 font-normal">(Jam Kerusakan Alat)</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.1" 
-                                   name="breakdown_hours" 
-                                   value="0" 
-                                   placeholder="0.0"
-                                   class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
-                        </div>
+                <!-- Baris 4: Odometer / Meter Awal Saja -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90">
+                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                        <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" 
+                               step="0.01" 
+                               name="start_meter" 
+                               id="addStartMeter" 
+                               required 
+                               placeholder="0.00"
+                               class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                        <span id="addMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                     </div>
                 </div>
 
@@ -731,23 +720,12 @@
 
                 <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Meter Awal - Akhir</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Meter Awal (Start Meter)</span>
                         <span id="detailMeter" class="font-mono font-bold text-slate-800"></span>
                     </div>
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Total Jam Operasi</span>
-                        <span id="detailHours" class="font-bold text-emerald-700 text-sm"></span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Standby / Breakdown</span>
-                        <span id="detailStandbyBreakdown" class="text-slate-700 font-medium"></span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Pengisian Solar</span>
-                        <span id="detailFuel" class="font-mono font-bold text-blue-700"></span>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Jam Mulai Kerja</span>
+                        <span id="detailStartTime" class="font-mono font-bold text-emerald-700 text-sm"></span>
                     </div>
                 </div>
 
@@ -902,8 +880,8 @@
                     </div>
                 </div>
 
-                <!-- Baris 3: Tanggal, Shift (Shift Siang), Satuan Meteran -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Baris 3: Tanggal, Jam Mulai, Shift (Shift Siang), Satuan Meteran -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Tanggal <span class="text-rose-500">*</span>
@@ -917,12 +895,23 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                            Jam Mulai <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="time" 
+                               name="start_time" 
+                               id="editStartTime" 
+                               required 
+                               class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Shift Kerja
                         </label>
                         <input type="hidden" name="shift" id="editShift" value="Shift Siang">
-                        <div class="flex items-center space-x-2 px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
+                        <div class="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 text-xs font-bold">
                             <i class="fa-solid fa-sun text-amber-500 text-xs"></i>
-                            <span>Shift Siang</span>
+                            <span class="truncate">Shift Siang</span>
                         </div>
                     </div>
 
@@ -930,58 +919,28 @@
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
-                        <select name="meter_type" id="editMeterType" required class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                        <select name="meter_type" id="editMeterType" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
                             <option value="HM">HM (Hour Meter)</option>
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Baris 4: Odometer Awal Saja -->
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/90 space-y-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
-                            <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
-                            <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
-                        </label>
-                        <div class="relative">
-                            <input type="number" 
-                                   step="0.01" 
-                                   name="start_meter" 
-                                   id="editStartMeter" 
-                                   required 
-                                   placeholder="0.00"
-                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
-                            <span id="editMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
-                        </div>
-                    </div>
-
-                    <!-- Jam Standby & Breakdown -->
-                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/60">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Standby <span class="text-slate-400 font-normal">(Jam Tunggu/Hujan)</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.1" 
-                                   name="standby_hours" 
-                                   id="editStandbyHours"
-                                   value="0" 
-                                   placeholder="0.0"
-                                   class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">
-                                Jam Breakdown <span class="text-slate-400 font-normal">(Jam Kerusakan Alat)</span>
-                            </label>
-                            <input type="number" 
-                                   step="0.1" 
-                                   name="breakdown_hours" 
-                                   id="editBreakdownHours"
-                                   value="0" 
-                                   placeholder="0.0"
-                                   class="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 font-mono">
-                        </div>
+                <!-- Baris 4: Odometer / Meter Awal Saja -->
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90">
+                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                        <span>Odometer / Meter Awal <span class="text-rose-500">*</span></span>
+                        <span class="text-[10px] text-slate-400 font-normal">Angka meter saat mulai shift</span>
+                    </label>
+                    <div class="relative">
+                        <input type="number" 
+                               step="0.01" 
+                               name="start_meter" 
+                               id="editStartMeter" 
+                               required 
+                               placeholder="0.00"
+                               class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20]">
+                        <span id="editMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
                     </div>
                 </div>
 
@@ -1000,15 +959,6 @@
 
                 <!-- Baris 6: Deskripsi & Catatan -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                        Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
-                    </label>
-                    <textarea name="task_description" 
-                              id="editTaskDescription"
-                              rows="2" 
-                              placeholder="Keterangan rincian galian, muatan ritase, kendala lapangan, atau catatan foreman..." 
-                              class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
-                </div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">
                         Rincian Tugas / Catatan Pekerjaan <span class="text-slate-400 font-normal">(Opsional)</span>
                     </label>
@@ -1135,6 +1085,9 @@
             const startMeter = document.getElementById('addStartMeter');
             if (startMeter) startMeter.value = '';
 
+            const startTime = document.getElementById('addStartTime');
+            if (startTime) startTime.value = '08:00';
+
             modal.classList.remove('hidden');
             modal.style.display = 'block';
         }
@@ -1156,9 +1109,10 @@
             document.getElementById('detailUnit').textContent = `${ts.code} - ${ts.brand_type}`;
             document.getElementById('detailOperator').textContent = `${ts.operator_name} (NIK: ${ts.operator_nik})`;
             document.getElementById('detailMeter').textContent = `${ts.start_meter} ${ts.meter_type}`;
-            document.getElementById('detailHours').textContent = ts.operating_hours && ts.operating_hours !== '0,0' ? `${ts.operating_hours} ${ts.meter_type}` : '-';
-            document.getElementById('detailStandbyBreakdown').textContent = `Standby: ${ts.standby_hours}h | Breakdown: ${ts.breakdown_hours}h`;
-            document.getElementById('detailFuel').textContent = ts.fuel_liters && ts.fuel_liters !== '-' ? `${ts.fuel_liters} L` : '-';
+            const detailStartTimeEl = document.getElementById('detailStartTime');
+            if (detailStartTimeEl) {
+                detailStartTimeEl.textContent = ts.start_time ? (ts.start_time.substring(0, 5) + ' WIB') : '08:00 WIB';
+            }
             document.getElementById('detailLocation').textContent = ts.location;
             document.getElementById('detailActivity').textContent = ts.activity_type;
             document.getElementById('detailTask').textContent = ts.task_description !== '-' ? `"${ts.task_description}"` : '-';
@@ -1236,12 +1190,14 @@
         // Format tanggal YYYY-MM-DD
         const d = ts.date ? ts.date.split('T')[0] : '';
         document.getElementById('editDate').value = d;
+        const startTimeInput = document.getElementById('editStartTime');
+        if (startTimeInput) {
+            startTimeInput.value = ts.start_time ? ts.start_time.substring(0, 5) : '08:00';
+        }
         document.getElementById('editShift').value = ts.shift || 'Shift Siang';
         document.getElementById('editMeterType').value = ts.meter_type || 'HM';
 
         document.getElementById('editStartMeter').value = ts.start_meter;
-        document.getElementById('editStandbyHours').value = ts.standby_hours || 0;
-        document.getElementById('editBreakdownHours').value = ts.breakdown_hours || 0;
 
         document.getElementById('editActivityType').value = ts.activity_type;
         document.getElementById('editStatus').value = ts.status || 'Operation';

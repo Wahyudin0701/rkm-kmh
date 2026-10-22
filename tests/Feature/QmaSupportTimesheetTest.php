@@ -120,6 +120,7 @@ class QmaSupportTimesheetTest extends TestCase
             'vehicle_code' => 'EX01', // Diketik langsung
             'operator_id' => $this->operator->id,
             'date' => Carbon::today()->toDateString(),
+            'start_time' => '08:15',
             'shift' => 'Shift Siang',
             'meter_type' => 'HM',
             'start_meter' => 1265.50, // Odometer awal saja
@@ -146,6 +147,10 @@ class QmaSupportTimesheetTest extends TestCase
             'activity_type' => 'Perapihan Dinding Batuan',
             'status' => 'Operation',
         ]);
+
+        $saved = UnitSupportTimesheet::where('vehicle_id', $this->supportUnit->id)->first();
+        $this->assertNotNull($saved);
+        $this->assertStringStartsWith('08:15', (string) $saved->start_time);
 
         // Verifikasi odometer kendaraan terupdate ke start_meter terbaru
         $this->supportUnit->refresh();
@@ -275,6 +280,7 @@ class QmaSupportTimesheetTest extends TestCase
             'vehicle_id' => $this->supportUnit->id,
             'operator_id' => $this->operator->id,
             'date' => Carbon::today()->toDateString(),
+            'start_time' => '07:45',
             'shift' => 'Shift 2 (Malam)',
             'meter_type' => 'HM',
             'start_meter' => 1250.00,
@@ -293,6 +299,7 @@ class QmaSupportTimesheetTest extends TestCase
         $timesheet->refresh();
         $this->assertEquals(9.50, (float) $timesheet->operating_hours);
         $this->assertEquals('Shift 2 (Malam)', $timesheet->shift);
+        $this->assertStringStartsWith('07:45', (string) $timesheet->start_time);
         $this->assertEquals('Vertical Shaft', $timesheet->location);
         $this->assertEquals('Standby', $timesheet->status);
     }

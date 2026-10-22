@@ -197,6 +197,16 @@ class SupportTimesheetController extends Controller
             $request->merge(['shift' => 'Shift Siang']);
         }
 
+        // 4. Tangani normalisasi format jam mulai (start_time)
+        if ($request->filled('start_time')) {
+            $st = trim((string) $request->input('start_time'));
+            if (strlen($st) >= 5) {
+                $request->merge(['start_time' => substr($st, 0, 5)]);
+            }
+        } else {
+            $request->merge(['start_time' => '08:00']);
+        }
+
         $validated = $request->validate([
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'operator_id' => ['required', 'exists:employees,id'],
@@ -256,7 +266,7 @@ class SupportTimesheetController extends Controller
                 'date' => $validated['date'],
                 'shift' => $shift,
                 'meter_type' => $validated['meter_type'],
-                'start_time' => $validated['start_time'] ?? null,
+                'start_time' => $validated['start_time'] ?? '08:00',
                 'end_time' => $validated['end_time'] ?? null,
                 'start_meter' => $startMeter,
                 'end_meter' => $endMeter,
@@ -337,6 +347,13 @@ class SupportTimesheetController extends Controller
             $request->merge(['shift' => 'Shift Siang']);
         }
 
+        if ($request->filled('start_time')) {
+            $st = trim((string) $request->input('start_time'));
+            if (strlen($st) >= 5) {
+                $request->merge(['start_time' => substr($st, 0, 5)]);
+            }
+        }
+
         $validated = $request->validate([
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'operator_id' => ['required', 'exists:employees,id'],
@@ -370,7 +387,7 @@ class SupportTimesheetController extends Controller
             'date' => $validated['date'],
             'shift' => $shift,
             'meter_type' => $validated['meter_type'],
-            'start_time' => $validated['start_time'] ?? null,
+            'start_time' => $validated['start_time'] ?? $timesheet->start_time ?? '08:00',
             'end_time' => $validated['end_time'] ?? null,
             'start_meter' => $startMeter,
             'end_meter' => $endMeter,
