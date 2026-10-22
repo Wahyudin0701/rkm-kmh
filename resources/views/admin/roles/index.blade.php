@@ -9,7 +9,27 @@
         <div>
             <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
                 <span class="w-2.5 h-7 rounded-full bg-indigo-600 inline-block"></span>
-                Matriks Peran & Hak Akses Pengguna
+                <span>Matriks Peran & Hak Akses Pengguna</span>
+                <!-- Tooltip Super Admin Priviledge -->
+                <div class="relative group/tip inline-flex">
+                    <button type="button" 
+                            class="w-6 h-6 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs transition cursor-pointer" 
+                            title="Informasi Hak Akses Super Administrator">
+                        <i class="fa-solid fa-crown text-[10px]"></i>
+                    </button>
+                    <div class="absolute left-0 sm:left-1/2 sm:-translate-x-1/2 top-full mt-2 hidden group-hover/tip:block z-50 w-72 sm:w-80 p-3.5 bg-slate-900 text-white rounded-xl shadow-xl text-xs font-normal pointer-events-none transition duration-150">
+                        <div class="flex items-start gap-2.5">
+                            <i class="fa-solid fa-crown text-amber-400 text-xs mt-0.5 flex-shrink-0"></i>
+                            <div>
+                                <strong class="font-bold text-white block mb-0.5">Hak Akses Penuh Super Administrator</strong>
+                                <span class="text-slate-300 text-[11px] leading-relaxed block">
+                                    Akun dengan peran <strong>Super Administrator</strong> secara otomatis memiliki akses penuh ke seluruh menu dan modul sistem tanpa batasan. Pilihan centang di bawah digunakan untuk mengatur batasan akses peran staf operasional lainnya.
+                                </span>
+                            </div>
+                        </div>
+                        <div class="absolute -top-1 left-3 sm:left-1/2 sm:-translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                    </div>
+                </div>
             </h1>
             <p class="text-xs text-slate-500 mt-1">
                 Atur wewenang dan batasan menu untuk setiap jabatan atau peran pengguna di lingkungan PT Kerinci Merangin Hidro.
@@ -55,19 +75,6 @@
         </div>
     @endif
 
-    <!-- Info Box: Super Admin Priviledge -->
-    <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-2xl flex items-start gap-3.5 text-xs text-indigo-900">
-        <div class="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 text-sm shadow-sm">
-            <i class="fa-solid fa-crown"></i>
-        </div>
-        <div>
-            <h2 class="font-bold text-indigo-950">Hak Akses Penuh Super Administrator</h2>
-            <p class="text-indigo-800/80 mt-0.5 leading-relaxed">
-                Akun dengan peran <strong>Super Administrator</strong> secara otomatis memiliki akses penuh ke seluruh menu dan modul sistem tanpa batasan. Pilihan centang di bawah ini digunakan untuk mengatur batasan akses pada peran staf operasional lainnya.
-            </p>
-        </div>
-    </div>
-
     <!-- Ringkasan Role Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         @foreach($roles as $role)
@@ -102,9 +109,30 @@
                 </div>
                 <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
                     <span class="text-slate-500">Jumlah Hak Akses:</span>
-                    <span class="font-bold text-indigo-700">
-                        {{ $role->name === 'super_admin' ? 'Akses Lengkap' : $role->permissions->count() . ' Izin' }}
-                    </span>
+                    @if($role->name === 'super_admin')
+                        <div class="relative group/tip inline-flex">
+                            <span class="font-bold text-indigo-700 cursor-help flex items-center gap-1">
+                                <span>Akses Lengkap</span>
+                                <i class="fa-solid fa-circle-info text-[10px] text-indigo-400"></i>
+                            </span>
+                            <div class="absolute right-0 bottom-full mb-2 hidden group-hover/tip:block z-50 w-72 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl pointer-events-none">
+                                <div class="flex items-start gap-2">
+                                    <i class="fa-solid fa-crown text-amber-400 text-xs mt-0.5 flex-shrink-0"></i>
+                                    <div>
+                                        <strong class="font-bold text-white text-xs block">Hak Akses Penuh Super Administrator</strong>
+                                        <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed">
+                                            Secara otomatis memiliki akses penuh ke seluruh menu dan modul sistem tanpa batasan.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="absolute -bottom-1 right-3 w-2 h-2 bg-slate-900 rotate-45"></div>
+                            </div>
+                        </div>
+                    @else
+                        <span class="font-bold text-indigo-700">
+                            {{ $role->permissions->count() . ' Izin' }}
+                        </span>
+                    @endif
                 </div>
             </div>
         @endforeach
@@ -123,7 +151,25 @@
                             <h2 class="text-sm font-bold text-slate-900 capitalize flex items-center gap-2">
                                 <span>Peran: {{ str_replace('_', ' ', $role->name) }}</span>
                                 @if($role->name === 'super_admin')
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800">AKSES LENGKAP</span>
+                                    <div class="relative group/satip inline-flex">
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-indigo-100 text-indigo-800 flex items-center gap-1 cursor-help">
+                                            <i class="fa-solid fa-crown text-[8px]"></i>
+                                            <span>AKSES LENGKAP</span>
+                                            <i class="fa-solid fa-circle-info text-[9px] text-indigo-500"></i>
+                                        </span>
+                                        <div class="absolute left-0 top-full mt-2 hidden group-hover/satip:block z-50 w-72 sm:w-80 p-3 bg-slate-900 text-white text-xs rounded-xl shadow-xl pointer-events-none">
+                                            <div class="flex items-start gap-2.5">
+                                                <i class="fa-solid fa-crown text-amber-400 text-xs mt-0.5 flex-shrink-0"></i>
+                                                <div>
+                                                    <strong class="font-bold text-white text-xs block">Hak Akses Penuh Super Administrator</strong>
+                                                    <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed">
+                                                        Akun dengan peran <strong>Super Administrator</strong> secara otomatis memiliki akses penuh ke seluruh menu dan modul sistem tanpa batasan. Pilihan centang di bawah digunakan untuk mengatur batasan akses peran staf operasional lainnya.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div class="absolute -top-1 left-4 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                        </div>
+                                    </div>
                                 @endif
                             </h2>
                             <p class="text-[11px] text-slate-400">Atur centang hak akses menu yang diizinkan untuk peran pengguna ini.</p>
