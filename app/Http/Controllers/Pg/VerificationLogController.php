@@ -67,9 +67,28 @@ class VerificationLogController extends Controller
             $query->where('direction', $request->input('direction'));
         }
 
-        // Filter Status Verifikasi (approved, rejected, pending)
+        // Filter Status Verifikasi (approved, rejected, pending, cancelled, cancelled_system, cancelled_driver)
         if ($request->filled('status')) {
-            $query->where('validation_status', $request->input('status'));
+            $status = $request->input('status');
+            if ($status === 'cancelled_system') {
+                $query->where('validation_status', 'cancelled')
+                    ->where(function ($q) {
+                        $q->where('rejection_note', 'like', '%sistem%')
+                            ->orWhere('rejection_note', 'like', '%timeout%')
+                            ->orWhere('rejection_note', 'like', '%melebihi batas%');
+                    });
+            } elseif ($status === 'cancelled_driver') {
+                $query->where('validation_status', 'cancelled')
+                    ->where(function ($q) {
+                        $q->where(function ($sub) {
+                            $sub->where('rejection_note', 'not like', '%sistem%')
+                                ->where('rejection_note', 'not like', '%timeout%')
+                                ->where('rejection_note', 'not like', '%melebihi batas%');
+                        })->orWhereNull('rejection_note');
+                    });
+            } else {
+                $query->where('validation_status', $status);
+            }
         }
 
         // Filter Kata Kunci Pencarian (No Transaksi, Petugas Satpam, Badge, Driver, NIK, Plat, Kode LV)
@@ -188,6 +207,7 @@ class VerificationLogController extends Controller
             $status = match($item->validation_status) {
                 'approved' => 'Disetujui',
                 'rejected' => 'Ditolak',
+                'cancelled' => $item->cancellation_source_label,
                 default => 'Menunggu',
             };
 
@@ -285,6 +305,7 @@ class VerificationLogController extends Controller
             $status = match($item->validation_status) {
                 'approved' => 'Disetujui',
                 'rejected' => 'Ditolak' . ($item->rejection_note ? ' (' . $item->rejection_note . ')' : ''),
+                'cancelled' => $item->cancellation_source_label,
                 default => 'Menunggu',
             };
             $odometer = number_format($item->current_km ?? 0, 0, ',', '.') . ' KM';

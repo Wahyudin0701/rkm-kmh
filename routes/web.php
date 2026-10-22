@@ -178,6 +178,7 @@ Route::middleware('auth')->group(function () {
 
     // 6. Modul Karyawan (Dashboard, P2H, Timesheet)
     Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard');
+    Route::get('/karyawan/aktivitas/status-polling', [\App\Http\Controllers\Employee\DashboardController::class, 'activeTripStatus'])->name('employee.activity.status_polling');
     Route::post('/karyawan/aktivitas/{id}/update-km', [\App\Http\Controllers\Employee\DashboardController::class, 'updateKm'])->name('employee.activity.update_km');
     Route::post('/karyawan/aktivitas/{id}/cancel', [\App\Http\Controllers\Employee\DashboardController::class, 'cancelActivity'])->name('employee.activity.cancel');
     Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index')->middleware('permission:employee.timesheet|qma.vehicles.view');

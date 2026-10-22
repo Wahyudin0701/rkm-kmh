@@ -188,6 +188,10 @@
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu PG</option>
+                        <option value="cancelled_system" {{ request('status') === 'cancelled_system' ? 'selected' : '' }}>Batal Sistem (Timeout)</option>
+                        <option value="cancelled_driver" {{ request('status') === 'cancelled_driver' ? 'selected' : '' }}>Dibatalkan Pengemudi</option>
+                        <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Semua Dibatalkan</option>
+                        <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Ditolak</option>
                     </select>
                 </div>
             </div>
@@ -311,9 +315,23 @@
                                         <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Disetujui
                                     </span>
                                 @elseif($act->validation_status === 'cancelled')
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="{{ $act->rejection_note }}">
-                                        <i class="fa-solid fa-ban mr-1 text-slate-400"></i> Dibatalkan
-                                    </span>
+                                    @if($act->isCancelledBySystem())
+                                        <div class="inline-flex flex-col items-center">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="{{ $act->rejection_note }}">
+                                                <i class="fa-solid fa-robot mr-1 text-amber-600"></i> Batal Sistem
+                                            </span>
+                                            <span class="text-[9px] text-amber-600 mt-0.5 font-medium">Timeout > 5 Jam</span>
+                                        </div>
+                                    @else
+                                        <div class="inline-flex flex-col items-center">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="{{ $act->rejection_note }}">
+                                                <i class="fa-solid fa-user-xmark mr-1 text-slate-500"></i> Batal Pengemudi
+                                            </span>
+                                            @if($act->rejection_note && $act->rejection_note !== 'Dibatalkan mandiri oleh pengemudi')
+                                                <span class="text-[9px] text-slate-500 mt-0.5 truncate max-w-[120px]" title="{{ $act->rejection_note }}">{{ $act->rejection_note }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @elseif($act->validation_status === 'rejected')
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200" title="Alasan: {{ $act->rejection_note }}">
                                         <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> Ditolak

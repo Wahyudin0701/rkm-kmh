@@ -193,6 +193,9 @@
                         <option value="">Semua Status</option>
                         <option value="approved" {{ request('status') === 'approved' ? 'selected' : '' }}>Disetujui (Approved)</option>
                         <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Menunggu (Pending)</option>
+                        <option value="cancelled_system" {{ request('status') === 'cancelled_system' ? 'selected' : '' }}>Batal Sistem (Timeout)</option>
+                        <option value="cancelled_driver" {{ request('status') === 'cancelled_driver' ? 'selected' : '' }}>Dibatalkan Pengemudi</option>
+                        <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>Semua Dibatalkan</option>
                         <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
                     </select>
                 </div>
@@ -394,17 +397,29 @@
                                         <span>Disetujui</span>
                                     </span>
                                 @elseif($item->validation_status === 'cancelled')
-                                    <div>
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" title="{{ $item->rejection_note }}">
-                                            <i class="fa-solid fa-ban text-[10px] text-slate-400"></i>
-                                            <span>Dibatalkan</span>
-                                        </span>
-                                        @if($item->rejection_note)
-                                            <p class="text-[10px] text-slate-500 max-w-xs truncate mx-auto mt-0.5" title="{{ $item->rejection_note }}">
-                                                {{ $item->rejection_note }}
+                                    @if($item->isCancelledBySystem())
+                                        <div>
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800" title="{{ $item->rejection_note }}">
+                                                <i class="fa-solid fa-robot text-[10px] text-amber-600"></i>
+                                                <span>Batal Sistem</span>
+                                            </span>
+                                            <p class="text-[10px] text-amber-700 max-w-xs truncate mx-auto mt-0.5">
+                                                Timeout > 5 Jam
                                             </p>
-                                        @endif
-                                    </div>
+                                        </div>
+                                    @else
+                                        <div>
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" title="{{ $item->rejection_note }}">
+                                                <i class="fa-solid fa-user-xmark text-[10px] text-slate-500"></i>
+                                                <span>Batal Pengemudi</span>
+                                            </span>
+                                            @if($item->rejection_note)
+                                                <p class="text-[10px] text-slate-500 max-w-xs truncate mx-auto mt-0.5" title="{{ $item->rejection_note }}">
+                                                    {{ $item->rejection_note }}
+                                                </p>
+                                            @endif
+                                        </div>
+                                    @endif
                                 @elseif($item->validation_status === 'rejected')
                                     <div>
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800" title="{{ $item->rejection_note }}">

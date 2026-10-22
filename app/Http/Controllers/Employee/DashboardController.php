@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employee;
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -131,5 +132,73 @@ class DashboardController extends Controller
 
         return redirect()->route('employee.dashboard')
             ->with('success', "Perjalanan {$activity->transaction_no} ({$activity->vehicle->code}) berhasil dibatalkan.");
+    }
+
+    /**
+     * Endpoint micro-polling super ringan (JSON) untuk memantau status validasi tiket perjalanan driver.
+     * Menghemat bandwidth & CPU server dibanding me-refresh halaman penuh secara berulang.
+     */
+    public function activeTripStatus(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['status' => 'unauthenticated'], 401);
+        }
+
+        $employee = $user->getOrCreateEmployee();
+        if (!$employee) {
+            return response()->json(['status' => 'no_employee', 'has_pending' => false]);
+        }
+
+        $activityId = $request->query('activity_id');
+
+        $activity = null;
+        if ($activityId) {
+            $activity = VehicleActivity::with(['vehicle', 'gate', 'securityGuard'])
+                ->where('driver_id', $employee->id)
+                ->find($activityId);
+        }
+
+        if (!$activity) {
+            // Ambil tiket pending terbaru yang masih aktif
+            $activity = VehicleActivity::with(['vehicle', 'gate', 'securityGuard'])
+                ->where('driver_id', $employee->id)
+                ->where('validation_status', 'pending')
+                ->latest('recorded_at')
+                ->first();
+        }
+
+        // Jika masih null, ambil tiket paling akhir dari driver ini
+        if (!$activity) {
+            $activity = VehicleActivity::with(['vehicle', 'gate', 'securityGuard'])
+                ->where('driver_id', $employee->id)
+                ->latest('recorded_at')
+                ->first();
+        }
+
+        if (!$activity) {
+            return response()->json([
+                'has_pending' => false,
+                'status' => 'none',
+            ]);
+        }
+
+        return response()->json([
+            'id' => $activity->id,
+            'transaction_no' => $activity->transaction_no,
+            'vehicle_code' => $activity->vehicle?->code ?? '-',
+            'vehicle_name' => $activity->vehicle?->brand_type ?? '-',
+            'status' => $activity->validation_status,
+            'has_pending' => $activity->validation_status === 'pending',
+            'is_approved' => $activity->validation_status === 'approved',
+            'is_rejected' => $activity->validation_status === 'rejected',
+            'is_cancelled' => $activity->validation_status === 'cancelled',
+            'cancellation_source' => $activity->cancellation_source_label,
+            'gate_name' => $activity->gate?->name ?? 'Pos Gerbang',
+            'guard_name' => $activity->securityGuard?->name ?? 'Petugas Satpam',
+            'rejection_note' => $activity->rejection_note,
+            'recorded_at' => $activity->recorded_at ? $activity->recorded_at->format('H:i') . ' WIB' : null,
+            'validated_at' => $activity->validated_at ? $activity->validated_at->format('H:i') . ' WIB' : null,
+        ]);
     }
 }

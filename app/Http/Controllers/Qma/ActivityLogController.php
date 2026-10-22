@@ -69,9 +69,28 @@ class ActivityLogController extends Controller
             });
         }
 
-        // Filter Status Validasi (pending, approved, rejected)
+        // Filter Status Validasi (pending, approved, rejected, cancelled, cancelled_system, cancelled_driver)
         if ($request->filled('status')) {
-            $query->where('validation_status', $request->input('status'));
+            $status = $request->input('status');
+            if ($status === 'cancelled_system') {
+                $query->where('validation_status', 'cancelled')
+                    ->where(function (Builder $q) {
+                        $q->where('rejection_note', 'like', '%sistem%')
+                            ->orWhere('rejection_note', 'like', '%timeout%')
+                            ->orWhere('rejection_note', 'like', '%melebihi batas%');
+                    });
+            } elseif ($status === 'cancelled_driver') {
+                $query->where('validation_status', 'cancelled')
+                    ->where(function (Builder $q) {
+                        $q->where(function (Builder $sub) {
+                            $sub->where('rejection_note', 'not like', '%sistem%')
+                                ->where('rejection_note', 'not like', '%timeout%')
+                                ->where('rejection_note', 'not like', '%melebihi batas%');
+                        })->orWhereNull('rejection_note');
+                    });
+            } else {
+                $query->where('validation_status', $status);
+            }
         }
 
         return $query;
@@ -151,7 +170,12 @@ class ActivityLogController extends Controller
             $currKm = $act->current_km !== null ? number_format($act->current_km, 0, ',', '.') : '-';
             $diffKm = $act->distance !== null ? number_format($act->distance, 0, ',', '.') : '-';
             $purpose = $act->purpose ?: '-';
-            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : ($act->validation_status === 'cancelled' ? 'Dibatalkan' : 'Menunggu PG'));
+            $statusPg = match($act->validation_status) {
+                'approved' => 'Disetujui',
+                'rejected' => 'Ditolak' . ($act->rejection_note ? ' (' . $act->rejection_note . ')' : ''),
+                'cancelled' => $act->cancellation_source_label,
+                default => 'Menunggu PG',
+            };
             if ($act->is_corrected) {
                 $statusPg .= ' (Terkoreksi)';
             }
@@ -255,7 +279,12 @@ class ActivityLogController extends Controller
             $currKm = $act->current_km !== null ? number_format($act->current_km, 0, ',', '.') : '-';
             $diffKm = $act->distance !== null ? number_format($act->distance, 0, ',', '.') . ' KM' : '-';
             $purpose = $act->purpose ?: '-';
-            $statusPg = $act->validation_status === 'approved' ? 'Disetujui' : ($act->validation_status === 'rejected' ? 'Ditolak' : ($act->validation_status === 'cancelled' ? 'Dibatalkan' : 'Menunggu PG'));
+            $statusPg = match($act->validation_status) {
+                'approved' => 'Disetujui',
+                'rejected' => 'Ditolak' . ($act->rejection_note ? ' (' . $act->rejection_note . ')' : ''),
+                'cancelled' => $act->cancellation_source_label,
+                default => 'Menunggu PG',
+            };
             if ($act->is_corrected) {
                 $statusPg .= ' (Terkoreksi)';
             }

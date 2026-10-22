@@ -261,7 +261,7 @@ class VehicleActivityFormController extends Controller
         });
 
         return redirect()
-            ->route('vehicle.activity.form', ['code' => $code])
-            ->with('success', 'Aktivitas kendaraan berhasil dicatat! Silakan lapor ke petugas Satpam di pos gerbang untuk verifikasi fisik.');
+            ->route('employee.dashboard')
+            ->with('success', 'Form perjalanan berhasil dikirim! Silakan lapor ke petugas Satpam di pos gerbang untuk verifikasi fisik.');
     }
 }

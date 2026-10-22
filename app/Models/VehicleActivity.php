@@ -93,6 +93,43 @@ class VehicleActivity extends Model
         return $this->validation_status === 'cancelled';
     }
 
+    /**
+     * Cek apakah pembatalan dilakukan otomatis oleh sistem (timeout > 5 jam).
+     */
+    public function isCancelledBySystem(): bool
+    {
+        if ($this->validation_status !== 'cancelled') {
+            return false;
+        }
+
+        $note = strtolower((string) $this->rejection_note);
+        return str_contains($note, 'sistem') || str_contains($note, 'timeout') || str_contains($note, 'melebihi batas');
+    }
+
+    /**
+     * Cek apakah pembatalan dilakukan mandiri oleh pengguna / driver.
+     */
+    public function isCancelledByUser(): bool
+    {
+        return $this->validation_status === 'cancelled' && !$this->isCancelledBySystem();
+    }
+
+    /**
+     * Label sumber pembatalan yang deskriptif dan ramah pengguna.
+     */
+    public function getCancellationSourceLabelAttribute(): string
+    {
+        if ($this->isCancelledBySystem()) {
+            return 'Batal Sistem (Timeout)';
+        }
+
+        if ($this->isCancelledByUser()) {
+            return 'Dibatalkan Pengemudi';
+        }
+
+        return 'Dibatalkan';
+    }
+
     public function isRejected(): bool
     {
         return $this->validation_status === 'rejected';

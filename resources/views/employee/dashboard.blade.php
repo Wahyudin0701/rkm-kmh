@@ -59,7 +59,9 @@
 
     {{-- CARD PERJALANAN AKTIF (MENUNGGU PEMERIKSAAN SATPAM) --}}
     @if(isset($pendingActivity) && $pendingActivity)
-    <div class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+    <div id="pendingTripCard" 
+         data-activity-id="{{ $pendingActivity->id }}"
+         class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300">
         {{-- Dekorasi Latar Belakang --}}
         <div class="absolute -right-6 -bottom-6 text-amber-100/50 pointer-events-none text-9xl">
             <i class="fa-solid fa-car-side"></i>
@@ -96,6 +98,11 @@
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping mr-1.5"></span>
                         <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5 -ml-3.5"></span>
                         Menunggu Pemeriksaan Satpam
+                    </span>
+
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs" title="Sistem memantau persetujuan satpam secara otomatis tanpa refresh">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse mr-1.5"></span>
+                        <span>Auto-Check Aktif</span>
                     </span>
                 </div>
             </div>
@@ -366,9 +373,23 @@
                                     <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Disetujui
                                 </span>
                             @elseif($act->validation_status === 'cancelled')
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" title="{{ $act->rejection_note }}">
-                                    <i class="fa-solid fa-ban mr-1 text-slate-400"></i> Dibatalkan
-                                </span>
+                                @if($act->isCancelledBySystem())
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="{{ $act->rejection_note }}">
+                                            <i class="fa-solid fa-robot mr-1 text-amber-600"></i> Batal Sistem
+                                        </span>
+                                        <span class="text-[9px] text-amber-600 mt-0.5 font-medium">Timeout > 5 Jam</span>
+                                    </div>
+                                @else
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="{{ $act->rejection_note }}">
+                                            <i class="fa-solid fa-user-xmark mr-1 text-slate-500"></i> Batal Pengemudi
+                                        </span>
+                                        @if($act->rejection_note && $act->rejection_note !== 'Dibatalkan mandiri oleh pengemudi')
+                                            <span class="text-[9px] text-slate-500 mt-0.5 truncate max-w-[120px]" title="{{ $act->rejection_note }}">{{ $act->rejection_note }}</span>
+                                        @endif
+                                    </div>
+                                @endif
                             @elseif($act->validation_status === 'rejected')
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200" title="Alasan: {{ $act->rejection_note }}">
                                     <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> Ditolak
@@ -586,6 +607,54 @@
             <a href="{{ route('timesheet.index') }}" class="text-xs font-bold text-[#1b5e20] hover:text-[#144918] hover:underline flex-shrink-0">
                 Pilih Manual dari Katalog &rarr;
             </a>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL 4: NOTIFIKASI HASIL VALIDASI POS GERBANG (POLLING REAL-TIME) --}}
+<div id="validationNotificationModal" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto"
+     aria-labelledby="validationNotificationTitle" role="dialog" aria-modal="true">
+    <div id="validationNotificationCard" class="relative z-10 bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-300 scale-95">
+        <div id="validationNotificationBanner" class="p-6 text-center text-white bg-gradient-to-br from-emerald-600 to-[#1b5e20]">
+            <div id="validationNotificationIcon" class="w-16 h-16 mx-auto rounded-full bg-white/20 flex items-center justify-center text-3xl mb-3 shadow-inner">
+                <i class="fa-solid fa-circle-check text-emerald-100"></i>
+            </div>
+            <h3 id="validationNotificationTitle" class="text-lg font-black tracking-tight">Perjalanan Disetujui!</h3>
+            <p id="validationNotificationSubtitle" class="text-xs text-white/90 mt-1">Verifikasi di Pos Gerbang Berhasil</p>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 text-xs space-y-2.5">
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-slate-400 font-medium">No. Transaksi:</span>
+                    <span id="validationTrxNo" class="font-mono font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-slate-400 font-medium">Unit Kendaraan:</span>
+                    <span id="validationVehicle" class="font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between items-center pb-2 border-b border-slate-200/60">
+                    <span class="text-slate-400 font-medium">Pos Gerbang:</span>
+                    <span id="validationGate" class="font-bold text-slate-800">-</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400 font-medium">Petugas Satpam:</span>
+                    <span id="validationGuard" class="font-bold text-slate-800">-</span>
+                </div>
+                <div id="validationNoteRow" class="pt-2 border-t border-slate-200 hidden">
+                    <span class="text-slate-400 font-medium block mb-1">Catatan Penolakan:</span>
+                    <p id="validationNote" class="text-slate-700 italic bg-white p-2.5 rounded-lg border border-slate-200 text-[11px]">-</p>
+                </div>
+            </div>
+
+            <button type="button" 
+                    id="validationDismissBtn"
+                    onclick="handleValidationDismiss()" 
+                    class="w-full bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
+                <span>Lanjutkan ke Dashboard</span>
+                <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -818,6 +887,127 @@
             updateTripCountdown();
             setInterval(updateTripCountdown, 1000);
         }
+    }
+
+    // Real-Time Lightweight Polling untuk Memantau Status Validasi Pos Gerbang
+    const pendingTripCard = document.getElementById('pendingTripCard');
+    if (pendingTripCard) {
+        const activityId = pendingTripCard.getAttribute('data-activity-id');
+        let pollingTimer = null;
+        let isPollingInProgress = false;
+
+        async function pollTripStatus() {
+            // Jangan lakukan polling jika tab sedang di-minimize/background untuk hemat resource
+            if (document.hidden) return;
+            if (isPollingInProgress) return;
+
+            isPollingInProgress = true;
+            try {
+                const response = await fetch(`{{ route('employee.activity.status_polling') }}?activity_id=${activityId}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    isPollingInProgress = false;
+                    return;
+                }
+
+                const data = await response.json();
+                isPollingInProgress = false;
+
+                // Jika status sudah berubah dari pending, hentikan polling dan tampilkan notifikasi
+                if (data && data.status && data.status !== 'pending') {
+                    if (pollingTimer) {
+                        clearInterval(pollingTimer);
+                        pollingTimer = null;
+                    }
+
+                    showValidationNotification(data);
+                }
+            } catch (err) {
+                isPollingInProgress = false;
+                // Supresi error jaringan agar tidak mengganggu driver
+            }
+        }
+
+        // Jalankan polling ringan berkala setiap 4 detik
+        pollingTimer = setInterval(pollTripStatus, 4000);
+
+        // Jika user kembali ke tab browser, langsung cek status 1 kali
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && pollingTimer) {
+                pollTripStatus();
+            }
+        });
+    }
+
+    function showValidationNotification(data) {
+        const modal = document.getElementById('validationNotificationModal');
+        const card = document.getElementById('validationNotificationCard');
+        const banner = document.getElementById('validationNotificationBanner');
+        const icon = document.getElementById('validationNotificationIcon');
+        const title = document.getElementById('validationNotificationTitle');
+        const subtitle = document.getElementById('validationNotificationSubtitle');
+        const trxNo = document.getElementById('validationTrxNo');
+        const vehicle = document.getElementById('validationVehicle');
+        const gate = document.getElementById('validationGate');
+        const guard = document.getElementById('validationGuard');
+        const noteRow = document.getElementById('validationNoteRow');
+        const note = document.getElementById('validationNote');
+        const dismissBtn = document.getElementById('validationDismissBtn');
+
+        if (!modal) return;
+
+        trxNo.textContent = data.transaction_no || '-';
+        vehicle.textContent = `${data.vehicle_code} (${data.vehicle_name})`;
+        gate.textContent = data.gate_name || 'Pos Gerbang';
+        guard.textContent = data.guard_name || 'Petugas Satpam';
+
+        if (data.is_approved) {
+            banner.className = 'p-6 text-center text-white bg-gradient-to-br from-emerald-600 to-[#1b5e20]';
+            icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-100"></i>';
+            title.textContent = 'Perjalanan Disetujui!';
+            subtitle.textContent = `Pemeriksaan selesai oleh Satpam ${data.guard_name} pada ${data.validated_at || 'hari ini'}`;
+            dismissBtn.className = 'w-full bg-[#1b5e20] hover:bg-[#144918] text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer';
+            dismissBtn.innerHTML = '<span>Lanjutkan Perjalanan (OK)</span><i class="fa-solid fa-arrow-right text-xs"></i>';
+            noteRow.classList.add('hidden');
+        } else if (data.is_rejected) {
+            banner.className = 'p-6 text-center text-white bg-gradient-to-br from-rose-600 to-rose-800';
+            icon.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-100"></i>';
+            title.textContent = 'Perjalanan Ditolak';
+            subtitle.textContent = `Ditolak oleh Satpam ${data.guard_name} di ${data.gate_name}`;
+            dismissBtn.className = 'w-full bg-rose-700 hover:bg-rose-800 text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer';
+            dismissBtn.innerHTML = '<span>Tutup & Periksa Dashboard</span>';
+            if (data.rejection_note) {
+                note.textContent = data.rejection_note;
+                noteRow.classList.remove('hidden');
+            }
+        } else if (data.is_cancelled) {
+            banner.className = 'p-6 text-center text-white bg-gradient-to-br from-amber-600 to-amber-800';
+            icon.innerHTML = '<i class="fa-solid fa-ban text-amber-100"></i>';
+            title.textContent = data.cancellation_source || 'Perjalanan Dibatalkan';
+            subtitle.textContent = 'Status tiket perjalanan telah dibatalkan';
+            dismissBtn.className = 'w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm shadow-md transition flex items-center justify-center space-x-2 cursor-pointer';
+            dismissBtn.innerHTML = '<span>Tutup</span>';
+            if (data.rejection_note) {
+                note.textContent = data.rejection_note;
+                noteRow.classList.remove('hidden');
+            }
+        }
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }, 10);
+    }
+
+    function handleValidationDismiss() {
+        // Refresh halus setelah driver klik agar state tabel tersinkron permanen
+        window.location.reload();
     }
 </script>
 @endsection
