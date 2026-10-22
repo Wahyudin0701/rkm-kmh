@@ -76,7 +76,7 @@
                 <input type="text" 
                        name="search" 
                        value="{{ request('search') }}" 
-                       placeholder="Cari nama, username, atau email pengguna..." 
+                       placeholder="Cari nama, NIK, atau email pengguna..." 
                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
             </div>
 
@@ -219,7 +219,7 @@
                                     <div>
                                         <p class="font-bold text-slate-900 text-xs">{{ $user->name }}</p>
                                         <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
-                                            <span class="font-mono">@<span>{{ $user->username }}</span></span>
+                                            <span class="font-mono text-slate-600 font-medium">NIK: <span>{{ $user->username }}</span></span>
                                             @if($user->employee && ($user->employee->position || $user->employee->unit_kerja))
                                                 <span>&bull;</span>
                                                 <span class="text-slate-500 font-medium">{{ $user->employee->position ?: $user->employee->unit_kerja }}</span>
@@ -332,8 +332,8 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
-                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: ahmad.rizky">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
+                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono" placeholder="Contoh: KMH-2026-101">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
@@ -458,8 +458,8 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
-                    <input type="text" id="edit_username" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
+                    <input type="text" id="edit_username" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>

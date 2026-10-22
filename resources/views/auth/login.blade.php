@@ -244,34 +244,9 @@
             </form>
 
             <!-- Footer -->
-            <div class="mt-7 pt-5 border-t border-slate-100 flex items-center justify-between">
-                <details class="text-[11px] text-slate-400 cursor-pointer group">
-                    <summary class="list-none flex items-center gap-1.5 font-medium hover:text-slate-600 transition-colors">
-                        <i class="fa-solid fa-circle-info text-[#1b5e20]/60"></i>
-                        Akun Pengujian
-                    </summary>
-                    <div class="absolute mt-2 bg-white rounded-xl p-3 border border-slate-200 shadow-lg text-left space-y-2 w-60 z-50">
-                        <div class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Akun Tersedia</div>
-                        @php
-                            $accounts = [
-                                ['role' => 'Admin HSE', 'username' => '1185'],
-                                ['role' => 'Admin QMA', 'username' => '1171'],
-                                ['role' => 'Admin PG',  'username' => 'AdminPG'],
-                            ];
-                        @endphp
-                        @foreach($accounts as $acc)
-                            <div class="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0">
-                                <div>
-                                    <span class="text-[11px] font-semibold text-slate-700">{{ $acc['role'] }}</span>
-                                    <code class="ml-1.5 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md">{{ $acc['username'] }}</code>
-                                </div>
-                                <span class="text-[10px] text-slate-400 italic">password</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </details>
-
-                <p class="text-[11px] text-slate-400">&copy; 2026 PT KMH</p>
+            <div class="mt-7 pt-5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+                <p>PT Kerinci Merangin Hidro</p>
+                <p>&copy; 2026 PT KMH</p>
             </div>
         </div>
 

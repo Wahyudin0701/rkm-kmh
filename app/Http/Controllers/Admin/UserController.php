@@ -82,8 +82,8 @@ class UserController extends Controller
             'is_operator' => ['nullable', 'in:0,1'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique' => 'Username tersebut sudah digunakan.',
+            'username.required' => 'NIK wajib diisi.',
+            'username.unique' => 'NIK tersebut sudah digunakan.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email tersebut sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
@@ -152,7 +152,7 @@ class UserController extends Controller
         AdminActivityLog::record(
             actionType: 'create',
             module: 'Manajemen Pengguna',
-            description: "Menambahkan akun pengguna baru: {$user->name} (Username: {$user->username}) dengan hak akses '{$roleTitle}'.",
+            description: "Menambahkan akun pengguna baru: {$user->name} (NIK: {$user->username}) dengan hak akses '{$roleTitle}'.",
             targetType: 'User',
             targetId: $user->id,
             targetName: $user->name,
@@ -190,8 +190,8 @@ class UserController extends Controller
             'is_operator' => ['nullable', 'in:0,1'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
-            'username.required' => 'Username wajib diisi.',
-            'username.unique' => 'Username tersebut sudah digunakan oleh akun lain.',
+            'username.required' => 'NIK wajib diisi.',
+            'username.unique' => 'NIK tersebut sudah digunakan oleh akun lain.',
             'email.required' => 'Email wajib diisi.',
             'email.unique' => 'Email tersebut sudah digunakan oleh akun lain.',
             'password.min' => 'Password minimal 6 karakter jika ingin diubah.',
@@ -285,7 +285,7 @@ class UserController extends Controller
             $changes[] = "nama dari '{$oldValues['name']}' menjadi '{$user->name}'";
         }
         if (($oldValues['username'] ?? '') !== $user->username) {
-            $changes[] = "username dari '{$oldValues['username']}' menjadi '{$user->username}'";
+            $changes[] = "NIK dari '{$oldValues['username']}' menjadi '{$user->username}'";
         }
         if (($oldValues['email'] ?? '') !== $user->email) {
             $changes[] = "email menjadi '{$user->email}'";
