@@ -304,26 +304,6 @@
 
         <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
-                <input type="text" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: Ahmad Rizky">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
-                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: ahmad.rizky">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
-                    <input type="email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="ahmad@kmh.co.id">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
-                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
-            </div>
 
             <!-- Upload Foto Profil (Opsional) -->
             <div>
@@ -343,6 +323,27 @@
                         <p class="text-[10px] text-slate-400 mt-0.5">Otomatis dikompresi hemat storage (Maks. 10MB).</p>
                     </div>
                 </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                <input type="text" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: Ahmad Rizky">
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Username *</label>
+                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: ahmad.rizky">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
+                    <input type="email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="ahmad@kmh.co.id">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
             </div>
 
             <div>
@@ -429,6 +430,27 @@
 
         <form id="editUserForm" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
             @csrf
+
+            <!-- Upload / Ganti Foto Profil -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna</label>
+                <div class="flex items-center space-x-3">
+                    <div id="editUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                        <img id="editUserPhotoPreview" src="" alt="Foto" class="w-full h-full object-cover hidden">
+                        <i id="editUserPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <input type="file" 
+                               name="photo" 
+                               id="editUserPhotoInput" 
+                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                               onchange="previewUserImage(this, 'editUserPhotoPreview', 'editUserPhotoPlaceholder')"
+                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-0.5">Pilih file baru jika ingin mengganti foto profil.</p>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
                 <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
@@ -450,26 +472,6 @@
                     Ganti Password <span class="text-slate-400 font-normal">(Kosongkan jika tidak ingin mengubah)</span>
                 </label>
                 <input type="password" name="password" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Masukkan password baru">
-            </div>
-
-            <!-- Upload / Ganti Foto Profil -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna</label>
-                <div class="flex items-center space-x-3">
-                    <div id="editUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="editUserPhotoPreview" src="" alt="Foto" class="w-full h-full object-cover hidden">
-                        <i id="editUserPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <input type="file" 
-                               name="photo" 
-                               id="editUserPhotoInput" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                               onchange="previewUserImage(this, 'editUserPhotoPreview', 'editUserPhotoPlaceholder')"
-                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                        <p class="text-[10px] text-slate-400 mt-0.5">Pilih file baru jika ingin mengganti foto profil.</p>
-                    </div>
-                </div>
             </div>
 
             <div>
