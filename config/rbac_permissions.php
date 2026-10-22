@@ -77,28 +77,28 @@ return [
             'icon' => 'fa-solid fa-car',
             'permissions' => [
                 'qma.vehicles.view' => [
-                    'label' => 'Melihat Daftar Kendaraan (LV & Alat Berat)',
-                    'description' => 'Melihat daftar armada mobil operasional (LV) dan unit alat berat proyek.',
+                    'label' => 'Melihat Daftar Kendaraan & Manajemen Unit',
+                    'description' => 'Melihat armada LV, unit support, monitoring posisi unit, dan transfer unit alat berat.',
                 ],
                 'qma.vehicles.create' => [
-                    'label' => 'Mendaftarkan Kendaraan Baru',
-                    'description' => 'Mendaftarkan unit kendaraan baru beserta kelengkapan surat dan dokumen teknisnya.',
+                    'label' => 'Mendaftarkan Kendaraan & Transfer Unit',
+                    'description' => 'Mendaftarkan unit kendaraan baru atau membuat form transfer pemindahan unit.',
                 ],
                 'qma.vehicles.edit' => [
-                    'label' => 'Memperbarui Data Kendaraan',
-                    'description' => 'Mengubah status operasional, angka kilometer/HM, dan masa berlaku dokumen kendaraan (STNK/KIR/SILO).',
+                    'label' => 'Memperbarui Kendaraan & Posisi Unit',
+                    'description' => 'Mengubah data unit, dokumen STNK/KIR/SILO, pembaruan lokasi unit, atau transfer unit.',
                 ],
                 'qma.vehicles.delete' => [
-                    'label' => 'Menghapus Kendaraan',
-                    'description' => 'Menghapus data kendaraan dari sistem (terlindungi jika memiliki riwayat perjalanan).',
+                    'label' => 'Menghapus Kendaraan & Transfer',
+                    'description' => 'Menghapus data kendaraan atau riwayat transfer unit dari sistem.',
                 ],
                 'qma.logs.view' => [
-                    'label' => 'Melihat Catatan Perjalanan (Timesheet LV)',
-                    'description' => 'Melihat riwayat mobilisasi kendaraan operasional, nama pengemudi, dan jarak tempuhnya.',
+                    'label' => 'Melihat Catatan Perjalanan & Timesheet Support',
+                    'description' => 'Melihat riwayat mobilisasi perjalanan (Timesheet LV) dan daftar Timesheet Unit Support.',
                 ],
                 'qma.logs.edit_odometer' => [
-                    'label' => 'Mengoreksi Odometer Perjalanan',
-                    'description' => 'Memperbaiki kesalahan input angka kilometer pada catatan perjalanan kendaraan dan menyinkronkan master odometer unit.',
+                    'label' => 'Koreksi Odometer & Kelola Timesheet Support',
+                    'description' => 'Mengoreksi angka kilometer perjalanan LV serta menambah, mengubah, dan menghapus Timesheet Unit Support.',
                 ],
                 'qma.summary.view' => [
                     'label' => 'Melihat Rekapitulasi & Laporan Armada',
