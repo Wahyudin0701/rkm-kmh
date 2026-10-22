@@ -161,6 +161,7 @@ Route::middleware('auth')->group(function () {
 
         // Verifikasi Pos Gerbang (Khusus Petugas Satpam Pos Gerbang)
         Route::get('/gate-inspection', [GateInspectionController::class, 'index'])->name('gate.inspection')->middleware('permission:gate.inspect');
+        Route::post('/gate-inspection/select-gate', [GateInspectionController::class, 'selectGate'])->name('gate.select_gate')->middleware('permission:gate.inspect');
         Route::get('/gate-inspection/live-queue', [GateInspectionController::class, 'liveQueue'])->name('gate.live_queue')->middleware('permission:gate.inspect');
         Route::post('/gate-inspection/{id}/approve', [GateInspectionController::class, 'approve'])->name('gate.approve')->middleware('permission:gate.approve');
         Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject')->middleware('permission:gate.reject');

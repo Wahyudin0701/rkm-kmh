@@ -215,7 +215,7 @@ class SecurityGuardController extends Controller
             'badge_id' => ['required', 'string', 'max:50', 'unique:security_guards,badge_id', 'unique:users,username'],
             'name' => ['required', 'string', 'max:100'],
             'team' => ['required', 'integer', 'in:1,2,3'],
-            'gate_id' => ['required', 'exists:gates,id'],
+            'gate_id' => ['nullable', 'exists:gates,id'],
             'password' => ['required', 'string', 'min:4'],
         ], [
             'badge_id.required' => 'ID Satpam wajib diisi.',
@@ -223,13 +223,13 @@ class SecurityGuardController extends Controller
             'name.required' => 'Nama lengkap Satpam wajib diisi.',
             'team.required' => 'Silakan pilih Regu Satpam (1, 2, atau 3).',
             'team.in' => 'Regu Satpam harus bernilai 1, 2, atau 3.',
-            'gate_id.required' => 'Silakan tentukan penempatan Pos Gerbang.',
             'password.required' => 'Password akun login Satpam wajib diisi.',
             'password.min' => 'Password minimal terdiri dari 4 karakter.',
         ]);
 
         DB::transaction(function () use ($request) {
             $badgeId = strtoupper(trim($request->input('badge_id')));
+            $gateId = $request->input('gate_id') ?: null;
 
             // 1. Buat akun User untuk login Satpam di pos jaga
             $user = User::create([
@@ -238,7 +238,7 @@ class SecurityGuardController extends Controller
                 'email' => strtolower($badgeId) . '@kmh.co.id',
                 'password' => Hash::make($request->input('password')),
                 'role' => 'gate_officer',
-                'gate_id' => $request->input('gate_id'),
+                'gate_id' => $gateId,
             ]);
 
             // 2. Simpan master data Satpam
@@ -246,7 +246,7 @@ class SecurityGuardController extends Controller
                 'badge_id' => $badgeId,
                 'name' => $request->input('name'),
                 'team' => (int) $request->input('team'),
-                'gate_id' => $request->input('gate_id'),
+                'gate_id' => $gateId,
                 'user_id' => $user->id,
                 'is_active' => true,
             ]);
@@ -265,26 +265,27 @@ class SecurityGuardController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'team' => ['required', 'integer', 'in:1,2,3'],
-            'gate_id' => ['required', 'exists:gates,id'],
+            'gate_id' => ['nullable', 'exists:gates,id'],
             'password' => ['nullable', 'string', 'min:4'],
         ], [
             'name.required' => 'Nama lengkap Satpam wajib diisi.',
             'team.required' => 'Silakan pilih Regu Satpam (1, 2, atau 3).',
-            'gate_id.required' => 'Silakan tentukan penempatan Pos Gerbang.',
             'password.min' => 'Password minimal terdiri dari 4 karakter.',
         ]);
 
         DB::transaction(function () use ($request, $guard) {
+            $gateId = $request->has('gate_id') ? ($request->input('gate_id') ?: null) : $guard->gate_id;
+
             $guard->update([
                 'name' => $request->input('name'),
                 'team' => (int) $request->input('team'),
-                'gate_id' => $request->input('gate_id'),
+                'gate_id' => $gateId,
             ]);
 
             if ($guard->user) {
                 $userData = [
                     'name' => $request->input('name'),
-                    'gate_id' => $request->input('gate_id'),
+                    'gate_id' => $gateId,
                 ];
 
                 if ($request->filled('password')) {

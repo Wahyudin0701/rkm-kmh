@@ -33,7 +33,7 @@ class SecurityGuardFilterTest extends TestCase
         $response->assertSee('Data Satpam');
         $response->assertSee('Cari ID Satpam atau nama petugas...');
         $response->assertSee('Semua Regu');
-        $response->assertSee('Semua Penempatan');
+        $response->assertDontSee('Semua Penempatan');
         $response->assertSee('Ahmad Fauzi');
     }
 

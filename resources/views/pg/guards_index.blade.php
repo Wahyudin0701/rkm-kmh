@@ -78,29 +78,16 @@
 
         <!-- Filter di Kanan (Pada Mobile: Sejajar 2 Kolom di Bawah Search Bar) -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
+            <div class="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
                 <!-- Filter Regu Satpam -->
                 <select name="team" 
                         id="guardTeamSelect"
                         onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
                     <option value="">Semua Regu</option>
                     <option value="1" {{ request('team') == '1' ? 'selected' : '' }}>Regu 1</option>
                     <option value="2" {{ request('team') == '2' ? 'selected' : '' }}>Regu 2</option>
                     <option value="3" {{ request('team') == '3' ? 'selected' : '' }}>Regu 3</option>
-                </select>
-
-                <!-- Filter Penempatan Pos Gerbang -->
-                <select name="gate_id" 
-                        id="guardGateSelect"
-                        onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="">Semua Penempatan</option>
-                    @foreach($gates as $gate)
-                        <option value="{{ $gate->id }}" {{ request('gate_id') == $gate->id ? 'selected' : '' }}>
-                            {{ $gate->name }}
-                        </option>
-                    @endforeach
                 </select>
             </div>
 
@@ -129,7 +116,6 @@
                         <th class="py-3.5 px-4">ID SATPAM</th>
                         <th class="py-3.5 px-4">NAMA LENGKAP</th>
                         <th class="py-3.5 px-4 text-center">REGU</th>
-                        <th class="py-3.5 px-4 text-center">PENEMPATAN</th>
                         <th class="py-3.5 px-4 text-center">STATUS</th>
                         <th class="py-3.5 px-4 text-center w-36">AKSI</th>
                     </tr>
@@ -169,13 +155,6 @@
                                         Regu 3
                                     </span>
                                 @endif
-                            </td>
-
-                            <!-- Penempatan Pos Gerbang -->
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                    {{ $g->gate->name ?? 'Belum Ditentukan' }}
-                                </span>
                             </td>
 
                             <!-- Status Aktif / Nonaktif -->
@@ -232,7 +211,7 @@
                         </tr>
                     @empty
                         <tr id="serverGuardEmptyRow">
-                            <td colspan="7" class="py-12 text-center text-slate-400">
+                            <td colspan="6" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
                                     <p class="text-sm font-semibold text-slate-700">
@@ -241,7 +220,7 @@
                                     <p class="text-xs text-slate-400 mt-1">Pastikan ejaan ID Satpam atau nama petugas yang dicari sudah benar.</p>
                                 @elseif(request()->anyFilled(['team', 'gate_id']))
                                     <p class="text-sm font-semibold text-slate-700">Belum ada data petugas Satpam yang sesuai kriteria filter.</p>
-                                    <p class="text-xs text-slate-400 mt-1">Silakan pilih regu atau penempatan pos gerbang lain.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Silakan pilih regu atau ubah kata kunci pencarian.</p>
                                 @else
                                     <i class="fa-solid fa-user-slash text-3xl mb-2 block text-slate-300"></i>
                                     <p class="text-sm font-semibold text-slate-700">Belum ada data petugas Satpam terdaftar.</p>
@@ -317,39 +296,21 @@
                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
             </div>
 
-            <!-- Grid: Regu & Penempatan -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label for="team" class="block text-sm font-bold text-slate-800 mb-2">
-                        Regu Tugas <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="team" 
-                            id="team" 
-                            required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="" disabled selected>Pilih Regu</option>
-                        <option value="1" {{ old('team') == 1 ? 'selected' : '' }}>Regu 1</option>
-                        <option value="2" {{ old('team') == 2 ? 'selected' : '' }}>Regu 2</option>
-                        <option value="3" {{ old('team') == 3 ? 'selected' : '' }}>Regu 3</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="gate_id" class="block text-sm font-bold text-slate-800 mb-2">
-                        Penempatan Pos <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="gate_id" 
-                            id="gate_id" 
-                            required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="" disabled selected>Pilih Pos Gerbang</option>
-                        @foreach($gates as $gate)
-                            <option value="{{ $gate->id }}" {{ old('gate_id') == $gate->id ? 'selected' : '' }}>
-                                {{ $gate->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- Regu Tugas Satpam (Fleksibel Lintas Seluruh Pos Gerbang) -->
+            <div>
+                <label for="team" class="block text-sm font-bold text-slate-800 mb-2">
+                    Regu Tugas <span class="text-rose-500">*</span>
+                </label>
+                <select name="team" 
+                        id="team" 
+                        required 
+                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <option value="" disabled selected>Pilih Regu</option>
+                    <option value="1" {{ old('team') == 1 ? 'selected' : '' }}>Regu 1</option>
+                    <option value="2" {{ old('team') == 2 ? 'selected' : '' }}>Regu 2</option>
+                    <option value="3" {{ old('team') == 3 ? 'selected' : '' }}>Regu 3</option>
+                </select>
+                <span class="text-[11px] text-slate-400 block mt-1">Petugas dapat memilih pos gerbang jaga saat login/bertugas secara fleksibel.</span>
             </div>
 
             <!-- Password Akun Login -->
@@ -414,31 +375,18 @@
                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
             </div>
 
-            <!-- Grid: Regu & Penempatan -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label for="editTeam" class="block text-sm font-bold text-slate-800 mb-2">
-                        Regu Tugas <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="team" id="editTeam" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        <option value="1">Regu 1</option>
-                        <option value="2">Regu 2</option>
-                        <option value="3">Regu 3</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="editGateId" class="block text-sm font-bold text-slate-800 mb-2">
-                        Penempatan Pos <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="gate_id" id="editGateId" required 
-                            class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                        @foreach($gates as $gate)
-                            <option value="{{ $gate->id }}">{{ $gate->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- Regu Tugas -->
+            <div>
+                <label for="editTeam" class="block text-sm font-bold text-slate-800 mb-2">
+                    Regu Tugas <span class="text-rose-500">*</span>
+                </label>
+                <select name="team" id="editTeam" required 
+                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <option value="1">Regu 1</option>
+                    <option value="2">Regu 2</option>
+                    <option value="3">Regu 3</option>
+                </select>
+                <span class="text-[11px] text-slate-400 block mt-1">Petugas dapat memilih pos gerbang jaga saat login/bertugas secara fleksibel.</span>
             </div>
 
             <!-- Ganti Password Baru (Opsional) -->
@@ -659,7 +607,8 @@
         document.getElementById('editBadgeId').value = guard.badge_id || ('SEC-' + String(guard.id).padStart(3, '0'));
         document.getElementById('editName').value = guard.name || '';
         document.getElementById('editTeam').value = guard.team || 1;
-        document.getElementById('editGateId').value = guard.gate_id || '';
+        const editGateInput = document.getElementById('editGateId');
+        if (editGateInput) editGateInput.value = guard.gate_id || '';
         document.getElementById('editPassword').value = '';
 
         modal.classList.remove('hidden');
@@ -710,7 +659,7 @@
             const emptyTr = document.createElement('tr');
             emptyTr.id = 'guardEmptySearchRow';
             emptyTr.innerHTML = `
-                <td colspan="7" class="py-12 text-center text-slate-400">
+                <td colspan="6" class="py-12 text-center text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                     <p class="text-sm font-semibold text-slate-700">
                         Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel

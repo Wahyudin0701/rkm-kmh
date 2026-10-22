@@ -36,6 +36,14 @@
                 <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-blue-50 text-blue-700 border border-blue-200">
                     Regu {{ $currentGuard->team ?? '1' }}
                 </span>
+                <!-- Tombol Fleksibel Ganti Pos Jaga -->
+                <button type="button" 
+                        onclick="openGateSelectionModal()" 
+                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white transition shadow-2xs cursor-pointer"
+                        title="Ganti pos gerbang yang sedang dijaga">
+                    <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+                    <span>Ganti Pos</span>
+                </button>
             </div>
             <div class="text-sm sm:text-base text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-1.5">
                 <span>Petugas: <strong class="text-slate-900 font-bold">{{ $currentGuard ? $currentGuard->name : auth()->user()->name }}</strong></span>
@@ -336,7 +344,7 @@
         isSyncing = true;
 
         try {
-            const response = await fetch("{{ route('pg.gate.live_queue') }}", {
+            const response = await fetch("{{ route('pg.gate.live_queue') }}?gate_id={{ $gate ? $gate->id : '' }}", {
                 headers: { 
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json'
@@ -427,6 +435,41 @@
         const modal = document.getElementById('imageLightboxModal');
         if (modal) modal.classList.add('hidden');
     }
+
+    // Modal Pemilihan Pos Gerbang Bertugas
+    let isGateModalForced = {{ $needsGateSelection ? 'true' : 'false' }};
+
+    function openGateSelectionModal(isForced = false) {
+        isGateModalForced = isForced;
+        const modal = document.getElementById('gateSelectionModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
+        }
+    }
+
+    function closeGateSelectionModal() {
+        if (isGateModalForced) {
+            return;
+        }
+        const modal = document.getElementById('gateSelectionModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
+
+    function onGateModalBackdropClick() {
+        if (!isGateModalForced) {
+            closeGateSelectionModal();
+        }
+    }
+
+    @if($needsGateSelection)
+    document.addEventListener('DOMContentLoaded', function() {
+        openGateSelectionModal(true);
+    });
+    @endif
 </script>
 
 <!-- MODAL LIGHTBOX PRATINJAU FOTO DRIVER & MOBIL LV -->
@@ -440,6 +483,100 @@
         </div>
         <div class="rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center max-h-[70vh]">
             <img id="lightboxImage" src="" alt="Pratinjau" class="max-h-[68vh] w-auto max-w-full object-contain">
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PILIH POS GERBANG BERTUGAS                                    -->
+<!-- ========================================================================= -->
+<div id="gateSelectionModal" 
+     class="{{ $needsGateSelection ? '' : 'hidden' }} fixed inset-0 z-50 overflow-y-auto"
+     style="{{ $needsGateSelection ? 'display: block;' : 'display: none;' }}">
+    <!-- Backdrop Gelap -->
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" 
+         onclick="onGateModalBackdropClick()"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all p-6 sm:p-7 space-y-5">
+            <!-- Header Modal -->
+            <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl flex-shrink-0 shadow-2xs">
+                        <i class="fa-solid fa-door-open"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                            Pilih Pos Gerbang Bertugas
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            Tentukan gerbang tempat Anda berjaga saat ini untuk verifikasi perlintasan.
+                        </p>
+                    </div>
+                </div>
+                @if(!$needsGateSelection)
+                <button type="button" onclick="closeGateSelectionModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+                @endif
+            </div>
+
+            <!-- Form Pemilihan Pos Gerbang -->
+            <form action="{{ route('pg.gate.select_gate') }}" method="POST" id="gateSelectionForm">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-h-[60vh] overflow-y-auto p-1">
+                    @foreach($allGates as $g)
+                        @php
+                            $isCurrent = $gate && $gate->id === $g->id;
+                            $queueCount = $gateQueueCounts[$g->id] ?? 0;
+                        @endphp
+                        <label class="relative flex flex-col justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all hover:shadow-md {{ $isCurrent ? 'border-amber-500 bg-amber-50/50' : 'border-slate-200 bg-white hover:border-slate-300' }}">
+                            <input type="radio" 
+                                   name="gate_id" 
+                                   value="{{ $g->id }}" 
+                                   {{ $isCurrent ? 'checked' : '' }}
+                                   class="sr-only" 
+                                   onchange="document.getElementById('gateSelectionForm').submit()">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold {{ $isCurrent ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-700' }}">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </span>
+                                    @if($isCurrent)
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                            Pos Aktif
+                                        </span>
+                                    @elseif($queueCount > 0)
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                                            {{ $queueCount }} Antrean
+                                        </span>
+                                    @else
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
+                                            Bebas
+                                        </span>
+                                    @endif
+                                </div>
+                                <h4 class="text-sm font-black text-slate-900">{{ $g->name }}</h4>
+                                <p class="text-xs text-slate-500 mt-1 line-clamp-2">
+                                    {{ $g->location ?: 'Pos pemeriksaan keluar/masuk kendaraan' }}
+                                </p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold {{ $isCurrent ? 'text-amber-700' : 'text-slate-600' }}">
+                                <span>{{ $isCurrent ? 'Sedang Dipilih' : 'Klik untuk Memilih' }}</span>
+                                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+
+                @if(!$needsGateSelection)
+                <div class="flex items-center justify-end pt-3 border-t border-slate-100 mt-4">
+                    <button type="button" onclick="closeGateSelectionModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                        Batal
+                    </button>
+                </div>
+                @endif
+            </form>
         </div>
     </div>
 </div>

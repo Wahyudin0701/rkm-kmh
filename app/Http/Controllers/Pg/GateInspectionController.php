@@ -21,13 +21,30 @@ class GateInspectionController extends Controller
      */
     public function index(Request $request): View
     {
-        // Ambil gerbang yang terikat pada akun petugas pos jaga yang sedang login
         $user = $request->user();
         $currentGuard = $user ? $user->securityGuard : null;
-        $gateId = $user ? $user->gate_id : $request->query('gate_id');
 
-        // Jika tidak ada gate_id terikat, ambil gerbang pertama sebagai fallback
-        $gate = $gateId ? Gate::find($gateId) : Gate::first();
+        $allGates = Gate::where('is_active', true)->orderBy('name')->get();
+
+        // Cek gate yang dipilih: query param > session 'active_gate_id' > user->gate_id
+        $selectedGateId = $request->query('gate_id') 
+            ?: session('active_gate_id') 
+            ?: ($user?->gate_id);
+
+        $needsGateSelection = false;
+        $gate = null;
+
+        if ($selectedGateId && $allGates->contains('id', (int) $selectedGateId)) {
+            $gate = $allGates->firstWhere('id', (int) $selectedGateId);
+            session(['active_gate_id' => $gate->id]);
+            if ($user && $user->gate_id !== $gate->id) {
+                $user->update(['gate_id' => $gate->id]);
+            }
+        } else {
+            // Belum ada pos yang dipilih di sesi
+            $gate = $allGates->first();
+            $needsGateSelection = true;
+        }
 
         $pendingActivities = collect();
         if ($gate) {
@@ -38,15 +55,50 @@ class GateInspectionController extends Controller
                 ->get();
         }
 
+        // Hitung antrean pending di setiap gerbang untuk pop-up pemilihan
+        $gateQueueCounts = VehicleActivity::where('validation_status', 'pending')
+            ->select('gate_id', DB::raw('count(*) as count'))
+            ->groupBy('gate_id')
+            ->pluck('count', 'gate_id');
+
         // Daftar satpam aktif untuk fallback pilihan
         $guards = SecurityGuard::where('is_active', true)->orderBy('name')->get();
 
         return view('pg.gate_inspection', compact(
             'gate', 
+            'allGates',
+            'gateQueueCounts',
+            'needsGateSelection',
             'pendingActivities', 
             'guards', 
             'currentGuard'
         ));
+    }
+
+    /**
+     * Set / ganti pos gerbang aktif yang sedang dijaga oleh petugas saat ini.
+     */
+    public function selectGate(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'gate_id' => ['required', 'exists:gates,id'],
+        ], [
+            'gate_id.required' => 'Silakan pilih salah satu pos gerbang.',
+            'gate_id.exists' => 'Pos gerbang yang dipilih tidak valid.',
+        ]);
+
+        $gateId = (int) $request->input('gate_id');
+        $gate = Gate::findOrFail($gateId);
+
+        session(['active_gate_id' => $gate->id]);
+
+        $user = $request->user();
+        if ($user && $user->gate_id !== $gate->id) {
+            $user->update(['gate_id' => $gate->id]);
+        }
+
+        return redirect()->route('pg.gate.inspection', ['gate_id' => $gate->id])
+            ->with('success', "Pos jaga aktif berhasil dialihkan ke: {$gate->name}");
     }
 
     /**
@@ -55,7 +107,9 @@ class GateInspectionController extends Controller
     public function liveQueue(Request $request): JsonResponse
     {
         $user = $request->user();
-        $gateId = $user ? $user->gate_id : $request->query('gate_id');
+        $gateId = $request->query('gate_id') 
+            ?: session('active_gate_id') 
+            ?: ($user ? $user->gate_id : null);
         $gate = $gateId ? Gate::find($gateId) : Gate::first();
 
         $pendingActivities = collect();
