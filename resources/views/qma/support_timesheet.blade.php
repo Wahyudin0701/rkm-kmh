@@ -9,41 +9,37 @@
 @section('content')
 <div class="w-full space-y-6">
 
-    <!-- Header Judul & Tombol Aksi -->
+    <!-- Header Judul & Tombol Aksi (Persis Format Standar HSE Employees) -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <div class="flex items-center space-x-1.5 mb-1">
                 <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
-                    MANAJEMEN QMA
+                    MANAJEMEN SISTEM
                 </span>
-                <span class="text-slate-300">&bull;</span>
-                <span class="text-xs font-semibold text-slate-500">
-                    {{ $isHistoryRoute ? 'Log Aktifitas' : 'Operasional Unit' }}
-                </span>
+                <!-- Tombol Info Panduan Halaman Sejajar Kicker -->
+                <button type="button" 
+                        onclick="openGuideModal()" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        title="Panduan Halaman Timesheet Unit Support">
+                    <i class="fa-solid fa-info"></i>
+                </button>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                {{ $isHistoryRoute ? 'History Timesheet Unit Support' : 'Timesheet Unit Support' }}
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                {{ $isHistoryRoute ? 'History Timesheet' : 'Timesheet Unit Support' }}
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                @if($isHistoryRoute)
-                    Riwayat log operasional, utilisasi shift, pencatatan jam kerja mesin (HM/KM), serta konsumsi solar alat berat.
-                @else
-                    Pencatatan jam kerja (HM/KM), penugasan operator, utilisasi shift, serta pemakaian solar alat berat.
-                @endif
-            </p>
         </div>
 
         <!-- Tombol Aksi Kanan -->
-        <div class="flex items-center space-x-2.5 w-full sm:w-auto">
-            <!-- Dropdown Menu Ekspor -->
-            <div class="relative inline-block w-full sm:w-auto" id="exportDropdownContainer">
+        <div class="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block w-full sm:w-auto flex-1 sm:flex-none" id="exportDropdownContainer">
                 <button type="button" 
                         onclick="toggleExportMenu(event)" 
                         id="btnExportTrigger"
-                        class="w-full sm:w-auto flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-file-export text-emerald-700 text-sm"></i>
+                        class="w-full sm:w-auto border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
                     <span class="truncate">Ekspor Timesheet</span>
-                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
                 </button>
                 <div id="exportMenu" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
                     <a href="{{ route('qma.support_timesheet.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
@@ -59,23 +55,24 @@
             </div>
 
             @if(!$isHistoryRoute)
-                <!-- Tombol Tambah Timesheet (Hanya pada modul operasional Timesheet Unit Support) -->
+                <!-- Tombol Tambah Timesheet -->
                 @can('qma.logs.edit_odometer')
                 <button type="button" 
                         onclick="openAddModal()" 
-                        class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap">
+                        class="w-full sm:w-auto flex-1 sm:flex-none bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer whitespace-nowrap"
+                        title="Catat Timesheet Harian Unit Support">
                     <i class="fa-solid fa-plus text-xs"></i>
-                    <span>Catat Timesheet</span>
+                    <span class="truncate">Catat Timesheet</span>
                 </button>
                 @endcan
             @endif
         </div>
     </div>
 
-    <!-- KPI Ringkasan Data Timesheet -->
+    <!-- KPI Ringkasan Data Timesheet (Dipertahankan Sesuai Preferensi) -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- 1. Total Entri -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Timesheet</p>
                 <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalEntries, 0, ',', '.') }}</h3>
@@ -87,7 +84,7 @@
         </div>
 
         <!-- 2. Total Jam Operasi (HM) -->
-        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/40">
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/40">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Total Jam Operasi</p>
                 <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($totalOperatingHours, 1, ',', '.') }} <span class="text-sm font-bold text-emerald-600">Jam</span></h3>
@@ -99,7 +96,7 @@
         </div>
 
         <!-- 3. Unit Aktif -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Unit Beroperasi</p>
                 <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($activeUnitsCount, 0, ',', '.') }}</h3>
@@ -111,7 +108,7 @@
         </div>
 
         <!-- 4. Breakdown -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kendala Breakdown</p>
                 <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
@@ -123,32 +120,46 @@
         </div>
     </div>
 
-    <!-- Filter & Pencarian -->
-    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3.5">
-        <form method="GET" action="{{ url()->current() }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2.5 items-center">
-            
-            <!-- Tanggal Mulai -->
-            <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Dari Tanggal</label>
-                <input type="date" 
-                       name="start_date" 
-                       value="{{ request('start_date', $startDate) }}" 
-                       class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-[#1b5e20]">
-            </div>
+    <!-- Kotak Pencarian & Filter Status Timesheet (Tanpa Card Wrapper, Format Persis HSE Employees) -->
+    <form method="GET" action="{{ url()->current() }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+        <!-- Pencarian Cepat di Kiri -->
+        <div class="relative w-full sm:max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-xs"></i>
+            </span>
+            <input type="text" 
+                   name="search"
+                   id="timesheetSearchInput"
+                   value="{{ request('search') }}"
+                   placeholder="Cari No. TS, nama/NIK operator, atau lokasi..." 
+                   class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+        </div>
 
-            <!-- Tanggal Selesai -->
-            <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Sampai Tanggal</label>
-                <input type="date" 
-                       name="end_date" 
-                       value="{{ request('end_date', $endDate) }}" 
-                       class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-[#1b5e20]">
-            </div>
+        <!-- Filter di Kanan (Pada Mobile: Sejajar Grid di Bawah Search Bar) -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
+            <div class="grid grid-cols-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                <!-- Filter Rentang Tanggal Compact -->
+                <div class="col-span-2 sm:col-auto flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-2 shadow-sm">
+                    <i class="fa-regular fa-calendar text-slate-400 text-xs flex-shrink-0"></i>
+                    <input type="date" 
+                           name="start_date" 
+                           value="{{ request('start_date', $startDate) }}" 
+                           onchange="this.form.submit()" 
+                           class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
+                           title="Dari Tanggal">
+                    <span class="text-slate-300 text-xs">-</span>
+                    <input type="date" 
+                           name="end_date" 
+                           value="{{ request('end_date', $endDate) }}" 
+                           onchange="this.form.submit()" 
+                           class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
+                           title="Sampai Tanggal">
+                </div>
 
-            <!-- Filter Unit -->
-            <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pilih Unit</label>
-                <select name="vehicle_id" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-[#1b5e20]">
+                <!-- Filter Unit Support -->
+                <select name="vehicle_id" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
                     <option value="">Semua Unit Support</option>
                     @foreach($unitSupports as $u)
                         <option value="{{ $u->id }}" {{ request('vehicle_id') == $u->id ? 'selected' : '' }}>
@@ -156,12 +167,11 @@
                         </option>
                     @endforeach
                 </select>
-            </div>
 
-            <!-- Filter Shift -->
-            <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Pilih Shift</label>
-                <select name="shift" class="w-full text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-medium focus:outline-none focus:border-[#1b5e20]">
+                <!-- Filter Shift -->
+                <select name="shift" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
                     <option value="">Semua Shift</option>
                     @foreach($shifts as $s)
                         <option value="{{ $s }}" {{ request('shift') === $s ? 'selected' : '' }}>{{ $s }}</option>
@@ -169,36 +179,19 @@
                 </select>
             </div>
 
-            <!-- Pencarian Kata Kunci -->
-            <div>
-                <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Cari Kata Kunci</label>
-                <div class="relative w-full">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
-                    </span>
-                    <input type="text" 
-                           name="search" 
-                           value="{{ request('search') }}"
-                           placeholder="No TS, lokasi, operator..." 
-                           class="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20]">
-                </div>
-            </div>
-
-            <!-- Tombol Submit & Reset -->
-            <div class="flex items-end space-x-2 pt-4">
-                <button type="submit" class="flex-1 bg-[#1b5e20] hover:bg-[#144919] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs flex items-center justify-center space-x-1.5 cursor-pointer">
-                    <i class="fa-solid fa-filter text-[11px]"></i>
-                    <span>Filter</span>
-                </button>
-
-                @if(request()->anyFilled(['start_date', 'end_date', 'vehicle_id', 'operator_id', 'shift', 'status', 'search']))
-                    <a href="{{ url()->current() }}" class="px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition whitespace-nowrap" title="Reset Semua Filter">
-                        <i class="fa-solid fa-rotate-left"></i>
+            <!-- Tombol Reset Filter -->
+            <div id="timesheetResetContainer">
+                @if(request()->anyFilled(['search', 'vehicle_id', 'shift']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
+                    <a href="{{ url()->current() }}" 
+                       id="timesheetResetBtn"
+                       class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
+                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                        <span>Reset Filter</span>
                     </a>
                 @endif
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <!-- Alert Notifikasi -->
     @if(session('success'))
@@ -225,26 +218,27 @@
     </div>
     @endif
 
-    <!-- Tabel Data Timesheet Unit Support -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <!-- Tabel Data Timesheet Unit Support dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
-                        <th class="py-3 px-3.5 text-center w-10">NO</th>
-                        <th class="py-3 px-3.5">NO TIMESHEET</th>
-                        <th class="py-3 px-3.5">TANGGAL & SHIFT</th>
-                        <th class="py-3 px-4">KODE & TIPE UNIT</th>
-                        <th class="py-3 px-4">OPERATOR</th>
-                        <th class="py-3 px-4 text-center">ODOMETER AWAL</th>
-                        <th class="py-3 px-4">LOKASI & AKTIVITAS</th>
-                        <th class="py-3 px-3.5 text-center">STATUS</th>
-                        <th class="py-3 px-3.5 text-center w-24">AKSI</th>
+            <table class="min-w-full text-xs text-left border-collapse">
+                <!-- Header Tabel Navy Gelap Solid #06213f -->
+                <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-12">NO</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">NO TIMESHEET</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">TANGGAL & SHIFT</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[180px]">KODE & TIPE UNIT</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">OPERATOR</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap">METER AWAL</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[200px]">LOKASI & AKTIVITAS</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap">STATUS</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap w-24">AKSI</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody id="timesheetTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($timesheets as $idx => $ts)
-                        <tr class="hover:bg-slate-50/70 transition">
+                        <tr class="timesheet-row hover:bg-slate-50/70 transition">
                             <!-- No -->
                             <td class="py-3.5 px-3.5 text-center font-semibold text-slate-400">
                                 {{ $timesheets->firstItem() + $idx }}
@@ -1024,6 +1018,89 @@
     @endforeach
 </datalist>
 
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (TIMESHEET UNIT SUPPORT)                    -->
+<!-- ========================================================================= -->
+<div id="guideModal" 
+     onclick="if(event.target === this) closeGuideModal()" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center text-lg shadow-2xs">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 tracking-tight">
+                        Panduan Timesheet Unit Support
+                    </h3>
+                    <p class="text-xs text-slate-500 font-medium">
+                        Tata cara pencatatan jam kerja mesin & operasional alat berat
+                    </p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition cursor-pointer">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Konten Panduan -->
+        <div class="py-5 space-y-4 text-xs text-slate-600 leading-relaxed max-h-[60vh] overflow-y-auto pr-1">
+            <div class="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100/80">
+                <h4 class="font-bold text-[#1b5e20] text-xs flex items-center mb-1">
+                    <i class="fa-solid fa-stopwatch mr-1.5"></i>
+                    1. Satuan Meter Mesin (HM vs KM)
+                </h4>
+                <p class="text-slate-600">
+                    Sistem mendeteksi satuan secara otomatis: Dump Truck (DT) menggunakan satuan Kilometer (<strong>KM</strong>), sedangkan Excavator, Dozer, Crane, dsb. menggunakan Hour Meter (<strong>HM</strong>).
+                </p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <h4 class="font-bold text-slate-800 text-xs flex items-center mb-1">
+                    <i class="fa-solid fa-filter mr-1.5 text-emerald-600"></i>
+                    2. Filter Lokasi Kerja & Unit Ready
+                </h4>
+                <p class="text-slate-600">
+                    Saat menambah timesheet, pilih lokasi kerja terlebih dahulu. Daftar unit support akan disaring otomatis menampilkan unit yang berada pada lokasi tersebut.
+                </p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <h4 class="font-bold text-slate-800 text-xs flex items-center mb-1">
+                    <i class="fa-solid fa-triangle-exclamation mr-1.5 text-amber-500"></i>
+                    3. Status Operasi & Breakdown
+                </h4>
+                <p class="text-slate-600">
+                    Pilih status <strong>Operation</strong> untuk unit yang bekerja produktif, <strong>Standby</strong> jika mesin ready namun menunggu arahan, atau <strong>Breakdown</strong> jika mengalami kerusakan.
+                </p>
+            </div>
+
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                <h4 class="font-bold text-slate-800 text-xs flex items-center mb-1">
+                    <i class="fa-solid fa-file-export mr-1.5 text-blue-600"></i>
+                    4. Ekspor Data Laporan
+                </h4>
+                <p class="text-slate-600">
+                    Gunakan tombol <strong>Ekspor Timesheet</strong> di pojok kanan atas untuk mengunduh laporan rekapitulasi dalam format PDF atau Excel (.xlsx) sesuai filter yang aktif.
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="pt-4 border-t border-slate-100 flex justify-end">
+            <button type="button" 
+                    onclick="closeGuideModal()" 
+                    class="bg-[#1b5e20] hover:bg-[#144919] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
@@ -1384,5 +1461,104 @@
 
     document.getElementById('addMeterType')?.addEventListener('change', () => updateMeterUnitLabels('add'));
     document.getElementById('editMeterType')?.addEventListener('change', () => updateMeterUnitLabels('edit'));
+
+    // 8. Filter Pencarian Instan Real-Time (Persis Standar HSE Employees)
+    const timesheetSearchInput = document.getElementById('timesheetSearchInput');
+    const timesheetResetContainer = document.getElementById('timesheetResetContainer');
+    const timesheetTableBody = document.getElementById('timesheetTableBody');
+
+    timesheetSearchInput?.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#timesheetTableBody tr.timesheet-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            if (query === '' || text.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Dynamic empty state
+        const existingEmptyTr = document.getElementById('timesheetClientEmptyRow');
+        if (existingEmptyTr) existingEmptyTr.remove();
+
+        if (visibleCount === 0 && rows.length > 0) {
+            const emptyTr = document.createElement('tr');
+            emptyTr.id = 'timesheetClientEmptyRow';
+            emptyTr.innerHTML = `
+                <td colspan="9" class="py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                    <p class="text-sm font-semibold text-slate-700">Tidak ada timesheet yang cocok</p>
+                    <p class="text-xs text-slate-400 mt-1">
+                        Tidak ditemukan data dengan kata kunci "${escapeHtml(query)}" pada halaman ini.
+                    </p>
+                    <div class="mt-4">
+                        <button type="button" 
+                                onclick="const inp = document.getElementById('timesheetSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
+                                class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                            <span>Hapus Pencarian</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            timesheetTableBody?.appendChild(emptyTr);
+        }
+
+        // Dynamic reset button
+        let resetBtn = document.getElementById('timesheetResetBtn');
+        if (query.length > 0) {
+            if (!resetBtn && timesheetResetContainer) {
+                resetBtn = document.createElement('a');
+                resetBtn.id = 'timesheetResetBtn';
+                resetBtn.href = window.location.pathname;
+                resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2';
+                resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left text-[11px]"></i><span>Reset Filter</span>';
+                timesheetResetContainer.appendChild(resetBtn);
+            }
+        }
+    });
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // 9. Modal Panduan Halaman (Data Timesheet Unit Support)
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    // 10. Keyboard ESC Listener untuk Semua Modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeGuideModal();
+            closeAddModal();
+            closeEditModal();
+            closeDetailModal();
+            closeDeleteModal();
+            const exportMenu = document.getElementById('exportMenu');
+            if (exportMenu) exportMenu.style.display = 'none';
+        }
+    });
 </script>
 @endsection

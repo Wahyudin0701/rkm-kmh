@@ -19,7 +19,7 @@
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Timesheet LV
             </h2>
         </div>

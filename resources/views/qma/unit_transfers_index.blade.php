@@ -5,40 +5,36 @@
 @section('content')
 <div class="w-full space-y-6">
 
-    <!-- Header Judul & Tombol Aksi -->
+    <!-- Header Judul & Tombol Aksi (Persis Format Standar HSE Employees) -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <div class="flex items-center space-x-1.5 mb-1">
                 <span class="text-xs font-bold uppercase tracking-wider text-[#1b5e20]">
-                    MANAJEMEN UNIT
+                    MANAJEMEN SISTEM
                 </span>
                 <button type="button" 
                         onclick="openGuideModal()" 
-                        class="w-4 h-4 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[9px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
+                        class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
                         title="Panduan Transfer Unit Alat Berat">
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
                 Transfer Unit Alat Berat
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Pencatatan resmi pemindahan lokasi alat berat, armada truk pengangkut, dan penerbitan Berita Acara Serah Terima (BAST).
-            </p>
         </div>
 
         <!-- Tombol Aksi Kanan -->
-        <div class="flex items-center space-x-2.5 w-full sm:w-auto">
-            <!-- Dropdown Menu Ekspor -->
-            <div class="relative inline-block" id="exportDropdownContainer">
+        <div class="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+            <!-- Dropdown Menu Ekspor Format it.allrole.web.id -->
+            <div class="relative inline-block w-full sm:w-auto flex-1 sm:flex-none" id="exportDropdownContainer">
                 <button type="button" 
                         onclick="toggleExportMenu(event)" 
                         id="btnExportTrigger"
-                        class="flex items-center justify-center space-x-2 border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-file-export text-emerald-700 text-sm"></i>
-                    <span class="hidden sm:inline">Ekspor Data</span>
-                    <span class="sm:hidden">Ekspor</span>
-                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-1"></i>
+                        class="w-full sm:w-auto border border-emerald-600/30 text-emerald-900 bg-white hover:bg-emerald-50/50 px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
+                    <i class="fa-regular fa-file-excel text-emerald-700 text-sm"></i>
+                    <span class="truncate">Ekspor Data</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 ml-0.5 sm:ml-1"></i>
                 </button>
                 <div id="exportMenu" style="display: none;" class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
                     <a href="{{ route('qma.unit_transfers.export_pdf', request()->query()) }}" target="_blank" class="flex items-center px-4 py-3 text-xs text-slate-700 hover:bg-slate-50 hover:text-[#1b5e20] font-bold transition">
@@ -52,6 +48,17 @@
                     </a>
                 </div>
             </div>
+
+            @canany(['qma.vehicles.create', 'qma.vehicles.edit'])
+            <a href="{{ route('qma.unit_transfers.create') }}" 
+               class="flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer whitespace-nowrap">
+                <i class="fa-solid fa-truck-moving text-sm"></i>
+                <span class="hidden sm:inline">Transfer Unit Baru</span>
+                <span class="sm:hidden">Transfer Baru</span>
+            </a>
+            @endcanany
+        </div>
+    </div>
 
             <!-- Tombol Buat Transfer Unit Baru -->
             @canany(['qma.vehicles.create', 'qma.vehicles.edit'])
@@ -186,23 +193,24 @@
         </form>
     </div>
 
-    <!-- Tabel Riwayat Transfer Unit -->
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <!-- Tabel Riwayat Transfer Unit dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
-                        <th class="py-3 px-3.5 text-center w-12">No</th>
-                        <th class="py-3 px-3.5">Tanggal & No Transfer</th>
-                        <th class="py-3 px-3.5">Berita Acara (BAST)</th>
-                        <th class="py-3 px-3.5">Unit Alat Berat</th>
-                        <th class="py-3 px-3.5">Perpindahan Lokasi</th>
-                        <th class="py-3 px-3.5">Armada & Supir Pengangkut</th>
-                        <th class="py-3 px-3.5">Pelapor</th>
-                        <th class="py-3 px-3.5 text-center w-28">Aksi</th>
+            <table class="min-w-full text-xs text-left border-collapse">
+                <!-- Header Tabel Navy Gelap Solid #06213f -->
+                <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-12">NO</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">TANGGAL & NO TRANSFER</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">BERITA ACARA (BAST)</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[180px]">UNIT ALAT BERAT</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[200px]">PERPINDAHAN LOKASI</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">ARMADA & SUPIR</th>
+                        <th class="py-3.5 px-4 whitespace-nowrap">PELAPOR</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap w-28">AKSI</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($transfers as $index => $t)
                     <tr class="hover:bg-slate-50/80 transition">
                         <!-- 1. No -->
