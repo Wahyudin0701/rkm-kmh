@@ -78,13 +78,20 @@ class RolePermissionSeeder extends Seeder
             $role->syncPermissions($perms);
         }
 
-        // 4. Buat Akun Default Super Admin
+        // 4. Buat Akun Default Super Admin (Mengambil dari config/auth.php & .env)
+        $superAdminConfig = config('auth.superadmin', [
+            'name' => 'Super Administrator',
+            'username' => 'superadmin',
+            'email' => 'superadmin@kmh.co.id',
+            'password' => 'password',
+        ]);
+
         $superAdmin = User::firstOrCreate(
-            ['username' => 'superadmin'],
+            ['username' => $superAdminConfig['username']],
             [
-                'name' => 'Super Administrator',
-                'email' => 'superadmin@kmh.co.id',
-                'password' => Hash::make('password'),
+                'name' => $superAdminConfig['name'],
+                'email' => $superAdminConfig['email'],
+                'password' => Hash::make($superAdminConfig['password']),
                 'role' => 'super_admin',
             ]
         );

@@ -114,4 +114,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Default System Credentials (Configurable via Environment Variables)
+    |--------------------------------------------------------------------------
+    */
+    'superadmin' => [
+        'name' => env('SUPERADMIN_NAME', 'Super Administrator'),
+        'username' => env('SUPERADMIN_USERNAME', 'superadmin'),
+        'email' => env('SUPERADMIN_EMAIL', 'superadmin@kmh.co.id'),
+        'password' => env('SUPERADMIN_PASSWORD', 'password'),
+    ],
+
+    'default_employee_password' => env('DEFAULT_EMPLOYEE_PASSWORD', '123456'),
+
 ];

@@ -228,14 +228,14 @@
                             <!-- Kode LV -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap font-mono">
                                 <span class="inline-block bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded border border-emerald-200">
-                                    {{ $act->vehicle->code }}
+                                    {{ $act->vehicle?->code ?? '-' }}
                                 </span>
                             </td>
 
                             <!-- Unit & Plat -->
                             <td class="py-3.5 px-4 min-w-[220px]">
-                                <div class="font-bold text-slate-900 whitespace-nowrap">{{ $act->vehicle->brand_type }}</div>
-                                @if($act->vehicle->license_plate)
+                                <div class="font-bold text-slate-900 whitespace-nowrap">{{ $act->vehicle?->brand_type ?? '-' }}</div>
+                                @if($act->vehicle?->license_plate)
                                     <span class="inline-block text-[10px] font-mono font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 mt-0.5 whitespace-nowrap">
                                         {{ $act->vehicle->license_plate }}
                                     </span>
@@ -246,19 +246,19 @@
 
                             <!-- Penanggung Jawab -->
                             <td class="py-3.5 px-4 text-slate-600 font-medium">
-                                {{ $act->vehicle->ownership ?? '-' }}
+                                {{ $act->vehicle?->ownership ?? '-' }}
                             </td>
 
                             <!-- Driver -->
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-slate-900">{{ $act->driver->name }}</div>
-                                <div class="text-[10px] text-slate-400 font-normal">{{ $act->driver->division ?? '-' }}</div>
+                                <div class="font-bold text-slate-900">{{ $act->driver?->name ?? '-' }}</div>
+                                <div class="text-[10px] text-slate-400 font-normal">{{ $act->driver?->division ?? '-' }}</div>
                             </td>
 
                             <!-- Gate -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                    {{ $act->gate->name }}
+                                    {{ $act->gate?->name ?? '-' }}
                                 </span>
                             </td>
 
@@ -332,9 +332,9 @@
                                         onclick="openQmaOdometerModal({{ json_encode([
                                             'id' => $act->id,
                                             'trx' => $act->transaction_no,
-                                            'code' => $act->vehicle->code,
-                                            'unit' => $act->vehicle->brand_type,
-                                            'driver' => $act->driver->name,
+                                            'code' => $act->vehicle?->code ?? '-',
+                                            'unit' => $act->vehicle?->brand_type ?? 'Kendaraan',
+                                            'driver' => $act->driver?->name ?? 'Pengemudi',
                                             'previous_km' => (float)$act->previous_km,
                                             'current_km' => (float)$act->current_km,
                                             'distance' => (float)$act->distance,
