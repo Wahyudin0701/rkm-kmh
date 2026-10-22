@@ -5,33 +5,14 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header Halaman -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
-                <span class="w-2.5 h-7 rounded-full bg-indigo-600 inline-block"></span>
-                Dashboard Super Admin & RBAC
-            </h1>
-            <p class="text-xs text-slate-500 mt-1">
-                Pusat kendali arsitektur sistem, pengelolaan pengguna, dan matriks hak akses Role-Based Access Control (RBAC).
-            </p>
-        </div>
-        <div class="flex items-center gap-2.5">
-            <a href="{{ route('admin.users.index') }}" 
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
-                <i class="fa-solid fa-users-gear text-sm"></i>
-                <span>Kelola Pengguna</span>
-            </a>
-            <a href="{{ route('admin.roles.index') }}" 
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition">
-                <i class="fa-solid fa-shield-halved text-indigo-600 text-sm"></i>
-                <span>Matriks Role & Izin</span>
-            </a>
-            <a href="{{ route('admin.activity_logs.index') }}" 
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold shadow-sm transition">
-                <i class="fa-solid fa-clock-rotate-left text-indigo-600 text-sm"></i>
-                <span>Log Aktivitas</span>
-            </a>
-        </div>
+    <div class="pb-1">
+        <h1 class="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-2.5">
+            <span class="w-2.5 h-7 rounded-full bg-indigo-600 inline-block"></span>
+            Dashboard Super Admin & RBAC
+        </h1>
+        <p class="text-xs text-slate-500 mt-1">
+            Pusat kendali arsitektur sistem, pengelolaan pengguna, dan matriks hak akses Role-Based Access Control (RBAC).
+        </p>
     </div>
 
     <!-- Alert Notifikasi Flash -->
@@ -109,59 +90,6 @@
                 @endif
             </div>
             <p class="text-[11px] text-slate-500 mt-1">{{ $metrics['activities_approved'] }} sudah diverifikasi</p>
-        </div>
-    </div>
-
-    <!-- Shortcut Lintas Modul Sistem (Super Admin Quick Nav) -->
-    <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
-        <h2 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <i class="fa-solid fa-compass text-indigo-600"></i>
-            Akses Langsung ke Seluruh Modul Operasional (Super Admin Bypass)
-        </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <!-- HSE Card -->
-            <a href="{{ route('hse.dashboard') }}" class="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-emerald-50/60 hover:border-emerald-200 transition group flex items-start gap-3">
-                <div class="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-                    <i class="fa-solid fa-id-card text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-xs font-bold text-slate-800 group-hover:text-emerald-800">Modul HSE</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Kelola SIMPER & Data Karyawan</p>
-                </div>
-            </a>
-
-            <!-- QMA Card -->
-            <a href="{{ route('qma.dashboard') }}" class="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-blue-50/60 hover:border-blue-200 transition group flex items-start gap-3">
-                <div class="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-                    <i class="fa-solid fa-car text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-xs font-bold text-slate-800 group-hover:text-blue-800">Modul QMA</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Master Kendaraan & Log Aktivitas</p>
-                </div>
-            </a>
-
-            <!-- PG Card -->
-            <a href="{{ route('pg.dashboard') }}" class="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-purple-50/60 hover:border-purple-200 transition group flex items-start gap-3">
-                <div class="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-                    <i class="fa-solid fa-user-shield text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-xs font-bold text-slate-800 group-hover:text-purple-800">Modul Private Guard</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Data Satpam & Log Verifikasi</p>
-                </div>
-            </a>
-
-            <!-- Pos Gerbang -->
-            <a href="{{ route('pg.gate.inspection') }}" class="p-3.5 rounded-xl border border-slate-100 bg-slate-50/70 hover:bg-amber-50/60 hover:border-amber-200 transition group flex items-start gap-3">
-                <div class="w-9 h-9 rounded-lg bg-amber-600 text-white flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition">
-                    <i class="fa-solid fa-shield-halved text-sm"></i>
-                </div>
-                <div>
-                    <h3 class="text-xs font-bold text-slate-800 group-hover:text-amber-800">Inspeksi Pos Gerbang</h3>
-                    <p class="text-[11px] text-slate-500 mt-0.5">Layar Verifikasi Antrean Unit</p>
-                </div>
-            </a>
         </div>
     </div>
 
