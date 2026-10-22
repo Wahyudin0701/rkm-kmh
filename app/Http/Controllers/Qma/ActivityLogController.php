@@ -23,6 +23,9 @@ class ActivityLogController extends Controller
      */
     private function getFilteredActivityQuery(Request $request): Builder
     {
+        // Otomatis update status perjalanan pending yang kedaluwarsa (> 5 jam)
+        VehicleActivity::expireOverduePendingActivities();
+
         $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
             ->latest('recorded_at');
 
@@ -740,5 +743,60 @@ class ActivityLogController extends Controller
         });
 
         return back()->with('success', "Odometer transaksi {$activity->transaction_no} ({$activity->vehicle->code}) berhasil dikoreksi menjadi " . number_format($newCurrentKm, 0, ',', '.') . " KM.");
+    }
+
+    /**
+     * Hapus catatan aktivitas perjalanan kendaraan (Timesheet LV) dari sistem.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $activity = VehicleActivity::with(['vehicle', 'driver'])->findOrFail($id);
+
+        $vehicleCode = $activity->vehicle?->code ?? '-';
+        $trxNo = $activity->transaction_no;
+        $driverName = $activity->driver?->name ?? 'Pengemudi';
+
+        DB::transaction(function () use ($activity, $vehicleCode, $trxNo, $driverName) {
+            // Jika aktivitas yang dihapus adalah aktivitas approved terakhir, sinkronkan master km ke aktivitas sebelumnya
+            if ($activity->validation_status === 'approved' && $activity->vehicle) {
+                $prevApproved = VehicleActivity::where('vehicle_id', $activity->vehicle_id)
+                    ->where('id', '!=', $activity->id)
+                    ->where('validation_status', 'approved')
+                    ->latest('recorded_at')
+                    ->first();
+
+                if ($prevApproved) {
+                    $activity->vehicle->update([
+                        'current_km' => $prevApproved->current_km,
+                    ]);
+                }
+            }
+
+            // Catat log audit ke AdminActivityLog
+            AdminActivityLog::record(
+                actionType: 'delete',
+                module: 'Operasional Kendaraan (QMA)',
+                description: "Menghapus catatan perjalanan {$trxNo} pada unit {$vehicleCode} (Driver: {$driverName}).",
+                targetType: 'VehicleActivity',
+                targetId: $activity->id,
+                targetName: "{$vehicleCode} ({$trxNo})",
+                oldValues: [
+                    'transaction_no' => $trxNo,
+                    'current_km' => (float)$activity->current_km,
+                    'distance' => (float)$activity->distance,
+                    'direction' => $activity->direction,
+                    'validation_status' => $activity->validation_status,
+                ],
+                newValues: null
+            );
+
+            // Hapus relasi riwayat lokasi (jika ada)
+            $activity->locationHistories()->delete();
+
+            // Hapus aktivitas
+            $activity->delete();
+        });
+
+        return back()->with('success', "Catatan perjalanan {$trxNo} ({$vehicleCode}) berhasil dihapus dari sistem.");
     }
 }

@@ -29,6 +29,9 @@ class DashboardController extends Controller
         $myRecentActivities = collect();
 
         if ($employee) {
+            // Otomatis batalkan perjalanan pending yang sudah melewati batas waktu 5 jam
+            VehicleActivity::expireOverduePendingActivities();
+
             $pendingActivity = VehicleActivity::with(['vehicle', 'gate'])
                 ->where('driver_id', $employee->id)
                 ->where('validation_status', 'pending')

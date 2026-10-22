@@ -241,6 +241,9 @@
                         <th class="py-3.5 px-4 text-center">ARAH</th>
                         <th class="py-3.5 px-4 text-right">ODOMETER</th>
                         <th class="py-3.5 px-4 text-center">STATUS & CATATAN</th>
+                        @can('pg.logs.delete')
+                            <th class="py-3.5 px-4 text-center whitespace-nowrap">AKSI</th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody id="verificationLogTableBody" class="divide-y divide-slate-100 font-medium text-slate-700">
@@ -390,6 +393,18 @@
                                         <i class="fa-solid fa-check text-[10px]"></i>
                                         <span>Disetujui</span>
                                     </span>
+                                @elseif($item->validation_status === 'cancelled')
+                                    <div>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700" title="{{ $item->rejection_note }}">
+                                            <i class="fa-solid fa-ban text-[10px] text-slate-400"></i>
+                                            <span>Dibatalkan</span>
+                                        </span>
+                                        @if($item->rejection_note)
+                                            <p class="text-[10px] text-slate-500 max-w-xs truncate mx-auto mt-0.5" title="{{ $item->rejection_note }}">
+                                                {{ $item->rejection_note }}
+                                            </p>
+                                        @endif
+                                    </div>
                                 @elseif($item->validation_status === 'rejected')
                                     <div>
                                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800" title="{{ $item->rejection_note }}">
@@ -409,10 +424,23 @@
                                     </span>
                                 @endif
                             </td>
+
+                            <!-- Aksi Hapus Log (RBAC Protected) -->
+                            @can('pg.logs.delete')
+                            <td class="py-3 px-4 text-center whitespace-nowrap">
+                                <button type="button"
+                                        onclick="confirmDeleteVerificationLog({{ $item->id }}, '{{ $item->transaction_no }}', '{{ $item->vehicle?->code ?? '-' }}')"
+                                        class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 transition cursor-pointer shadow-2xs"
+                                        title="Hapus Catatan Log Ini">
+                                    <i class="fa-regular fa-trash-can text-rose-600 text-[11px]"></i>
+                                    <span>Hapus</span>
+                                </button>
+                            </td>
+                            @endcan
                         </tr>
                     @empty
                         <tr id="serverVerificationEmptyRow">
-                            <td colspan="10" class="py-12 text-center text-slate-400">
+                            <td colspan="{{ auth()->user()->can('pg.logs.delete') ? 11 : 10 }}" class="py-12 text-center text-slate-400">
                                 <div class="flex flex-col items-center justify-center space-y-2">
                                     <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-lg">
                                         <i class="fa-solid fa-clipboard-question"></i>
@@ -696,7 +724,59 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            closeDeleteVerificationLogModal();
         }
     });
+
+    // Modal Konfirmasi Hapus Log Verifikasi Gerbang
+    function confirmDeleteVerificationLog(id, trxNo, vehicleCode) {
+        const textEl = document.getElementById('deleteLogTrxText');
+        const codeEl = document.getElementById('deleteLogCodeText');
+        const form = document.getElementById('deleteVerificationLogForm');
+        if (textEl) textEl.textContent = trxNo;
+        if (codeEl) codeEl.textContent = vehicleCode;
+        if (form) form.action = "{{ url('/pg/verification-logs') }}/" + id;
+
+        const modal = document.getElementById('deleteVerificationLogModal');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeDeleteVerificationLogModal() {
+        const modal = document.getElementById('deleteVerificationLogModal');
+        if (modal) modal.style.display = 'none';
+    }
 </script>
+
+@can('pg.logs.delete')
+<!-- Modal Konfirmasi Hapus Log Verifikasi Gerbang PG -->
+<div id="deleteVerificationLogModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+        <div class="p-6 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Konfirmasi Hapus Log Gerbang</h3>
+            <p class="text-xs text-slate-500 mt-1.5">
+                Apakah Anda yakin ingin menghapus data perlintasan <strong id="deleteLogTrxText" class="text-slate-800 font-mono"></strong> pada kendaraan <strong id="deleteLogCodeText" class="text-emerald-700 font-mono"></strong>?
+            </p>
+            <p class="text-[11px] text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 mt-3 text-left">
+                <i class="fa-solid fa-circle-info mr-1 text-amber-600"></i>
+                Tindakan ini permanen dan akan dicatat ke dalam riwayat audit log sistem.
+            </p>
+        </div>
+        <form id="deleteVerificationLogForm" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-end space-x-2 border-t border-slate-100">
+                <button type="button" onclick="closeDeleteVerificationLogModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition cursor-pointer shadow-sm">
+                    <i class="fa-regular fa-trash-can mr-1.5"></i> Ya, Hapus Log
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endcan
 @endsection

@@ -66,6 +66,9 @@ class VehicleActivityFormController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Bersihkan data aktivitas pending yang telah kedaluwarsa (> 5 jam)
+        VehicleActivity::expireOverduePendingActivities();
+
         // Tentukan arah yang diperbolehkan berdasarkan riwayat terakhir
         $allowedDirection = $vehicle->determineNextAllowedDirection();
 

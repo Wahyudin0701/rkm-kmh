@@ -211,9 +211,9 @@
                         <th class="py-3.5 px-4 text-right whitespace-nowrap">KM Berjalan</th>
                         <th class="py-3.5 px-4 whitespace-nowrap">Aktivitas</th>
                         <th class="py-3.5 px-4 text-center whitespace-nowrap">Status PG</th>
-                        @can('qma.logs.edit_odometer')
+                        @if(auth()->user()->can('qma.logs.edit_odometer') || auth()->user()->can('qma.logs.delete'))
                             <th class="py-3.5 px-4 text-center whitespace-nowrap">Aksi</th>
-                        @endcan
+                        @endif
                     </tr>
                 </thead>
                 <tbody id="activityLogTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
@@ -325,34 +325,48 @@
                                 @endif
                             </td>
 
-                            <!-- Aksi Koreksi Odometer (RBAC Protected) -->
-                            @can('qma.logs.edit_odometer')
+                            <!-- Aksi (Koreksi Odometer & Hapus - RBAC Protected) -->
+                            @if(auth()->user()->can('qma.logs.edit_odometer') || auth()->user()->can('qma.logs.delete'))
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <button type="button" 
-                                        onclick="openQmaOdometerModal({{ json_encode([
-                                            'id' => $act->id,
-                                            'trx' => $act->transaction_no,
-                                            'code' => $act->vehicle?->code ?? '-',
-                                            'unit' => $act->vehicle?->brand_type ?? 'Kendaraan',
-                                            'driver' => $act->driver?->name ?? 'Pengemudi',
-                                            'previous_km' => (float)$act->previous_km,
-                                            'current_km' => (float)$act->current_km,
-                                            'distance' => (float)$act->distance,
-                                            'is_corrected' => (bool)$act->is_corrected,
-                                            'original_km' => (float)($act->original_current_km ?? $act->current_km),
-                                            'reason' => $act->correction_reason ?? '',
-                                        ]) }})"
-                                        class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer shadow-2xs"
-                                        title="Koreksi Odometer Transaksi Ini">
-                                    <i class="fa-solid fa-screwdriver-wrench text-amber-600 text-[11px]"></i>
-                                    <span>Koreksi</span>
-                                </button>
+                                <div class="inline-flex items-center gap-1.5">
+                                    @can('qma.logs.edit_odometer')
+                                    <button type="button" 
+                                            onclick="openQmaOdometerModal({{ json_encode([
+                                                'id' => $act->id,
+                                                'trx' => $act->transaction_no,
+                                                'code' => $act->vehicle?->code ?? '-',
+                                                'unit' => $act->vehicle?->brand_type ?? 'Kendaraan',
+                                                'driver' => $act->driver?->name ?? 'Pengemudi',
+                                                'previous_km' => (float)$act->previous_km,
+                                                'current_km' => (float)$act->current_km,
+                                                'distance' => (float)$act->distance,
+                                                'is_corrected' => (bool)$act->is_corrected,
+                                                'original_km' => (float)($act->original_current_km ?? $act->current_km),
+                                                'reason' => $act->correction_reason ?? '',
+                                            ]) }})"
+                                            class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition cursor-pointer shadow-2xs"
+                                            title="Koreksi Odometer Transaksi Ini">
+                                        <i class="fa-solid fa-screwdriver-wrench text-amber-600 text-[11px]"></i>
+                                        <span>Koreksi</span>
+                                    </button>
+                                    @endcan
+
+                                    @can('qma.logs.delete')
+                                    <button type="button"
+                                            onclick="confirmDeleteActivity({{ $act->id }}, '{{ $act->transaction_no }}', '{{ $act->vehicle?->code ?? '-' }}')"
+                                            class="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 transition cursor-pointer shadow-2xs"
+                                            title="Hapus Catatan Perjalanan Ini">
+                                        <i class="fa-regular fa-trash-can text-rose-600 text-[11px]"></i>
+                                        <span>Hapus</span>
+                                    </button>
+                                    @endcan
+                                </div>
                             </td>
-                            @endcan
+                            @endif
                         </tr>
                     @empty
                         <tr id="serverActivityEmptyRow">
-                            <td colspan="{{ auth()->user()->can('qma.logs.edit_odometer') ? 12 : 11 }}" class="py-12 px-4 text-center">
+                            <td colspan="{{ (auth()->user()->can('qma.logs.edit_odometer') || auth()->user()->can('qma.logs.delete')) ? 12 : 11 }}" class="py-12 px-4 text-center">
                                 <div class="flex flex-col items-center justify-center space-y-3">
                                     <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 text-2xl">
                                         <i class="fa-solid fa-magnifying-glass"></i>
@@ -791,6 +805,53 @@ document.addEventListener('DOMContentLoaded', function () {
             submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             valText.innerText = '+' + diff.toLocaleString('id-ID') + ' KM';
         }
+    }
+</script>
+@endcan
+
+@can('qma.logs.delete')
+<!-- Modal Konfirmasi Hapus Catatan Perjalanan QMA -->
+<div id="deleteActivityModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+        <div class="p-6 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">Konfirmasi Hapus Perjalanan</h3>
+            <p class="text-xs text-slate-500 mt-1.5">
+                Apakah Anda yakin ingin menghapus data perjalanan <strong id="deleteTrxNoText" class="text-slate-800 font-mono"></strong> pada unit <strong id="deleteVehicleCodeText" class="text-emerald-700 font-mono"></strong>?
+            </p>
+            <p class="text-[11px] text-amber-700 bg-amber-50 p-2.5 rounded-xl border border-amber-200 mt-3 text-left">
+                <i class="fa-solid fa-circle-info mr-1 text-amber-600"></i>
+                Tindakan ini permanen dan akan dicatat ke dalam riwayat audit log sistem.
+            </p>
+        </div>
+        <form id="deleteActivityForm" method="POST" action="">
+            @csrf
+            @method('DELETE')
+            <div class="bg-slate-50 px-6 py-4 flex items-center justify-end space-x-2 border-t border-slate-100">
+                <button type="button" onclick="closeDeleteActivityModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition cursor-pointer shadow-sm">
+                    <i class="fa-regular fa-trash-can mr-1.5"></i> Ya, Hapus Catatan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function confirmDeleteActivity(id, trxNo, vehicleCode) {
+        document.getElementById('deleteTrxNoText').textContent = trxNo;
+        document.getElementById('deleteVehicleCodeText').textContent = vehicleCode;
+        const form = document.getElementById('deleteActivityForm');
+        form.action = "{{ url('/qma/activity-log') }}/" + id;
+        document.getElementById('deleteActivityModal').style.display = 'flex';
+    }
+
+    function closeDeleteActivityModal() {
+        document.getElementById('deleteActivityModal').style.display = 'none';
     }
 </script>
 @endcan

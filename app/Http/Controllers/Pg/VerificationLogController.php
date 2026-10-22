@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Pg;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\VehicleActivity;
 use App\Services\PgTablePdfExporter;
 use App\Services\SimpleXlsxExporter;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,6 +23,9 @@ class VerificationLogController extends Controller
      */
     protected function getVerificationLogsQuery(Request $request)
     {
+        // Otomatis batalkan antrean pending yang melewati batas 5 jam
+        VehicleActivity::expireOverduePendingActivities();
+
         $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
             ->orderByRaw('COALESCE(validated_at, recorded_at) DESC');
 
@@ -313,5 +319,61 @@ class VerificationLogController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $fileName . '"',
         ]);
+    }
+
+    /**
+     * Hapus riwayat log verifikasi gerbang oleh Admin yang berwenang.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $activity = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])->findOrFail($id);
+
+        $vehicleCode = $activity->vehicle?->code ?? '-';
+        $trxNo = $activity->transaction_no;
+        $driverName = $activity->driver?->name ?? 'Pengemudi';
+        $gateName = $activity->gate?->name ?? 'Gerbang';
+
+        DB::transaction(function () use ($activity, $vehicleCode, $trxNo, $driverName, $gateName) {
+            // Jika aktivitas yang dihapus adalah aktivitas approved terakhir, kembalikan posisi & km master jika perlu
+            if ($activity->validation_status === 'approved' && $activity->vehicle) {
+                $prevApproved = VehicleActivity::where('vehicle_id', $activity->vehicle_id)
+                    ->where('id', '!=', $activity->id)
+                    ->where('validation_status', 'approved')
+                    ->latest('recorded_at')
+                    ->first();
+
+                if ($prevApproved) {
+                    $activity->vehicle->update([
+                        'current_km' => $prevApproved->current_km,
+                    ]);
+                }
+            }
+
+            // Catat log audit ke AdminActivityLog
+            AdminActivityLog::record(
+                actionType: 'delete',
+                module: 'Keamanan & Pos Satpam (PG)',
+                description: "Menghapus riwayat verifikasi perlintasan gerbang {$trxNo} pada unit {$vehicleCode} di pos {$gateName} (Driver: {$driverName}).",
+                targetType: 'VehicleActivity',
+                targetId: $activity->id,
+                targetName: "{$vehicleCode} ({$trxNo})",
+                oldValues: [
+                    'transaction_no' => $trxNo,
+                    'current_km' => (float)$activity->current_km,
+                    'direction' => $activity->direction,
+                    'gate' => $gateName,
+                    'validation_status' => $activity->validation_status,
+                ],
+                newValues: null
+            );
+
+            // Hapus relasi riwayat lokasi (jika ada)
+            $activity->locationHistories()->delete();
+
+            // Hapus aktivitas
+            $activity->delete();
+        });
+
+        return back()->with('success', "Riwayat log verifikasi gerbang {$trxNo} ({$vehicleCode}) berhasil dihapus.");
     }
 }

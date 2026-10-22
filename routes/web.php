@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log')->middleware('permission:qma.logs.view');
         Route::get('/activity-log/support-timesheet', [SupportTimesheetController::class, 'index'])->name('activity.support_timesheet')->middleware('permission:qma.logs.view');
         Route::post('/activity-log/{id}/correct-odometer', [ActivityLogController::class, 'correctOdometer'])->name('activity.correct_odometer')->middleware('permission:qma.logs.edit_odometer');
+        Route::delete('/activity-log/{id}', [ActivityLogController::class, 'destroy'])->name('activity.destroy')->middleware('permission:qma.logs.delete');
         Route::get('/activity-log/export-excel', [ActivityLogController::class, 'exportExcel'])->name('activity.export_excel')->middleware('permission:qma.logs.view');
         Route::get('/activity-log/export-pdf', [ActivityLogController::class, 'exportPdf'])->name('activity.export_pdf')->middleware('permission:qma.logs.view');
         Route::get('/activity-summary', [ActivityLogController::class, 'summary'])->name('activity.summary')->middleware('permission:qma.summary.view');
@@ -156,6 +157,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/guards/{id}/toggle', [SecurityGuardController::class, 'toggleStatus'])->name('guards.toggle')->middleware('permission:pg.guards.toggle');
         Route::delete('/guards/{id}', [SecurityGuardController::class, 'destroy'])->name('guards.destroy')->middleware('permission:pg.guards.delete');
         Route::get('/verification-logs', [VerificationLogController::class, 'index'])->name('logs.index')->middleware('permission:pg.logs.view');
+        Route::delete('/verification-logs/{id}', [VerificationLogController::class, 'destroy'])->name('logs.destroy')->middleware('permission:pg.logs.delete');
         Route::get('/verification-logs/export-excel', [VerificationLogController::class, 'exportExcel'])->name('logs.export_excel')->middleware('permission:pg.logs.view');
         Route::get('/verification-logs/export-pdf', [VerificationLogController::class, 'exportPdf'])->name('logs.export_pdf')->middleware('permission:pg.logs.view');
 

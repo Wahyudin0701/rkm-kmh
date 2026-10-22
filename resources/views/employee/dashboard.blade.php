@@ -83,7 +83,15 @@
                     </div>
                 </div>
 
-                <div class="self-start sm:self-center">
+                <div class="self-start sm:self-center flex flex-wrap items-center gap-2">
+                    <!-- Timer Countdown Sisa Waktu 5 Jam -->
+                    <div id="pendingTripCountdownContainer"
+                         data-expires-at="{{ $pendingActivity->expires_at?->toISOString() }}"
+                         class="inline-flex items-center px-3 py-1 rounded-full text-xs font-mono font-bold bg-white text-rose-700 border border-rose-300 shadow-2xs">
+                        <i class="fa-solid fa-stopwatch mr-1.5 text-rose-600 animate-pulse"></i>
+                        <span>Sisa: <strong id="tripCountdownTimerText">--:--:--</strong></span>
+                    </div>
+
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping mr-1.5"></span>
                         <span class="w-2 h-2 rounded-full bg-amber-500 mr-1.5 -ml-3.5"></span>
@@ -774,6 +782,41 @@
             loadingEl.classList.add('hidden');
             errorEl.classList.remove('hidden');
             errorMsg.textContent = (err && err.message) ? err.message : 'Kamera tidak dapat diakses. Pastikan peramban browser diberikan izin akses kamera (Camera Permission).';
+        }
+    }
+
+    // Countdown Timer Tiket Pending (Batas Waktu 5 Jam)
+    const countdownContainer = document.getElementById('pendingTripCountdownContainer');
+    if (countdownContainer) {
+        const expiresAtRaw = countdownContainer.getAttribute('data-expires-at');
+        const timerTextEl = document.getElementById('tripCountdownTimerText');
+        if (expiresAtRaw && timerTextEl) {
+            const expireTime = new Date(expiresAtRaw).getTime();
+
+            function updateTripCountdown() {
+                const now = new Date().getTime();
+                const distance = expireTime - now;
+
+                if (distance <= 0) {
+                    timerTextEl.textContent = 'Kedaluwarsa';
+                    countdownContainer.classList.remove('text-rose-700', 'border-rose-300');
+                    countdownContainer.classList.add('text-slate-600', 'bg-slate-100', 'border-slate-300');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2500);
+                    return;
+                }
+
+                const hours = Math.floor(distance / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                const pad = (n) => String(n).padStart(2, '0');
+                timerTextEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            }
+
+            updateTripCountdown();
+            setInterval(updateTripCountdown, 1000);
         }
     }
 </script>

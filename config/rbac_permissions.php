@@ -100,6 +100,10 @@ return [
                     'label' => 'Koreksi Odometer & Kelola Timesheet Support',
                     'description' => 'Mengoreksi angka kilometer perjalanan LV serta menambah, mengubah, dan menghapus Timesheet Unit Support.',
                 ],
+                'qma.logs.delete' => [
+                    'label' => 'Menghapus Catatan Perjalanan (Timesheet LV)',
+                    'description' => 'Menghapus riwayat data perjalanan mobilisasi kendaraan operasional dari sistem.',
+                ],
                 'qma.summary.view' => [
                     'label' => 'Melihat Rekapitulasi & Laporan Armada',
                     'description' => 'Melihat total kilometer, jumlah perjalanan, dan ringkasan penggunaan armada per periode.',
@@ -145,6 +149,10 @@ return [
                 'pg.logs.view' => [
                     'label' => 'Melihat Riwayat Keluar-Masuk Gerbang',
                     'description' => 'Melihat catatan kendaraan yang diperiksa, disetujui, atau ditolak oleh satpam di pos gerbang.',
+                ],
+                'pg.logs.delete' => [
+                    'label' => 'Menghapus Riwayat Verifikasi Gerbang',
+                    'description' => 'Menghapus catatan log verifikasi perlintasan kendaraan pos gerbang dari sistem.',
                 ],
             ],
         ],

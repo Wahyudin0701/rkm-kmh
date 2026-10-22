@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class VehicleActivity extends Model
 {
     use HasFactory;
+
+    public const PENDING_TIMEOUT_HOURS = 5;
 
     protected $fillable = [
         'transaction_no',
@@ -93,6 +96,54 @@ class VehicleActivity extends Model
     public function isRejected(): bool
     {
         return $this->validation_status === 'rejected';
+    }
+
+    /**
+     * Cek apakah tiket perjalanan pending sudah melebihi batas waktu 5 jam.
+     */
+    public function isOverdue(int $hours = self::PENDING_TIMEOUT_HOURS): bool
+    {
+        if ($this->validation_status !== 'pending' || !$this->recorded_at) {
+            return false;
+        }
+
+        return $this->recorded_at->copy()->addHours($hours)->isPast();
+    }
+
+    /**
+     * Waktu tepat tiket kedaluwarsa (recorded_at + 5 jam).
+     */
+    public function getExpiresAtAttribute(): ?Carbon
+    {
+        return $this->recorded_at ? $this->recorded_at->copy()->addHours(self::PENDING_TIMEOUT_HOURS) : null;
+    }
+
+    /**
+     * Hitung sisa detik sebelum tiket kedaluwarsa.
+     */
+    public function getRemainingSecondsAttribute(): int
+    {
+        if ($this->validation_status !== 'pending' || !$this->recorded_at) {
+            return 0;
+        }
+
+        $expireTime = $this->expires_at;
+        return max(0, (int) Carbon::now()->diffInSeconds($expireTime, false));
+    }
+
+    /**
+     * Batalkan otomatis seluruh tiket pending yang sudah melebihi batas waktu (default 5 jam).
+     */
+    public static function expireOverduePendingActivities(int $hours = self::PENDING_TIMEOUT_HOURS): int
+    {
+        $cutoff = Carbon::now()->subHours($hours);
+
+        return static::where('validation_status', 'pending')
+            ->where('recorded_at', '<=', $cutoff)
+            ->update([
+                'validation_status' => 'cancelled',
+                'rejection_note' => "Dibatalkan sistem: Melebihi batas waktu verifikasi ({$hours} jam)",
+            ]);
     }
 
     public function scopePending(Builder $query): Builder

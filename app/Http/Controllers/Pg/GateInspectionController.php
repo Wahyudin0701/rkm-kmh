@@ -46,6 +46,9 @@ class GateInspectionController extends Controller
             $needsGateSelection = true;
         }
 
+        // Otomatis bersihkan antrean pending yang sudah lewat batas 5 jam
+        VehicleActivity::expireOverduePendingActivities();
+
         $pendingActivities = collect();
         if ($gate) {
             $pendingActivities = VehicleActivity::where('gate_id', $gate->id)
@@ -111,6 +114,9 @@ class GateInspectionController extends Controller
             ?: session('active_gate_id') 
             ?: ($user ? $user->gate_id : null);
         $gate = $gateId ? Gate::find($gateId) : Gate::first();
+
+        // Otomatis bersihkan antrean pending yang sudah lewat batas 5 jam
+        VehicleActivity::expireOverduePendingActivities();
 
         $pendingActivities = collect();
         if ($gate) {
