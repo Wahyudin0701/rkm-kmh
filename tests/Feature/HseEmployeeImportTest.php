@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\SimpleXlsxExporter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -105,6 +106,11 @@ class HseEmployeeImportTest extends TestCase
             'username' => 'KMH-IMP-001',
             'name' => 'Budi Kurniawan',
         ]);
+        $importedUser = User::where('username', 'KMH-IMP-001')->first();
+        $this->assertNotNull($importedUser);
+        $this->assertTrue(Hash::check('123456', $importedUser->password));
+        $this->assertTrue($importedUser->hasRole('employee'));
+
         $this->assertDatabaseHas('users', [
             'username' => 'KMH-IMP-002',
             'name' => 'Sari Agustin',
@@ -233,6 +239,10 @@ class HseEmployeeImportTest extends TestCase
             'username' => 'KMH-MANUAL-001',
             'name' => 'Dimas Anggara',
         ]);
+        $manualUser = User::where('username', 'KMH-MANUAL-001')->first();
+        $this->assertNotNull($manualUser);
+        $this->assertTrue(Hash::check('123456', $manualUser->password));
+        $this->assertTrue($manualUser->hasRole('employee'));
     }
 
     public function test_authorized_user_can_import_employees_with_only_basic_columns(): void

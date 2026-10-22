@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
+use App\Models\Employee;
 use App\Models\Gate;
 use App\Models\User;
 use App\Services\ImageCompressionService;
@@ -23,7 +24,7 @@ class UserController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = User::with(['roles', 'gate']);
+        $query = User::with(['roles', 'gate', 'employee']);
 
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
@@ -75,6 +76,10 @@ class UserController extends Controller
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'unit_kerja' => ['nullable', 'string', 'max:100'],
+            'division' => ['nullable', 'string', 'max:100'],
+            'position' => ['nullable', 'string', 'max:100'],
+            'is_operator' => ['nullable', 'in:0,1'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -116,11 +121,29 @@ class UserController extends Controller
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Jika user berstatus employee (role employee atau memiliki wewenang operasional karyawan), pastikan profil master Employee ada
-        if ($user->isEmployee()) {
-            $emp = $user->getOrCreateEmployee();
-            if ($emp && $photoPath && empty($emp->photo_path)) {
-                $emp->update(['photo_path' => $photoPath]);
+        // Sinkronisasi profil master Employee jika role karyawan atau ada isian data karyawan
+        $isEmployeeRole = $user->isEmployee() || $validated['role'] === 'employee';
+        $hasEmployeeFields = !empty($validated['unit_kerja']) || !empty($validated['division']) || !empty($validated['position']) || (isset($validated['is_operator']) && $validated['is_operator'] !== '');
+
+        if ($isEmployeeRole || $hasEmployeeFields) {
+            $isOperator = (isset($validated['is_operator']) && $validated['is_operator'] !== '')
+                ? (bool) $validated['is_operator']
+                : ($isEmployeeRole ? true : false);
+            $emp = Employee::where('user_id', $user->id)->orWhere('nik', $user->username)->first();
+            $empData = [
+                'user_id' => $user->id,
+                'nik' => $user->username,
+                'name' => $user->name,
+                'unit_kerja' => $validated['unit_kerja'] ?? ($emp?->unit_kerja ?? 'Umum'),
+                'division' => $validated['division'] ?? ($emp?->division ?? '-'),
+                'position' => $validated['position'] ?? ($emp?->position ?? ($isEmployeeRole ? 'Driver Operasional' : '-')),
+                'is_operator' => $isOperator,
+                'photo_path' => $photoPath ?: $emp?->photo_path,
+            ];
+            if ($emp) {
+                $emp->update($empData);
+            } else {
+                Employee::create($empData);
             }
         }
 
@@ -161,6 +184,10 @@ class UserController extends Controller
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'unit_kerja' => ['nullable', 'string', 'max:100'],
+            'division' => ['nullable', 'string', 'max:100'],
+            'position' => ['nullable', 'string', 'max:100'],
+            'is_operator' => ['nullable', 'in:0,1'],
         ], [
             'name.required' => 'Nama lengkap wajib diisi.',
             'username.required' => 'Username wajib diisi.',
@@ -211,17 +238,42 @@ class UserController extends Controller
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Sinkronkan data master Employee jika pengguna berstatus employee
-        if ($user->employee) {
-            $user->employee->update([
+        // Sinkronkan data master Employee
+        $emp = $user->employee ?: Employee::where('nik', $user->username)->first();
+        $isEmployeeRole = $user->isEmployee() || $validated['role'] === 'employee';
+        $hasEmployeeFields = !empty($validated['unit_kerja']) || !empty($validated['division']) || !empty($validated['position']) || (isset($validated['is_operator']) && $validated['is_operator'] !== '');
+
+        if ($emp || $isEmployeeRole || $hasEmployeeFields) {
+            $empData = [
                 'name' => $user->name,
                 'nik' => $user->username,
-                'photo_path' => $user->photo_path ?: $user->employee->photo_path,
-            ]);
-        } elseif ($user->isEmployee()) {
-            $emp = $user->getOrCreateEmployee();
-            if ($emp && $user->photo_path) {
-                $emp->update(['photo_path' => $user->photo_path]);
+                'photo_path' => $user->photo_path ?: $emp?->photo_path,
+            ];
+            if (array_key_exists('unit_kerja', $validated) && $validated['unit_kerja'] !== null) {
+                $empData['unit_kerja'] = $validated['unit_kerja'];
+            }
+            if (array_key_exists('division', $validated) && $validated['division'] !== null) {
+                $empData['division'] = $validated['division'];
+            }
+            if (array_key_exists('position', $validated) && $validated['position'] !== null) {
+                $empData['position'] = $validated['position'];
+            }
+            if (array_key_exists('is_operator', $validated) && $validated['is_operator'] !== null && $validated['is_operator'] !== '') {
+                $empData['is_operator'] = (bool) $validated['is_operator'];
+            }
+
+            if ($emp) {
+                $emp->update($empData);
+                if (!$emp->user_id) {
+                    $emp->update(['user_id' => $user->id]);
+                }
+            } else {
+                $empData['user_id'] = $user->id;
+                $empData['unit_kerja'] = $empData['unit_kerja'] ?? 'Umum';
+                $empData['division'] = $empData['division'] ?? '-';
+                $empData['position'] = $empData['position'] ?? ($isEmployeeRole ? 'Driver Operasional' : '-');
+                $empData['is_operator'] = $empData['is_operator'] ?? ($isEmployeeRole ? true : false);
+                Employee::create($empData);
             }
         }
 

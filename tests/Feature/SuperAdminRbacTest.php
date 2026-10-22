@@ -74,6 +74,10 @@ class SuperAdminRbacTest extends TestCase
             'email' => 'operator@kmh.co.id',
             'password' => 'password123',
             'role' => 'gate_officer',
+            'unit_kerja' => 'Pembangkit',
+            'division' => 'Operasi',
+            'position' => 'Driver LV',
+            'is_operator' => '1',
         ]);
 
         $response->assertRedirect(route('admin.users.index'));
@@ -83,6 +87,15 @@ class SuperAdminRbacTest extends TestCase
         $this->assertNotNull($newUser);
         $this->assertTrue($newUser->hasRole('gate_officer'));
         $this->assertEquals('gate_officer', $newUser->role);
+
+        $this->assertDatabaseHas('employees', [
+            'nik' => 'operator.baru',
+            'name' => 'Operator Baru',
+            'unit_kerja' => 'Pembangkit',
+            'division' => 'Operasi',
+            'position' => 'Driver LV',
+            'is_operator' => 1,
+        ]);
     }
 
     public function test_super_admin_can_update_user_and_change_role(): void
@@ -101,6 +114,10 @@ class SuperAdminRbacTest extends TestCase
             'username' => '1171',
             'email' => '1171@kmh.co.id',
             'role' => 'hse_admin',
+            'unit_kerja' => 'HSE',
+            'division' => 'Safety',
+            'position' => 'Officer HSE',
+            'is_operator' => '0',
         ]);
 
         $response->assertRedirect(route('admin.users.index'));
@@ -108,6 +125,14 @@ class SuperAdminRbacTest extends TestCase
         $user->refresh();
         $this->assertEquals('Pinto Yuliandra Updated', $user->name);
         $this->assertTrue($user->hasRole('hse_admin'));
+
+        $this->assertDatabaseHas('employees', [
+            'nik' => '1171',
+            'unit_kerja' => 'HSE',
+            'division' => 'Safety',
+            'position' => 'Officer HSE',
+            'is_operator' => 0,
+        ]);
     }
 
     public function test_super_admin_cannot_delete_own_account_or_main_superadmin(): void

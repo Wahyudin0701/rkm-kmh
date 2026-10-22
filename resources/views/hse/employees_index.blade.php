@@ -287,6 +287,13 @@
         <form action="{{ route('hse.employees.store') }}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
             @csrf
 
+            <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-2.5">
+                <i class="fa-solid fa-circle-info text-emerald-600 text-xs mt-0.5"></i>
+                <div class="text-[11px] text-emerald-900 leading-relaxed">
+                    Akun login karyawan otomatis dibuatkan dengan <strong>Username NIK</strong> dan <strong>Password default: 123456</strong> (Role: Karyawan).
+                </div>
+            </div>
+
             <div>
                 <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan (Opsional)</label>
                 <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
@@ -406,6 +413,13 @@
                 <i class="fa-solid fa-download text-[11px]"></i>
                 <span>Unduh</span>
             </a>
+        </div>
+
+        <div class="mt-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-start gap-2.5">
+            <i class="fa-solid fa-shield-halved text-emerald-600 text-xs mt-0.5"></i>
+            <div class="text-[11px] text-slate-600 leading-relaxed">
+                Setiap data karyawan yang diimpor otomatis dibuatkan akun login sistem dengan <strong>Username NIK</strong>, <strong>Role Karyawan</strong>, dan <strong>Password default: 123456</strong>.
+            </div>
         </div>
 
         <form action="{{ route('hse.employees.import') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">

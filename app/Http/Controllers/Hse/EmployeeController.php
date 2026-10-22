@@ -468,7 +468,7 @@ class EmployeeController extends Controller
                     [
                         'name' => $name,
                         'email' => $cleanEmail,
-                        'password' => Hash::make('password'),
+                        'password' => Hash::make('123456'),
                         'role' => 'employee',
                     ]
                 );
@@ -556,7 +556,7 @@ class EmployeeController extends Controller
             [
                 'name' => $validated['name'],
                 'email' => strtolower(str_replace(['-', ' '], '', $validated['nik'])) . '@kmh.co.id',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('123456'),
                 'role' => 'employee',
             ]
         );
