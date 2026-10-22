@@ -32,36 +32,21 @@
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <!-- Total Pengguna -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden group hover:border-indigo-300 transition">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Akun</span>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Akun</span>
             <div class="text-2xl font-black text-slate-800">{{ $metrics['total_users'] }}</div>
             <p class="text-[11px] text-slate-500 mt-1">Terdaftar dalam sistem</p>
         </div>
 
         <!-- Total Roles Spatie -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden group hover:border-violet-300 transition">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Role RBAC</span>
-                <div class="w-8 h-8 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-shield-halved"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Total Role RBAC</span>
             <div class="text-2xl font-black text-slate-800">{{ $metrics['total_roles'] }}</div>
             <p class="text-[11px] text-slate-500 mt-1">Tingkatan wewenang</p>
         </div>
 
         <!-- Master Data Operasional (HSE & QMA) -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden group hover:border-emerald-300 transition">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Master Data</span>
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-database"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Master Data</span>
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-800">{{ $metrics['total_vehicles'] }}</span>
                 <span class="text-xs text-slate-400 font-semibold">Unit</span>
@@ -74,12 +59,7 @@
 
         <!-- Aktivitas Hari Ini -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm relative overflow-hidden group hover:border-amber-300 transition">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Aktivitas Hari Ini</span>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Aktivitas Hari Ini</span>
             <div class="flex items-baseline gap-2">
                 <span class="text-2xl font-black text-slate-800">{{ $metrics['activities_today'] }}</span>
                 <span class="text-xs text-slate-400 font-semibold">Total</span>

@@ -97,51 +97,31 @@
     <!-- KPI Ringkasan Pemindahan Unit -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- 1. Total Transfer -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Pemindahan</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalTransfers, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-slate-400 font-medium">Semua Dokumen BAST</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-lg">
-                <i class="fa-solid fa-truck-ramp-box"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Pemindahan</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalTransfers, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1">Semua Dokumen BAST</span>
         </div>
 
         <!-- 2. Pemindahan Bulan Ini -->
-        <div class="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-blue-50/30">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-blue-700">Bulan Ini</p>
-                <h3 class="text-2xl font-black text-blue-800 mt-1">{{ number_format($thisMonthCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-blue-600 font-semibold">{{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-700 text-lg">
-                <i class="fa-solid fa-calendar-days"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs bg-gradient-to-br from-white to-blue-50/30">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-blue-700">Bulan Ini</p>
+            <h3 class="text-2xl font-black text-blue-800 mt-1">{{ number_format($thisMonthCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-blue-600 font-semibold block mt-1">{{ \Carbon\Carbon::now()->translatedFormat('F Y') }}</span>
         </div>
 
         <!-- 3. Di Dalam Site -->
-        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/30">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Tujuan In-Site</p>
-                <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($insideCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-emerald-600 font-semibold">Area Proyek KMH</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 text-lg">
-                <i class="fa-solid fa-map-pin"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs bg-gradient-to-br from-white to-emerald-50/30">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Tujuan In-Site</p>
+            <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($insideCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-emerald-600 font-semibold block mt-1">Area Proyek KMH</span>
         </div>
 
         <!-- 4. Di Luar Site -->
-        <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-amber-50/30">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Tujuan Out-Site</p>
-                <h3 class="text-2xl font-black text-amber-800 mt-1">{{ number_format($outsideCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-amber-600 font-semibold">Workshop/Luar Proyek</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 text-lg">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-xs bg-gradient-to-br from-white to-amber-50/30">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Tujuan Out-Site</p>
+            <h3 class="text-2xl font-black text-amber-800 mt-1">{{ number_format($outsideCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-amber-600 font-semibold block mt-1">Workshop/Luar Proyek</span>
         </div>
     </div>
 

@@ -26,54 +26,26 @@
     <!-- Metrik Ringkasan Aktivitas -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Hari Ini</span>
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['today_count']) }}</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-calendar-day"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Hari Ini</span>
+            <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['today_count']) }}</span>
             <span class="text-[10px] text-slate-400 font-medium block mt-2">Aktivitas admin hari ini</span>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block">Tambah Baru</span>
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['create_count']) }}</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-circle-plus"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider block">Tambah Baru</span>
+            <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['create_count']) }}</span>
             <span class="text-[10px] text-slate-400 font-medium block mt-2">Akun / data baru dibuat</span>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider block">Ubah & Hak Akses</span>
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['update_count']) }}</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider block">Ubah & Hak Akses</span>
+            <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['update_count']) }}</span>
             <span class="text-[10px] text-slate-400 font-medium block mt-2">Data atau izin yang diperbarui</span>
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-bold text-rose-600 uppercase tracking-wider block">Hapus Data</span>
-                    <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['delete_count']) }}</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-trash-can"></i>
-                </div>
-            </div>
+            <span class="text-[11px] font-bold text-rose-600 uppercase tracking-wider block">Hapus Data</span>
+            <span class="text-xl sm:text-2xl font-black text-slate-900 mt-1 block">{{ number_format($stats['delete_count']) }}</span>
             <span class="text-[10px] text-slate-400 font-medium block mt-2">Data dihapus dari sistem</span>
         </div>
     </div>

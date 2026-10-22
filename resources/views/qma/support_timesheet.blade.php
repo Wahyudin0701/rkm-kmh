@@ -69,54 +69,34 @@
         </div>
     </div>
 
-    <!-- KPI Ringkasan Data Timesheet (Dipertahankan Sesuai Preferensi) -->
+    <!-- KPI Ringkasan Data Timesheet -->
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
         <!-- 1. Total Entri -->
-        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Timesheet</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalEntries, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-slate-400 font-medium">Laporan Operasi</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-lg">
-                <i class="fa-solid fa-clipboard-check"></i>
-            </div>
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Timesheet</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalEntries, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1">Laporan Operasi</span>
         </div>
 
         <!-- 2. Total Jam Operasi (HM) -->
-        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-emerald-200 shadow-sm flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/40">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Total Jam Operasi</p>
-                <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($totalOperatingHours, 1, ',', '.') }} <span class="text-sm font-bold text-emerald-600">Jam</span></h3>
-                <span class="text-[10px] text-emerald-600 font-semibold">Akumulasi Jam Mesin</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1b5e20] text-lg">
-                <i class="fa-solid fa-stopwatch"></i>
-            </div>
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-emerald-200 shadow-sm bg-gradient-to-br from-white to-emerald-50/40">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Total Jam Operasi</p>
+            <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($totalOperatingHours, 1, ',', '.') }} <span class="text-sm font-bold text-emerald-600">Jam</span></h3>
+            <span class="text-[10px] text-emerald-600 font-semibold block mt-1">Akumulasi Jam Mesin</span>
         </div>
 
         <!-- 3. Unit Aktif -->
-        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Unit Beroperasi</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($activeUnitsCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-emerald-600 font-medium">Unit Beroperasi</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg">
-                <i class="fa-solid fa-truck-monster"></i>
-            </div>
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Unit Beroperasi</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($activeUnitsCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-emerald-600 font-medium block mt-1">Unit Beroperasi</span>
         </div>
 
         <!-- 4. Breakdown -->
-        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kendala Breakdown</p>
-                <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-rose-500 font-medium">Status Breakdown</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 text-lg">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
+        <div class="bg-white p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kendala Breakdown</p>
+            <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-rose-500 font-medium block mt-1">Status Breakdown</span>
         </div>
     </div>
 

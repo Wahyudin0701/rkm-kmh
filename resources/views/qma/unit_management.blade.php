@@ -65,69 +65,44 @@
     <!-- KPI Ringkasan Posisi & Kesiapan Unit -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
         <!-- 1. Total Unit -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Unit</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalUnits, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-slate-400 font-medium">Armada Aktif Terdata</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 text-lg">
-                <i class="fa-solid fa-car-side"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Unit</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($totalUnits, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-slate-400 font-medium block mt-1">Armada Aktif Terdata</span>
         </div>
 
         <!-- 2. Di Dalam Site -->
-        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-emerald-50/40">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Di Dalam Site</p>
-                <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($insideCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-emerald-600 font-semibold flex items-center">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
-                    Area Proyek KMH
-                </span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-100/80 flex items-center justify-center text-[#1b5e20] text-lg">
-                <i class="fa-solid fa-building-shield"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs bg-gradient-to-br from-white to-emerald-50/40">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Di Dalam Site</p>
+            <h3 class="text-2xl font-black text-emerald-800 mt-1">{{ number_format($insideCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-emerald-600 font-semibold flex items-center mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+                Area Proyek KMH
+            </span>
         </div>
 
         <!-- 3. Di Luar Site -->
-        <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-xs flex items-center justify-between bg-gradient-to-br from-white to-amber-50/40">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Di Luar Site</p>
-                <h3 class="text-2xl font-black text-amber-800 mt-1">{{ number_format($outsideCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-amber-600 font-semibold flex items-center">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>
-                    Dinas / Luar Area
-                </span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-100/80 flex items-center justify-center text-amber-700 text-lg">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-xs bg-gradient-to-br from-white to-amber-50/40">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Di Luar Site</p>
+            <h3 class="text-2xl font-black text-amber-800 mt-1">{{ number_format($outsideCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-amber-600 font-semibold flex items-center mt-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>
+                Dinas / Luar Area
+            </span>
         </div>
 
         <!-- 4. Siap Operasi -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Siap Operasi</p>
-                <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($operationCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-emerald-600 font-medium">Status Operation</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-lg">
-                <i class="fa-solid fa-circle-check"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Siap Operasi</p>
+            <h3 class="text-2xl font-black text-slate-800 mt-1">{{ number_format($operationCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-emerald-600 font-medium block mt-1">Status Operation</span>
         </div>
 
         <!-- 5. Breakdown -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between col-span-2 sm:col-span-1">
-            <div>
-                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Breakdown</p>
-                <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
-                <span class="text-[10px] text-rose-500 font-medium">Butuh Perbaikan</span>
-            </div>
-            <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 text-lg">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs col-span-2 sm:col-span-1">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Breakdown</p>
+            <h3 class="text-2xl font-black text-rose-600 mt-1">{{ number_format($breakdownCount, 0, ',', '.') }}</h3>
+            <span class="text-[10px] text-rose-500 font-medium block mt-1">Butuh Perbaikan</span>
         </div>
     </div>
 
