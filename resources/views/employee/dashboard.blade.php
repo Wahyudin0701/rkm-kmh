@@ -406,6 +406,16 @@
             </table>
         </div>
     </div>
+    @else
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 text-center shadow-sm">
+        <div class="w-11 h-11 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2 text-lg">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <h4 class="text-xs font-bold text-slate-700">Belum Ada Riwayat Perjalanan</h4>
+        <p class="text-[11px] text-slate-400 mt-1 max-w-sm mx-auto">
+            Catatan mobilisasi unit kendaraan ringan (LV) yang Anda kendarai akan otomatis muncul di sini setelah Anda mengisi formulir perjalanan.
+        </p>
+    </div>
     @endif
 </div>
 
