@@ -184,7 +184,7 @@ class UserController extends Controller
         $user->username = $validated['username'];
         $user->email = $validated['email'];
         $user->role = $validated['role'];
-        $user->gate_id = $validated['gate_id'] ?? null;
+        $user->gate_id = array_key_exists('gate_id', $validated) ? $validated['gate_id'] : $user->gate_id;
 
         $passwordUpdated = false;
         if (!empty($validated['password'])) {

@@ -189,7 +189,6 @@
                         <th class="py-3 px-4">Pengguna</th>
                         <th class="py-3 px-4">Email</th>
                         <th class="py-3 px-4">Role RBAC</th>
-                        <th class="py-3 px-4">Penempatan Pos</th>
                         <th class="py-3 px-4">Terdaftar</th>
                         <th class="py-3 px-4 text-center">Aksi</th>
                     </tr>
@@ -239,16 +238,6 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="py-3 px-4 text-slate-600">
-                                @if($user->gate)
-                                    <span class="inline-flex items-center gap-1.5 text-xs text-slate-700">
-                                        <i class="fa-solid fa-location-dot text-slate-400"></i>
-                                        {{ $user->gate->name }}
-                                    </span>
-                                @else
-                                    <span class="text-slate-400 text-[11px]">-</span>
-                                @endif
-                            </td>
                             <td class="py-3 px-4 text-slate-500 text-[11px]">
                                 {{ $user->created_at->format('d M Y') }}
                             </td>
@@ -274,7 +263,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-8 text-center text-slate-400">
+                            <td colspan="5" class="py-8 text-center text-slate-400">
                                 <i class="fa-solid fa-user-slash text-2xl mb-2 text-slate-300 block"></i>
                                 Tidak ada data pengguna yang sesuai kriteria pencarian.
                             </td>
@@ -350,25 +339,14 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                    <select name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                        <option value="">-- Pilih Role --</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Penempatan Pos Gerbang</label>
-                    <select name="gate_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                        <option value="">-- Tanpa Pos Gerbang --</option>
-                        @foreach($gates as $gate)
-                            <option value="{{ $gate->id }}">{{ $gate->name }} ({{ $gate->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                <select name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                    <option value="">-- Pilih Role --</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
@@ -443,24 +421,13 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                    <select id="edit_role" name="role" required onchange="updatePermissionCheckboxes()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                        @foreach($roles as $role)
-                            <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Penempatan Pos Gerbang</label>
-                    <select id="edit_gate_id" name="gate_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                        <option value="">-- Tanpa Pos Gerbang --</option>
-                        @foreach($gates as $gate)
-                            <option value="{{ $gate->id }}">{{ $gate->name }} ({{ $gate->code }})</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                <select id="edit_role" name="role" required onchange="updatePermissionCheckboxes()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Accordion: Izin Tambahan Khusus (Direct Permissions) -->
@@ -704,7 +671,8 @@
         document.getElementById('edit_username').value = user.username;
         document.getElementById('edit_email').value = user.email;
         document.getElementById('edit_role').value = primaryRole;
-        document.getElementById('edit_gate_id').value = user.gate_id || '';
+        const editGateEl = document.getElementById('edit_gate_id');
+        if (editGateEl) editGateEl.value = user.gate_id || '';
 
         const editPhotoPreview = document.getElementById('editUserPhotoPreview');
         const editPhotoPlaceholder = document.getElementById('editUserPhotoPlaceholder');
