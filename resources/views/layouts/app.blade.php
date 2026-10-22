@@ -275,7 +275,7 @@
                         MANAJEMEN QMA
                     </p>
                     <nav class="space-y-1">
-                        <!-- 1. Dropdown Menu: Data Armada & Unit -->
+                        <!-- 1. Dropdown Menu: Data Armada -->
                         @can('qma.vehicles.view')
                             @php
                                 $isVehicleRoute = request()->routeIs('qma.vehicles.*') || request()->routeIs('qma.unit_management.*') || request()->routeIs('qma.unit_transfers.*');
@@ -284,11 +284,11 @@
                                 <button type="button" 
                                         onclick="toggleVehicleMenu('desktop')" 
                                         class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-car text-base w-5 text-center {{ $isVehicleRoute ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Data Armada & Unit</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-car text-base w-5 text-center flex-shrink-0 {{ $isVehicleRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Data Armada</span>
                                     </div>
-                                    <i id="vehicleChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="vehicleChevronDesktop" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isVehicleRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="vehicleSubmenuDesktop" class="{{ $isVehicleRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -315,7 +315,7 @@
                             </div>
                         @endcan
 
-                        <!-- 2. Dropdown Menu: Operasional & Timesheet -->
+                        <!-- 2. Dropdown Menu: Log Timesheet -->
                         @can('qma.logs.view')
                             @php
                                 $isActivityRoute = request()->routeIs('qma.activity.log') || request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.activity.support_timesheet');
@@ -324,11 +324,11 @@
                                 <button type="button" 
                                         onclick="toggleActivityMenu('desktop')" 
                                         class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isActivityRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-stopwatch text-base w-5 text-center {{ $isActivityRoute ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Operasional & Timesheet</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-stopwatch text-base w-5 text-center flex-shrink-0 {{ $isActivityRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Log Timesheet</span>
                                     </div>
-                                    <i id="activityChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="activityChevronDesktop" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isActivityRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="activitySubmenuDesktop" class="{{ $isActivityRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -354,11 +354,11 @@
                                 <button type="button" 
                                         onclick="toggleP2hMenu('desktop')" 
                                         class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isP2hRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-clipboard-check text-base w-5 text-center {{ $isP2hRoute ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Pemeriksaan P2H</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-clipboard-check text-base w-5 text-center flex-shrink-0 {{ $isP2hRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Pemeriksaan P2H</span>
                                     </div>
-                                    <i id="p2hChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isP2hRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="p2hChevronDesktop" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isP2hRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="p2hSubmenuDesktop" class="{{ $isP2hRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -379,7 +379,7 @@
                             </div>
                         @endif
 
-                        <!-- 4. Dropdown Menu: Laporan & Rekapitulasi -->
+                        <!-- 4. Dropdown Menu: Laporan Aktivitas -->
                         @if(auth()->user()->canAny(['qma.summary.view', 'qma.p2h.view']))
                             @php
                                 $isSummaryRoute = request()->routeIs('qma.activity.summary*') || request()->routeIs('qma.p2h.summary*');
@@ -388,11 +388,11 @@
                                 <button type="button" 
                                         onclick="toggleSummaryMenu('desktop')" 
                                         class="w-full flex items-center justify-between px-3.5 py-2.5 text-sm rounded-xl transition group {{ $isSummaryRoute ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-chart-pie text-base w-5 text-center {{ $isSummaryRoute ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Laporan & Rekapitulasi</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-chart-pie text-base w-5 text-center flex-shrink-0 {{ $isSummaryRoute ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Laporan Aktivitas</span>
                                     </div>
-                                    <i id="summaryChevronDesktop" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isSummaryRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="summaryChevronDesktop" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isSummaryRoute ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="summarySubmenuDesktop" class="{{ $isSummaryRoute ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -647,7 +647,7 @@
                         MANAJEMEN QMA
                     </p>
                     <nav class="space-y-1">
-                        <!-- 1. Dropdown Menu: Data Armada & Unit Mobile -->
+                        <!-- 1. Dropdown Menu: Data Armada Mobile -->
                         @can('qma.vehicles.view')
                             @php
                                 $isVehicleRouteMob = request()->routeIs('qma.vehicles.*') || request()->routeIs('qma.unit_management.*') || request()->routeIs('qma.unit_transfers.*');
@@ -656,11 +656,11 @@
                                 <button type="button" 
                                         onclick="toggleVehicleMenu('mobile')" 
                                         class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isVehicleRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-car w-5 text-center {{ $isVehicleRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Data Armada & Unit</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-car w-5 text-center flex-shrink-0 {{ $isVehicleRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Data Armada</span>
                                     </div>
-                                    <i id="vehicleChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isVehicleRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="vehicleChevronMobile" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isVehicleRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="vehicleSubmenuMobile" class="{{ $isVehicleRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -687,7 +687,7 @@
                             </div>
                         @endcan
 
-                        <!-- 2. Dropdown Menu: Operasional & Timesheet Mobile -->
+                        <!-- 2. Dropdown Menu: Log Timesheet Mobile -->
                         @can('qma.logs.view')
                             @php
                                 $isActivityRouteMob = request()->routeIs('qma.activity.log') || request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.activity.support_timesheet');
@@ -696,11 +696,11 @@
                                 <button type="button" 
                                         onclick="toggleActivityMenu('mobile')" 
                                         class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isActivityRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-stopwatch w-5 text-center {{ $isActivityRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Operasional & Timesheet</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-stopwatch w-5 text-center flex-shrink-0 {{ $isActivityRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Log Timesheet</span>
                                     </div>
-                                    <i id="activityChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isActivityRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="activityChevronMobile" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isActivityRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="activitySubmenuMobile" class="{{ $isActivityRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -726,11 +726,11 @@
                                 <button type="button" 
                                         onclick="toggleP2hMenu('mobile')" 
                                         class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isP2hRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-clipboard-check w-5 text-center {{ $isP2hRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Pemeriksaan P2H</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-clipboard-check w-5 text-center flex-shrink-0 {{ $isP2hRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Pemeriksaan P2H</span>
                                     </div>
-                                    <i id="p2hChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isP2hRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="p2hChevronMobile" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isP2hRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="p2hSubmenuMobile" class="{{ $isP2hRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
@@ -751,6 +751,7 @@
                             </div>
                         @endif
 
+                        <!-- 4. Dropdown Menu: Laporan Aktivitas Mobile -->
                         @if(auth()->user()->canAny(['qma.summary.view', 'qma.p2h.view']))
                             @php
                                 $isSummaryRouteMob = request()->routeIs('qma.activity.summary*') || request()->routeIs('qma.p2h.summary*');
@@ -759,11 +760,11 @@
                                 <button type="button" 
                                         onclick="toggleSummaryMenu('mobile')" 
                                         class="w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-xl transition group {{ $isSummaryRouteMob ? 'bg-emerald-50/70 text-[#1b5e20] font-bold' : 'sidebar-item-inactive' }}">
-                                    <div class="flex items-center space-x-3">
-                                        <i class="fa-solid fa-chart-pie w-5 text-center {{ $isSummaryRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
-                                        <span>Summary Aktivitas</span>
+                                    <div class="flex items-center space-x-3 min-w-0">
+                                        <i class="fa-solid fa-chart-pie w-5 text-center flex-shrink-0 {{ $isSummaryRouteMob ? 'text-[#1b5e20]' : '' }}"></i>
+                                        <span class="truncate whitespace-nowrap">Laporan Aktivitas</span>
                                     </div>
-                                    <i id="summaryChevronMobile" class="fa-solid fa-chevron-down text-[11px] transition-transform duration-200 {{ $isSummaryRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
+                                    <i id="summaryChevronMobile" class="fa-solid fa-chevron-down text-[11px] flex-shrink-0 transition-transform duration-200 {{ $isSummaryRouteMob ? 'rotate-180 text-[#1b5e20]' : 'text-slate-400 group-hover:text-slate-600' }}"></i>
                                 </button>
 
                                 <div id="summarySubmenuMobile" class="{{ $isSummaryRouteMob ? '' : 'hidden' }} mt-1 pl-7 pr-1 space-y-1">
