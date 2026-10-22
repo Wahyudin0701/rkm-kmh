@@ -3,7 +3,7 @@
 @section('title', 'Input Timesheet Unit - ' . $vehicle->code)
 
 @section('content')
-<div class="max-w-2xl mx-auto space-y-4">
+<div class="max-w-2xl sm:max-w-3xl mx-auto space-y-4">
     <!-- Navigasi Kembali & Logo Perusahaan KMH -->
     <div class="flex items-center justify-between pb-1">
         @if(auth()->check())
@@ -220,6 +220,102 @@
         </form>
     </div>
     @endif
+
+    <!-- RIWAYAT PERJALANAN UNIT (CLEAN, MINIMAL, TANPA WATERMARK BACKGROUND) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-slate-900 tracking-tight">Riwayat Perjalanan Unit {{ $vehicle->code }}</h3>
+                    <p class="text-[11px] text-slate-500">Catatan pergerakan dan mutasi gerbang terakhir kendaraan ini.</p>
+                </div>
+            </div>
+            <span class="text-[11px] font-semibold text-slate-400 self-start sm:self-center">
+                {{ isset($recentActivities) ? $recentActivities->count() : 0 }} Aktivitas Terakhir
+            </span>
+        </div>
+
+        @if(isset($recentActivities) && $recentActivities->isNotEmpty())
+        <div class="overflow-x-auto -mx-5 sm:mx-0">
+            <table class="w-full text-xs text-left min-w-[560px]">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                        <th class="py-2.5 px-4">Waktu</th>
+                        <th class="py-2.5 px-4">Pengemudi</th>
+                        <th class="py-2.5 px-4">Pos Gerbang</th>
+                        <th class="py-2.5 px-4 text-center">Arah</th>
+                        <th class="py-2.5 px-4 text-right">Odometer</th>
+                        <th class="py-2.5 px-4 text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    @foreach($recentActivities as $act)
+                    <tr class="hover:bg-slate-50/60 transition">
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="font-bold text-slate-900 block">{{ $act->recorded_at->locale('id')->translatedFormat('d M Y') }}</span>
+                            <span class="text-[11px] text-slate-400 block">{{ $act->recorded_at->format('H:i') }} WIB</span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="font-bold text-slate-800 text-xs block">{{ $act->driver->name ?? 'Pengemudi' }}</span>
+                            <span class="text-[11px] text-slate-500 font-mono block">NIK: {{ $act->driver->nik ?? '-' }}</span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-slate-600 font-medium">
+                            {{ $act->gate->name ?? '-' }}
+                        </td>
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            @if($act->direction === 'in')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    MASUK
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    KELUAR
+                                </span>
+                            @endif
+                        </td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap font-mono">
+                            <div class="font-bold text-slate-900">{{ number_format($act->current_km, 0, ',', '.') }} KM</div>
+                            <div class="text-[11px] text-emerald-600 font-semibold">+{{ number_format($act->distance, 0, ',', '.') }} KM</div>
+                        </td>
+                        <td class="py-3 px-4 text-center whitespace-nowrap">
+                            @if($act->validation_status === 'approved')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Divalidasi oleh: {{ $act->securityGuard->name ?? 'Satpam' }}">
+                                    <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> Disetujui
+                                </span>
+                            @elseif($act->validation_status === 'cancelled')
+                                @if($act->isCancelledBySystem())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200" title="{{ $act->rejection_note }}">
+                                        <i class="fa-solid fa-robot mr-1 text-amber-600"></i> Batal Sistem
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200" title="{{ $act->rejection_note }}">
+                                        <i class="fa-solid fa-user-xmark mr-1 text-slate-500"></i> Batal Sopir
+                                    </span>
+                                @endif
+                            @elseif($act->validation_status === 'rejected')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200" title="Alasan: {{ $act->rejection_note }}">
+                                    <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> Ditolak
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">
+                                    <i class="fa-solid fa-clock mr-1 text-amber-600"></i> Menunggu
+                                </span>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="py-5 text-center text-slate-400 text-xs">
+            <p>Belum ada riwayat pergerakan gerbang yang tercatat untuk unit {{ $vehicle->code }}.</p>
+        </div>
+        @endif
+    </div>
 </div>
 @endsection
 

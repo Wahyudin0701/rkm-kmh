@@ -62,10 +62,6 @@
     <div id="pendingTripCard" 
          data-activity-id="{{ $pendingActivity->id }}"
          class="bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-white border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden transition-all duration-300">
-        {{-- Dekorasi Latar Belakang --}}
-        <div class="absolute -right-6 -bottom-6 text-amber-100/50 pointer-events-none text-9xl">
-            <i class="fa-solid fa-car-side"></i>
-        </div>
 
         <div class="relative z-10 space-y-4">
             {{-- Header Card Perjalanan --}}

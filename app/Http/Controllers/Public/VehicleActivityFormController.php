@@ -123,6 +123,13 @@ class VehicleActivityFormController extends Controller
             }
         }
 
+        // Ambil 5 riwayat perjalanan terakhir dari unit ini
+        $recentActivities = VehicleActivity::with(['driver', 'gate', 'securityGuard'])
+            ->where('vehicle_id', $vehicle->id)
+            ->latest('recorded_at')
+            ->take(5)
+            ->get();
+
         return view('public.vehicle_activity_form', compact(
             'vehicle',
             'gates',
@@ -130,7 +137,8 @@ class VehicleActivityFormController extends Controller
             'verifiedDriver',
             'nikError',
             'nikErrorTitle',
-            'inputNik'
+            'inputNik',
+            'recentActivities'
         ));
     }
 
