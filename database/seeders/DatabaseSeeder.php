@@ -3,13 +3,19 @@
 namespace Database\Seeders;
 
 use App\Models\Gate;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     /**
      * Seed the application's database.
-     * Mengisi data master esensial sistem (Pos Gerbang, RBAC, Super Admin, dan Template P2H).
+     * Mengisi data master esensial sistem:
+     * 1. Master Pos Gerbang (15 Pos)
+     * 2. RBAC Roles & Permissions
+     * 3. 4 Akun Utama Administrator (Super Admin, HSE, QMA, PG) - Kredensial via .env
+     * 4. 28 Master Template Checksheet P2H & 282 Item Pertanyaan
      */
     public function run(): void
     {
@@ -41,14 +47,69 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        // 2. Seed RBAC Roles, Permissions & Akun Super Admin Utama (Kredensial dari .env)
+        // 2. Seed RBAC Roles & Permissions Matrix
         $this->call(RolePermissionSeeder::class);
 
-        // 3. Seed 28 Master Template Checksheet P2H Unit Support & Pertanyaan Pemeriksaan
+        // 3. Seed 4 Akun Utama Administrator Sistem (Kredensial dinamis dari config/auth.php & .env)
+        $coreAdmins = [
+            [
+                'role' => 'super_admin',
+                'config' => config('auth.superadmin', [
+                    'name' => 'Super Administrator',
+                    'username' => 'superadmin',
+                    'email' => 'superadmin@kmh.co.id',
+                    'password' => 'password',
+                ]),
+            ],
+            [
+                'role' => 'hse_admin',
+                'config' => config('auth.hse_admin', [
+                    'name' => 'Admin HSE',
+                    'username' => '1185',
+                    'email' => 'hse@kmh.co.id',
+                    'password' => 'password',
+                ]),
+            ],
+            [
+                'role' => 'qma_admin',
+                'config' => config('auth.qma_admin', [
+                    'name' => 'Admin QMA',
+                    'username' => '1171',
+                    'email' => 'qma@kmh.co.id',
+                    'password' => 'password',
+                ]),
+            ],
+            [
+                'role' => 'pg_admin',
+                'config' => config('auth.pg_admin', [
+                    'name' => 'Admin PG',
+                    'username' => 'AdminPG',
+                    'email' => 'adminpg@kmh.co.id',
+                    'password' => 'password',
+                ]),
+            ],
+        ];
+
+        foreach ($coreAdmins as $adminData) {
+            $conf = $adminData['config'];
+            $user = User::firstOrCreate([
+                'username' => $conf['username'],
+            ], [
+                'name' => $conf['name'],
+                'email' => $conf['email'],
+                'password' => Hash::make($conf['password']),
+                'role' => $adminData['role'],
+            ]);
+
+            if (!$user->hasRole($adminData['role'])) {
+                $user->assignRole($adminData['role']);
+            }
+        }
+
+        // 4. Seed 28 Master Template Checksheet P2H Unit Support & Pertanyaan Pemeriksaan
         $this->call(P2hTemplateSeeder::class);
 
-        // 4. Seed Data Uji Coba (Sample Satpam, Karyawan, Kendaraan LV & Alat Berat)
-        // Dijalankan di mode testing atau jika SEED_SAMPLE_DATA=true di .env
+        // 5. Seed Data Uji Coba Lapangan (Hanya dijalankan di testing atau jika SEED_SAMPLE_DATA=true di .env)
         $seedSamples = app()->environment('testing') || filter_var(env('SEED_SAMPLE_DATA', false), FILTER_VALIDATE_BOOLEAN);
         if ($seedSamples) {
             $this->call(SampleTestingDataSeeder::class);

@@ -116,7 +116,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Default System Credentials (Configurable via Environment Variables)
+    | Default Core Administrative Accounts (Configurable via Environment Variables)
     |--------------------------------------------------------------------------
     */
     'superadmin' => [
@@ -124,6 +124,27 @@ return [
         'username' => env('SUPERADMIN_USERNAME', 'superadmin'),
         'email' => env('SUPERADMIN_EMAIL', 'superadmin@kmh.co.id'),
         'password' => env('SUPERADMIN_PASSWORD', 'password'),
+    ],
+
+    'hse_admin' => [
+        'name' => env('HSE_ADMIN_NAME', 'Mima'),
+        'username' => env('HSE_ADMIN_USERNAME', '1185'),
+        'email' => env('HSE_ADMIN_EMAIL', 'hse@kmh.co.id'),
+        'password' => env('HSE_ADMIN_PASSWORD', 'password'),
+    ],
+
+    'qma_admin' => [
+        'name' => env('QMA_ADMIN_NAME', 'Pinto Yuliandra'),
+        'username' => env('QMA_ADMIN_USERNAME', '1171'),
+        'email' => env('QMA_ADMIN_EMAIL', 'qma@kmh.co.id'),
+        'password' => env('QMA_ADMIN_PASSWORD', 'password'),
+    ],
+
+    'pg_admin' => [
+        'name' => env('PG_ADMIN_NAME', 'Admin PG'),
+        'username' => env('PG_ADMIN_USERNAME', 'AdminPG'),
+        'email' => env('PG_ADMIN_EMAIL', 'adminpg@kmh.co.id'),
+        'password' => env('PG_ADMIN_PASSWORD', 'password'),
     ],
 
     'default_employee_password' => env('DEFAULT_EMPLOYEE_PASSWORD', '123456'),

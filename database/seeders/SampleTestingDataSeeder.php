@@ -60,47 +60,7 @@ class SampleTestingDataSeeder extends Seeder
             ]);
         }
 
-        // 3. Seed Sample Department Admins
-        // Admin HSE [Nama : Mima, Username : 1185]
-        $hseUser = User::firstOrCreate([
-            'username' => '1185',
-        ], [
-            'name' => 'Mima',
-            'email' => '1185@kmh.co.id',
-            'password' => Hash::make($defaultPassword),
-            'role' => 'hse_admin',
-        ]);
-        if (!$hseUser->hasRole('hse_admin')) {
-            $hseUser->assignRole('hse_admin');
-        }
-
-        // Admin QMA [Nama : Pinto Yuliandra, Username : 1171]
-        $qmaUser = User::firstOrCreate([
-            'username' => '1171',
-        ], [
-            'name' => 'Pinto Yuliandra',
-            'email' => '1171@kmh.co.id',
-            'password' => Hash::make($defaultPassword),
-            'role' => 'qma_admin',
-        ]);
-        if (!$qmaUser->hasRole('qma_admin')) {
-            $qmaUser->assignRole('qma_admin');
-        }
-
-        // Admin PG [Nama : Admin PG, Username : AdminPG]
-        $pgUser = User::firstOrCreate([
-            'username' => 'AdminPG',
-        ], [
-            'name' => 'Admin PG',
-            'email' => 'adminpg@kmh.co.id',
-            'password' => Hash::make($defaultPassword),
-            'role' => 'pg_admin',
-        ]);
-        if (!$pgUser->hasRole('pg_admin')) {
-            $pgUser->assignRole('pg_admin');
-        }
-
-        // 4. Seed Sample Karyawan & Driver
+        // 3. Seed Sample Karyawan & Driver (Khusus Uji Coba)
         $employeesData = [
             [
                 'nik' => 'KMH-2022-001',
