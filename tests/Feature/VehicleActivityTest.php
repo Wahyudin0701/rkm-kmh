@@ -22,6 +22,7 @@ class VehicleActivityTest extends TestCase
 
         // Seed data dasar
         $this->seed();
+        $this->seedSampleData();
     }
 
     public function test_form_qr_loads_successfully_for_light_vehicle(): void

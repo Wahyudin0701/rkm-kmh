@@ -18,6 +18,7 @@ class SecurityGuardFilterTest extends TestCase
     {
         parent::setUp();
         $this->seed();
+        $this->seedSampleData();
 
         $this->adminPg = User::where('role', 'pg_admin')->first();
     }

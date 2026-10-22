@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
      * Mengisi data master esensial sistem:
      * 1. Master Pos Gerbang (15 Pos)
      * 2. RBAC Roles & Permissions
-     * 3. 4 Akun Utama Administrator (Super Admin, HSE, QMA, PG) - Kredensial via .env
+     * 3. 4 Akun Utama Administrator (Super Admin, HSE, QMA, PG) - Kredensial murni dari .env
      * 4. 28 Master Template Checksheet P2H & 282 Item Pertanyaan
      */
     public function run(): void
@@ -80,11 +80,5 @@ class DatabaseSeeder extends Seeder
 
         // 4. Seed 28 Master Template Checksheet P2H Unit Support & Pertanyaan Pemeriksaan
         $this->call(P2hTemplateSeeder::class);
-
-        // 5. Seed Data Uji Coba Lapangan (Hanya dijalankan di testing atau jika SEED_SAMPLE_DATA=true di .env)
-        $seedSamples = app()->environment('testing') || filter_var(env('SEED_SAMPLE_DATA', false), FILTER_VALIDATE_BOOLEAN);
-        if ($seedSamples) {
-            $this->call(SampleTestingDataSeeder::class);
-        }
     }
 }
