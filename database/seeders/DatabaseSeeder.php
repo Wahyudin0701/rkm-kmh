@@ -50,53 +50,25 @@ class DatabaseSeeder extends Seeder
         // 2. Seed RBAC Roles & Permissions Matrix
         $this->call(RolePermissionSeeder::class);
 
-        // 3. Seed 4 Akun Utama Administrator Sistem (Kredensial dinamis dari config/auth.php & .env)
+        // 3. Seed 4 Akun Utama Administrator Sistem (Murni dibaca dari config/auth.php & .env)
         $coreAdmins = [
-            [
-                'role' => 'super_admin',
-                'config' => config('auth.superadmin', [
-                    'name' => 'Super Administrator',
-                    'username' => 'superadmin',
-                    'email' => 'superadmin@kmh.co.id',
-                    'password' => 'password',
-                ]),
-            ],
-            [
-                'role' => 'hse_admin',
-                'config' => config('auth.hse_admin', [
-                    'name' => 'Admin HSE',
-                    'username' => '1185',
-                    'email' => 'hse@kmh.co.id',
-                    'password' => 'password',
-                ]),
-            ],
-            [
-                'role' => 'qma_admin',
-                'config' => config('auth.qma_admin', [
-                    'name' => 'Admin QMA',
-                    'username' => '1171',
-                    'email' => 'qma@kmh.co.id',
-                    'password' => 'password',
-                ]),
-            ],
-            [
-                'role' => 'pg_admin',
-                'config' => config('auth.pg_admin', [
-                    'name' => 'Admin PG',
-                    'username' => 'AdminPG',
-                    'email' => 'adminpg@kmh.co.id',
-                    'password' => 'password',
-                ]),
-            ],
+            ['role' => 'super_admin', 'config' => config('auth.superadmin')],
+            ['role' => 'hse_admin',   'config' => config('auth.hse_admin')],
+            ['role' => 'qma_admin',   'config' => config('auth.qma_admin')],
+            ['role' => 'pg_admin',    'config' => config('auth.pg_admin')],
         ];
 
         foreach ($coreAdmins as $adminData) {
             $conf = $adminData['config'];
+            if (!$conf || empty($conf['username']) || empty($conf['password'])) {
+                continue;
+            }
+
             $user = User::firstOrCreate([
                 'username' => $conf['username'],
             ], [
-                'name' => $conf['name'],
-                'email' => $conf['email'],
+                'name' => $conf['name'] ?? ucwords(str_replace('_', ' ', $adminData['role'])),
+                'email' => $conf['email'] ?? ($conf['username'] . '@kmh.co.id'),
                 'password' => Hash::make($conf['password']),
                 'role' => $adminData['role'],
             ]);
