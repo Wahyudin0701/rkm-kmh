@@ -13,6 +13,7 @@ if [ "$DB_CONNECTION" = "mysql" ]; then
 fi
 
 # Ensure storage directories exist and have proper permissions
+rm -f /var/www/public/hot
 mkdir -p /var/www/storage/framework/cache/data \
          /var/www/storage/framework/sessions \
          /var/www/storage/framework/views \

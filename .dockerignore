@@ -15,6 +15,7 @@ bootstrap/cache/*
 .env.production
 .phpunit.result.cache
 tests
+public/hot
 Homestead.json
 Homestead.yaml
 Thumbs.db
