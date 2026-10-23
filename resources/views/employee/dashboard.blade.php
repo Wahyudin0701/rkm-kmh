@@ -546,93 +546,75 @@
     </div>
 </div>
 
-{{-- MODAL 3: IN-APP CAMERA SCANNER QR CODE / BARCODE UNIT LV --}}
+{{-- MODAL 3: IN-APP LIVE QR/BARCODE SCANNER UNIT (LANGSUNG LIVE STREAMING KAMERA KE FORM) --}}
 <div id="unitQrScannerModal" 
      onclick="if(event.target === this) closeUnitQrScannerModal()" 
-     class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
      aria-labelledby="qr-scanner-title" role="dialog" aria-modal="true">
-    <div class="relative z-10 bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-md w-full border border-slate-200 animate-scale-in">
-        <!-- Input File Tersembunyi untuk Kamera Native HP & Galeri -->
+    <div class="relative z-10 bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-md w-full border border-slate-800 animate-scale-in text-white">
+        <!-- Input File Tersembunyi (Hanya sebagai fallback darurat) -->
         <input type="file" id="qrNativeCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleQrFileSelected(event)">
         <input type="file" id="qrGalleryInput" accept="image/*" class="hidden" onchange="handleQrFileSelected(event)">
 
-        <!-- Header Modal Scanner -->
-        <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
-            <div class="flex items-center space-x-2.5">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm flex-shrink-0">
-                    <i class="fa-solid fa-qrcode"></i>
+        <!-- Header Modal Scanner Modern -->
+        <div class="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm flex-shrink-0">
+                    <i class="fa-solid fa-barcode"></i>
                 </div>
                 <div>
-                    <h3 id="qr-scanner-title" class="font-bold text-sm text-white">Scan Barcode Unit Mobil</h3>
-                    <p class="text-[11px] text-slate-400">Arahkan kamera ke stiker barcode di kaca unit</p>
+                    <h3 id="qr-scanner-title" class="font-extrabold text-sm text-white">Live Scanner Barcode Unit</h3>
+                    <p class="text-[11px] text-slate-400">Arahkan kamera langsung ke stiker barcode/QR unit</p>
                 </div>
             </div>
-            <button type="button" onclick="closeUnitQrScannerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer">
-                <i class="fa-solid fa-xmark text-base"></i>
+            <button type="button" onclick="closeUnitQrScannerModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+                <i class="fa-solid fa-xmark text-sm"></i>
             </button>
         </div>
 
-        <!-- Tombol Aksi Cepat Kamera HP Native (Selalu Bisa Digunakan di HTTP maupun HTTPS) -->
-        <div class="px-4 py-2.5 bg-slate-800 border-b border-slate-700/60 flex items-center justify-between gap-2">
-            <button type="button" 
-                    onclick="document.getElementById('qrNativeCameraInput').click()" 
-                    class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1.5 shadow-sm cursor-pointer">
-                <i class="fa-solid fa-camera text-sm"></i>
-                <span>Ambil Foto Barcode (Kamera HP)</span>
-            </button>
-            <button type="button" 
-                    onclick="document.getElementById('qrGalleryInput').click()" 
-                    class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-xl text-xs transition flex items-center justify-center space-x-1 cursor-pointer"
-                    title="Pilih gambar dari galeri">
-                <i class="fa-solid fa-image"></i>
-                <span>Galeri</span>
-            </button>
-        </div>
+        <!-- Viewport Kamera Live dengan Efek Scanner Viewfinder -->
+        <div class="relative bg-black flex flex-col items-center justify-center overflow-hidden min-h-[340px]">
+            <!-- Kontainer Video Html5Qrcode -->
+            <div id="qr-reader" class="w-full"></div>
 
-        <!-- Area Viewport Kamera -->
-        <div class="p-4 bg-slate-950 flex flex-col items-center justify-center relative min-h-[300px]">
-            <div id="qr-reader" class="w-full rounded-xl overflow-hidden bg-black"></div>
-            
-            <!-- Loading Indicator Live Video -->
-            <div id="qrScannerLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 text-white space-y-2.5 z-20">
-                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-500"></i>
-                <span class="text-xs text-slate-300 font-medium">Menghubungkan ke live kamera perangkat...</span>
+            <!-- Viewfinder Overlay (Corner Brackets & Laser Scan Line) -->
+            <div id="qrScanOverlay" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="relative w-64 h-64 border border-emerald-500/25 rounded-2xl">
+                    <!-- Corner Highlights -->
+                    <div class="absolute -top-1 -left-1 w-6 h-6 border-t-3 border-l-3 border-emerald-400 rounded-tl-xl"></div>
+                    <div class="absolute -top-1 -right-1 w-6 h-6 border-t-3 border-r-3 border-emerald-400 rounded-tr-xl"></div>
+                    <div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-3 border-l-3 border-emerald-400 rounded-bl-xl"></div>
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-3 border-r-3 border-emerald-400 rounded-br-xl"></div>
+                    
+                    <!-- Animated Laser Sweep Line -->
+                    <div class="scanner-laser-line"></div>
+                </div>
             </div>
 
-            <!-- Loading Indicator Analisis File / Foto -->
+            <!-- Loading Indicator Live Video -->
+            <div id="qrScannerLoading" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 text-white space-y-3 z-20">
+                <i class="fa-solid fa-circle-notch fa-spin text-3xl text-emerald-400"></i>
+                <span class="text-xs text-slate-200 font-bold">Membuka Kamera Live...</span>
+                <span class="text-[11px] text-slate-400">Pastikan izin kamera diizinkan di peramban</span>
+            </div>
+
+            <!-- Loading Indicator Analisis Foto (Fallback) -->
             <div id="qrScannerFileLoadingOverlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 text-white space-y-3 z-30 p-4 text-center">
                 <i class="fa-solid fa-spinner fa-spin text-3xl text-emerald-400"></i>
                 <span class="text-xs text-slate-200 font-bold">Membaca Barcode dari Foto...</span>
-                <span class="text-[11px] text-slate-400">Mohon tunggu beberapa detik</span>
             </div>
 
-            <!-- Tampilan Khusus Akses Non-Secure (HTTP) -->
-            <div id="qrScannerHttpNotice" class="hidden absolute inset-0 p-5 flex flex-col items-center justify-center bg-slate-950 text-center text-white space-y-3 z-25">
+            <!-- Error State / Izin Kamera Ditolak / HTTP Limitation -->
+            <div id="qrScannerError" class="hidden absolute inset-0 p-6 flex flex-col items-center justify-center bg-slate-950/95 text-center text-white space-y-3.5 z-25">
                 <div class="w-12 h-12 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-camera"></i>
+                    <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
-                <h4 class="font-bold text-sm text-amber-200">Mode Kamera HP Siap</h4>
-                <p class="text-xs text-slate-300 leading-relaxed max-w-xs">
-                    Peramban membatasi streaming video langsung karena alamat web diakses lewat <strong>HTTP</strong>.<br>
-                    Klik tombol di bawah ini untuk membuka kamera ponsel Anda dan jepret barcode!
+                <h4 class="font-bold text-sm text-amber-200" id="qrScannerErrorTitle">Kamera Live Memerlukan Izin / HTTPS</h4>
+                <p class="text-xs text-slate-300 leading-relaxed max-w-xs" id="qrScannerErrorMsg">
+                    Peramban membatasi streaming video langsung. Silakan gunakan tombol jepret foto di bawah atau izinkan akses kamera di setelan browser.
                 </p>
-                <button type="button" 
-                        onclick="document.getElementById('qrNativeCameraInput').click()" 
-                        class="w-full max-w-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
-                    <i class="fa-solid fa-camera"></i>
-                    <span>Jepret Foto Barcode Sekarang</span>
-                </button>
-            </div>
-
-            <!-- Error State (Izin Kamera ditolak / tidak tersedia) -->
-            <div id="qrScannerError" class="hidden absolute inset-0 p-6 flex flex-col items-center justify-center bg-slate-950 text-center text-white space-y-3 z-25">
-                <div class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-video-slash"></i>
-                </div>
-                <h4 class="font-bold text-sm text-rose-200">Live Kamera Tidak Terbuka</h4>
-                <p class="text-xs text-slate-300 leading-relaxed" id="qrScannerErrorMsg">Izin akses kamera belum diaktifkan di peramban browser.</p>
                 
-                <div class="w-full space-y-2 pt-1 max-w-xs">
+                <div class="w-full space-y-2 pt-2 max-w-xs">
                     <button type="button" 
                             onclick="document.getElementById('qrNativeCameraInput').click()" 
                             class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md transition flex items-center justify-center space-x-2 cursor-pointer">
@@ -650,24 +632,39 @@
                 </div>
             </div>
 
-            <!-- Overlay Sukses Terdeteksi -->
-            <div id="qrScannerSuccessOverlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/90 text-white space-y-2 z-40">
-                <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-circle-check"></i>
+            <!-- Overlay Sukses Terdeteksi (Instan) -->
+            <div id="qrScannerSuccessOverlay" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/95 text-white space-y-3 z-40 animate-fade-in">
+                <div class="w-14 h-14 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-2xl shadow-lg">
+                    <i class="fa-solid fa-check"></i>
                 </div>
-                <span class="text-sm font-bold text-emerald-200">Unit Terdeteksi! Membuka Timesheet...</span>
+                <div class="text-center">
+                    <h4 class="text-sm font-black text-emerald-300" id="qrScannedUnitCode">Barcode Terdeteksi!</h4>
+                    <p class="text-[11px] text-slate-300 mt-0.5">Membuka formulir timesheet unit...</p>
+                </div>
             </div>
         </div>
 
-        <!-- Footer / Opsi Manual -->
-        <div class="p-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
-            <span class="text-[11px] text-slate-500 flex items-center">
-                <i class="fa-solid fa-circle-info text-emerald-600 mr-1.5"></i>
-                Kamera buram / kendala scan?
-            </span>
-            <a href="{{ route('timesheet.index') }}" class="text-xs font-bold text-[#1b5e20] hover:text-[#144918] hover:underline flex-shrink-0">
-                Pilih Manual dari Katalog &rarr;
-            </a>
+        <!-- Bar Kontrol Bawah: Switch Kamera & Opsi Darurat -->
+        <div class="p-3 bg-slate-900 border-t border-slate-800 flex items-center justify-between text-xs">
+            <!-- Tombol Switch Kamera Depan/Belakang -->
+            <button type="button" 
+                    id="btnSwitchCamera"
+                    onclick="switchCamera()" 
+                    class="hidden items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition cursor-pointer">
+                <i class="fa-solid fa-camera-rotate text-emerald-400"></i>
+                <span>Ganti Kamera</span>
+            </button>
+
+            <!-- Link Darurat Manual / Galeri -->
+            <div class="flex items-center space-x-3 ml-auto text-slate-400 text-[11px]">
+                <button type="button" onclick="document.getElementById('qrGalleryInput').click()" class="hover:text-emerald-400 font-semibold transition cursor-pointer">
+                    <i class="fa-solid fa-image mr-1"></i> Dari Galeri
+                </button>
+                <span class="text-slate-700">&bull;</span>
+                <a href="{{ route('timesheet.index') }}" class="hover:text-emerald-400 font-semibold transition">
+                    Pilih Manual &rarr;
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -723,18 +720,37 @@
 <style>
     #qr-reader {
         border: none !important;
+        width: 100% !important;
     }
     #qr-reader video {
         width: 100% !important;
         height: auto !important;
-        border-radius: 0.75rem;
+        max-height: 380px !important;
+        border-radius: 1rem;
         object-fit: cover;
     }
     #qr-reader__scan_region {
         background: transparent !important;
     }
     #qr-reader__scan_region video {
-        border-radius: 0.75rem;
+        border-radius: 1rem;
+    }
+    #qr-reader__dashboard {
+        display: none !important;
+    }
+    @keyframes scanLaserLine {
+        0% { top: 6%; opacity: 0.2; }
+        50% { top: 92%; opacity: 1; }
+        100% { top: 6%; opacity: 0.2; }
+    }
+    .scanner-laser-line {
+        position: absolute;
+        left: 6%;
+        right: 6%;
+        height: 2.5px;
+        background: linear-gradient(90deg, transparent, #10b981 25%, #34d399 50%, #10b981 75%, transparent);
+        box-shadow: 0 0 12px #10b981, 0 0 4px #34d399;
+        animation: scanLaserLine 2s ease-in-out infinite;
     }
 </style>
 
@@ -802,24 +818,56 @@
         document.getElementById('driverCancelModal').classList.add('hidden');
     }
 
-    // --- IN-APP QR CODE SCANNER LOGIC ---
+    // --- IN-APP LIVE QR/BARCODE SCANNER LOGIC ---
     let html5QrScanner = null;
     let isScanProcessing = false;
+    let availableCameras = [];
+    let currentCameraIndex = 0;
+
+    // Suara Beep saat Barcode Berhasil Terdeteksi (Web Audio API)
+    function playScanBeep() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                const audioCtx = new AudioCtx();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // 880 Hz beep nada tinggi
+                gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15);
+            }
+        } catch (e) {
+            // Audio context tidak diizinkan atau dinonaktifkan
+        }
+
+        if (navigator.vibrate) {
+            try { navigator.vibrate([80, 40, 80]); } catch (e) {}
+        }
+    }
 
     function parseScannedCode(decodedText) {
         if (!decodedText) return null;
         decodedText = decodedText.trim();
 
-        // Check if it's already a full URL
+        // 1. Cek jika barcode berupa URL penuh (misal: http://.../gate-activity/LV-01)
         try {
             const url = new URL(decodedText);
             if (url.pathname.includes('/gate-activity/')) {
-                return url.pathname;
+                return url.pathname + (url.search || '');
             }
         } catch (e) {
-            // Not a full URL, continue
+            // Bukan URL lengkap, lanjutkan parsing teks biasa
         }
 
+        // 2. Format path parsial /gate-activity/...
         if (decodedText.startsWith('/gate-activity/')) {
             return decodedText;
         }
@@ -829,10 +877,10 @@
             return '/gate-activity/' + match[1];
         }
 
-        // Direct code string (misal "LV01" atau "LV-01")
+        // 3. Format kode unit langsung (misal: "LV-01", "LV01", "KMH-LV-05")
         const cleanCode = decodedText.replace(/[^a-zA-Z0-9_\-]/g, '');
         if (cleanCode.length >= 2) {
-            return '/gate-activity/' + cleanCode;
+            return '/gate-activity/' + encodeURIComponent(cleanCode);
         }
 
         return null;
@@ -868,7 +916,7 @@
         }
     }
 
-    // Handler untuk scan barcode dari foto (Kamera HP Native atau Galeri File)
+    // Handler cadangan jika scan lewat foto galeri atau kamera native HP
     async function handleQrFileSelected(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
@@ -876,12 +924,11 @@
         const fileLoadingEl = document.getElementById('qrScannerFileLoadingOverlay');
         if (fileLoadingEl) fileLoadingEl.classList.remove('hidden');
 
-        // Pastikan scanner live dimatikan saat menganalisis foto file
         await stopQrScanner();
 
         try {
             if (typeof Html5Qrcode === 'undefined') {
-                throw new Error('Komponen pemindai barcode belum selesai dimuat. Silakan muat ulang halaman.');
+                throw new Error('Komponen pemindai barcode belum selesai dimuat.');
             }
 
             const scanner = new Html5Qrcode("qr-reader");
@@ -890,18 +937,22 @@
 
             const targetUrl = parseScannedCode(decodedText);
             if (targetUrl) {
+                playScanBeep();
                 const successOverlay = document.getElementById('qrScannerSuccessOverlay');
+                const unitTitle = document.getElementById('qrScannedUnitCode');
+                if (unitTitle) unitTitle.textContent = 'Unit Terdeteksi!';
                 if (successOverlay) successOverlay.classList.remove('hidden');
+
                 setTimeout(() => {
                     window.location.href = targetUrl;
-                }, 350);
+                }, 300);
             } else {
-                alert(`Barcode terdeteksi: "${decodedText}", namun format bukan kode unit LV yang valid.`);
+                alert(`Barcode terdeteksi: "${decodedText}", namun format bukan kode unit yang valid.`);
             }
         } catch (err) {
             if (fileLoadingEl) fileLoadingEl.classList.add('hidden');
             console.error('File scan error:', err);
-            alert('Barcode tidak terbaca dari foto yang diambil. Pastikan stiker barcode tampak jelas, tidak buram, dan pencahayaan cukup.');
+            alert('Barcode tidak terbaca dari foto. Pastikan stiker barcode tampak jelas dan tidak silau.');
         } finally {
             event.target.value = '';
         }
@@ -911,54 +962,55 @@
         const loadingEl = document.getElementById('qrScannerLoading');
         const errorEl = document.getElementById('qrScannerError');
         const errorMsg = document.getElementById('qrScannerErrorMsg');
-        const httpNoticeEl = document.getElementById('qrScannerHttpNotice');
+        const errorTitle = document.getElementById('qrScannerErrorTitle');
+        const switchBtn = document.getElementById('btnSwitchCamera');
+        const overlay = document.getElementById('qrScanOverlay');
 
         loadingEl.classList.remove('hidden');
         errorEl.classList.add('hidden');
-        if (httpNoticeEl) httpNoticeEl.classList.add('hidden');
+        if (overlay) overlay.classList.remove('hidden');
 
         await stopQrScanner();
 
         if (typeof Html5Qrcode === 'undefined') {
             loadingEl.classList.add('hidden');
             errorEl.classList.remove('hidden');
-            errorMsg.textContent = 'Komponen scanner kamera gagal dimuat. Periksa koneksi internet Anda atau gunakan tombol Ambil Foto Barcode di atas.';
+            if (errorTitle) errorTitle.textContent = 'Gagal Memuat Scanner';
+            errorMsg.textContent = 'Komponen scanner kamera gagal dimuat. Periksa koneksi internet Anda atau gunakan tombol Ambil Foto Barcode di bawah.';
             return;
         }
 
-        // Cek dukungan HTTPS / Secure Context
-        const isSecure = window.isSecureContext || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-
-        if (!isSecure || !hasMediaDevices) {
-            loadingEl.classList.add('hidden');
-            if (httpNoticeEl) {
-                httpNoticeEl.classList.remove('hidden');
-            } else {
-                errorEl.classList.remove('hidden');
-                errorMsg.textContent = 'Browser membatasi video streaming live karena halaman dibuka via HTTP. Gunakan tombol "Ambil Foto Barcode (Kamera HP)" di atas untuk scan langsung via kamera ponsel Anda.';
-            }
-            return;
+        // Polyfill navigator.mediaDevices untuk peramban mobile
+        if (navigator.mediaDevices === undefined) {
+            navigator.mediaDevices = {};
+        }
+        if (navigator.mediaDevices.getUserMedia === undefined) {
+            navigator.mediaDevices.getUserMedia = function(constraints) {
+                const legacyGetUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+                if (!legacyGetUserMedia) {
+                    return Promise.reject(new Error('Kamera live tidak didukung pada peramban ini'));
+                }
+                return new Promise(function(resolve, reject) {
+                    legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+                });
+            };
         }
 
         try {
-            // Minta izin kamera secara eksplisit untuk memicu dialog izin bawaan browser
-            try {
-                const testStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: { ideal: "environment" } }
-                });
-                if (testStream) {
-                    testStream.getTracks().forEach(track => track.stop());
-                }
-            } catch (permErr) {
-                console.warn('getUserMedia prompt warning:', permErr);
-            }
-
             html5QrScanner = new Html5Qrcode("qr-reader");
+
+            // Konfigurasi performa tinggi (20 FPS) & scan box fleksibel
             const config = {
-                fps: 10,
-                qrbox: { width: 220, height: 220 },
-                aspectRatio: 1.0
+                fps: 20,
+                qrbox: (viewfinderWidth, viewfinderHeight) => {
+                    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    const qrboxEdge = Math.max(180, Math.floor(minEdge * 0.72));
+                    return { width: qrboxEdge, height: qrboxEdge };
+                },
+                aspectRatio: 1.0,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
             };
 
             const onScanSuccess = (decodedText) => {
@@ -966,49 +1018,58 @@
                 const targetUrl = parseScannedCode(decodedText);
                 if (targetUrl) {
                     isScanProcessing = true;
+                    playScanBeep();
+
                     const successOverlay = document.getElementById('qrScannerSuccessOverlay');
+                    const unitTitle = document.getElementById('qrScannedUnitCode');
+                    if (unitTitle) {
+                        const parts = targetUrl.split('/');
+                        const code = parts[parts.length - 1];
+                        unitTitle.textContent = `Unit "${decodeURIComponent(code)}" Terdeteksi!`;
+                    }
                     if (successOverlay) successOverlay.classList.remove('hidden');
-                    
-                    stopQrScanner().then(() => {
-                        window.location.href = targetUrl;
-                    }).catch(() => {
+
+                    stopQrScanner().finally(() => {
                         window.location.href = targetUrl;
                     });
                 }
             };
 
-            const onScanFailure = (error) => {
-                // Frame scanning failure, continue silently
-            };
-
             // Dapatkan daftar kamera perangkat
-            let cameras = [];
             try {
-                cameras = await Html5Qrcode.getCameras();
+                availableCameras = await Html5Qrcode.getCameras();
             } catch (camErr) {
                 console.warn('Gagal ambil daftar kamera:', camErr);
+                availableCameras = [];
             }
 
-            if (cameras && cameras.length > 0) {
-                // Cari kamera belakang
-                const rearCamera = cameras.find(c => {
+            if (availableCameras && availableCameras.length > 1 && switchBtn) {
+                switchBtn.classList.remove('hidden');
+                switchBtn.classList.add('inline-flex');
+            }
+
+            if (availableCameras && availableCameras.length > 0) {
+                // Pilih kamera belakang secara default
+                let rearIdx = availableCameras.findIndex(c => {
                     const label = (c.label || '').toLowerCase();
                     return label.includes('back') || label.includes('rear') || label.includes('belakang') || label.includes('environment');
-                }) || cameras[cameras.length - 1];
+                });
+                if (rearIdx === -1) rearIdx = availableCameras.length - 1;
+                currentCameraIndex = rearIdx;
 
                 await html5QrScanner.start(
-                    rearCamera.id,
+                    availableCameras[currentCameraIndex].id,
                     config,
                     onScanSuccess,
-                    onScanFailure
+                    () => {}
                 );
             } else {
-                // Fallback ke constraints facingMode
+                // Fallback jika getCameras kosong tapi getUserMedia didukung
                 await html5QrScanner.start(
                     { facingMode: "environment" },
                     config,
                     onScanSuccess,
-                    onScanFailure
+                    () => {}
                 );
             }
 
@@ -1017,16 +1078,28 @@
             console.error('Kamera scanner error:', err);
             loadingEl.classList.add('hidden');
             errorEl.classList.remove('hidden');
+            if (overlay) overlay.classList.add('hidden');
 
-            let customMsg = 'Live kamera tidak dapat diakses. Gunakan tombol "Ambil Foto Barcode (Kamera HP)" di atas.';
-            if (err && err.name === 'NotAllowedError') {
-                customMsg = 'Izin kamera ditolak di browser. Silakan klik ikon gembok / opsi situs di sebelah URL browser Anda, lalu izinkan Kamera, ATAU gunakan tombol Kamera HP di atas.';
+            let customMsg = 'Live kamera tidak dapat diakses di browser ini.';
+            if (err && (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')) {
+                if (errorTitle) errorTitle.textContent = 'Izin Kamera Belum Diaktifkan';
+                customMsg = 'Izin kamera ditolak di peramban. Silakan klik ikon gembok / setelan situs di samping alamat URL browser, lalu izinkan akses Kamera.';
+            } else if (!window.isSecureContext && window.location.protocol === 'http:') {
+                if (errorTitle) errorTitle.textContent = 'Akses Kamera Dibatasi oleh HTTP';
+                customMsg = 'Browser Chrome membatasi streaming kamera langsung di jaringan HTTP. Silakan gunakan tombol "Gunakan Kamera HP" di bawah ATAU akses aplikasi melalui HTTPS.';
             } else if (err && err.message) {
                 customMsg = err.message;
             }
 
             errorMsg.textContent = customMsg;
         }
+    }
+
+    async function switchCamera() {
+        if (!availableCameras || availableCameras.length <= 1 || !html5QrScanner) return;
+        currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+        await stopQrScanner();
+        await startQrScanner();
     }
 
     // Countdown Timer Tiket Pending (Batas Waktu 5 Jam)
