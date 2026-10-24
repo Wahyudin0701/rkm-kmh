@@ -550,7 +550,7 @@
                         <input type="time" 
                                name="start_time" 
                                id="addStartTime" 
-                               value="08:00" 
+                               value="{{ date('H:i') }}" 
                                required 
                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                     </div>
@@ -585,30 +585,18 @@
                     </div>
                 </div>
 
-                <!-- Baris 5: Shift Kerja & Status Unit -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Shift Kerja
-                        </label>
-                        <select name="shift" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            @foreach($shifts as $s)
-                                <option value="{{ $s }}" {{ $s === 'Shift Siang' ? 'selected' : '' }}>{{ $s }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Status Akhir Unit <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="status" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="Operation">Operation (Siap Jalan)</option>
-                            <option value="Standby">Standby (Tersedia / Siaga)</option>
-                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                        </select>
-                    </div>
+                <!-- Baris 5: Status Akhir Unit (Shift diset otomatis) -->
+                <input type="hidden" name="shift" value="Shift Siang">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Status Akhir Unit <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="status" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                        <option value="Operation">Operation (Siap Jalan)</option>
+                        <option value="Standby">Standby (Tersedia / Siaga)</option>
+                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                    </select>
                 </div>
 
                 <!-- Baris 6: Rincian Tugas & Catatan -->
@@ -891,30 +879,18 @@
                     </div>
                 </div>
 
-                <!-- Baris 5: Shift Kerja & Status Unit -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Shift Kerja
-                        </label>
-                        <select name="shift" id="editShift" class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            @foreach($shifts as $s)
-                                <option value="{{ $s }}">{{ $s }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Status Akhir Unit <span class="text-rose-500">*</span>
-                        </label>
-                        <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="Operation">Operation (Siap Jalan)</option>
-                            <option value="Standby">Standby (Tersedia / Siaga)</option>
-                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                        </select>
-                    </div>
+                <!-- Baris 5: Status Akhir Unit (Shift disimpan secara otomatis) -->
+                <input type="hidden" name="shift" id="editShift" value="Shift Siang">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Status Akhir Unit <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                        <option value="Operation">Operation (Siap Jalan)</option>
+                        <option value="Standby">Standby (Tersedia / Siaga)</option>
+                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                    </select>
                 </div>
 
                 <!-- Baris 6: Deskripsi & Catatan -->
@@ -1128,8 +1104,19 @@
             const startMeter = document.getElementById('addStartMeter');
             if (startMeter) startMeter.value = '';
 
+            // Otomatis tanggal dan jam realtime saat ini
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+
+            const addDate = document.getElementById('addDate');
+            if (addDate) addDate.value = `${year}-${month}-${day}`;
+
             const startTime = document.getElementById('addStartTime');
-            if (startTime) startTime.value = '08:00';
+            if (startTime) startTime.value = `${hours}:${minutes}`;
 
             modal.classList.remove('hidden');
             modal.style.display = 'block';
