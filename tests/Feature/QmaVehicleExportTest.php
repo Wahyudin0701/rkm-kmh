@@ -114,7 +114,7 @@ class QmaVehicleExportTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        $this->assertStringContainsString('Laporan_Kategori_Unit_Support_', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('Laporan_Kategori_Heavy_Equipment_', (string) $response->headers->get('Content-Disposition'));
         
         $content = $response->getContent();
         $this->assertStringStartsWith("PK\x03\x04", $content);
@@ -142,7 +142,7 @@ class QmaVehicleExportTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        $this->assertStringContainsString('Laporan_Unit_Support_Lengkap_', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('Laporan_Heavy_Equipment_Lengkap_', (string) $response->headers->get('Content-Disposition'));
         
         $content = $response->getContent();
         $this->assertStringStartsWith("PK\x03\x04", $content);
@@ -176,7 +176,7 @@ class QmaVehicleExportTest extends TestCase
 
         $responsePhysical->assertStatus(200);
         $responsePhysical->assertHeader('Content-Type', 'application/pdf');
-        $this->assertStringContainsString('Laporan_Unit_Support_', (string) $responsePhysical->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('Laporan_Heavy_Equipment_', (string) $responsePhysical->headers->get('Content-Disposition'));
         $this->assertStringStartsWith('%PDF-', $responsePhysical->getContent());
     }
 

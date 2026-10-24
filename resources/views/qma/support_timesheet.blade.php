@@ -4,7 +4,7 @@
     $isHistoryRoute = request()->routeIs('qma.activity.support_timesheet');
 @endphp
 
-@section('title', ($isHistoryRoute ? 'History Timesheet Unit Support' : 'Timesheet Unit Support') . ' - Admin QMA | PT Kerinci Merangin Hidro')
+@section('title', ($isHistoryRoute ? 'History Timesheet Heavy Equipment' : 'Timesheet Heavy Equipment') . ' - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -20,12 +20,12 @@
                 <button type="button" 
                         onclick="openGuideModal()" 
                         class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
-                        title="Panduan Halaman Timesheet Unit Support">
+                        title="Panduan Halaman Timesheet Heavy Equipment">
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                {{ $isHistoryRoute ? 'History Timesheet' : 'Timesheet Unit Support' }}
+                {{ $isHistoryRoute ? 'History Timesheet' : 'Timesheet Heavy Equipment' }}
             </h2>
         </div>
 
@@ -60,7 +60,7 @@
                 <button type="button" 
                         onclick="openAddModal()" 
                         class="w-full sm:w-auto flex-1 sm:flex-none bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer whitespace-nowrap"
-                        title="Catat Timesheet Harian Unit Support">
+                        title="Catat Timesheet Harian Heavy Equipment">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span class="truncate">Catat Timesheet</span>
                 </button>
@@ -136,11 +136,11 @@
                            title="Sampai Tanggal">
                 </div>
 
-                <!-- Filter Unit Support -->
+                <!-- Filter Heavy Equipment -->
                 <select name="vehicle_id" 
                         onchange="this.form.submit()" 
                         class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="">Semua Unit Support</option>
+                    <option value="">Semua Heavy Equipment</option>
                     @foreach($unitSupports as $u)
                         <option value="{{ $u->id }}" {{ request('vehicle_id') == $u->id ? 'selected' : '' }}>
                             {{ $u->code }} - {{ $u->brand_type }}
@@ -198,7 +198,7 @@
     </div>
     @endif
 
-    <!-- Tabel Data Timesheet Unit Support dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <!-- Tabel Data Timesheet Heavy Equipment dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
@@ -245,7 +245,7 @@
                                 </span>
                             </td>
 
-                            <!-- Unit Support -->
+                            <!-- Heavy Equipment -->
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center space-x-2">
                                     <span class="font-mono font-extrabold text-slate-900 text-xs">
@@ -378,7 +378,7 @@
                         <tr>
                             <td colspan="11" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-clipboard-list text-4xl mb-3 block text-slate-300"></i>
-                                <p class="text-sm font-semibold text-slate-700">Belum ada data timesheet unit support</p>
+                                <p class="text-sm font-semibold text-slate-700">Belum ada data timesheet Heavy Equipment</p>
                                 @if(!$isHistoryRoute)
                                     <p class="text-xs text-slate-400 mt-1">Gunakan tombol "Catat Timesheet" di atas untuk menambahkan laporan harian.</p>
                                 @else
@@ -416,7 +416,7 @@
 
 @if(!$isHistoryRoute)
 <!-- ========================================== -->
-<!-- 1. MODAL TAMBAH TIMESHEET UNIT SUPPORT    -->
+<!-- 1. MODAL TAMBAH TIMESHEET HEAVY EQUIPMENT -->
 <!-- ========================================== -->
 <div id="addTimesheetModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeAddModal()"></div>
@@ -428,7 +428,7 @@
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-[#1b5e20]"></span>
-                        Catat Timesheet Unit Support
+                        Catat Timesheet Heavy Equipment
                     </h3>
                     <p class="text-xs text-slate-500 mt-0.5">Input laporan kerja alat berat & penugasan operator harian.</p>
                 </div>
@@ -441,7 +441,7 @@
             <form id="addTimesheetForm" method="POST" action="{{ route('qma.support_timesheet.store') }}" class="p-6 space-y-4">
                 @csrf
 
-                <!-- Baris 1: Lokasi Kerja & Unit Support -->
+                <!-- Baris 1: Lokasi Kerja & Heavy Equipment -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
@@ -479,7 +479,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                            <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
+                            <span>Heavy Equipment <span class="text-rose-500">*</span></span>
                             <span id="addUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
                         <select name="vehicle_id" 
@@ -639,7 +639,7 @@
 @endif
 
 <!-- ========================================== -->
-<!-- MODAL DETAIL TIMESHEET UNIT SUPPORT       -->
+<!-- MODAL DETAIL TIMESHEET HEAVY EQUIPMENT    -->
 <!-- ========================================== -->
 <div id="detailTimesheetModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeDetailModal()"></div>
@@ -675,7 +675,7 @@
 
                 <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200/60">
                     <div>
-                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Unit Support</span>
+                        <span class="text-[10px] font-bold uppercase text-slate-400 block">Heavy Equipment</span>
                         <span id="detailUnit" class="font-bold text-slate-800"></span>
                     </div>
                     <div>
@@ -724,7 +724,7 @@
 
 
 <!-- ========================================== -->
-<!-- 2. MODAL EDIT TIMESHEET UNIT SUPPORT      -->
+<!-- 2. MODAL EDIT TIMESHEET HEAVY EQUIPMENT   -->
 <!-- ========================================== -->
 <div id="editTimesheetModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeEditModal()"></div>
@@ -736,7 +736,7 @@
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                        Edit Timesheet Unit Support
+                        Edit Timesheet Heavy Equipment
                     </h3>
                     <p id="editTimesheetSubtitle" class="text-xs text-slate-500 font-mono mt-0.5">Koreksi data jam kerja atau aktivitas operasional.</p>
                 </div>
@@ -750,7 +750,7 @@
                 @csrf
                 @method('PUT')
 
-                <!-- Baris 1: Lokasi Kerja & Unit Support -->
+                <!-- Baris 1: Lokasi Kerja & Heavy Equipment -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
@@ -788,7 +788,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                            <span>Unit Support (Alat Berat) <span class="text-rose-500">*</span></span>
+                            <span>Heavy Equipment <span class="text-rose-500">*</span></span>
                             <span id="editUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
                         <select name="vehicle_id" 
@@ -977,7 +977,7 @@
     </div>
 </div>
 
-<!-- Datalist Rekomendasi Unit Support -->
+<!-- Datalist Rekomendasi Heavy Equipment -->
 <datalist id="unitSupportDatalist">
     @foreach($unitSupports as $u)
         <option value="{{ $u->code }}">{{ $u->brand_type }} (Terakhir: {{ number_format($u->current_km ?? 0, 1, ',', '.') }})</option>
@@ -999,7 +999,7 @@
 </datalist>
 
 <!-- ========================================================================= -->
-<!-- MODAL POPUP: PANDUAN HALAMAN (TIMESHEET UNIT SUPPORT)                    -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (TIMESHEET HEAVY EQUIPMENT)                  -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
      onclick="if(event.target === this) closeGuideModal()" 
@@ -1013,7 +1013,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900 tracking-tight">
-                        Panduan Timesheet Unit Support
+                        Panduan Timesheet Heavy Equipment
                     </h3>
                     <p class="text-xs text-slate-500 font-medium">
                         Tata cara pencatatan jam kerja mesin & operasional alat berat
@@ -1045,7 +1045,7 @@
                     2. Filter Lokasi Kerja & Unit Ready
                 </h4>
                 <p class="text-slate-600">
-                    Saat menambah timesheet, pilih lokasi kerja terlebih dahulu. Daftar unit support akan disaring otomatis menampilkan unit yang berada pada lokasi tersebut.
+                    Saat menambah timesheet, pilih lokasi kerja terlebih dahulu. Daftar Heavy Equipment akan disaring otomatis menampilkan unit yang berada pada lokasi tersebut.
                 </p>
             </div>
 
@@ -1274,7 +1274,7 @@
         modal.style.display = 'none';
     }
 
-    // 5. Handler saat Lokasi Kerja Dipilih (Filter Unit Support yang Ready di Lokasi tersebut)
+    // 5. Handler saat Lokasi Kerja Dipilih (Filter Heavy Equipment yang Ready di Lokasi tersebut)
     function onTimesheetLocationChanged(selectedLoc, prefix, preselectVehicleId = null) {
         const customWrapper = document.getElementById(`${prefix}CustomLocationWrapper`);
         const customInput = document.getElementById(`${prefix}CustomLocationInput`);
@@ -1336,13 +1336,13 @@
             }
         }
 
-        // Render option unit support
+        // Render option heavy equipment
         vehicleSelect.innerHTML = '';
         const defaultPrompt = document.createElement('option');
         defaultPrompt.value = '';
         defaultPrompt.disabled = true;
         defaultPrompt.textContent = filteredUnits.length > 0 
-            ? `-- Pilih Unit Support (${filteredUnits.length} Unit Ready) --` 
+            ? `-- Pilih Heavy Equipment (${filteredUnits.length} Unit Ready) --` 
             : `-- Tidak ada unit di lokasi ini (Pilih 'Semua Unit') --`;
         vehicleSelect.appendChild(defaultPrompt);
 
@@ -1385,7 +1385,7 @@
         }
     }
 
-    // 7. Handler saat Unit Support Dipilih
+    // 7. Handler saat Heavy Equipment Dipilih
     function onVehicleSelectChanged(selectEl, prefix) {
         const opt = selectEl.options[selectEl.selectedIndex];
         if (!opt || !opt.value) return;
@@ -1509,7 +1509,7 @@
         return div.innerHTML;
     }
 
-    // 9. Modal Panduan Halaman (Data Timesheet Unit Support)
+    // 9. Modal Panduan Halaman (Data Timesheet Heavy Equipment)
     function openGuideModal() {
         const modal = document.getElementById('guideModal');
         if (modal) {

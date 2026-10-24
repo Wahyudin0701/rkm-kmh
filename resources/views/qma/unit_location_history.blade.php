@@ -24,7 +24,7 @@
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center space-x-3">
                 <span>Riwayat Posisi: {{ $vehicle->code }}</span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold {{ $vehicle->isLightVehicle() ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
-                    {{ $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Unit Support' }}
+                    {{ $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment' }}
                 </span>
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">

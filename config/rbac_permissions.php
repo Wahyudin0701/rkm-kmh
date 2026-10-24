@@ -78,7 +78,7 @@ return [
             'permissions' => [
                 'qma.vehicles.view' => [
                     'label' => 'Melihat Daftar Kendaraan & Manajemen Unit',
-                    'description' => 'Melihat armada LV, unit support, monitoring posisi unit, dan transfer unit alat berat.',
+                    'description' => 'Melihat armada LV, Heavy Equipment, monitoring posisi unit, dan transfer unit alat berat.',
                 ],
                 'qma.vehicles.create' => [
                     'label' => 'Mendaftarkan Kendaraan & Transfer Unit',
@@ -93,12 +93,12 @@ return [
                     'description' => 'Menghapus data kendaraan atau riwayat transfer unit dari sistem.',
                 ],
                 'qma.logs.view' => [
-                    'label' => 'Melihat Catatan Perjalanan & Timesheet Support',
-                    'description' => 'Melihat riwayat mobilisasi perjalanan (Timesheet LV) dan daftar Timesheet Unit Support.',
+                    'label' => 'Melihat Catatan Perjalanan & Timesheet Heavy Equipment',
+                    'description' => 'Melihat riwayat mobilisasi perjalanan (Timesheet LV) dan daftar Timesheet Heavy Equipment.',
                 ],
                 'qma.logs.edit_odometer' => [
-                    'label' => 'Koreksi Odometer & Kelola Timesheet Support',
-                    'description' => 'Mengoreksi angka kilometer perjalanan LV serta menambah, mengubah, dan menghapus Timesheet Unit Support.',
+                    'label' => 'Koreksi Odometer & Kelola Timesheet Heavy Equipment',
+                    'description' => 'Mengoreksi angka kilometer perjalanan LV serta menambah, mengubah, dan menghapus Timesheet Heavy Equipment.',
                 ],
                 'qma.logs.delete' => [
                     'label' => 'Menghapus Catatan Perjalanan (Timesheet LV)',
@@ -183,8 +183,8 @@ return [
                     'description' => 'Melihat ringkasan data diri karyawan, masa berlaku SIMPER, dan menu kerja harian.',
                 ],
                 'employee.p2h' => [
-                    'label' => 'Mengisi Form P2H Unit Support',
-                    'description' => 'Mengakses katalog unit support dan menginput checklist pra-harian P2H sebelum beroperasi.',
+                    'label' => 'Mengisi Form P2H Heavy Equipment',
+                    'description' => 'Mengakses katalog Heavy Equipment dan menginput checklist pra-harian P2H sebelum beroperasi.',
                 ],
                 'employee.timesheet' => [
                     'label' => 'Mencatat Perjalanan Kendaraan (Timesheet / Scan QR)',

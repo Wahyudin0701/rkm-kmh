@@ -118,7 +118,7 @@ class P2hInspectionTest extends TestCase
     {
         $response = $this->actingAs($this->operatorUser)->get(route('p2h.form', ['code' => $this->supportVehicle->code]));
         $response->assertStatus(200);
-        $response->assertSee('Pemeriksaan Pra-Harian (P2H) Unit Support');
+        $response->assertSee('Pemeriksaan Pra-Harian (P2H) Heavy Equipment');
         $response->assertSee($this->supportVehicle->code);
         $response->assertSee('Bambang Operator');
         $response->assertSee('SIMPER Aktif');
@@ -278,7 +278,7 @@ class P2hInspectionTest extends TestCase
     {
         $response = $this->actingAs($this->qmaAdmin)->get(route('qma.p2h.templates'));
         $response->assertStatus(200);
-        $response->assertSee('Master Template P2H Unit Support');
+        $response->assertSee('Master Template P2H Heavy Equipment');
         $response->assertSee('Excavator');
         $response->assertSee('EXD4RP');
     }

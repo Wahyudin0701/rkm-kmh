@@ -111,7 +111,7 @@
                             <option value="{{ $unit->id }}" 
                                     data-code="{{ $unit->code }}"
                                     data-brand="{{ $unit->brand_type }}"
-                                    data-category="{{ $unit->unit_category ?? ($unit->parent?->brand_type ?? 'Unit Support') }}"
+                                    data-category="{{ $unit->unit_category ?? ($unit->parent?->brand_type ?? 'Heavy Equipment') }}"
                                     data-location="{{ $unit->location ?: 'Site Kerinci' }}"
                                     data-site-status="{{ $unit->site_status ?? 'inside_site' }}"
                                     data-photo="{{ $unit->photo_url }}"

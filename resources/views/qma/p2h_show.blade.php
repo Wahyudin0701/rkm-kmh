@@ -8,7 +8,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 no-print">
         <a href="{{ route('qma.p2h.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#1b5e20] transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm w-fit">
             <i class="fa-solid fa-arrow-left text-[11px]"></i>
-            <span>Kembali ke P2H Unit Support</span>
+            <span>Kembali ke P2H Heavy Equipment</span>
         </a>
 
         <!-- Action Buttons: Ekspor Data & Status Validasi -->
@@ -60,9 +60,9 @@
 
         <!-- 3 Kolom Info: Unit, Operator, Ringkasan HM -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <!-- Kolom 1: Unit Support -->
+            <!-- Kolom 1: Heavy Equipment -->
             <div class="bg-slate-800/80 p-3.5 rounded-xl border border-slate-700/80 space-y-1.5">
-                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">UNIT SUPPORT</span>
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">HEAVY EQUIPMENT</span>
                 <p class="text-base font-black text-white leading-tight">{{ $record->vehicle->code }}</p>
                 <p class="text-slate-300 font-medium">{{ $record->vehicle->brand_type }}</p>
                 <div class="pt-1 text-[11px] text-slate-400 border-t border-slate-700/60 flex items-center justify-between">

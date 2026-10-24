@@ -66,7 +66,7 @@ class ImportAssetsFromExcelCommand extends Command
     ];
 
     /**
-     * Pemetaan kode singkat kategori untuk master Unit Support.
+     * Pemetaan kode singkat kategori untuk master Heavy Equipment.
      */
     protected array $categoryCodePrefixes = [
         'ASPHALT PATCH MIXER' => 'CAT-APM',
@@ -184,7 +184,7 @@ class ImportAssetsFromExcelCommand extends Command
         );
 
         // 6. Proses Sheet Heavy Equipment
-        $this->line("\n--- Memproses Data Heavy Equipment / Unit Support ---");
+        $this->line("\n--- Memproses Data Heavy Equipment ---");
         $heStats = $this->importHeavyEquipment(
             $zip,
             $sheetFiles['he'],
@@ -594,7 +594,7 @@ class ImportAssetsFromExcelCommand extends Command
     }
 
     /**
-     * Import seluruh data Heavy Equipment (Unit Support) dari Sheet 4.
+     * Import seluruh data Heavy Equipment dari Sheet 4.
      */
     protected function importHeavyEquipment(
         ZipArchive $zip,
@@ -637,7 +637,7 @@ class ImportAssetsFromExcelCommand extends Command
 
         $this->line("Memproses " . count($distinctTypes) . " kategori master alat berat...");
 
-        // 2. Siapkan atau update Master Kategori Unit Support
+        // 2. Siapkan atau update Master Kategori Heavy Equipment
         $categoryMap = [];
         foreach (array_keys($distinctTypes) as $type) {
             $tmpl = $this->resolveMatchingTemplate($type, $templates);

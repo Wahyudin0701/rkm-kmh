@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pemeriksaan Pra-Harian (P2H) Unit Support')
+@section('title', 'Pemeriksaan Pra-Harian (P2H) Heavy Equipment')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -12,7 +12,7 @@
                     Katalog Pemeriksaan Pra-Harian (P2H)
                 </h1>
                 <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-50 text-amber-800 border border-amber-200">
-                    Unit Support
+                    Heavy Equipment
                 </span>
             </div>
             <div class="text-sm sm:text-base text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-1.5">
@@ -76,7 +76,7 @@
         </div>
     </form>
 
-    <!-- Grid Kartu Unit Support -->
+    <!-- Grid Kartu Heavy Equipment -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="p2hCardsContainer">
         @forelse($vehicles as $v)
             <div class="p2h-card bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between">
@@ -84,7 +84,7 @@
                     <!-- Badge Kategori & Status -->
                     <div class="flex items-center justify-between mb-3">
                         <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                            {{ $v->unit_category ?? 'Unit Support' }}
+                            {{ $v->unit_category ?? 'Heavy Equipment' }}
                         </span>
                         
                         @php
@@ -147,7 +147,7 @@
                         </a>
                     </div>
                 @else
-                    <h3 class="text-base font-bold text-slate-800">Unit Support Tidak Ditemukan</h3>
+                    <h3 class="text-base font-bold text-slate-800">Heavy Equipment Tidak Ditemukan</h3>
                     <p class="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau filter kategori alat berat Anda.</p>
                 @endif
             </div>

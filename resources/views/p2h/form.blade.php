@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Form P2H Unit Support - ' . $vehicle->code)
+@section('title', 'Form P2H Heavy Equipment - ' . $vehicle->code)
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-4">
@@ -13,11 +13,11 @@
         <img src="{{ asset('images/logo-kerinci.png') }}" alt="Kerinci Hydropower" class="h-7 w-auto object-contain">
     </div>
 
-    <!-- Header Info Unit Support (Readonly Card - Selaras dengan Form LV) -->
+    <!-- Header Info Heavy Equipment (Readonly Card - Selaras dengan Form LV) -->
     <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-5 rounded-2xl shadow-sm border border-slate-700">
         <div class="flex items-center justify-between mb-3">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                Unit Support
+                Heavy Equipment
             </span>
             <span class="text-xs text-slate-400 flex items-center">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
@@ -25,7 +25,7 @@
             </span>
         </div>
         
-        <h2 class="text-xl font-bold tracking-tight text-white mb-3">Pemeriksaan Pra-Harian (P2H) Unit Support</h2>
+        <h2 class="text-xl font-bold tracking-tight text-white mb-3">Pemeriksaan Pra-Harian (P2H) Heavy Equipment</h2>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-800/80 p-3 rounded-xl border border-slate-700/80">
             <div><span class="text-slate-400 font-medium">Kode Unit:</span> <span class="font-black text-white text-sm ml-1">{{ $vehicle->code }}</span></div>
@@ -128,7 +128,7 @@
         </div>
     </div>
 
-    <!-- Form Utama P2H Unit Support -->
+    <!-- Form Utama P2H Heavy Equipment -->
     <form action="{{ route('p2h.store', ['code' => $vehicle->code]) }}" method="POST" id="p2hForm" class="space-y-4">
         @csrf
         <input type="hidden" name="template_id" value="{{ $template->id }}">
@@ -351,7 +351,7 @@
             <label for="general_notes" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
                 Catatan Umum / Keterangan Tambahan Operator
             </label>
-            <textarea name="general_notes" id="general_notes" rows="3" placeholder="Tuliskan temuan atau catatan umum lainnya mengenai kondisi unit support hari ini..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition resize-none">{{ old('general_notes') }}</textarea>
+            <textarea name="general_notes" id="general_notes" rows="3" placeholder="Tuliskan temuan atau catatan umum lainnya mengenai kondisi Heavy Equipment hari ini..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition resize-none">{{ old('general_notes') }}</textarea>
         </div>
 
         <!-- Tombol Aksi Submit -->

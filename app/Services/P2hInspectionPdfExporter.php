@@ -43,7 +43,7 @@ class P2hInspectionPdfExporter extends FPDF
         $this->SetXY(18, 22.5);
         $this->SetFont('Arial', 'B', 10);
         $this->SetTextColor(255, 255, 255);
-        $this->Cell(115, 5, 'LEMBAR PEMERIKSAAN HARIAN (P2H) UNIT SUPPORT', 0, 1, 'L');
+        $this->Cell(115, 5, 'LEMBAR PEMERIKSAAN HARIAN (P2H) HEAVY EQUIPMENT', 0, 1, 'L');
 
         $this->SetXY(18, 27.5);
         $this->SetFont('Arial', '', 7);
@@ -94,7 +94,7 @@ class P2hInspectionPdfExporter extends FPDF
         // -------------------------------------------------------------
         $pdf->SetY(37);
 
-        // Box 1: Identitas Unit Support
+        // Box 1: Identitas Heavy Equipment
         $pdf->SetFillColor(248, 250, 252); // #f8fafc
         $pdf->SetDrawColor(226, 232, 240); // #e2e8f0
         $pdf->Rect(15, 37, 58, 30, 'DF');
@@ -102,7 +102,7 @@ class P2hInspectionPdfExporter extends FPDF
         $pdf->SetXY(17, 38.5);
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetTextColor(180, 83, 9); // Amber
-        $pdf->Cell(54, 4, 'UNIT SUPPORT', 0, 1, 'L');
+        $pdf->Cell(54, 4, 'HEAVY EQUIPMENT', 0, 1, 'L');
 
         $pdf->SetX(17);
         $pdf->SetFont('Arial', 'B', 10);

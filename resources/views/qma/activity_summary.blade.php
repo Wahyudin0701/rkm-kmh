@@ -160,7 +160,7 @@
                     <select name="type" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                         <option value="">Semua Kategori</option>
                         <option value="lv" {{ request('type') === 'lv' ? 'selected' : '' }}>Light Vehicle (LV)</option>
-                        <option value="support" {{ request('type') === 'support' ? 'selected' : '' }}>Unit Support</option>
+                        <option value="support" {{ request('type') === 'support' ? 'selected' : '' }}>Heavy Equipment</option>
                     </select>
                 </div>
 
@@ -297,7 +297,7 @@
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800">
-                                        Unit Support
+                                        Heavy Equipment
                                     </span>
                                 @endif
                             </td>

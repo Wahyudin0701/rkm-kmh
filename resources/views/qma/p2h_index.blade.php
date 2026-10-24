@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'P2H Unit Support - Admin QMA')
+@section('title', 'P2H Heavy Equipment - Admin QMA')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -15,12 +15,12 @@
                 <button type="button" 
                         onclick="openGuideModal()" 
                         class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
-                        title="Panduan Halaman P2H Unit Support">
+                        title="Panduan Halaman P2H Heavy Equipment">
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                P2H Unit Support
+                P2H Heavy Equipment
             </h2>
         </div>
 
@@ -115,7 +115,7 @@
                         <th class="py-3.5 px-4 text-center w-12">No</th>
                         <th class="py-3.5 px-4">Waktu Inspeksi</th>
                         <th class="py-3.5 px-4">No. Transaksi</th>
-                        <th class="py-3.5 px-4">Unit Support</th>
+                        <th class="py-3.5 px-4">Heavy Equipment</th>
                         <th class="py-3.5 px-4">Operator (SIMPER)</th>
                         <th class="py-3.5 px-4 text-center">Shift</th>
                         <th class="py-3.5 px-4 text-right">HM Operasi</th>
@@ -215,7 +215,7 @@
                                     </div>
                                 @else
                                     <i class="fa-solid fa-clipboard-question text-3xl mb-2 text-slate-300 block"></i>
-                                    <span class="font-bold text-slate-600">Belum ada catatan riwayat P2H Unit Support</span>
+                                    <span class="font-bold text-slate-600">Belum ada catatan riwayat P2H Heavy Equipment</span>
                                     <p class="text-[11px] text-slate-400 mt-0.5">Form P2H yang dikirim oleh operator alat berat akan muncul pada daftar ini.</p>
                                 @endif
                             </td>
@@ -356,7 +356,7 @@ function closeGuideModal() {
     }
 }
 
-    // Dropdown Menu Ekspor P2H Unit Support
+    // Dropdown Menu Ekspor P2H Heavy Equipment
     function toggleP2hExportMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportMenuP2h');
@@ -385,7 +385,7 @@ function closeGuideModal() {
 </script>
 
 <!-- ========================================================================= -->
-<!-- MODAL POPUP: PANDUAN HALAMAN (LOG P2H UNIT SUPPORT)                      -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (LOG P2H HEAVY EQUIPMENT)                   -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
      onclick="if(event.target === this) closeGuideModal()" 
@@ -399,7 +399,7 @@ function closeGuideModal() {
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
-                    <p class="text-xs text-slate-500">P2H Unit Support</p>
+                    <p class="text-xs text-slate-500">P2H Heavy Equipment</p>
                 </div>
             </div>
             <button type="button" 
@@ -411,7 +411,7 @@ function closeGuideModal() {
 
         <div class="mt-4 space-y-4">
             <p class="text-xs text-slate-600 leading-relaxed">
-                Halaman <strong>P2H Unit Support</strong> digunakan untuk memantau, memeriksa, dan memvalidasi riwayat pemeriksaan kelayakan operasi harian alat berat proyek yang diajukan oleh operator.
+                Halaman <strong>P2H Heavy Equipment</strong> digunakan untuk memantau, memeriksa, dan memvalidasi riwayat pemeriksaan kelayakan operasi harian alat berat proyek yang diajukan oleh operator.
             </p>
 
             <div class="space-y-3">

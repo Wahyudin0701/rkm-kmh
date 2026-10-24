@@ -228,18 +228,18 @@
             <div>
                 <div class="flex items-center justify-end mb-4">
                     <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                        Unit Support / Alat Berat
+                        Heavy Equipment
                     </span>
                 </div>
                 <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight mb-1">
                     Pemeriksaan Pra-Harian (P2H)
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-500 leading-relaxed mb-4">
-                    Pengisian formulir checklist kelaikan operasi harian sebelum mengoperasikan alat berat support unit (Excavator, Crane, Bulldozer, dan unit support lainnya).
+                    Pengisian formulir checklist kelaikan operasi harian sebelum mengoperasikan alat berat Heavy Equipment (Excavator, Crane, Bulldozer, dan unit lainnya).
                 </p>
                 <div class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between">
                     <span class="text-slate-400">Total Unit Terdaftar:</span>
-                    <span class="font-extrabold text-[#1b5e20]">{{ $totalSupport }} Unit Support</span>
+                    <span class="font-extrabold text-[#1b5e20]">{{ $totalSupport }} Heavy Equipment</span>
                 </div>
             </div>
 

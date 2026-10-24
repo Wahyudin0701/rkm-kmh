@@ -12,7 +12,7 @@
             </span>
         </div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            Master Template P2H Unit Support
+            Master Template P2H Heavy Equipment
         </h2>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
             Daftar checksheet resmi pemeriksaan pra-harian untuk setiap kategori unit alat berat di proyek PLTA Merangin.
@@ -45,7 +45,7 @@
         </div>
     </form>
 
-    <!-- Tabel Master Template P2H Unit Support (Tampilan Tabel Bukan Card) -->
+    <!-- Tabel Master Template P2H Heavy Equipment (Tampilan Tabel Bukan Card) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden" id="templatesTableContainer">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">

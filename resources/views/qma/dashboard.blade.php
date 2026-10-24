@@ -37,12 +37,12 @@
             <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">ARMADA LIGHT VEHICLE</p>
         </div>
 
-        <!-- 2. Unit Support & Alat Berat (Pastel Biru Muda) -->
+        <!-- 2. Heavy Equipment (Pastel Biru Muda) -->
         <div>
             <div class="bg-[#edf5fd] border border-[#d2e4fb] rounded-3xl h-28 flex items-center justify-center shadow-xs">
                 <span class="text-4xl sm:text-5xl font-black text-[#1976d2]">{{ $totalSupport }}</span>
             </div>
-            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">UNIT SUPPORT</p>
+            <p class="mt-2.5 text-center text-[11px] font-bold text-slate-500 uppercase tracking-wider">HEAVY EQUIPMENT</p>
         </div>
 
         <!-- 3. Log Timesheet Hari Ini (Pastel Soft Blue) -->
@@ -62,7 +62,7 @@
         </div>
     </div>
 
-    <!-- Layout 2 Kolom Bawah: Log Pergerakan & Status Unit Support (Persis Layout 2 Kolom HSE) -->
+    <!-- Layout 2 Kolom Bawah: Log Pergerakan & Status Heavy Equipment (Persis Layout 2 Kolom HSE) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         
         <!-- Kolom Kiri: Log Aktivitas Kendaraan Terkini (Gerbang Pos) -->
@@ -147,7 +147,7 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: 2 Kartu Stacked (Monitoring Kelayakan P2H & Status Unit Support) -->
+        <!-- Kolom Kanan: 2 Kartu Stacked (Monitoring Kelayakan P2H & Status Heavy Equipment) -->
         <div class="space-y-6">
             
             <!-- Kartu Atas: Monitoring Kelayakan P2H Terkini -->
@@ -155,7 +155,7 @@
                 <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Monitoring Kelayakan P2H</h3>
-                        <p class="text-[11px] text-slate-500">Prioritas kondisi lembar periksa pra-harian unit support</p>
+                        <p class="text-[11px] text-slate-500">Prioritas kondisi lembar periksa pra-harian Heavy Equipment</p>
                     </div>
                     @can('qma.p2h.view')
                     <a href="{{ route('qma.p2h.index') }}" class="text-xs font-bold text-[#1b5e20] hover:underline flex items-center gap-1">
@@ -188,7 +188,7 @@
                                         {{ $p2h->vehicle->code ?? 'Unit' }}
                                     </span>
                                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                        {{ $p2h->vehicle->unit_category ?? ($p2h->template->name ?? 'Unit Support') }}
+                                        {{ $p2h->vehicle->unit_category ?? ($p2h->template->name ?? 'Heavy Equipment') }}
                                     </span>
                                 </div>
                                 <p class="text-[11px] text-slate-600 mt-0.5">
@@ -222,16 +222,16 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-400 text-center py-4">Belum ada data riwayat inspeksi P2H unit support.</p>
+                        <p class="text-xs text-slate-400 text-center py-4">Belum ada data riwayat inspeksi P2H Heavy Equipment.</p>
                     @endforelse
                 </div>
             </div>
 
-            <!-- Kartu Bawah: Status Kesiapan Unit Support (Format Rapi Persis HSE) -->
+            <!-- Kartu Bawah: Status Kesiapan Heavy Equipment (Format Rapi Persis HSE) -->
             <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
                     <div>
-                        <h3 class="text-sm font-bold text-slate-900">Kesiapan Unit Support</h3>
+                        <h3 class="text-sm font-bold text-slate-900">Kesiapan Heavy Equipment</h3>
                         <p class="text-[11px] text-slate-500">Kesiapan operasional armada alat berat & unit bantu</p>
                     </div>
                     <a href="{{ route('qma.vehicles.support') }}" class="text-xs font-bold text-[#1b5e20] hover:underline flex items-center gap-1">
@@ -295,7 +295,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-400 text-center py-4">Belum ada data unit support terdaftar.</p>
+                        <p class="text-xs text-slate-400 text-center py-4">Belum ada data Heavy Equipment terdaftar.</p>
                     @endforelse
                 </div>
             </div>
@@ -354,7 +354,7 @@
                         <i class="fa-solid fa-tractor"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h4 class="text-xs font-bold text-slate-900">Master Data Unit Support</h4>
+                        <h4 class="text-xs font-bold text-slate-900">Master Data Heavy Equipment</h4>
                         <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
                             Memantau armada alat berat, spesifikasi teknis, serta masa berlaku izin kelaikan operasional SILO dan KIR.
                         </p>

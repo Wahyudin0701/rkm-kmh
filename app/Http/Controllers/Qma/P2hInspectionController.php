@@ -19,7 +19,7 @@ use Illuminate\View\View;
 class P2hInspectionController extends Controller
 {
     /**
-     * Helper query builder untuk riwayat pemeriksaan P2H Unit Support dengan filter aktif.
+     * Helper query builder untuk riwayat pemeriksaan P2H Heavy Equipment dengan filter aktif.
      */
     private function getFilteredP2hQuery(Request $request): Builder
     {
@@ -54,7 +54,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Tampilkan riwayat dan log pemeriksaan P2H Unit Support untuk Admin QMA.
+     * Tampilkan riwayat dan log pemeriksaan P2H Heavy Equipment untuk Admin QMA.
      */
     public function index(Request $request): View
     {
@@ -78,7 +78,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Ekspor Riwayat Pemeriksaan P2H Unit Support ke format Excel (.xlsx).
+     * Ekspor Riwayat Pemeriksaan P2H Heavy Equipment ke format Excel (.xlsx).
      */
     public function exportExcel(Request $request): Response
     {
@@ -149,8 +149,8 @@ class P2hInspectionController extends Controller
         }
 
         $alignments = ['center', 'center', 'center', 'center', 'left', 'left', 'center', 'center', 'right', 'center', 'center', 'center', 'left', 'left'];
-        $title = 'LAPORAN PEMERIKSAAN HARIAN (P2H) ALAT BERAT & UNIT SUPPORT - PT KERINCI MERANGIN HIDRO';
-        $fileName = 'Laporan_P2H_Unit_Support_' . now()->format('Ymd_Hi') . '.xlsx';
+        $title = 'LAPORAN PEMERIKSAAN HARIAN (P2H) HEAVY EQUIPMENT - PT KERINCI MERANGIN HIDRO';
+        $fileName = 'Laporan_P2H_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.xlsx';
 
         $binary = SimpleXlsxExporter::create($title, $metaLines, $headers, $rows, $alignments);
 
@@ -164,7 +164,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Ekspor Riwayat Pemeriksaan P2H Unit Support ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     * Ekspor Riwayat Pemeriksaan P2H Heavy Equipment ke format PDF (Pratinjau Asli dengan Logo PT KMH).
      */
     public function exportPdf(Request $request): Response
     {
@@ -239,19 +239,19 @@ class P2hInspectionController extends Controller
             ];
         }
 
-        $title = 'Laporan Pemeriksaan Harian (P2H) Unit Support';
-        $subtitle = 'Rekapitulasi Kelaikan Alat Berat & Unit Pendukung Lapangan - PT KMH';
+        $title = 'Laporan Pemeriksaan Harian (P2H) Heavy Equipment';
+        $subtitle = 'Rekapitulasi Kelaikan Alat Berat & Heavy Equipment Lapangan - PT KMH';
         $pdfBinary = QmaTablePdfExporter::generate(
             $title,
             $subtitle,
-            'P2H UNIT SUPPORT RKM-KMH',
+            'P2H HEAVY EQUIPMENT RKM-KMH',
             $metaLeft,
             $metaRight,
             $columns,
             $rows
         );
 
-        $fileName = 'Laporan_P2H_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+        $fileName = 'Laporan_P2H_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.pdf';
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
@@ -263,7 +263,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Tampilkan Summary Pemeriksaan P2H Unit Support (Analitik, Rekapitulasi Alat Berat & Status).
+     * Tampilkan Summary Pemeriksaan P2H Heavy Equipment (Analitik, Rekapitulasi Alat Berat & Status).
      */
     public function summary(Request $request): View
     {
@@ -318,7 +318,7 @@ class P2hInspectionController extends Controller
         $totalNormal = $records->where('summary_condition', 'good')->count();
         $totalHm = $records->sum('start_hm');
 
-        // Rekapitulasi per Unit Support
+        // Rekapitulasi per Heavy Equipment
         $unitSummary = $records->groupBy('vehicle_id')->map(function ($group) {
             $vehicle = $group->first()->vehicle;
             return [
@@ -334,7 +334,7 @@ class P2hInspectionController extends Controller
             ];
         })->sortByDesc('total');
 
-        // Daftar Unit Support untuk opsi filter
+        // Daftar Heavy Equipment untuk opsi filter
         $supportVehicles = Vehicle::where('category', 'unit_support')->orderBy('code')->get();
 
         return view('qma.p2h_summary', compact(
@@ -354,7 +354,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Helper untuk memproses data rekapitulasi summary P2H per unit support.
+     * Helper untuk memproses data rekapitulasi summary P2H per Heavy Equipment.
      */
     private function getP2hSummaryData(Request $request): array
     {
@@ -424,7 +424,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Ekspor Rekapitulasi Summary P2H Unit Support ke format Excel (.xlsx).
+     * Ekspor Rekapitulasi Summary P2H Heavy Equipment ke format Excel (.xlsx).
      */
     public function exportSummaryExcel(Request $request): Response
     {
@@ -489,8 +489,8 @@ class P2hInspectionController extends Controller
         }
 
         $alignments = ['center', 'center', 'left', 'left', 'center', 'center', 'center', 'center', 'center', 'right', 'center'];
-        $title = 'LAPORAN REKAPITULASI SUMMARY P2H UNIT SUPPORT - PT KERINCI MERANGIN HIDRO';
-        $fileName = 'Laporan_Summary_P2H_Unit_Support_' . now()->format('Ymd_Hi') . '.xlsx';
+        $title = 'LAPORAN REKAPITULASI SUMMARY P2H HEAVY EQUIPMENT - PT KERINCI MERANGIN HIDRO';
+        $fileName = 'Laporan_Summary_P2H_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.xlsx';
 
         $binary = SimpleXlsxExporter::create($title, $metaLines, $headers, $rows, $alignments);
 
@@ -504,7 +504,7 @@ class P2hInspectionController extends Controller
     }
 
     /**
-     * Ekspor Rekapitulasi Summary P2H Unit Support ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     * Ekspor Rekapitulasi Summary P2H Heavy Equipment ke format PDF (Pratinjau Asli dengan Logo PT KMH).
      */
     public function exportSummaryPdf(Request $request): Response
     {
@@ -533,7 +533,7 @@ class P2hInspectionController extends Controller
         ];
 
         $metaRight = [
-            'Unit Support Aktif' => $unitSummary->count() . ' Unit Alat Berat',
+            'Heavy Equipment Aktif' => $unitSummary->count() . ' Unit Alat Berat',
             'Total Pemeriksaan' => $records->count() . ' Form P2H Terkumpul',
             'Rincian Status' => "{$totalApproved} Disetujui, {$totalPending} Menunggu, {$totalRejected} Ditolak",
         ];
@@ -573,7 +573,7 @@ class P2hInspectionController extends Controller
             ];
         }
 
-        $title = 'Laporan Summary Rekapitulasi P2H Unit Support';
+        $title = 'Laporan Summary Rekapitulasi P2H Heavy Equipment';
         $subtitle = 'Kepatuhan & Kelayakan Operasional Alat Berat Lapangan - Periode: ' . $dateRangeStr;
         $pdfBinary = QmaTablePdfExporter::generate(
             $title,
@@ -585,7 +585,7 @@ class P2hInspectionController extends Controller
             $rows
         );
 
-        $fileName = 'Laporan_Summary_P2H_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+        $fileName = 'Laporan_Summary_P2H_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.pdf';
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',
@@ -651,7 +651,7 @@ class P2hInspectionController extends Controller
 
         $metaLines = [
             'No. Transaksi: ' . $record->transaction_no . ' | Waktu Pemeriksaan: ' . ($record->inspected_at ? $record->inspected_at->format('d/m/Y H:i') : '-') . ' WIB | Shift: ' . $record->shift,
-            'Unit Support: ' . ($record->vehicle->code ?? '-') . ' (' . ($record->vehicle->brand_type ?? '-') . ') | Kategori: ' . ($record->vehicle->unit_category ?? ($record->template->name ?? '-')) . ' | Lokasi: ' . ($record->vehicle->location ?? '-'),
+            'Heavy Equipment: ' . ($record->vehicle->code ?? '-') . ' (' . ($record->vehicle->brand_type ?? '-') . ') | Kategori: ' . ($record->vehicle->unit_category ?? ($record->template->name ?? '-')) . ' | Lokasi: ' . ($record->vehicle->location ?? '-'),
             'Operator: ' . ($record->employee->name ?? '-') . ' (NIK: ' . ($record->employee->nik ?? '-') . ') | SIMPER: ' . ($record->employee?->simper_expired_at ? $record->employee->simper_expired_at->format('d/m/Y') : 'Non-SIMPER'),
             'Hour Meter (HM): ' . number_format($record->start_hm, 1, ',', '.') . ' HM | Kondisi Fisik: ' . $conditionLabel . ' | Status QMA: ' . $statusLabel,
             'Verifikator: ' . ($record->validator->name ?? '-') . ' | Waktu Validasi: ' . ($record->validated_at ? $record->validated_at->format('d/m/Y H:i') . ' WIB' : '-'),
@@ -698,7 +698,7 @@ class P2hInspectionController extends Controller
         ];
 
         $xlsxContent = SimpleXlsxExporter::create(
-            'LEMBAR PEMERIKSAAN HARIAN (P2H) UNIT SUPPORT - ' . ($record->vehicle->code ?? 'UNIT'),
+            'LEMBAR PEMERIKSAAN HARIAN (P2H) HEAVY EQUIPMENT - ' . ($record->vehicle->code ?? 'UNIT'),
             $metaLines,
             $headers,
             $rows,

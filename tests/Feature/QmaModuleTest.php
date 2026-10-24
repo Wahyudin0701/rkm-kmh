@@ -42,7 +42,7 @@ class QmaModuleTest extends TestCase
         $response->assertSee('Dashboard Divisi QMA');
         $response->assertSee('Selamat datang, Pinto Yuliandra');
         $response->assertSee('Light Vehicle');
-        $response->assertSee('Unit Support');
+        $response->assertSee('Heavy Equipment');
         $response->assertSee('Log Aktivitas Kendaraan');
     }
 
@@ -116,7 +116,7 @@ class QmaModuleTest extends TestCase
         $response = $this->actingAs($this->qmaAdmin)->get('/qma/vehicles/unit-support');
 
         $response->assertStatus(200);
-        $response->assertSee('Unit Support');
+        $response->assertSee('Heavy Equipment');
         $response->assertSee('EX99');
         $response->assertDontSee('LV99');
     }

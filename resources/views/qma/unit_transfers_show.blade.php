@@ -126,7 +126,7 @@
                         <tr>
                             <td class="py-2.5 px-4 font-bold text-slate-600">Kategori & Jenis Unit</td>
                             <td class="py-2.5 px-4 font-semibold text-slate-800">
-                                {{ $transfer->vehicle?->unit_category ?? ($transfer->vehicle?->parent?->brand_type ?? 'Unit Support') }}
+                                {{ $transfer->vehicle?->unit_category ?? ($transfer->vehicle?->parent?->brand_type ?? 'Heavy Equipment') }}
                                 @if($transfer->vehicle?->unit_type)
                                     &bull; {{ $transfer->vehicle?->unit_type }}
                                 @endif

@@ -48,7 +48,7 @@ class VehicleController extends Controller
             ->take(5)
             ->get();
 
-        // 3. Status Kesiapan Unit Support
+        // 3. Status Kesiapan Heavy Equipment
         $supportOperation = Vehicle::unitSupports()->where('status', 'Operation')->count();
         $supportStandby = Vehicle::unitSupports()->where('status', 'Standby')->count();
         $supportBreakdown = Vehicle::unitSupports()->where('status', 'Breakdown')->count();
@@ -270,7 +270,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Halaman khusus pengelolaan Kategori Kendaraan Berat (Unit Support / Alat Berat).
+     * Halaman khusus pengelolaan Kategori Kendaraan Berat (Heavy Equipment / Alat Berat).
      */
     public function indexSupport(Request $request): View
     {
@@ -281,12 +281,12 @@ class VehicleController extends Controller
             $query->where('status', $request->input('status'));
         }
 
-        // Filter Kategori Unit Support (Excavator, Crane, Bulldozer, dll)
+        // Filter Kategori Heavy Equipment (Excavator, Crane, Bulldozer, dll)
         if ($request->filled('unit_category')) {
             $query->where('unit_category', $request->input('unit_category'));
         }
 
-        // Filter Pencarian Keyword Unit Support
+        // Filter Pencarian Keyword Heavy Equipment
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
             $query->where(function ($q) use ($search) {
@@ -304,7 +304,7 @@ class VehicleController extends Controller
 
         $vehicles = $query->orderBy('code')->paginate(15)->withQueryString();
 
-        // Statistik Ringkasan Khusus Unit Support
+        // Statistik Ringkasan Khusus Heavy Equipment
         $totalSupport = Vehicle::unitSupportCategories()->count();
         $totalUnits = Vehicle::unitSupportPhysical()->count();
         $totalOperation = Vehicle::unitSupportCategories()->where('status', 'Operation')->count();
@@ -342,7 +342,7 @@ class VehicleController extends Controller
             ->values()
             ->all();
 
-        // Daftar semua kode unit support untuk validasi unik langsung di form
+        // Daftar semua kode Heavy Equipment untuk validasi unik langsung di form
         $existingCodes = Vehicle::unitSupports()->pluck('code')->map(fn($c) => strtoupper(trim($c)))->values()->all();
 
         return view('qma.vehicles_support', compact(
@@ -359,7 +359,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Halaman daftar unit fisik berdasarkan kategori Unit Support yang dipilih.
+     * Halaman daftar unit fisik berdasarkan kategori Heavy Equipment yang dipilih.
      */
     public function indexSupportUnits(Request $request, int $id): View
     {
@@ -430,7 +430,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Helper query builder untuk unit fisik alat berat (Unit Support Physical).
+     * Helper query builder untuk unit fisik alat berat (Heavy Equipment Physical).
      */
     private function getFilteredSupportPhysicalQuery(Request $request): Builder
     {
@@ -469,7 +469,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Helper query builder untuk master kategori Unit Support.
+     * Helper query builder untuk master kategori Heavy Equipment.
      */
     private function getFilteredSupportCategoriesQuery(Request $request): Builder
     {
@@ -498,7 +498,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Ekspor data Unit Support ke format Excel (.xlsx).
+     * Ekspor data Heavy Equipment ke format Excel (.xlsx).
      */
     public function exportSupportExcel(Request $request): Response
     {
@@ -530,7 +530,7 @@ class VehicleController extends Controller
 
             $rows = [];
             foreach ($units as $idx => $u) {
-                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Unit Support'));
+                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Heavy Equipment'));
                 $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
                 $docs = trim(($u->silo_document ? 'SILO ' : '') . ($u->kir_document ? 'KIR ' : '')) ?: '-';
 
@@ -549,8 +549,8 @@ class VehicleController extends Controller
             }
 
             $alignments = ['center', 'center', 'left', 'left', 'center', 'center', 'left', 'center', 'center', 'center'];
-            $title = 'LAPORAN DAFTAR UNIT FISIK ALAT BERAT (UNIT SUPPORT) - PT KERINCI MERANGIN HIDRO';
-            $fileName = 'Laporan_Unit_Support_Lengkap_' . now()->format('Ymd_Hi') . '.xlsx';
+            $title = 'LAPORAN DAFTAR UNIT FISIK ALAT BERAT (HEAVY EQUIPMENT) - PT KERINCI MERANGIN HIDRO';
+            $fileName = 'Laporan_Heavy_Equipment_Lengkap_' . now()->format('Ymd_Hi') . '.xlsx';
         } else {
             // Fallback ke master kategori jika unit fisik belum diinput
             $categories = $this->getFilteredSupportCategoriesQuery($request)->get();
@@ -585,8 +585,8 @@ class VehicleController extends Controller
             }
 
             $alignments = ['center', 'center', 'left', 'left', 'center', 'left', 'center'];
-            $title = 'LAPORAN MASTER KATEGORI ALAT BERAT (UNIT SUPPORT) - PT KERINCI MERANGIN HIDRO';
-            $fileName = 'Laporan_Kategori_Unit_Support_' . now()->format('Ymd_Hi') . '.xlsx';
+            $title = 'LAPORAN MASTER KATEGORI ALAT BERAT (HEAVY EQUIPMENT) - PT KERINCI MERANGIN HIDRO';
+            $fileName = 'Laporan_Kategori_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.xlsx';
         }
 
         $binary = SimpleXlsxExporter::create($title, $metaLines, $headers, $rows, $alignments);
@@ -601,7 +601,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Ekspor data Unit Support ke format PDF (Pratinjau Asli dengan Logo PT KMH).
+     * Ekspor data Heavy Equipment ke format PDF (Pratinjau Asli dengan Logo PT KMH).
      */
     public function exportSupportPdf(Request $request): Response
     {
@@ -617,7 +617,7 @@ class VehicleController extends Controller
             $totalBd = $units->where('status', 'Breakdown')->count();
 
             $metaLeft = [
-                'Kategori' => 'Unit Support (Alat Berat Fisik)',
+                'Kategori' => 'Heavy Equipment (Alat Berat Fisik)',
                 'Status Operasional' => $statusFilter,
                 'Tanggal Cetak' => $today . ' WIB',
             ];
@@ -641,7 +641,7 @@ class VehicleController extends Controller
 
             $rows = [];
             foreach ($units as $idx => $u) {
-                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Unit Support'));
+                $categoryName = $u->parent?->unit_category ?: ($u->parent?->brand_type ?: ($u->unit_category ?: 'Heavy Equipment'));
                 $odo = $u->current_km ? number_format($u->current_km, 0, ',', '.') . ' HM' : '0 HM';
 
                 $rows[] = [
@@ -657,9 +657,9 @@ class VehicleController extends Controller
                 ];
             }
 
-            $title = 'Laporan Data Unit Support (Alat Berat)';
+            $title = 'Laporan Data Heavy Equipment (Alat Berat)';
             $subtitle = 'Daftar Seluruh Unit Fisik Alat Berat Lapangan - ' . now()->translatedFormat('d F Y');
-            $fileName = 'Laporan_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+            $fileName = 'Laporan_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.pdf';
         } else {
             $categories = $this->getFilteredSupportCategoriesQuery($request)->get();
 
@@ -668,7 +668,7 @@ class VehicleController extends Controller
             $totalBd = $categories->where('status', 'Breakdown')->count();
 
             $metaLeft = [
-                'Kategori' => 'Master Kategori Unit Support',
+                'Kategori' => 'Master Kategori Heavy Equipment',
                 'Status Operasional' => $statusFilter,
                 'Tanggal Cetak' => $today . ' WIB',
             ];
@@ -701,9 +701,9 @@ class VehicleController extends Controller
                 ];
             }
 
-            $title = 'Laporan Master Kategori Unit Support';
+            $title = 'Laporan Master Kategori Heavy Equipment';
             $subtitle = 'Master 28 Kategori Alat Berat Proyek KMH - ' . now()->translatedFormat('d F Y');
-            $fileName = 'Laporan_Kategori_Unit_Support_' . now()->format('Ymd_Hi') . '.pdf';
+            $fileName = 'Laporan_Kategori_Heavy_Equipment_' . now()->format('Ymd_Hi') . '.pdf';
         }
 
         $pdfBinary = VehiclePdfExporter::generate($title, $subtitle, $metaLeft, $metaRight, $columns, $rows);
@@ -877,7 +877,7 @@ class VehicleController extends Controller
     }
 
     /**
-     * Simpan penambahan unit fisik baru di bawah kategori Unit Support tertentu.
+     * Simpan penambahan unit fisik baru di bawah kategori Heavy Equipment tertentu.
      */
     public function storeSupportUnit(Request $request, int $id): RedirectResponse
     {
@@ -973,7 +973,7 @@ class VehicleController extends Controller
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
         ];
 
-        // Atribut opsional spesifik Unit Support (Kendaraan Berat)
+        // Atribut opsional spesifik Heavy Equipment (Kendaraan Berat)
         if ($category === 'unit_support') {
             $rules = array_merge($rules, [
                 'unit_category' => ['nullable', 'string', 'max:100'],
@@ -1023,14 +1023,14 @@ class VehicleController extends Controller
             $vehicle->update(['p2h_template_id' => $template->id]);
         }
 
-        $categoryLabel = $vehicle->isLightVehicle() ? 'Light Vehicle (LV)' : 'Kategori Unit Support';
+        $categoryLabel = $vehicle->isLightVehicle() ? 'Light Vehicle (LV)' : 'Kategori Heavy Equipment';
 
         return back()->with('success', "Data {$categoryLabel} [{$vehicle->code}] berhasil ditambahkan ke sistem.");
     }
 
     /**
-     * Perbarui data aset kendaraan (LV atau Unit Support).
-     * Jika kode Kategori Unit Support diubah, otomatis sinkronisasikan kode seluruh unit fisik di bawahnya serta Master Template P2H.
+     * Perbarui data aset kendaraan (LV atau Heavy Equipment).
+     * Jika kode Kategori Heavy Equipment diubah, otomatis sinkronisasikan kode seluruh unit fisik di bawahnya serta Master Template P2H.
      */
     public function update(Request $request, int $id): RedirectResponse
     {
@@ -1078,7 +1078,7 @@ class VehicleController extends Controller
         DB::transaction(function () use ($vehicle, $validated, $oldCode, $newCode) {
             $vehicle->update($validated);
 
-            // Jika ini kategori Unit Support, sinkronkan Master Template P2H dan unit-unit fisik di bawahnya
+            // Jika ini kategori Heavy Equipment, sinkronkan Master Template P2H dan unit-unit fisik di bawahnya
             if ($vehicle->isSupportCategory()) {
                 $template = $vehicle->p2hTemplate ?: P2hTemplate::where('code', $oldCode)->first();
                 if ($template) {

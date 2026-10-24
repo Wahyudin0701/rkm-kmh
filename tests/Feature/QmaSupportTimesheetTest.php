@@ -98,7 +98,7 @@ class QmaSupportTimesheetTest extends TestCase
             ->get(route('qma.support_timesheet.index'));
 
         $response->assertStatus(200);
-        $response->assertSee('Timesheet Unit Support');
+        $response->assertSee('Timesheet Heavy Equipment');
         $response->assertSee('Catat Timesheet');
         $response->assertSee('TS-US-20261020-0001');
         $response->assertSee('EX01');
@@ -167,7 +167,7 @@ class QmaSupportTimesheetTest extends TestCase
             ->get(route('qma.activity.support_timesheet'));
 
         $response->assertStatus(200);
-        $response->assertSee('History Timesheet Unit Support');
+        $response->assertSee('History Timesheet Heavy Equipment');
         $response->assertDontSee('Catat Timesheet');
     }
 

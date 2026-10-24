@@ -299,7 +299,7 @@
 
                                     <a href="{{ route('qma.vehicles.support') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') || request()->routeIs('qma.vehicles.support.units*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Unit Support</span>
+                                        <span>Heavy Equipment</span>
                                     </a>
 
                                     <a href="{{ route('qma.unit_management.index') }}" 
@@ -339,7 +339,7 @@
 
                                     <a href="{{ route('qma.support_timesheet.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Timesheet Unit Support</span>
+                                        <span>Timesheet Heavy Equipment</span>
                                     </a>
                                 </div>
                             </div>
@@ -365,7 +365,7 @@
                                     @can('qma.p2h.view')
                                     <a href="{{ route('qma.p2h.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>P2H Unit Support</span>
+                                        <span>P2H Heavy Equipment</span>
                                     </a>
                                     @endcan
 
@@ -406,7 +406,7 @@
                                     @if(auth()->user()->canAny(['qma.p2h.view', 'qma.vehicles.view']))
                                     <a href="{{ route('qma.p2h.summary') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Summary P2H Unit Support</span>
+                                        <span>Summary P2H Heavy Equipment</span>
                                     </a>
                                     @endif
                                 </div>
@@ -671,7 +671,7 @@
 
                                     <a href="{{ route('qma.vehicles.support') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.vehicles.support') || request()->routeIs('qma.vehicles.support.units*') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Unit Support</span>
+                                        <span>Heavy Equipment</span>
                                     </a>
 
                                     <a href="{{ route('qma.unit_management.index') }}" 
@@ -711,7 +711,7 @@
 
                                     <a href="{{ route('qma.support_timesheet.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.support_timesheet.*') || request()->routeIs('qma.activity.support_timesheet') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Timesheet Unit Support</span>
+                                        <span>Timesheet Heavy Equipment</span>
                                     </a>
                                 </div>
                             </div>
@@ -737,7 +737,7 @@
                                     @can('qma.p2h.view')
                                     <a href="{{ route('qma.p2h.index') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.index') || request()->routeIs('qma.p2h.show') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>P2H Unit Support</span>
+                                        <span>P2H Heavy Equipment</span>
                                     </a>
                                     @endcan
 
@@ -778,7 +778,7 @@
                                     @if(auth()->user()->canAny(['qma.p2h.view', 'qma.vehicles.view']))
                                     <a href="{{ route('qma.p2h.summary') }}" 
                                        class="block px-3.5 py-2 text-xs rounded-xl transition {{ request()->routeIs('qma.p2h.summary') ? 'bg-[#1b5e20] text-white font-bold shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium' }}">
-                                        <span>Summary P2H Unit Support</span>
+                                        <span>Summary P2H Heavy Equipment</span>
                                     </a>
                                     @endif
                                 </div>
@@ -905,9 +905,9 @@
                 @elseif(request()->routeIs('qma.vehicles.lv'))
                     Light Vehicle
                 @elseif(request()->routeIs('qma.vehicles.support.units*'))
-                    Daftar Unit Fisik Support
+                    Daftar Unit Fisik Heavy Equipment
                 @elseif(request()->routeIs('qma.vehicles.support'))
-                    Unit Support
+                    Heavy Equipment
                 @elseif(request()->routeIs('qma.vehicles.*'))
                     Data Kendaraan
                 @elseif(request()->routeIs('qma.unit_transfers.create'))
@@ -921,15 +921,15 @@
                 @elseif(request()->routeIs('qma.activity.log'))
                     Timesheet LV
                 @elseif(request()->routeIs('qma.activity.support_timesheet'))
-                    History Timesheet Unit Support
+                    History Timesheet Heavy Equipment
                 @elseif(request()->routeIs('qma.support_timesheet.*'))
-                    Timesheet Unit Support
+                    Timesheet Heavy Equipment
                 @elseif(request()->routeIs('qma.p2h.summary'))
-                    Summary P2H Unit Support
+                    Summary P2H Heavy Equipment
                 @elseif(request()->routeIs('qma.p2h.templates*'))
                     Master Template P2H
                 @elseif(request()->routeIs('qma.p2h.*'))
-                    P2H Unit Support
+                    P2H Heavy Equipment
                 @elseif(request()->routeIs('qma.activity.summary'))
                     Summary Timesheet LV
                 @elseif(request()->routeIs('profile.*'))

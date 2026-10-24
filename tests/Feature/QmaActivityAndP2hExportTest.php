@@ -185,7 +185,7 @@ class QmaActivityAndP2hExportTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        $this->assertStringContainsString('Laporan_P2H_Unit_Support_', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('Laporan_P2H_Heavy_Equipment_', (string) $response->headers->get('Content-Disposition'));
         
         $content = $response->getContent();
         $this->assertStringStartsWith("PK\x03\x04", $content);
@@ -212,7 +212,7 @@ class QmaActivityAndP2hExportTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertHeader('Content-Type', 'application/pdf');
-        $this->assertStringContainsString('inline; filename="Laporan_P2H_Unit_Support_', (string) $response->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('inline; filename="Laporan_P2H_Heavy_Equipment_', (string) $response->headers->get('Content-Disposition'));
         
         $content = $response->getContent();
         $this->assertStringStartsWith('%PDF-', $content);

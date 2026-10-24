@@ -13,7 +13,7 @@ use Illuminate\View\View;
 class P2hTemplateController extends Controller
 {
     /**
-     * Tampilkan daftar Master Template Checksheet P2H Unit Support sesuai kategori aset.
+     * Tampilkan daftar Master Template Checksheet P2H Heavy Equipment sesuai kategori aset.
      */
     public function index(Request $request): View
     {

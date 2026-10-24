@@ -38,7 +38,7 @@ class SupportTimesheetController extends Controller
     ];
 
     /**
-     * Helper query builder untuk memfilter timesheet unit support.
+     * Helper query builder untuk memfilter timesheet Heavy Equipment.
      */
     private function getFilteredQuery(Request $request): Builder
     {
@@ -101,7 +101,7 @@ class SupportTimesheetController extends Controller
     }
 
     /**
-     * Tampilkan halaman utama Timesheet Unit Support.
+     * Tampilkan halaman utama Timesheet Heavy Equipment.
      */
     public function index(Request $request): View
     {
@@ -258,7 +258,7 @@ class SupportTimesheetController extends Controller
             $shift,
             $updaterName
         ) {
-            // 1. Simpan Data Timesheet Unit Support
+            // 1. Simpan Data Timesheet Heavy Equipment
             $timesheet = UnitSupportTimesheet::create([
                 'timesheet_no' => $timesheetNo,
                 'vehicle_id' => $vehicle->id,
@@ -316,7 +316,7 @@ class SupportTimesheetController extends Controller
     }
 
     /**
-     * Perbarui entri timesheet unit support.
+     * Perbarui entri timesheet Heavy Equipment.
      */
     public function update(Request $request, int $id): RedirectResponse
     {
@@ -406,7 +406,7 @@ class SupportTimesheetController extends Controller
     }
 
     /**
-     * Hapus entri timesheet unit support.
+     * Hapus entri timesheet Heavy Equipment.
      */
     public function destroy(int $id): RedirectResponse
     {
@@ -418,14 +418,14 @@ class SupportTimesheetController extends Controller
     }
 
     /**
-     * Ekspor data timesheet unit support ke format Excel (.xlsx).
+     * Ekspor data timesheet Heavy Equipment ke format Excel (.xlsx).
      */
     public function exportExcel(Request $request): Response
     {
         $timesheets = $this->getFilteredQuery($request)->get();
 
         $metaLines = [
-            'Laporan Timesheet Operasional Unit Support (Alat Berat)',
+            'Laporan Timesheet Operasional Heavy Equipment',
             'Periode: ' . ($request->filled('start_date') ? Carbon::parse($request->input('start_date'))->format('d/m/Y') : 'Semua') . ' s/d ' . ($request->filled('end_date') ? Carbon::parse($request->input('end_date'))->format('d/m/Y') : 'Semua'),
             'Waktu Ekspor: ' . Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB',
             'Total Record: ' . $timesheets->count() . ' Entri Timesheet',
@@ -496,14 +496,14 @@ class SupportTimesheetController extends Controller
         ];
 
         $xlsxContent = SimpleXlsxExporter::create(
-            'LAPORAN TIMESHEET OPERASIONAL UNIT SUPPORT',
+            'LAPORAN TIMESHEET OPERASIONAL HEAVY EQUIPMENT',
             $metaLines,
             $headers,
             $rows,
             $alignments
         );
 
-        $fileName = 'Timesheet_Unit_Support_' . Carbon::now()->format('Ymd_His') . '.xlsx';
+        $fileName = 'Timesheet_Heavy_Equipment_' . Carbon::now()->format('Ymd_His') . '.xlsx';
 
         return response($xlsxContent, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -514,7 +514,7 @@ class SupportTimesheetController extends Controller
     }
 
     /**
-     * Ekspor data timesheet unit support ke format PDF.
+     * Ekspor data timesheet Heavy Equipment ke format PDF.
      */
     public function exportPdf(Request $request): Response
     {
@@ -522,7 +522,7 @@ class SupportTimesheetController extends Controller
 
         $metaLeft = [
             'Sub-Sistem' => 'Quality Management Asset (QMA)',
-            'Modul' => 'Timesheet Operasional Unit Support',
+            'Modul' => 'Timesheet Operasional Heavy Equipment',
             'Periode' => ($request->filled('start_date') ? Carbon::parse($request->input('start_date'))->format('d/m/Y') : 'Semua') . ' s/d ' . ($request->filled('end_date') ? Carbon::parse($request->input('end_date'))->format('d/m/Y') : 'Semua'),
         ];
 
@@ -563,9 +563,9 @@ class SupportTimesheetController extends Controller
             ];
         }
 
-        $subtitle = 'Monitoring Jam Operasi Alat Berat & Unit Support Proyek Kerinci Hydropower';
+        $subtitle = 'Monitoring Jam Operasi Alat Berat & Heavy Equipment Proyek Kerinci Hydropower';
         $pdfBinary = QmaTablePdfExporter::generate(
-            'Laporan Timesheet Unit Support',
+            'Laporan Timesheet Heavy Equipment',
             $subtitle,
             'SISTEM QMA RKM-KMH',
             $metaLeft,
@@ -574,7 +574,7 @@ class SupportTimesheetController extends Controller
             $rows
         );
 
-        $fileName = 'Laporan_Timesheet_Unit_Support_' . Carbon::now()->format('Ymd_His') . '.pdf';
+        $fileName = 'Laporan_Timesheet_Heavy_Equipment_' . Carbon::now()->format('Ymd_His') . '.pdf';
 
         return response($pdfBinary, 200, [
             'Content-Type' => 'application/pdf',

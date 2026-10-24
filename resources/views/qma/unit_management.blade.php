@@ -121,7 +121,7 @@
                 </a>
                 <a href="{{ route('qma.unit_management.index', array_merge(request()->except('category', 'page'), ['category' => 'unit_support'])) }}"
                    class="px-3 py-1.5 rounded-lg transition {{ request('category') === 'unit_support' ? 'bg-white text-slate-900 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900' }}">
-                    Unit Support
+                    Heavy Equipment
                 </a>
             </div>
 
@@ -765,7 +765,7 @@
                         Status Posisi: Di Dalam vs Di Luar Site
                     </h4>
                     <p class="pl-7 text-slate-500">
-                        Setiap unit (LV dan Unit Support) dikelompokkan ke dalam dua status posisi site: 
+                        Setiap unit (LV dan Heavy Equipment) dikelompokkan ke dalam dua status posisi site: 
                         <span class="font-semibold text-emerald-700">Di Dalam Site</span> (sedang berada di area kerja proyek KMH) dan 
                         <span class="font-semibold text-amber-700">Di Luar Site</span> (dinas luar, mess kumun, atau bengkel luar).
                     </p>

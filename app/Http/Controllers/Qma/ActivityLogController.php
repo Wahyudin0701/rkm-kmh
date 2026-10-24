@@ -495,7 +495,7 @@ class ActivityLogController extends Controller
 
         $typeText = 'Semua Armada';
         if ($type === 'lv' || $type === 'light_vehicle') $typeText = 'Light Vehicle';
-        elseif ($type === 'support' || $type === 'unit_support') $typeText = 'Unit Support';
+        elseif ($type === 'support' || $type === 'unit_support') $typeText = 'Heavy Equipment';
 
         $totalKmAll = $vehicleSummaries->sum('total_km');
         $totalTripsAll = $vehicleSummaries->sum('total_trips');
@@ -531,7 +531,7 @@ class ActivityLogController extends Controller
                 $veh?->code ?: '-',
                 $veh?->brand_type ?: '-',
                 $veh?->license_plate ?: '-',
-                $veh?->isLightVehicle() ? 'Light Vehicle' : 'Unit Support',
+                $veh?->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment',
                 $veh?->ownership ?: '-',
                 $veh?->division ?: ($veh?->department ?: '-'),
                 (int) $vs->in_trips,
@@ -620,7 +620,7 @@ class ActivityLogController extends Controller
 
         $typeText = 'Semua Armada';
         if ($type === 'lv' || $type === 'light_vehicle') $typeText = 'Light Vehicle';
-        elseif ($type === 'support' || $type === 'unit_support') $typeText = 'Unit Support';
+        elseif ($type === 'support' || $type === 'unit_support') $typeText = 'Heavy Equipment';
 
         $totalKmAll = $vehicleSummaries->sum('total_km');
         $totalTripsAll = $vehicleSummaries->sum('total_trips');
@@ -660,7 +660,7 @@ class ActivityLogController extends Controller
                 $veh?->code ?: '-',
                 $veh?->brand_type ?: '-',
                 $veh?->license_plate ?: '-',
-                $veh?->isLightVehicle() ? 'Light Vehicle' : 'Unit Support',
+                $veh?->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment',
                 $veh?->ownership ?: '-',
                 (int) $vs->in_trips,
                 (int) $vs->out_trips,

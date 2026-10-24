@@ -19,7 +19,7 @@ use Illuminate\View\View;
 class P2hFormController extends Controller
 {
     /**
-     * Halaman katalog/pemilihan unit support untuk pengisian P2H.
+     * Halaman katalog/pemilihan Heavy Equipment untuk pengisian P2H.
      */
     public function index(Request $request): View
     {
@@ -54,7 +54,7 @@ class P2hFormController extends Controller
     }
 
     /**
-     * Tampilkan formulir pengisian P2H untuk unit support tertentu.
+     * Tampilkan formulir pengisian P2H untuk Heavy Equipment tertentu.
      */
     public function show(Request $request, string $code): View|RedirectResponse
     {

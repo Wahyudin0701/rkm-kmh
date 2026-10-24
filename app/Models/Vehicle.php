@@ -127,7 +127,7 @@ class Vehicle extends Model
     /**
      * Scope untuk seluruh unit operasional yang dapat dilacak posisinya:
      * - Seluruh Light Vehicle
-     * - Seluruh Unit Support fisik (anak kategori) ATAU kategori tunggal yang belum memiliki anak unit
+     * - Seluruh Heavy Equipment fisik (anak kategori) ATAU kategori tunggal yang belum memiliki anak unit
      */
     public function scopeTrackableUnits(Builder $query): Builder
     {

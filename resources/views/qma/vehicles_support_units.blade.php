@@ -964,7 +964,7 @@
         }
     });
 
-    // Dropdown Menu Ekspor Unit Support Kategori Ini
+    // Dropdown Menu Ekspor Heavy Equipment Kategori Ini
     function toggleSupportUnitsExportMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportMenuSupportUnits');

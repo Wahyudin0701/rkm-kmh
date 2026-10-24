@@ -395,12 +395,12 @@
                         <span class="text-[11px] font-bold text-blue-700 uppercase tracking-wider block mb-1">Modul 2: QMA</span>
                         <h3 class="text-lg font-bold text-slate-900 mb-3">Master Kendaraan & Log Aktivitas</h3>
                         <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                            Dikelola oleh Quality Management Asset untuk memantau armada Kendaraan Ringan (LV) dan Unit Support proyek.
+                            Dikelola oleh Quality Management Asset untuk memantau armada Kendaraan Ringan (LV) dan Heavy Equipment proyek.
                         </p>
                         <ul class="space-y-2 text-xs text-slate-600">
                             <li class="flex items-center space-x-2">
                                 <i class="fa-solid fa-check text-blue-600 text-[11px]"></i>
-                                <span>Master Light Vehicle (LV) & Unit Support</span>
+                                <span>Master Light Vehicle (LV) & Heavy Equipment</span>
                             </li>
                             <li class="flex items-center space-x-2">
                                 <i class="fa-solid fa-check text-blue-600 text-[11px]"></i>

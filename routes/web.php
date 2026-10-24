@@ -68,7 +68,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('qma')->name('qma.')->group(function () {
         Route::get('/dashboard', [VehicleController::class, 'dashboard'])->name('dashboard')->middleware('permission:qma.vehicles.view');
         
-        // Halaman Data Kendaraan Terpisah: Light Vehicle (LV) dan Unit Support
+        // Halaman Data Kendaraan Terpisah: Light Vehicle (LV) dan Heavy Equipment
         Route::get('/vehicles', [VehicleController::class, 'index'])->name('vehicles.index')->middleware('permission:qma.vehicles.view');
         Route::get('/vehicles/light-vehicle', [VehicleController::class, 'indexLv'])->name('vehicles.lv')->middleware('permission:qma.vehicles.view');
         Route::get('/vehicles/light-vehicle/export-excel', [VehicleController::class, 'exportLvExcel'])->name('vehicles.lv.export_excel')->middleware('permission:qma.vehicles.view');
@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/activity-summary/export-excel', [ActivityLogController::class, 'exportSummaryExcel'])->name('activity.summary.export_excel')->middleware('permission:qma.summary.view');
         Route::get('/activity-summary/export-pdf', [ActivityLogController::class, 'exportSummaryPdf'])->name('activity.summary.export_pdf')->middleware('permission:qma.summary.view');
 
-        // Timesheet Unit Support (Pencatatan Jam Operasi Alat Berat / Support oleh QMA)
+        // Timesheet Heavy Equipment (Pencatatan Jam Operasi Alat Berat / Support oleh QMA)
         Route::get('/support-timesheet', [SupportTimesheetController::class, 'index'])->name('support_timesheet.index')->middleware('permission:qma.logs.view');
         Route::post('/support-timesheet', [SupportTimesheetController::class, 'store'])->name('support_timesheet.store')->middleware('permission:qma.logs.edit_odometer|qma.vehicles.create');
         Route::put('/support-timesheet/{id}', [SupportTimesheetController::class, 'update'])->name('support_timesheet.update')->middleware('permission:qma.logs.edit_odometer|qma.vehicles.edit');
@@ -104,7 +104,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/support-timesheet/export-excel', [SupportTimesheetController::class, 'exportExcel'])->name('support_timesheet.export_excel')->middleware('permission:qma.logs.view');
         Route::get('/support-timesheet/export-pdf', [SupportTimesheetController::class, 'exportPdf'])->name('support_timesheet.export_pdf')->middleware('permission:qma.logs.view');
 
-        // Manajemen Unit: Posisi Unit (Tracking & Monitoring Posisi LV & Unit Support)
+        // Manajemen Unit: Posisi Unit (Tracking & Monitoring Posisi LV & Heavy Equipment)
         Route::get('/unit-management', [UnitManagementController::class, 'index'])->name('unit_management.index')->middleware('permission:qma.vehicles.view');
         Route::post('/unit-management/{id}/location', [UnitManagementController::class, 'updateLocation'])->name('unit_management.update_location')->middleware('permission:qma.vehicles.edit');
         Route::get('/unit-management/{id}/history', [UnitManagementController::class, 'history'])->name('unit_management.history')->middleware('permission:qma.vehicles.view');
@@ -123,7 +123,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/unit-transfers/{id}', [UnitTransferController::class, 'show'])->name('unit_transfers.show')->middleware('permission:qma.vehicles.view');
         Route::delete('/unit-transfers/{id}', [UnitTransferController::class, 'destroy'])->name('unit_transfers.destroy')->middleware('permission:qma.vehicles.delete');
 
-        // Log Pemeriksaan P2H Unit Support & Approval Admin QMA
+        // Log Pemeriksaan P2H Heavy Equipment & Approval Admin QMA
         Route::get('/p2h-records', [P2hInspectionController::class, 'index'])->name('p2h.index')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::get('/p2h-records/export-excel', [P2hInspectionController::class, 'exportExcel'])->name('p2h.export_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::get('/p2h-records/export-pdf', [P2hInspectionController::class, 'exportPdf'])->name('p2h.export_pdf')->middleware('permission:qma.p2h.view|qma.vehicles.view');
@@ -169,7 +169,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/gate-inspection/{id}/reject', [GateInspectionController::class, 'reject'])->name('gate.reject')->middleware('permission:gate.reject');
     });
 
-    // 5. Modul Pengisian Form P2H Unit Support (Operator Wajib Login)
+    // 5. Modul Pengisian Form P2H Heavy Equipment (Operator Wajib Login)
     Route::prefix('p2h')->name('p2h.')->middleware('permission:employee.p2h|qma.vehicles.view')->group(function () {
         Route::get('/', [P2hFormController::class, 'index'])->name('index');
         Route::get('/{code}', [P2hFormController::class, 'show'])->name('form');

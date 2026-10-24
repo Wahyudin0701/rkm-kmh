@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Summary P2H Unit Support - Admin QMA')
+@section('title', 'Summary P2H Heavy Equipment - Admin QMA')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -20,7 +20,7 @@
                 </button>
             </div>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Summary P2H Unit Support
+                Summary P2H Heavy Equipment
             </h2>
         </div>
 
@@ -150,11 +150,11 @@
                            class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
                 </div>
 
-                <!-- Unit Support -->
+                <!-- Heavy Equipment -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Unit Support</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Heavy Equipment</label>
                     <select name="vehicle_id" onchange="this.form.submit()" class="w-full text-xs rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:bg-white px-3.5 py-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition">
-                        <option value="">Semua Unit Support</option>
+                        <option value="">Semua Heavy Equipment</option>
                         @foreach($supportVehicles as $sv)
                             <option value="{{ $sv->id }}" {{ request('vehicle_id') == $sv->id ? 'selected' : '' }}>
                                 {{ $sv->code }} - {{ $sv->brand_type }}
@@ -242,11 +242,11 @@
         </div>
     </div>
 
-    <!-- Tabel Rekapitulasi per Unit Support -->
+    <!-- Tabel Rekapitulasi per Heavy Equipment -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-                <h3 class="text-sm font-bold text-slate-900">Rekapitulasi Pemeriksaan per Unit Support</h3>
+                <h3 class="text-sm font-bold text-slate-900">Rekapitulasi Pemeriksaan per Heavy Equipment</h3>
                 <p class="text-xs text-slate-400 mt-0.5">Ringkasan kepatuhan dan status kelayakan inspeksi masing-masing unit alat berat.</p>
             </div>
             <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Dropdown Menu Ekspor Summary P2H Unit Support
+    // Dropdown Menu Ekspor Summary P2H Heavy Equipment
     function toggleP2hSummaryExportMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportMenuP2hSummary');
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
-                    <p class="text-xs text-slate-500">Summary P2H Unit Support</p>
+                    <p class="text-xs text-slate-500">Summary P2H Heavy Equipment</p>
                 </div>
             </div>
             <button type="button" 
@@ -536,7 +536,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="mt-4 space-y-4">
             <p class="text-xs text-slate-600 leading-relaxed">
-                Halaman <strong>Summary P2H Unit Support</strong> menampilkan rekapitulasi performa dan tingkat kelaikan operasi harian alat berat.
+                Halaman <strong>Summary P2H Heavy Equipment</strong> menampilkan rekapitulasi performa dan tingkat kelaikan operasi harian alat berat.
             </p>
 
             <div class="space-y-3">
@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <i class="fa-solid fa-chart-pie"></i>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h4 class="text-xs font-bold text-slate-900">Rekapitulasi per Unit Support</h4>
+                        <h4 class="text-xs font-bold text-slate-900">Rekapitulasi per Heavy Equipment</h4>
                         <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
                             Melihat total inspeksi, jumlah lolos persetujuan, unit dengan temuan kerusakan, serta catatan jam kerja (HM) setiap alat.
                         </p>

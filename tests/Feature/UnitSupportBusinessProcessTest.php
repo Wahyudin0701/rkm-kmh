@@ -49,7 +49,7 @@ class UnitSupportBusinessProcessTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('TEST-CAT');
-        $response->assertSee('Tambah Kategori Unit');
+        $response->assertSee('Tambah Kategori Heavy Equipment');
     }
 
     /**

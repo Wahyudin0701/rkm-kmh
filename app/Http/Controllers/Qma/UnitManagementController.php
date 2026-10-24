@@ -249,7 +249,7 @@ class UnitManagementController extends Controller
                 'code' => $vehicle->code,
                 'brand_type' => $vehicle->brand_type,
                 'license_plate' => $vehicle->license_plate ?: '-',
-                'category' => $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Unit Support',
+                'category' => $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment',
                 'photo_url' => $vehicle->photo_url,
                 'site_status' => $vehicle->site_status ?? 'inside_site',
                 'site_status_label' => $vehicle->site_status_label,
@@ -404,7 +404,7 @@ class UnitManagementController extends Controller
         $metaLeft = [
             'Unit' => "{$vehicle->code} ({$vehicle->brand_type})",
             'Identitas' => $vehicle->license_plate ?: ($vehicle->serial_number ?: '-'),
-            'Kategori' => $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Unit Support',
+            'Kategori' => $vehicle->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment',
             'Posisi Saat Ini' => ($vehicle->location ?: 'Belum diisi') . ' (' . $vehicle->site_status_label . ')',
         ];
 
@@ -469,7 +469,7 @@ class UnitManagementController extends Controller
 
         $metaLines = [
             'Laporan Monitoring & Tracking Posisi Unit (QMA)',
-            'Filter Kategori: ' . ($request->filled('category') && $request->input('category') !== 'all' ? ($request->input('category') === 'light_vehicle' ? 'Light Vehicle' : 'Unit Support') : 'Semua Unit'),
+            'Filter Kategori: ' . ($request->filled('category') && $request->input('category') !== 'all' ? ($request->input('category') === 'light_vehicle' ? 'Light Vehicle' : 'Heavy Equipment') : 'Semua Unit'),
             'Filter Posisi Site: ' . ($request->filled('site_status') && $request->input('site_status') !== 'all' ? ($request->input('site_status') === 'inside_site' ? 'Di Dalam Site' : 'Di Luar Site') : 'Semua Posisi'),
             'Waktu Ekspor: ' . Carbon::now()->translatedFormat('d F Y, H:i') . ' WIB',
         ];
@@ -490,7 +490,7 @@ class UnitManagementController extends Controller
 
         $rows = [];
         foreach ($units as $idx => $u) {
-            $catLabel = $u->isLightVehicle() ? 'Light Vehicle' : 'Unit Support';
+            $catLabel = $u->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment';
             $plateOrSn = $u->license_plate ?: ($u->serial_number ?: '-');
             $updatedAt = $u->location_updated_at ? $u->location_updated_at->format('d/m/Y H:i') : ($u->updated_at ? $u->updated_at->format('d/m/Y H:i') : '-');
 
@@ -546,7 +546,7 @@ class UnitManagementController extends Controller
 
         $metaLeft = [
             'Sub-Sistem' => 'Quality Management Asset (QMA)',
-            'Kategori' => $request->filled('category') && $request->input('category') !== 'all' ? ($request->input('category') === 'light_vehicle' ? 'Light Vehicle' : 'Unit Support') : 'Semua Unit',
+            'Kategori' => $request->filled('category') && $request->input('category') !== 'all' ? ($request->input('category') === 'light_vehicle' ? 'Light Vehicle' : 'Heavy Equipment') : 'Semua Unit',
             'Status Posisi' => $request->filled('site_status') && $request->input('site_status') !== 'all' ? ($request->input('site_status') === 'inside_site' ? 'Di Dalam Site' : 'Di Luar Site') : 'Semua Posisi',
         ];
 
@@ -570,7 +570,7 @@ class UnitManagementController extends Controller
 
         $rows = [];
         foreach ($units as $idx => $u) {
-            $catLabel = $u->isLightVehicle() ? 'Light Vehicle' : 'Unit Support';
+            $catLabel = $u->isLightVehicle() ? 'Light Vehicle' : 'Heavy Equipment';
             $plateOrSn = $u->license_plate ?: ($u->serial_number ?: '-');
             $updatedAt = $u->location_updated_at ? $u->location_updated_at->format('d/m/Y H:i') : ($u->updated_at ? $u->updated_at->format('d/m/Y H:i') : '-');
 
@@ -587,7 +587,7 @@ class UnitManagementController extends Controller
             ];
         }
 
-        $subtitle = 'Monitoring Posisi Armada LV & Unit Support Proyek Kerinci Hydropower';
+        $subtitle = 'Monitoring Posisi Armada LV & Heavy Equipment Proyek Kerinci Hydropower';
         $pdfBinary = QmaTablePdfExporter::generate(
             'Laporan Monitoring Posisi Unit',
             $subtitle,

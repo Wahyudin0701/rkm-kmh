@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Unit Support - Admin QMA | PT Kerinci Merangin Hidro')
+@section('title', 'Heavy Equipment - Admin QMA | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full space-y-6">
@@ -16,12 +16,12 @@
                 <button type="button" 
                         onclick="openGuideModal()" 
                         class="w-3.5 h-3.5 rounded-full bg-slate-200/90 hover:bg-slate-300 text-slate-500 hover:text-slate-800 text-[8px] inline-flex items-center justify-center font-bold transition shadow-2xs cursor-pointer focus:outline-none" 
-                        title="Panduan Halaman Unit Support">
+                        title="Panduan Halaman Heavy Equipment">
                     <i class="fa-solid fa-info"></i>
                 </button>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Unit Support
+                Heavy Equipment
             </h2>
         </div>
 
@@ -100,7 +100,7 @@
         </div>
     </div>
 
-    <!-- Tabel Data Kategori Unit Support (Header Navy Solid #06213f) -->
+    <!-- Tabel Data Kategori Heavy Equipment (Header Navy Solid #06213f) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
@@ -233,7 +233,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: TAMBAH UNIT SUPPORT (KENDARAAN BERAT) -->
+<!-- MODAL: TAMBAH HEAVY EQUIPMENT (KENDARAAN BERAT) -->
 <!-- ========================================================================= -->
 <div id="addVehicleModal" 
      onclick="if(event.target === this) closeAddModal()"
@@ -242,7 +242,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Tambah Kategori Unit Support
+                    Tambah Kategori Heavy Equipment
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Mendaftarkan kategori/tipe master aset baru ke sistem.</p>
             </div>
@@ -256,7 +256,7 @@
             <input type="hidden" name="category" value="unit_support">
 
             <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1">Foto Kategori Unit Support (Opsional)</label>
+                <label class="block text-xs font-bold text-slate-800 mb-1">Foto Kategori Heavy Equipment (Opsional)</label>
                 <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
                     <div id="addPhotoPreviewContainer" class="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                         <img id="addPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
@@ -355,7 +355,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: EDIT KATEGORI UNIT SUPPORT -->
+<!-- MODAL: EDIT KATEGORI HEAVY EQUIPMENT -->
 <!-- ========================================================================= -->
 <div id="editVehicleModal" 
      onclick="if(event.target === this) closeEditModal()"
@@ -364,7 +364,7 @@
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Edit Kategori Unit Support
+                    Edit Kategori Heavy Equipment
                 </h3>
                 <p class="text-xs text-slate-500 mt-0.5">Memperbarui informasi master kategori aset.</p>
             </div>
@@ -378,7 +378,7 @@
             <input type="hidden" name="category" value="unit_support">
 
             <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Kategori Unit Support</label>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Kategori Heavy Equipment</label>
                 <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
                     <div id="editPhotoPreviewContainer" class="w-14 h-14 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                         <img id="editPhotoPreview" src="" alt="Foto Kategori" class="w-full h-full object-cover hidden">
@@ -475,7 +475,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: DETAIL SPESIFIKASI KATEGORI UNIT SUPPORT -->
+<!-- MODAL: DETAIL SPESIFIKASI KATEGORI HEAVY EQUIPMENT -->
 <!-- ========================================================================= -->
 <div id="detailVehicleModal" onclick="if(event.target === this) closeDetailModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
@@ -484,7 +484,7 @@
                 <h3 class="text-xl font-bold text-slate-900 tracking-tight">
                     Detail Spesifikasi Kategori
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Informasi master kategori aset Unit Support.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Informasi master kategori aset Heavy Equipment.</p>
             </div>
             <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
@@ -494,7 +494,7 @@
         <div class="space-y-4">
             <!-- Foto Kategori di Detail Modal -->
             <div id="detailPhotoContainer" class="w-full h-48 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden">
-                <img id="detailPhoto" src="" alt="Foto Kategori Unit Support" class="w-full h-full object-cover">
+                <img id="detailPhoto" src="" alt="Foto Kategori Heavy Equipment" class="w-full h-full object-cover">
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -580,7 +580,7 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: KONFIRMASI HAPUS UNIT SUPPORT (KENDARAAN BERAT) -->
+<!-- MODAL: KONFIRMASI HAPUS HEAVY EQUIPMENT (KENDARAAN BERAT) -->
 <!-- ========================================================================= -->
 <div id="deleteVehicleModal" onclick="if(event.target === this) closeDeleteModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
@@ -590,11 +590,11 @@
         </div>
 
         <h3 class="text-lg font-bold text-slate-900 tracking-tight">
-            Konfirmasi Hapus Unit Support
+            Konfirmasi Hapus Heavy Equipment
         </h3>
 
         <p class="text-xs text-slate-600 mt-2 leading-relaxed">
-            Apakah Anda yakin ingin menghapus data unit support <span id="deleteVehicleCode" class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200"></span>?
+            Apakah Anda yakin ingin menghapus data Heavy Equipment <span id="deleteVehicleCode" class="font-bold font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200"></span>?
         </p>
 
         <p class="text-[11px] text-rose-600 mt-3 bg-rose-50/70 border border-rose-100 py-1.5 px-3 rounded-xl inline-flex items-center">
@@ -711,7 +711,7 @@
         }
     });
 
-    // Daftar semua kode kendaraan unit support yang sudah terdaftar di sistem
+    // Daftar semua kode kendaraan heavy equipment yang sudah terdaftar di sistem
     const existingVehicleCodes = @json($existingCodes ?? \App\Models\Vehicle::unitSupports()->pluck('code')->map(fn($c) => strtoupper(trim($c))));
 
     const addCodeInput = document.getElementById('addCodeInput');
@@ -777,7 +777,7 @@
         });
     }
 
-    // Elemen modal Edit Unit Support
+    // Elemen modal Edit Heavy Equipment
     const editCodeInput = document.getElementById('editCode');
     const editCodeError = document.getElementById('editCodeError');
     const editCodeErrorText = document.getElementById('editCodeErrorText');
@@ -1010,7 +1010,7 @@
         }
     }
 
-    // Dropdown Menu Ekspor Unit Support
+    // Dropdown Menu Ekspor Heavy Equipment
     function toggleSupportExportMenu(event) {
         event.stopPropagation();
         const menu = document.getElementById('exportMenuSupport');
@@ -1039,7 +1039,7 @@
 </script>
 
 <!-- ========================================================================= -->
-<!-- MODAL POPUP: PANDUAN HALAMAN (UNIT SUPPORT)                               -->
+<!-- MODAL POPUP: PANDUAN HALAMAN (HEAVY EQUIPMENT)                            -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
      onclick="if(event.target === this) closeGuideModal()" 
@@ -1053,7 +1053,7 @@
                 </div>
                 <div>
                     <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Panduan Halaman</h3>
-                    <p class="text-xs text-slate-500">Master Data Unit Support</p>
+                    <p class="text-xs text-slate-500">Master Data Heavy Equipment</p>
                 </div>
             </div>
             <button type="button" 
@@ -1065,7 +1065,7 @@
 
         <div class="mt-4 space-y-4">
             <p class="text-xs text-slate-600 leading-relaxed">
-                Selamat datang di menu <strong>Unit Support</strong>! Halaman ini adalah pusat pengelolaan master armada alat berat dan kendaraan pendukung operasional PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
+                Selamat datang di menu <strong>Heavy Equipment</strong>! Halaman ini adalah pusat pengelolaan master armada alat berat dan kendaraan pendukung operasional PT Kerinci Merangin Hidro. Di halaman ini Anda dapat:
             </p>
 
             <div class="space-y-3">
