@@ -161,27 +161,29 @@ class User extends Authenticatable
         }
 
         // Cek jika sudah ada master Employee dengan NIK sama dengan username
-        $emp = Employee::where('nik', $this->username)->first();
-        if ($emp) {
-            $emp->update(['user_id' => $this->id]);
-            return $emp;
+        if (!empty($this->username)) {
+            $emp = Employee::where('nik', $this->username)->first();
+            if ($emp) {
+                $emp->update(['user_id' => $this->id]);
+                return $emp;
+            }
         }
 
-        // Jika user memiliki role employee, wewenang operasional karyawan, atau admin
-        if ($this->isEmployee() || $this->can('employee.dashboard') || $this->can('employee.timesheet') || $this->can('employee.p2h') || $this->isSuperAdmin()) {
-            return Employee::create([
-                'user_id' => $this->id,
-                'nik' => $this->username,
-                'name' => $this->name,
-                'unit_kerja' => 'Umum',
-                'division' => 'Operasional',
-                'position' => 'Driver Operasional',
-                'is_operator' => true,
-                'simper_expired_at' => now()->addYears(2),
-            ]);
+        $defaultNik = !empty($this->username) ? $this->username : 'EMP-' . str_pad($this->id, 4, '0', STR_PAD_LEFT);
+        if (Employee::where('nik', $defaultNik)->exists()) {
+            $defaultNik = 'EMP-' . $this->id . '-' . rand(100, 999);
         }
 
-        return null;
+        return Employee::create([
+            'user_id' => $this->id,
+            'nik' => $defaultNik,
+            'name' => $this->name,
+            'unit_kerja' => $this->isQmaAdmin() ? 'QMA' : ($this->isPgAdmin() ? 'Gate' : 'Umum'),
+            'division' => 'Operasional',
+            'position' => $this->isQmaAdmin() ? 'Admin QMA' : ($this->isPgAdmin() ? 'Admin Gate' : 'Driver / Operator'),
+            'is_operator' => true,
+            'simper_expired_at' => now()->addYears(2),
+        ]);
     }
 
     public function locationHistories(): HasMany

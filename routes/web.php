@@ -170,7 +170,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // 5. Modul Pengisian Form P2H Heavy Equipment (Operator Wajib Login)
-    Route::prefix('p2h')->name('p2h.')->middleware('permission:employee.p2h|qma.vehicles.view')->group(function () {
+    Route::prefix('p2h')->name('p2h.')->middleware('permission:employee.p2h|qma.vehicles.view|qma.p2h.view')->group(function () {
         Route::get('/', [P2hFormController::class, 'index'])->name('index');
         Route::get('/{code}', [P2hFormController::class, 'show'])->name('form');
         Route::post('/{code}', [P2hFormController::class, 'store'])->name('store');
@@ -181,8 +181,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/karyawan/aktivitas/status-polling', [\App\Http\Controllers\Employee\DashboardController::class, 'activeTripStatus'])->name('employee.activity.status_polling');
     Route::post('/karyawan/aktivitas/{id}/update-km', [\App\Http\Controllers\Employee\DashboardController::class, 'updateKm'])->name('employee.activity.update_km');
     Route::post('/karyawan/aktivitas/{id}/cancel', [\App\Http\Controllers\Employee\DashboardController::class, 'cancelActivity'])->name('employee.activity.cancel');
-    Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
-    Route::get('/mobilisasi', [VehicleActivityFormController::class, 'index'])->name('mobilisasi.index')->middleware('permission:employee.timesheet|qma.vehicles.view');
+    Route::get('/timesheet', [VehicleActivityFormController::class, 'index'])->name('timesheet.index')->middleware('permission:employee.timesheet|qma.vehicles.view|qma.logs.view');
+    Route::get('/mobilisasi', [VehicleActivityFormController::class, 'index'])->name('mobilisasi.index')->middleware('permission:employee.timesheet|qma.vehicles.view|qma.logs.view');
 
     // 7. Modul Profil Saya (Seluruh Pengguna Terautentikasi)
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');

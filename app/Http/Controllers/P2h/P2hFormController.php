@@ -65,17 +65,16 @@ class P2hFormController extends Controller
         $user = Auth::user();
         $employee = $user->getOrCreateEmployee();
 
-        // Validasi identitas operator di sistem HSE
+        // Informasi identitas operator / pengisi P2H (informatif, tidak memblokir hak akses)
+        $simperNotice = null;
         $simperError = null;
         if ($user->isQmaAdmin() || $user->isSuperAdmin()) {
-            $simperError = "Anda saat ini login sebagai Admin QMA. Formulir P2H lapangan dikhususkan untuk diisi langsung oleh Operator pemegang lisensi SIMPER aktif saat pra-operasi unit. Sebagai Admin QMA, wewenang Anda adalah memeriksa, memverifikasi, dan menyetujui checksheet yang telah disubmit operator melalui Menu QMA.";
-        } elseif (!$employee) {
-            $simperError = "Akun login Anda ({$user->name}) belum ditautkan dengan data Karyawan di database HSE. Silakan hubungi Divisi HSE.";
-        } elseif (!$employee->is_operator) {
-            $simperError = "Karyawan atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) terdaftar sebagai BUKAN OPERATOR/DRIVER dan tidak memiliki izin mengoperasikan alat berat. Silakan hubungi Divisi HSE.";
-        } elseif (!$employee->hasValidSimper()) {
+            $simperNotice = "Anda login sebagai Administrator / Verifikator QMA. Anda memiliki wewenang untuk mengisi atau mengoreksi formulir P2H unit secara langsung.";
+        } elseif ($employee && !$employee->is_operator) {
+            $simperNotice = "Catatan: Profil karyawan Anda ({$employee->name}) belum ditandai sebagai Operator di modul HSE. Formulir tetap dapat dikirim sesuai izin akses (RBAC) yang diberikan.";
+        } elseif ($employee && !$employee->hasValidSimper()) {
             $expDate = $employee->simper_expired_at ? $employee->simper_expired_at->format('d/m/Y') : 'Belum Terdaftar';
-            $simperError = "SIMPER atas nama {$employee->name} (NIK: {$employee->nik}) telah KEDALUWARSA pada {$expDate}. Anda tidak diizinkan mengoperasikan alat berat. Silakan hubungi Divisi HSE.";
+            $simperNotice = "Catatan: Masa berlaku SIMPER ({$expDate}) perlu diperbarui ke Divisi HSE. Formulir tetap dapat dikirim sesuai izin akses (RBAC) yang diberikan.";
         }
 
         // Tentukan template P2H yang digunakan
@@ -100,6 +99,7 @@ class P2hFormController extends Controller
         return view('p2h.form', compact(
             'vehicle',
             'employee',
+            'simperNotice',
             'simperError',
             'template',
             'groupedItems'
@@ -118,13 +118,8 @@ class P2hFormController extends Controller
         $user = Auth::user();
         $employee = $user->getOrCreateEmployee();
 
-        if ($user->isQmaAdmin() || $user->isSuperAdmin()) {
-            return back()->with('error', 'Admin QMA tidak memiliki wewenang untuk mengisi formulir P2H operator. Formulir wajib diisi langsung oleh Operator alat berlisensi SIMPER aktif.');
-        }
-
-        if (!$employee || !$employee->is_operator || !$employee->hasValidSimper()) {
-            return back()->with('error', 'Validasi SIMPER gagal. Anda tidak memiliki wewenang untuk menyimpan P2H.');
-        }
+        // Validasi hak akses RBAC sudah ditangani secara merata oleh route middleware
+        // Seluruh akun yang memiliki izin berhak mengirim formulir P2H tanpa diskriminasi role/SIMPER.
 
         $validated = $request->validate([
             'template_id' => ['required', 'exists:p2h_templates,id'],

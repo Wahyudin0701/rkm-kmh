@@ -36,41 +36,17 @@
         </div>
     </div>
 
-    <!-- Alert Jika Terjadi Masalah SIMPER atau Autentikasi -->
-    @if($simperError)
-        @if(auth()->user()->isQmaAdmin() || auth()->user()->isSuperAdmin())
-            <div class="p-4 sm:p-5 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-xs flex items-start space-x-3.5 shadow-sm">
-                <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-base flex-shrink-0">
-                    <i class="fa-solid fa-user-shield"></i>
-                </div>
-                <div class="flex-1">
-                    <span class="font-bold block text-sm mb-1 text-blue-950">Wewenang Role: Admin QMA (Validator / Verifikator)</span>
-                    <p class="leading-relaxed text-blue-800">{{ $simperError }}</p>
-                    <div class="mt-3 flex items-center gap-2">
-                        <a href="{{ route('qma.p2h.index') }}" 
-                           class="inline-flex items-center justify-center space-x-1.5 px-3 py-2 sm:px-3.5 sm:py-1.5 rounded-xl bg-[#1b5e20] text-white font-bold text-xs hover:bg-[#144919] transition shadow-xs flex-shrink-0"
-                           title="Buka Verifikasi & Approval P2H di Menu QMA">
-                            <i class="fa-solid fa-clipboard-check text-xs"></i>
-                            <span class="hidden sm:inline">Buka Verifikasi & Approval P2H di Menu QMA</span>
-                        </a>
-                        <a href="{{ route('p2h.index') }}" class="inline-flex items-center justify-center space-x-1 px-3 py-2 sm:py-1.5 rounded-xl bg-white border border-blue-200 text-blue-700 font-semibold text-xs hover:bg-blue-100/50 transition">
-                            <span>Kembali ke Katalog Unit</span>
-                        </a>
-                    </div>
-                </div>
+    <!-- Informasi Akses & Status SIMPER -->
+    @if(!empty($simperNotice))
+        <div class="p-4 sm:p-5 bg-blue-50/80 border border-blue-200 rounded-2xl text-blue-900 text-xs flex items-start space-x-3.5 shadow-sm">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-base flex-shrink-0">
+                <i class="fa-solid fa-circle-info"></i>
             </div>
-        @else
-            <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 text-xs flex items-start space-x-3 shadow-sm">
-                <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-base flex-shrink-0">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div class="flex-1">
-                    <span class="font-bold block text-sm mb-0.5 text-rose-900">Akses Pengoperasian Tidak Diizinkan</span>
-                    <p class="leading-relaxed">{{ $simperError }}</p>
-                    <p class="mt-2 text-[11px] font-semibold text-rose-700">Hubungi Divisi HSE untuk pendaftaran atau perpanjangan lisensi SIMPER Anda.</p>
-                </div>
+            <div class="flex-1">
+                <span class="font-bold block text-sm mb-0.5 text-blue-950">Informasi Pengisian P2H</span>
+                <p class="leading-relaxed text-blue-800">{{ $simperNotice }}</p>
             </div>
-        @endif
+        </div>
     @endif
 
     <!-- Card Operator Terverifikasi (Otomatis Terisi dari Akun Login) -->
@@ -362,8 +338,7 @@
 
             <button type="submit" 
                     id="btnSubmitP2h" 
-                    {{ $simperError ? 'disabled' : '' }}
-                    class="bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-6 rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2 text-xs sm:text-sm disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed cursor-pointer">
+                    class="bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-6 rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2 text-xs sm:text-sm cursor-pointer">
                 <i class="fa-solid fa-paper-plane text-xs"></i>
                 <span>Kirim Formulir P2H ke QMA</span>
             </button>

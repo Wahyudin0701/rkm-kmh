@@ -130,23 +130,34 @@ class P2hInspectionTest extends TestCase
         $admin = User::where('role', 'qma_admin')->first();
         $resAdmin = $this->actingAs($admin)->get(route('p2h.form', ['code' => $this->supportVehicle->code]));
         $resAdmin->assertStatus(200);
-        $resAdmin->assertSee('Admin QMA (Validator / Verifikator)');
-        $resAdmin->assertSee('Buka Verifikasi');
+        $resAdmin->assertSee('Admin QMA');
         $resAdmin->assertDontSee('<aside', false);
         $resAdmin->assertDontSee('userProfileDropdownBtn');
         $resAdmin->assertDontSee('openDrawerBtn');
     }
 
-    public function test_qma_admin_cannot_submit_p2h(): void
+    public function test_qma_admin_can_submit_p2h_directly(): void
     {
         $admin = User::where('role', 'qma_admin')->first();
+        $item1 = $this->template->items()->create([
+            'section' => 'Sebelum Mesin Hidup',
+            'title' => 'Cek Oli Engine Admin Test',
+            'question_type' => 'choice',
+            'sequence' => 1,
+        ]);
+
         $response = $this->actingAs($admin)->post(route('p2h.store', ['code' => $this->supportVehicle->code]), [
             'template_id' => $this->template->id,
             'start_hm' => 1500,
-            'items' => [],
+            'items' => [
+                $item1->id => [
+                    'condition' => 'baik',
+                ],
+            ],
         ]);
 
-        $response->assertSessionHas('error');
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
     }
 
     public function test_operator_can_submit_p2h_with_pending_status_for_qma(): void
