@@ -33,6 +33,8 @@ class Vehicle extends Model
         'production_year',
         'location',
         'site_status',
+        'is_timesheet_mobile',
+        'required_simper_type_id',
         'location_updated_at',
         'location_updated_by',
         'location_note',
@@ -48,6 +50,7 @@ class Vehicle extends Model
         'fuel_consumption' => 'decimal:2',
         'production_year' => 'integer',
         'parent_id' => 'integer',
+        'is_timesheet_mobile' => 'boolean',
         'location_updated_at' => 'datetime',
     ];
 
@@ -74,6 +77,32 @@ class Vehicle extends Model
     public function isLightVehicle(): bool
     {
         return $this->category === 'light_vehicle';
+    }
+
+    public function isTimesheetMobile(): bool
+    {
+        return (bool) ($this->is_timesheet_mobile ?? false);
+    }
+
+    public function requiredSimperType(): BelongsTo
+    {
+        return $this->belongsTo(SimperType::class, 'required_simper_type_id');
+    }
+
+    /**
+     * Scope unit yang diizinkan untuk formulir timesheet mobilisasi gerbang:
+     * - Seluruh Light Vehicle (LV)
+     * - Unit Support yang ditandai sebagai Timesheet Mobile (Dump Truck, dsb.)
+     */
+    public function scopeTimesheetEligible(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->where('category', 'light_vehicle')
+              ->orWhere(function (Builder $sq) {
+                  $sq->where('category', 'unit_support')
+                     ->where('is_timesheet_mobile', true);
+              });
+        });
     }
 
     public function getPhotoUrlAttribute(): ?string

@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Gate;
 use App\Models\P2hRecord;
 use App\Models\P2hTemplate;
+use App\Models\SimperType;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
 use App\Services\ImageCompressionService;
@@ -414,6 +415,8 @@ class VehicleController extends Controller
             ->values()
             ->all();
 
+        $simperTypes = SimperType::active()->orderBy('name')->get();
+
         return view('qma.vehicles_support_units', compact(
             'category',
             'units',
@@ -425,7 +428,8 @@ class VehicleController extends Controller
             'nextUnitNumber',
             'nextUnitCode',
             'existingCodes',
-            'masterLocations'
+            'masterLocations',
+            'simperTypes'
         ));
     }
 
@@ -897,6 +901,8 @@ class VehicleController extends Controller
             'ownership' => ['nullable', 'string', 'max:150'],
             'division' => ['nullable', 'string', 'max:100'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'is_timesheet_mobile' => ['nullable', 'boolean'],
+            'required_simper_type_id' => ['nullable', 'exists:simper_types,id'],
         ]);
 
         return DB::transaction(function () use ($request, $category) {
@@ -947,6 +953,8 @@ class VehicleController extends Controller
                 'silo_document' => $request->input('silo_document'),
                 'kir_document' => $request->input('kir_document'),
                 'photo_path' => $photoPath,
+                'is_timesheet_mobile' => $request->boolean('is_timesheet_mobile'),
+                'required_simper_type_id' => $request->input('required_simper_type_id') ?: null,
             ]);
 
             return back()->with('success', "Unit fisik [{$unit->code}] berhasil ditambahkan ke kategori {$category->unit_category}.");
@@ -971,6 +979,8 @@ class VehicleController extends Controller
             'status' => [$category === 'unit_support' ? 'nullable' : 'required', 'string', 'in:Operation,Standby,Breakdown,Maintenance'],
             'current_km' => [$category === 'unit_support' ? 'nullable' : 'required', 'numeric', 'min:0'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'is_timesheet_mobile' => ['nullable', 'boolean'],
+            'required_simper_type_id' => ['nullable', 'exists:simper_types,id'],
         ];
 
         // Atribut opsional spesifik Heavy Equipment (Kendaraan Berat)
@@ -1002,6 +1012,9 @@ class VehicleController extends Controller
             $validated['status'] = $validated['status'] ?? 'Operation';
             $validated['current_km'] = $validated['current_km'] ?? 0;
         }
+
+        $validated['is_timesheet_mobile'] = $request->boolean('is_timesheet_mobile');
+        $validated['required_simper_type_id'] = $request->input('required_simper_type_id') ?: null;
 
         if ($request->hasFile('photo')) {
             $validated['photo_path'] = ImageCompressionService::uploadAndCompress($request->file('photo'), 'vehicles', 800, 800, 75);
@@ -1060,6 +1073,8 @@ class VehicleController extends Controller
             'pajak_document' => ['nullable', 'string', 'max:150'],
             'kir_document' => ['nullable', 'string', 'max:150'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'is_timesheet_mobile' => ['nullable', 'boolean'],
+            'required_simper_type_id' => ['nullable', 'exists:simper_types,id'],
         ];
 
         $validated = $request->validate($rules, [
@@ -1074,6 +1089,9 @@ class VehicleController extends Controller
             $validated['photo_path'] = ImageCompressionService::uploadAndCompress($request->file('photo'), 'vehicles', 800, 800, 75);
         }
         unset($validated['photo']);
+
+        $validated['is_timesheet_mobile'] = $request->boolean('is_timesheet_mobile');
+        $validated['required_simper_type_id'] = $request->input('required_simper_type_id') ?: null;
 
         DB::transaction(function () use ($vehicle, $validated, $oldCode, $newCode) {
             $vehicle->update($validated);

@@ -264,6 +264,11 @@
                             <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
                             <span>Data Simper</span>
                         </a>
+                        <a href="{{ route('hse.simper_types.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.simper_types.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-sliders text-base w-5 text-center"></i>
+                            <span>Jenis SIMPER</span>
+                        </a>
                     </nav>
                 </div>
                 @endcan
@@ -636,6 +641,10 @@
                             <i class="fa-solid fa-id-card w-5 text-center"></i>
                             <span>Data Simper</span>
                         </a>
+                        <a href="{{ route('hse.simper_types.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.simper_types.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-sliders w-5 text-center"></i>
+                            <span>Jenis SIMPER</span>
+                        </a>
                     </nav>
                 </div>
                 @endcan
@@ -902,6 +911,8 @@
                     Dashboard
                 @elseif(request()->routeIs('hse.employees.*'))
                     Data Simper
+                @elseif(request()->routeIs('hse.simper_types.*'))
+                    Jenis SIMPER
                 @elseif(request()->routeIs('qma.vehicles.lv'))
                     Light Vehicle
                 @elseif(request()->routeIs('qma.vehicles.support.units*'))

@@ -9,7 +9,7 @@
         @if(auth()->check())
             <a href="{{ route('mobilisasi.index') }}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-[#1b5e20] transition bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm">
                 <i class="fa-solid fa-arrow-left text-[11px]"></i>
-                <span>Kembali ke Katalog LV</span>
+                <span>Kembali ke Katalog Armada</span>
             </a>
         @else
             <div></div>
@@ -20,9 +20,15 @@
     <!-- Header Info Kendaraan (Readonly Card) -->
     <div class="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-5 rounded-2xl shadow-sm border border-slate-700">
         <div class="flex items-center justify-between mb-3">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                <i class="fa-solid fa-car mr-1.5"></i> Kendaraan Ringan (LV)
-            </span>
+            @if($vehicle->isLightVehicle())
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    <i class="fa-solid fa-car mr-1.5"></i> Kendaraan Ringan (LV)
+                </span>
+            @else
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <i class="fa-solid fa-truck-moving mr-1.5"></i> Heavy Equipment Mobile
+                </span>
+            @endif
             <span class="text-xs text-slate-400 flex items-center">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mr-1.5"></span>
                 Scan QR Code Aktif
@@ -44,7 +50,8 @@
             <div><span class="text-slate-400 font-medium">Nopol:</span> <span class="font-bold text-amber-300 text-sm ml-1">{{ $vehicle->license_plate ?? '-' }}</span></div>
             <div class="col-span-1 sm:col-span-2"><span class="text-slate-400 font-medium">Merk / Tipe:</span> <span class="text-white ml-1">{{ $vehicle->brand_type }}</span></div>
             <div><span class="text-slate-400 font-medium">Penanggung Jawab:</span> <span class="text-slate-200 ml-1">{{ $vehicle->ownership ?? '-' }}</span></div>
-            <div><span class="text-slate-400 font-medium">KM Sebelumnya:</span> <span class="font-bold text-emerald-400 text-sm ml-1">{{ number_format($vehicle->current_km, 0, ',', '.') }} KM</span></div>
+            <div><span class="text-slate-400 font-medium">Odometer Sebelumnya:</span> <span class="font-bold text-emerald-400 text-sm ml-1">{{ number_format($vehicle->current_km, 0, ',', '.') }} KM</span></div>
+            <div class="col-span-1 sm:col-span-2"><span class="text-slate-400 font-medium">Wajib SIMPER:</span> <span class="font-bold text-amber-300 ml-1">{{ $vehicle->requiredSimperType ? $vehicle->requiredSimperType->name : ($vehicle->isLightVehicle() ? 'SIMPER LV' : 'SIMPER Dump Truck / Heavy Mobile') }}</span></div>
         </div>
     </div>
 

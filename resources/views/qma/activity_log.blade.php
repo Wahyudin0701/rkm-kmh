@@ -255,7 +255,16 @@
 
                             <!-- Driver -->
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-slate-900">{{ $act->driver?->name ?? '-' }}</div>
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                    <span>{{ $act->driver?->name ?? '-' }}</span>
+                                    @if($act->driver && $act->driver->simpers && $act->driver->simpers->isNotEmpty())
+                                        @foreach($act->driver->simpers->take(2) as $s)
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="{{ $s->simperType?->name }}">
+                                                {{ $s->simperType?->code ?? 'SIMPER' }}
+                                            </span>
+                                        @endforeach
+                                    @endif
+                                </div>
                                 <div class="text-[10px] text-slate-400 font-normal">{{ $act->driver?->division ?? '-' }}</div>
                             </td>
 

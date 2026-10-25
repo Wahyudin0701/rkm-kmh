@@ -26,7 +26,7 @@ class ActivityLogController extends Controller
         // Otomatis update status perjalanan pending yang kedaluwarsa (> 5 jam)
         VehicleActivity::expireOverduePendingActivities();
 
-        $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
+        $query = VehicleActivity::with(['vehicle', 'driver.simpers.simperType', 'gate', 'securityGuard'])
             ->latest('recorded_at');
 
         // Filter Rentang Tanggal (Default Hari Ini jika tidak diisi)

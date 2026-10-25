@@ -348,8 +348,15 @@
                                             </div>
                                         @endif
                                         <div class="min-w-0">
-                                            <div class="font-bold text-slate-900 truncate">
-                                                {{ $item->driver->name }}
+                                            <div class="font-bold text-slate-900 truncate flex items-center gap-1.5 flex-wrap">
+                                                <span>{{ $item->driver->name }}</span>
+                                                @if($item->driver->simpers && $item->driver->simpers->isNotEmpty())
+                                                    @foreach($item->driver->simpers->take(2) as $s)
+                                                        <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                            {{ $s->simperType?->code ?? 'SIMPER' }}
+                                                        </span>
+                                                    @endforeach
+                                                @endif
                                             </div>
                                             <div class="text-[11px] text-slate-500 font-mono truncate">
                                                 {{ $item->driver->nik }}

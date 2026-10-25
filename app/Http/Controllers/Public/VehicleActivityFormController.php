@@ -24,7 +24,14 @@ class VehicleActivityFormController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Vehicle::lightVehicles();
+        $type = $request->input('type', 'all');
+        $query = Vehicle::timesheetEligible();
+
+        if ($type === 'light_vehicle') {
+            $query->where('category', 'light_vehicle');
+        } elseif ($type === 'unit_support') {
+            $query->where('category', 'unit_support')->where('is_timesheet_mobile', true);
+        }
 
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
@@ -43,7 +50,7 @@ class VehicleActivityFormController extends Controller
             $employee = auth()->user()->getOrCreateEmployee();
         }
 
-        return view('mobilisasi.index', compact('vehicles', 'employee'));
+        return view('mobilisasi.index', compact('vehicles', 'employee', 'type'));
     }
 
     /**
@@ -51,8 +58,8 @@ class VehicleActivityFormController extends Controller
      */
     public function show(Request $request, string $code): View|RedirectResponse
     {
-        $vehicle = Vehicle::where('code', $code)
-            ->where('category', 'light_vehicle')
+        $vehicle = Vehicle::timesheetEligible()
+            ->where('code', $code)
             ->firstOrFail();
 
         // Jika pengemudi scan lewat kamera luar dan belum login, arahkan ke login dengan intended URL
@@ -77,11 +84,13 @@ class VehicleActivityFormController extends Controller
         $nikErrorTitle = 'Verifikasi Gagal';
         $inputNik = trim((string) ($request->input('nik') ?? $request->input('driver_nik') ?? ''));
 
+        $requiredSimper = $vehicle->requiredSimperType ? $vehicle->requiredSimperType->name : ($vehicle->isLightVehicle() ? 'SIMPER LV' : 'SIMPER Dump Truck / Heavy Mobile');
+
         // Cek jika ada pengemudi yang sudah terverifikasi sebelumnya (via form error redirect atau query string NIK)
         $oldDriverId = old('driver_id');
         if ($oldDriverId) {
             $emp = Employee::find($oldDriverId);
-            if ($emp && $emp->is_operator && $emp->hasValidSimper()) {
+            if ($emp && $emp->is_operator && $emp->hasValidSimperForVehicle($vehicle)) {
                 $verifiedDriver = $emp;
             }
         } elseif ($inputNik !== '') {
@@ -95,14 +104,19 @@ class VehicleActivityFormController extends Controller
             } elseif (!$emp->is_operator) {
                 $nikErrorTitle = 'Bukan Driver Terdaftar';
                 $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) terdaftar sebagai BUKAN DRIVER dan tidak memiliki izin mengemudi (SIMPER). Anda tidak diizinkan mengoperasikan kendaraan unit. Silakan hubungi Divisi HSE.";
-            } elseif (!$emp->hasValidSimper()) {
-                if ($emp->simper_expired_at) {
-                    $expiredDate = $emp->simper_expired_at->format('d/m/Y');
-                    $nikErrorTitle = 'Peringatan: SIMPER Kedaluwarsa';
-                    $nikError = "SIMPER atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) telah KEDALUWARSA pada {$expiredDate}. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+            } elseif (!$emp->hasValidSimperForVehicle($vehicle)) {
+                if (!$emp->hasValidSimper()) {
+                    if ($emp->simper_expired_at) {
+                        $expiredDate = $emp->simper_expired_at->format('d/m/Y');
+                        $nikErrorTitle = 'Peringatan: SIMPER Kedaluwarsa';
+                        $nikError = "SIMPER atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) telah KEDALUWARSA pada {$expiredDate}. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+                    } else {
+                        $nikErrorTitle = 'SIMPER Belum Terdaftar';
+                        $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) belum memiliki tanggal masa berlaku SIMPER aktif. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE.";
+                    }
                 } else {
-                    $nikErrorTitle = 'SIMPER Belum Terdaftar';
-                    $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) belum memiliki tanggal masa berlaku SIMPER aktif. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE.";
+                    $nikErrorTitle = 'Izin SIMPER Tidak Sesuai';
+                    $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) tidak memiliki izin SIMPER aktif yang sesuai untuk mengoperasikan unit {$vehicle->code} (Wajib: {$requiredSimper}). Silakan hubungi Divisi HSE.";
                 }
             } else {
                 $verifiedDriver = $emp;
@@ -113,9 +127,14 @@ class VehicleActivityFormController extends Controller
                 if (!$emp->is_operator) {
                     $nikErrorTitle = 'Bukan Driver Terdaftar';
                     $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) terdaftar sebagai BUKAN DRIVER dan tidak memiliki izin mengemudi (SIMPER). Anda tidak diizinkan mengoperasikan kendaraan unit. Silakan hubungi Divisi HSE.";
-                } elseif (!$emp->hasValidSimper()) {
-                    $nikErrorTitle = 'Peringatan: SIMPER Kedaluwarsa';
-                    $nikError = "SIMPER atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) telah KEDALUWARSA. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+                } elseif (!$emp->hasValidSimperForVehicle($vehicle)) {
+                    if (!$emp->hasValidSimper()) {
+                        $nikErrorTitle = 'Peringatan: SIMPER Kedaluwarsa';
+                        $nikError = "SIMPER atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) telah KEDALUWARSA. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+                    } else {
+                        $nikErrorTitle = 'Izin SIMPER Tidak Sesuai';
+                        $nikError = "Karyawan atas nama {$emp->name} (NIK: {$emp->nik} - {$emp->division}) tidak memiliki izin SIMPER aktif yang sesuai untuk mengoperasikan unit {$vehicle->code} (Wajib: {$requiredSimper}). Silakan hubungi Divisi HSE.";
+                    }
                 } else {
                     $verifiedDriver = $emp;
                     $inputNik = $emp->nik;
@@ -147,8 +166,8 @@ class VehicleActivityFormController extends Controller
      */
     public function checkNik(Request $request, string $code): JsonResponse
     {
-        $vehicle = Vehicle::where('code', $code)
-            ->where('category', 'light_vehicle')
+        $vehicle = Vehicle::timesheetEligible()
+            ->where('code', $code)
             ->firstOrFail();
 
         $rawNik = trim((string) $request->input('nik', ''));
@@ -188,16 +207,24 @@ class VehicleActivityFormController extends Controller
             ], 422);
         }
 
-        // Pengecekan 2: Karyawan adalah Driver, tapi masa berlaku SIMPER kedaluwarsa
-        if (!$employee->hasValidSimper()) {
-            if ($employee->simper_expired_at) {
-                $expiredDate = $employee->simper_expired_at->format('d/m/Y');
-                $title = 'Peringatan: SIMPER Kedaluwarsa';
-                $message = "SIMPER atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) telah KEDALUWARSA pada {$expiredDate}. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+        $requiredSimper = $vehicle->requiredSimperType ? $vehicle->requiredSimperType->name : ($vehicle->isLightVehicle() ? 'SIMPER LV' : 'SIMPER Dump Truck / Heavy Mobile');
+
+        // Pengecekan 2: Karyawan adalah Driver, tapi masa berlaku SIMPER tidak sesuai untuk unit ini
+        if (!$employee->hasValidSimperForVehicle($vehicle)) {
+            if (!$employee->hasValidSimper()) {
+                if ($employee->simper_expired_at) {
+                    $expiredDate = $employee->simper_expired_at->format('d/m/Y');
+                    $title = 'Peringatan: SIMPER Kedaluwarsa';
+                    $message = "SIMPER atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) telah KEDALUWARSA pada {$expiredDate}. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE untuk perpanjangan masa berlaku SIMPER.";
+                } else {
+                    $expiredDate = 'Belum Ada';
+                    $title = 'SIMPER Belum Terdaftar';
+                    $message = "Karyawan atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) belum memiliki tanggal masa berlaku SIMPER aktif. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE.";
+                }
             } else {
-                $expiredDate = 'Belum Ada';
-                $title = 'SIMPER Belum Terdaftar';
-                $message = "Karyawan atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) belum memiliki tanggal masa berlaku SIMPER aktif. Anda tidak diizinkan mengoperasikan kendaraan. Silakan hubungi Divisi HSE.";
+                $expiredDate = $employee->simper_expired_at ? $employee->simper_expired_at->format('d/m/Y') : '-';
+                $title = 'Izin SIMPER Tidak Sesuai';
+                $message = "Karyawan atas nama {$employee->name} (NIK: {$employee->nik} - {$employee->division}) tidak memiliki izin SIMPER aktif yang sesuai untuk mengoperasikan unit {$vehicle->code} (Wajib: {$requiredSimper}). Silakan hubungi Divisi HSE.";
             }
 
             return response()->json([
@@ -218,14 +245,14 @@ class VehicleActivityFormController extends Controller
         return response()->json([
             'status' => 'valid',
             'title' => 'SIMPER Valid',
-            'message' => "SIMPER valid. Selamat bertugas, {$employee->name}!",
+            'message' => "SIMPER valid ({$requiredSimper}). Selamat bertugas, {$employee->name}!",
             'employee' => [
                 'id' => $employee->id,
                 'name' => $employee->name,
                 'nik' => $employee->nik,
                 'division' => $employee->division ?? 'Umum',
                 'position' => $employee->position ?? 'Karyawan',
-                'simper_expired_at' => $employee->simper_expired_at->format('d/m/Y'),
+                'simper_expired_at' => $employee->simper_expired_at ? $employee->simper_expired_at->format('d/m/Y') : '-',
                 'is_operator' => true,
             ],
         ]);
@@ -241,8 +268,8 @@ class VehicleActivityFormController extends Controller
                 ->with('warning', 'Sesi login Anda telah berakhir. Silakan login kembali.');
         }
 
-        $vehicle = Vehicle::where('code', $code)
-            ->where('category', 'light_vehicle')
+        $vehicle = Vehicle::timesheetEligible()
+            ->where('code', $code)
             ->firstOrFail();
 
         $previousKm = (float) $vehicle->current_km;

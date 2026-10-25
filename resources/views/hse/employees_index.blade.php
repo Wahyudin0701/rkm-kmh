@@ -219,10 +219,24 @@
                                 @endif
                             </td>
                             
-                            <!-- Masa Berlaku SIMPER -->
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <!-- Masa Berlaku SIMPER & Multi-SIMPER Badges -->
+                            <td class="py-3.5 px-4 text-center">
                                 @if(!$emp->is_operator)
                                     <span class="text-slate-400 italic text-[11px]">-</span>
+                                @elseif($emp->simpers && $emp->simpers->isNotEmpty())
+                                    <div class="flex flex-col gap-1 items-center">
+                                        @foreach($emp->simpers as $sm)
+                                            @php
+                                                $smValid = $sm->isValid();
+                                                $smCode = $sm->simperType?->code ?: 'SIMPER';
+                                                $shortCode = str_replace('SIMPER-', '', $smCode);
+                                            @endphp
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold font-mono {{ $smValid ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}" title="{{ $sm->simperType?->name }}: s/d {{ $sm->expired_at ? $sm->expired_at->format('d/m/Y') : '-' }}">
+                                                <i class="fa-solid {{ $smValid ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600' }} mr-1 text-[8px]"></i>
+                                                {{ $shortCode }}: {{ $sm->expired_at ? $sm->expired_at->format('d/m/y') : '-' }}
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 @elseif($isValid)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
                                         <i class="fa-solid fa-circle-check mr-1.5 text-emerald-600 text-[10px]"></i>
@@ -414,10 +428,61 @@
                         <option value="0">TIDAK (Bukan Driver)</option>
                     </select>
                 </div>
-                <div id="addSimperDateWrapper">
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Masa Berlaku SIMPER</label>
-                    <input type="date" name="simper_expired_at" id="addSimperDateInput" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                <div id="addSimperDateWrapper" class="col-span-1 sm:col-span-2 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-800">
+                            Izin SIMPER yang Diberikan <span class="text-rose-500">*</span>
+                        </label>
+                        <span class="text-[10px] text-slate-400">Centang jenis izin & tentukan masa berlakunya</span>
+                    </div>
+
+                    <input type="hidden" name="simper_expired_at" id="addSimperDateInput">
+
+                    @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
+                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                            @foreach($availableSimperTypes as $st)
+                            <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center space-x-2 text-xs font-bold text-slate-800 cursor-pointer">
+                                        <input type="checkbox" 
+                                               name="simper_assignments[{{ $st->id }}][enabled]" 
+                                               value="1" 
+                                               id="addSimperCheck_{{ $st->id }}"
+                                               onchange="toggleAddSimperFields({{ $st->id }})"
+                                               class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
+                                        <span>{{ $st->name }} ({{ $st->code }})</span>
+                                    </label>
+                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold uppercase">
+                                        {{ str_replace('_', ' ', $st->category_scope) }}
+                                    </span>
+                                </div>
+                                <div id="addSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
+                                        <input type="text" 
+                                               name="simper_assignments[{{ $st->id }}][simper_number]" 
+                                               id="addSimperNum_{{ $st->id }}"
+                                               placeholder="Contoh: SMP-LV-001" 
+                                               class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-800 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER <span class="text-rose-500">*</span></label>
+                                        <input type="date" 
+                                               name="simper_assignments[{{ $st->id }}][expired_at]" 
+                                               id="addSimperExp_{{ $st->id }}"
+                                               onchange="syncAddPrimarySimperDate()"
+                                               class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-800">
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div>
+                            <input type="date" name="simper_expired_at" id="addSimperDateLegacy" 
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -667,11 +732,61 @@
                     <option value="0">TIDAK (Bukan Driver)</option>
                 </select>
             </div>
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Masa Berlaku SIMPER</label>
-                <input type="date" name="simper_expired_at" id="editSimperDate" 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                <p class="text-[11px] text-slate-400 mt-1">Kosongkan jika bukan driver atau belum memiliki SIMPER.</p>
+            <div id="editSimperWrapper" class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label class="block text-sm font-bold text-slate-800">
+                        Izin SIMPER yang Dimiliki <span class="text-rose-500">*</span>
+                    </label>
+                    <span class="text-[11px] text-slate-400">Pilih izin & perbarui masa berlakunya</span>
+                </div>
+
+                <input type="hidden" name="simper_expired_at" id="editSimperDate">
+
+                @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
+                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                        @foreach($availableSimperTypes as $st)
+                        <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
+                            <div class="flex items-center justify-between">
+                                <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer">
+                                    <input type="checkbox" 
+                                           name="simper_assignments[{{ $st->id }}][enabled]" 
+                                           value="1" 
+                                           id="editSimperCheck_{{ $st->id }}"
+                                           onchange="toggleEditSimperFields({{ $st->id }})"
+                                           class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
+                                    <span>{{ $st->name }} ({{ $st->code }})</span>
+                                </label>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold uppercase">
+                                    {{ str_replace('_', ' ', $st->category_scope) }}
+                                </span>
+                            </div>
+                            <div id="editSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
+                                    <input type="text" 
+                                           name="simper_assignments[{{ $st->id }}][simper_number]" 
+                                           id="editSimperNum_{{ $st->id }}"
+                                           placeholder="No. SIMPER" 
+                                           class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER</label>
+                                    <input type="date" 
+                                           name="simper_assignments[{{ $st->id }}][expired_at]" 
+                                           id="editSimperExp_{{ $st->id }}"
+                                           onchange="syncEditPrimarySimperDate()"
+                                           class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold">
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div>
+                        <input type="date" name="simper_expired_at" id="editSimperDateLegacy" 
+                               class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    </div>
+                @endif
             </div>
 
             <!-- Footer Tombol -->
@@ -821,6 +936,10 @@
         if (type === 'edit') {
             opSelect = document.getElementById('editOperator');
             dateInput = document.getElementById('editSimperDate');
+            const wrapper = document.getElementById('editSimperWrapper');
+            if (wrapper) {
+                wrapper.style.display = opSelect.value === '0' ? 'none' : 'block';
+            }
         } else if (type === 'renew') {
             opSelect = document.getElementById('renewOperator');
             dateInput = document.getElementById('renewDate');
@@ -841,6 +960,70 @@
             dateInput.classList.remove('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
             dateInput.classList.add('bg-white', 'text-slate-800');
         }
+    }
+
+    // Toggle Field Multi-SIMPER Tambah
+    function toggleAddSimperFields(id) {
+        const check = document.getElementById(`addSimperCheck_${id}`);
+        const fields = document.getElementById(`addSimperFields_${id}`);
+        if (check && fields) {
+            if (check.checked) {
+                fields.classList.remove('hidden');
+            } else {
+                fields.classList.add('hidden');
+                const expInp = document.getElementById(`addSimperExp_${id}`);
+                if (expInp) expInp.value = '';
+            }
+        }
+        syncAddPrimarySimperDate();
+    }
+
+    function syncAddPrimarySimperDate() {
+        let maxDate = '';
+        const expInputs = document.querySelectorAll('[id^="addSimperExp_"]');
+        expInputs.forEach(inp => {
+            const id = inp.id.replace('addSimperExp_', '');
+            const check = document.getElementById(`addSimperCheck_${id}`);
+            if (check && check.checked && inp.value) {
+                if (!maxDate || inp.value > maxDate) {
+                    maxDate = inp.value;
+                }
+            }
+        });
+        const primaryInp = document.getElementById('addSimperDateInput');
+        if (primaryInp) primaryInp.value = maxDate;
+    }
+
+    // Toggle Field Multi-SIMPER Edit
+    function toggleEditSimperFields(id) {
+        const check = document.getElementById(`editSimperCheck_${id}`);
+        const fields = document.getElementById(`editSimperFields_${id}`);
+        if (check && fields) {
+            if (check.checked) {
+                fields.classList.remove('hidden');
+            } else {
+                fields.classList.add('hidden');
+                const expInp = document.getElementById(`editSimperExp_${id}`);
+                if (expInp) expInp.value = '';
+            }
+        }
+        syncEditPrimarySimperDate();
+    }
+
+    function syncEditPrimarySimperDate() {
+        let maxDate = '';
+        const expInputs = document.querySelectorAll('[id^="editSimperExp_"]');
+        expInputs.forEach(inp => {
+            const id = inp.id.replace('editSimperExp_', '');
+            const check = document.getElementById(`editSimperCheck_${id}`);
+            if (check && check.checked && inp.value) {
+                if (!maxDate || inp.value > maxDate) {
+                    maxDate = inp.value;
+                }
+            }
+        });
+        const primaryInp = document.getElementById('editSimperDate');
+        if (primaryInp) primaryInp.value = maxDate;
     }
 
     function previewEmployeeImage(input, imgId, placeholderId) {
@@ -891,6 +1074,45 @@
             expDate = emp.simper_expired_at.substring(0, 10);
         }
         document.getElementById('editSimperDate').value = expDate;
+
+        // Reset semua checklist SIMPER di editModal
+        document.querySelectorAll('[id^="editSimperCheck_"]').forEach(cb => {
+            cb.checked = false;
+            const id = cb.id.replace('editSimperCheck_', '');
+            const fields = document.getElementById(`editSimperFields_${id}`);
+            if (fields) fields.classList.add('hidden');
+            const num = document.getElementById(`editSimperNum_${id}`);
+            if (num) num.value = '';
+            const exp = document.getElementById(`editSimperExp_${id}`);
+            if (exp) exp.value = '';
+        });
+
+        // Isi checklist SIMPER dari data emp.simpers
+        if (emp.simpers && emp.simpers.length > 0) {
+            emp.simpers.forEach(s => {
+                const cb = document.getElementById(`editSimperCheck_${s.simper_type_id}`);
+                const fields = document.getElementById(`editSimperFields_${s.simper_type_id}`);
+                const num = document.getElementById(`editSimperNum_${s.simper_type_id}`);
+                const exp = document.getElementById(`editSimperExp_${s.simper_type_id}`);
+                if (cb) {
+                    cb.checked = true;
+                    if (fields) fields.classList.remove('hidden');
+                    if (num) num.value = s.simper_number || '';
+                    if (exp && s.expired_at) exp.value = s.expired_at.substring(0, 10);
+                }
+            });
+        } else if (emp.is_operator && expDate) {
+            const firstCb = document.querySelector('[id^="editSimperCheck_"]');
+            if (firstCb) {
+                firstCb.checked = true;
+                const id = firstCb.id.replace('editSimperCheck_', '');
+                const fields = document.getElementById(`editSimperFields_${id}`);
+                if (fields) fields.classList.remove('hidden');
+                const exp = document.getElementById(`editSimperExp_${id}`);
+                if (exp) exp.value = expDate;
+            }
+        }
+        syncEditPrimarySimperDate();
         
         // Set jenis personil
         const editTypeSelect = document.getElementById('editEmployeeType');
@@ -1074,6 +1296,18 @@
             addTypeSelect.value = 'Karyawan';
             toggleCustomEmployeeType('Karyawan', 'add');
         }
+        document.querySelectorAll('[id^="addSimperCheck_"]').forEach(cb => {
+            cb.checked = false;
+            const id = cb.id.replace('addSimperCheck_', '');
+            const fields = document.getElementById(`addSimperFields_${id}`);
+            if (fields) fields.classList.add('hidden');
+            const num = document.getElementById(`addSimperNum_${id}`);
+            if (num) num.value = '';
+            const exp = document.getElementById(`addSimperExp_${id}`);
+            if (exp) exp.value = '';
+        });
+        const addSimperDateInp = document.getElementById('addSimperDateInput');
+        if (addSimperDateInp) addSimperDateInp.value = '';
         if (modal) modal.classList.remove('hidden');
     }
     function closeAddKaryawanModal() {
@@ -1089,6 +1323,14 @@
             } else {
                 wrapper.style.display = 'none';
                 if (input) input.value = '';
+                document.querySelectorAll('[id^="addSimperCheck_"]').forEach(cb => {
+                    cb.checked = false;
+                    const id = cb.id.replace('addSimperCheck_', '');
+                    const fields = document.getElementById(`addSimperFields_${id}`);
+                    if (fields) fields.classList.add('hidden');
+                    const exp = document.getElementById(`addSimperExp_${id}`);
+                    if (exp) exp.value = '';
+                });
             }
         }
     }

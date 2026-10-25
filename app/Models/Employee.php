@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
@@ -71,6 +72,102 @@ class Employee extends Model
         }
 
         return $this->simper_expired_at->isFuture() || $this->simper_expired_at->isToday();
+    }
+
+    public function simpers(): HasMany
+    {
+        return $this->hasMany(EmployeeSimper::class)->with('simperType');
+    }
+
+    public function simperTypes(): BelongsToMany
+    {
+        return $this->belongsToMany(SimperType::class, 'employee_simpers')
+            ->withPivot(['simper_number', 'expired_at', 'status', 'notes'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Cek apakah personil memiliki SIMPER aktif untuk kode jenis SIMPER tertentu.
+     */
+    public function hasValidSimperForType(string $code): bool
+    {
+        $hasAnySimper = $this->relationLoaded('simpers') ? $this->simpers->isNotEmpty() : $this->simpers()->exists();
+
+        // Jika belum ada record di employee_simpers, gunakan fallback kolom simper_expired_at
+        if (! $hasAnySimper) {
+            return $this->hasValidSimper();
+        }
+
+        $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->with('simperType')->get();
+
+        foreach ($simpers as $s) {
+            if ($s->simperType && $s->simperType->code === $code && $s->isValid()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Cek apakah personil memiliki SIMPER dengan cakupan scope tertentu.
+     */
+    public function hasValidSimperForScope(string $scope): bool
+    {
+        $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->with('simperType')->get();
+        foreach ($simpers as $s) {
+            if ($s->simperType && $s->simperType->category_scope === $scope && $s->isValid()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Cek apakah personil memiliki izin SIMPER yang sah untuk kendaraan tertentu.
+     */
+    public function hasValidSimperForVehicle(Vehicle $vehicle): bool
+    {
+        if (! $this->is_operator) {
+            return false;
+        }
+
+        $hasAnySimper = $this->relationLoaded('simpers') ? $this->simpers->isNotEmpty() : $this->simpers()->exists();
+
+        // Fallback jika belum dimigrasikan ke employee_simpers
+        if (! $hasAnySimper) {
+            return $this->hasValidSimper();
+        }
+
+        // 1. Jika kendaraan mensyaratkan spesifik required_simper_type_id
+        if ($vehicle->required_simper_type_id) {
+            $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->get();
+            foreach ($simpers as $s) {
+                if ($s->simper_type_id === $vehicle->required_simper_type_id && $s->isValid()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 2. Berdasarkan kategori kendaraan
+        if ($vehicle->isLightVehicle()) {
+            return $this->hasValidSimperForType('SIMPER-LV') || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
+        }
+
+        if ($vehicle->isUnitSupport() && $vehicle->is_timesheet_mobile) {
+            return $this->hasValidSimperForType('SIMPER-DT')
+                || $this->hasValidSimperForType('SIMPER-HEAVY')
+                || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
+        }
+
+        if ($vehicle->isUnitSupport()) {
+            return $this->hasValidSimperForType('SIMPER-HEAVY')
+                || $this->hasValidSimperForType('SIMPER-DT')
+                || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
+        }
+
+        return $this->hasValidSimper();
     }
 
     public function getPhotoUrlAttribute(): ?string

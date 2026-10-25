@@ -138,7 +138,8 @@ class SupportTimesheetController extends Controller
             ->orderBy('code')
             ->get();
 
-        $operators = Employee::orderBy('name')
+        $operators = Employee::with(['simpers.simperType'])
+            ->orderBy('name')
             ->get(['id', 'nik', 'name', 'position', 'is_operator', 'employee_type', 'simper_expired_at']);
 
         $shifts = self::SHIFTS;

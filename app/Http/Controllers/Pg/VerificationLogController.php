@@ -26,7 +26,7 @@ class VerificationLogController extends Controller
         // Otomatis batalkan antrean pending yang melewati batas 5 jam
         VehicleActivity::expireOverduePendingActivities();
 
-        $query = VehicleActivity::with(['vehicle', 'driver', 'gate', 'securityGuard'])
+        $query = VehicleActivity::with(['vehicle', 'driver.simpers.simperType', 'gate', 'securityGuard'])
             ->orderByRaw('COALESCE(validated_at, recorded_at) DESC');
 
         // Filter Rentang Tanggal (Default Hari Ini)

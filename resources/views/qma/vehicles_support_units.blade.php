@@ -165,6 +165,11 @@
                                     <span class="bg-blue-50 text-blue-800 px-2.5 py-1 rounded-lg border border-blue-200 font-bold">
                                         {{ $u->code }}
                                     </span>
+                                    @if($u->is_timesheet_mobile)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Unit ini aktif di Timesheet Mobilisasi Karyawan">
+                                            <i class="fa-solid fa-route mr-1"></i>Mobile
+                                        </span>
+                                    @endif
                                 </div>
                             </td>
 
@@ -492,7 +497,30 @@
                         </div>
                     </div>
 
-                    <!-- Tombol Aksi Batal & Simpan Unit (Sesuai Desain Mockup) -->
+                    <!-- Pengaturan Timesheet Mobilisasi & Izin SIMPER -->
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" name="is_timesheet_mobile" id="add_is_timesheet_mobile" value="1"
+                                   class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                                   onchange="toggleSimperReq('add')">
+                            <label for="add_is_timesheet_mobile" class="text-xs font-bold text-slate-800 cursor-pointer">
+                                Izinkan Unit untuk Timesheet Mobilisasi Karyawan & Gerbang Pos Satpam
+                            </label>
+                        </div>
+                        <div id="add_simper_container" class="hidden">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                Wajib Jenis SIMPER untuk Driver / Operator
+                            </label>
+                            <select name="required_simper_type_id" class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:border-emerald-600">
+                                <option value="">-- Standar (Sesuai Kategori / Default) --</option>
+                                @foreach($simperTypes ?? [] as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }} ({{ $st->code }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-500 mt-1">Driver yang mobilisasi unit ini wajib memiliki izin SIMPER aktif yang sesuai.</p>
+                        </div>
+                    </div>
+
                     <div class="pt-4 flex items-center justify-end space-x-3">
                         <button type="button" 
                                 onclick="closeAddUnitModal()" 
@@ -599,6 +627,30 @@
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Dokumen KIR</label>
                             <input type="text" name="kir_document" id="edit_kir" class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-emerald-600">
+                        </div>
+                    </div>
+
+                    <!-- Pengaturan Timesheet Mobilisasi & Izin SIMPER -->
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" name="is_timesheet_mobile" id="edit_is_timesheet_mobile" value="1"
+                                   class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                                   onchange="toggleSimperReq('edit')">
+                            <label for="edit_is_timesheet_mobile" class="text-xs font-bold text-slate-800 cursor-pointer">
+                                Izinkan Unit untuk Timesheet Mobilisasi Karyawan & Gerbang Pos Satpam
+                            </label>
+                        </div>
+                        <div id="edit_simper_container" class="hidden">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                Wajib Jenis SIMPER untuk Driver / Operator
+                            </label>
+                            <select name="required_simper_type_id" id="edit_required_simper_type_id" class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:border-emerald-600">
+                                <option value="">-- Standar (Sesuai Kategori / Default) --</option>
+                                @foreach($simperTypes ?? [] as $st)
+                                    <option value="{{ $st->id }}">{{ $st->name }} ({{ $st->code }})</option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-500 mt-1">Driver yang mobilisasi unit ini wajib memiliki izin SIMPER aktif yang sesuai.</p>
                         </div>
                     </div>
 
@@ -714,6 +766,18 @@
 <script>
     const categoryCode = "{{ $category->code }}";
 
+    function toggleSimperReq(prefix) {
+        const chk = document.getElementById(prefix + '_is_timesheet_mobile');
+        const container = document.getElementById(prefix + '_simper_container');
+        if (chk && container) {
+            if (chk.checked) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+    }
+
     function previewUnitImage(input, imgId, placeholderId) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -747,6 +811,9 @@
         if (addPhotoPlaceholder) {
             addPhotoPlaceholder.classList.remove('hidden');
         }
+        const addMobileChk = document.getElementById('add_is_timesheet_mobile');
+        if (addMobileChk) addMobileChk.checked = false;
+        toggleSimperReq('add');
         document.getElementById('unitNumberInput').focus();
     }
 
@@ -811,6 +878,16 @@
             }
             if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
         }
+
+        const isMobileChk = document.getElementById('edit_is_timesheet_mobile');
+        if (isMobileChk) {
+            isMobileChk.checked = !!(unit.is_timesheet_mobile == 1 || unit.is_timesheet_mobile === true);
+        }
+        const simperSelect = document.getElementById('edit_required_simper_type_id');
+        if (simperSelect) {
+            simperSelect.value = unit.required_simper_type_id || '';
+        }
+        toggleSimperReq('edit');
 
         const modal = document.getElementById('editModal');
         modal.classList.remove('hidden');

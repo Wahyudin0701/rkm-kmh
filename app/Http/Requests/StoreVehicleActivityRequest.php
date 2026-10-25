@@ -55,12 +55,12 @@ class StoreVehicleActivityRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $vehicleCode = $this->route('code');
-            $vehicle = Vehicle::where('code', $vehicleCode)
-                ->where('category', 'light_vehicle')
+            $vehicle = Vehicle::timesheetEligible()
+                ->where('code', $vehicleCode)
                 ->first();
 
             if (!$vehicle) {
-                $validator->errors()->add('vehicle', 'Kendaraan ringan tidak valid atau tidak terdaftar.');
+                $validator->errors()->add('vehicle', 'Kendaraan tidak valid atau tidak diizinkan untuk timesheet mobilisasi.');
                 return;
             }
 
@@ -72,11 +72,12 @@ class StoreVehicleActivityRequest extends FormRequest
                         'driver_id',
                         "Karyawan ({$driver->name}) terdaftar sebagai Bukan Driver dan tidak memiliki izin mengemudi (SIMPER)."
                     );
-                } elseif (!$driver->hasValidSimper()) {
+                } elseif (!$driver->hasValidSimperForVehicle($vehicle)) {
+                    $requiredSimper = $vehicle->requiredSimperType ? $vehicle->requiredSimperType->name : ($vehicle->isLightVehicle() ? 'SIMPER LV' : 'SIMPER Dump Truck / Heavy Mobile');
                     $expiredText = $driver->simper_expired_at ? $driver->simper_expired_at->format('d/m/Y') : 'Belum Terdaftar';
                     $validator->errors()->add(
                         'driver_id',
-                        "Masa berlaku SIMPER pengemudi ({$driver->name}) telah kedaluwarsa pada {$expiredText}. Karyawan wajib memperpanjang SIMPER ke Divisi HSE sebelum mengoperasikan kendaraan."
+                        "Pengemudi ({$driver->name}) tidak memiliki izin SIMPER aktif yang sesuai untuk mengoperasikan unit {$vehicle->code} (Wajib: {$requiredSimper}). Tanggal SIMPER terakhir: {$expiredText}. Silakan hubungi Divisi HSE."
                     );
                 }
             }

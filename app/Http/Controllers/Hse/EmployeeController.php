@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Hse;
 
 use App\Http\Controllers\Controller;
 use App\Models\Employee;
+use App\Models\EmployeeSimper;
+use App\Models\SimperType;
 use App\Models\User;
 use App\Services\ImageCompressionService;
 use App\Services\SimperPdfExporter;
@@ -73,7 +75,7 @@ class EmployeeController extends Controller
      */
     private function getFilteredEmployees(Request $request): Builder
     {
-        $query = Employee::query();
+        $query = Employee::with(['simpers.simperType']);
 
         // 1. Pencarian Kata Kunci (NIK, Nama, Jabatan, Unit, Divisi)
         if ($request->filled('search')) {
@@ -156,7 +158,9 @@ class EmployeeController extends Controller
             $employeeTypes[] = 'Sukon';
         }
 
-        return view('hse.employees_index', compact('employees', 'employeeTypes'));
+        $availableSimperTypes = SimperType::active()->orderBy('name')->get();
+
+        return view('hse.employees_index', compact('employees', 'employeeTypes', 'availableSimperTypes'));
     }
 
     /**
@@ -613,7 +617,7 @@ class EmployeeController extends Controller
             $user->update(['photo_path' => $photoPath]);
         }
 
-        Employee::create([
+        $employee = Employee::create([
             'nik' => $validated['nik'],
             'name' => $validated['name'],
             'employee_type' => $employeeType,
@@ -625,6 +629,9 @@ class EmployeeController extends Controller
             'photo_path' => $photoPath,
             'user_id' => $user->id,
         ]);
+
+        // Sinkronisasi Multi-SIMPER Personil
+        $this->syncEmployeeSimpers($employee, $request, $isOperator, $simperExpiredAt);
 
         return back()->with('success', "Data karyawan {$validated['name']} berhasil ditambahkan.");
     }
@@ -677,6 +684,9 @@ class EmployeeController extends Controller
             'photo_path' => $photoPath,
         ]);
 
+        // Sinkronisasi Multi-SIMPER Personil
+        $this->syncEmployeeSimpers($employee, $request, $isOperator, $simperExpiredAt);
+
         // Sinkronkan akun login User terkait
         $linkedUser = $employee->user ?: User::where('username', $employee->nik)->first();
         if ($linkedUser) {
@@ -690,5 +700,68 @@ class EmployeeController extends Controller
         }
 
         return back()->with('success', "Data SIMPER untuk {$employee->name} berhasil diperbarui.");
+    }
+
+    /**
+     * Helper sinkronisasi multi-SIMPER personil.
+     */
+    private function syncEmployeeSimpers(Employee $employee, Request $request, bool $isOperator, ?string $fallbackDate): void
+    {
+        if (! $isOperator) {
+            $employee->simpers()->delete();
+            return;
+        }
+
+        $simperAssignments = $request->input('simper_assignments') ?? $request->input('simpers');
+
+        if (is_array($simperAssignments) && count($simperAssignments) > 0) {
+            $activeTypeIds = [];
+            $maxExpiredAt = null;
+
+            foreach ($simperAssignments as $typeId => $data) {
+                $isEnabled = ! empty($data['enabled']) || (! isset($data['enabled']) && ! empty($data['expired_at']));
+                if ($isEnabled && ! empty($data['expired_at'])) {
+                    $expDate = $data['expired_at'];
+                    $simperNum = ! empty($data['simper_number']) ? trim($data['simper_number']) : ('SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT));
+
+                    EmployeeSimper::updateOrCreate(
+                        ['employee_id' => $employee->id, 'simper_type_id' => $typeId],
+                        [
+                            'simper_number' => $simperNum,
+                            'expired_at' => $expDate,
+                            'status' => 'active',
+                        ]
+                    );
+
+                    $activeTypeIds[] = (int) $typeId;
+
+                    if (! $maxExpiredAt || $expDate > $maxExpiredAt) {
+                        $maxExpiredAt = $expDate;
+                    }
+                }
+            }
+
+            // Hapus jenis SIMPER yang sudah tidak dicentang
+            EmployeeSimper::where('employee_id', $employee->id)
+                ->whereNotIn('simper_type_id', $activeTypeIds)
+                ->delete();
+
+            if ($maxExpiredAt && $employee->simper_expired_at != $maxExpiredAt) {
+                $employee->update(['simper_expired_at' => $maxExpiredAt]);
+            }
+        } elseif ($fallbackDate) {
+            // Fallback untuk form sederhana / pengujian yang mengirimkan 1 tanggal simper_expired_at
+            $lvTypeId = SimperType::where('code', 'SIMPER-LV')->value('id');
+            if ($lvTypeId) {
+                EmployeeSimper::updateOrCreate(
+                    ['employee_id' => $employee->id, 'simper_type_id' => $lvTypeId],
+                    [
+                        'simper_number' => 'SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT),
+                        'expired_at' => $fallbackDate,
+                        'status' => 'active',
+                    ]
+                );
+            }
+        }
     }
 }

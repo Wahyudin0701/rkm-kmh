@@ -9,10 +9,10 @@
         <div class="min-w-0">
             <div class="flex items-center flex-wrap gap-2.5">
                 <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
-                    Timesheet Kendaraan Ringan
+                    Timesheet Kendaraan Ringan & Armada Mobile
                 </h1>
                 <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    Kendaraan Ringan (LV)
+                    Kendaraan Ringan (LV) & Heavy Mobile
                 </span>
             </div>
             <div class="text-sm sm:text-base text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-1.5">
@@ -33,8 +33,25 @@
         </div>
     </div>
 
+    <!-- Segmented Filter Tab: Semua Armada / LV / Heavy Mobile -->
+    <div class="flex items-center space-x-1 sm:space-x-2 border-b border-slate-200/80 overflow-x-auto pb-px">
+        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'all'])) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? 'all') === 'all' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+            <i class="fa-solid fa-layer-group mr-1.5"></i>Semua Armada
+        </a>
+        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'light_vehicle'])) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'light_vehicle' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+            <i class="fa-solid fa-car-side mr-1.5"></i>Light Vehicle (LV)
+        </a>
+        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'unit_support'])) }}" 
+           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'unit_support' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+            <i class="fa-solid fa-truck-moving mr-1.5"></i>Heavy Equipment Mobile
+        </a>
+    </div>
+
     <!-- Filter & Search Bar (Tanpa Card Wrapper, Format Referensi Sesuai Standar) -->
     <form method="GET" action="{{ route('mobilisasi.index') }}" id="lvFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+        <input type="hidden" name="type" value="{{ $type ?? 'all' }}">
         <!-- Pencarian Cepat di Kiri -->
         <div class="relative w-full sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -68,9 +85,15 @@
                 <div>
                     <!-- Badge Kategori & Status -->
                     <div class="flex items-center justify-between mb-3">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            Kendaraan Ringan (LV)
-                        </span>
+                        @if($v->isLightVehicle())
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                <i class="fa-solid fa-car-side mr-1 text-emerald-600"></i> LV
+                            </span>
+                        @else
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <i class="fa-solid fa-truck-moving mr-1 text-amber-600"></i> Heavy Mobile
+                            </span>
+                        @endif
                         
                         @php
                             $statusBadge = match($v->status) {
@@ -122,9 +145,15 @@
                             <span>Unit Sedang Breakdown</span>
                         </div>
                     @else
-                        <a href="{{ route('vehicle.activity.form', ['code' => $v->code]) }}" class="w-full bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition text-center block text-xs">
-                            Isi Form Mobilisasi LV
-                        </a>
+                        @if($v->isLightVehicle())
+                            <a href="{{ route('vehicle.activity.form', ['code' => $v->code]) }}" class="w-full bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition text-center block text-xs">
+                                Isi Form Mobilisasi LV
+                            </a>
+                        @else
+                            <a href="{{ route('vehicle.activity.form', ['code' => $v->code]) }}" class="w-full bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition text-center block text-xs">
+                                Isi Form Mobilisasi Unit
+                            </a>
+                        @endif
                     @endif
                 </div>
             </div>
