@@ -465,4 +465,86 @@ class QmaSupportTimesheetTest extends TestCase
         $this->supportUnit->refresh();
         $this->assertEquals('Quarry Batu KM 12', $this->supportUnit->location);
     }
+
+    /**
+     * Sinkronisasi data operator Sukon dari database ke dropdown QMA dan tabel timesheet.
+     */
+    public function test_qma_support_timesheet_syncs_and_filters_sukon_and_karyawan_operators(): void
+    {
+        $sukonOperator = Employee::create([
+            'nik' => 'SKN-999',
+            'name' => 'Budi Sukon Utama',
+            'position' => 'Operator Subcon Dozer',
+            'employee_type' => 'Sukon',
+            'is_operator' => true,
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Budi Sukon Utama');
+        $response->assertSee('data-type="Sukon"', false);
+        $response->assertSee('data-type="Karyawan"', false);
+    }
+
+    /**
+     * Filter berdasarkan jenis operator (Sukon vs Karyawan) di tabel timesheet.
+     */
+    public function test_qma_support_timesheet_filter_by_operator_type(): void
+    {
+        $sukonOperator = Employee::create([
+            'nik' => 'SKN-888',
+            'name' => 'Sukon Operator X',
+            'position' => 'Operator Subcon Excavator',
+            'employee_type' => 'Sukon',
+            'is_operator' => true,
+        ]);
+
+        $tsKaryawan = UnitSupportTimesheet::create([
+            'timesheet_no' => 'TS-KARYAWAN-001',
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $this->operator->id,
+            'date' => Carbon::today()->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 100.0,
+            'end_meter' => 108.0,
+            'operating_hours' => 8.0,
+            'location' => 'Adit 1',
+            'activity_type' => 'Galian',
+            'status' => 'Operation',
+        ]);
+
+        $tsSukon = UnitSupportTimesheet::create([
+            'timesheet_no' => 'TS-SUKON-001',
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $sukonOperator->id,
+            'date' => Carbon::today()->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 110.0,
+            'end_meter' => 118.0,
+            'operating_hours' => 8.0,
+            'location' => 'Adit 1',
+            'activity_type' => 'Loading',
+            'status' => 'Operation',
+        ]);
+
+        // Filter Sukon only
+        $responseSukon = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.index', ['operator_type' => 'Sukon']));
+
+        $responseSukon->assertStatus(200);
+        $responseSukon->assertSee('TS-SUKON-001');
+        $responseSukon->assertDontSee('TS-KARYAWAN-001');
+
+        // Filter Karyawan only
+        $responseKaryawan = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.index', ['operator_type' => 'Karyawan']));
+
+        $responseKaryawan->assertStatus(200);
+        $responseKaryawan->assertSee('TS-KARYAWAN-001');
+        $responseKaryawan->assertDontSee('TS-SUKON-001');
+    }
 }

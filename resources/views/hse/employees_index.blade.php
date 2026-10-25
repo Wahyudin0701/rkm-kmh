@@ -88,6 +88,18 @@
         <!-- Filter di Kanan (Pada Mobile: Sejajar 2 Kolom di Bawah Search Bar) -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
             <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
+                <!-- Filter Jenis Personil / Karyawan -->
+                <select name="employee_type" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                    <option value="">Semua Jenis</option>
+                    @if(isset($employeeTypes))
+                        @foreach($employeeTypes as $t)
+                            <option value="{{ $t }}" {{ request('employee_type') === $t ? 'selected' : '' }}>{{ $t }}</option>
+                        @endforeach
+                    @endif
+                </select>
+
                 <!-- Filter Status Driver -->
                 <select name="driver_status" 
                         onchange="this.form.submit()" 
@@ -110,7 +122,7 @@
 
             <!-- Tombol Reset Filter (Sesuai Referensi Merah / Rose Clean Text) -->
             <div id="simperResetContainer">
-                @if(request()->anyFilled(['search', 'driver_status', 'simper_status']))
+                @if(request()->anyFilled(['search', 'employee_type', 'driver_status', 'simper_status']))
                     <a href="{{ route('hse.employees.index') }}" 
                        id="simperResetBtn"
                        class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
@@ -132,6 +144,7 @@
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
                         <th class="py-3.5 px-4">NIK</th>
                         <th class="py-3.5 px-4">NAMA LENGKAP</th>
+                        <th class="py-3.5 px-4 text-center">JENIS</th>
                         <th class="py-3.5 px-4">JABATAN</th>
                         <th class="py-3.5 px-4">UNIT / DIVISI</th>
                         <th class="py-3.5 px-4 text-center">STATUS DRIVER</th>
@@ -163,6 +176,23 @@
                                     @endif
                                     <span class="truncate">{{ $emp->name }}</span>
                                 </div>
+                            </td>
+
+                            <!-- Jenis Personil (Karyawan / Sukon) -->
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                @if($emp->isSukon())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        Sukon
+                                    </span>
+                                @elseif($emp->isKaryawan())
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                        Karyawan
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                        {{ $emp->employee_type }}
+                                    </span>
+                                @endif
                             </td>
                             
                             <!-- Jabatan -->
@@ -312,6 +342,31 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Jenis Personil / Karyawan (Karyawan / Sukon / Custom) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                    Jenis Personil / Karyawan <span class="text-rose-500">*</span>
+                </label>
+                <select name="employee_type" id="addEmployeeTypeSelect" onchange="toggleCustomEmployeeType(this.value, 'add')" required 
+                        class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                    <option value="Karyawan" selected>Karyawan (Internal KMH)</option>
+                    <option value="Sukon">Sukon (Subkontraktor)</option>
+                    @if(isset($employeeTypes))
+                        @foreach($employeeTypes as $t)
+                            @if($t !== 'Karyawan' && $t !== 'Sukon')
+                                <option value="{{ $t }}">{{ $t }}</option>
+                            @endif
+                        @endforeach
+                    @endif
+                    <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
+                </select>
+                <div id="addCustomEmployeeTypeWrapper" class="hidden mt-2">
+                    <input type="text" name="custom_employee_type" id="addCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru (misal: Vendor, Mitra, dll)..." 
+                           class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">NIK (Nomor Induk Karyawan) <span class="text-rose-500">*</span></label>
@@ -579,6 +634,30 @@
                 </div>
             </div>
 
+            <!-- Jenis Personil / Karyawan (Karyawan / Sukon / Custom) -->
+            <div>
+                <label class="block text-sm font-bold text-slate-800 mb-2">
+                    Jenis Personil / Karyawan <span class="text-rose-500">*</span>
+                </label>
+                <select name="employee_type" id="editEmployeeType" onchange="toggleCustomEmployeeType(this.value, 'edit')" required 
+                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <option value="Karyawan">Karyawan (Internal KMH)</option>
+                    <option value="Sukon">Sukon (Subkontraktor)</option>
+                    @if(isset($employeeTypes))
+                        @foreach($employeeTypes as $t)
+                            @if($t !== 'Karyawan' && $t !== 'Sukon')
+                                <option value="{{ $t }}">{{ $t }}</option>
+                            @endif
+                        @endforeach
+                    @endif
+                    <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
+                </select>
+                <div id="editCustomEmployeeTypeWrapper" class="hidden mt-2">
+                    <input type="text" name="custom_employee_type" id="editCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru (misal: Vendor, Mitra, dll)..." 
+                           class="w-full text-sm px-4 py-2.5 rounded-2xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                </div>
+            </div>
+
             <!-- Bagian yang Dikelola HSE -->
             <div>
                 <label class="block text-sm font-bold text-slate-800 mb-2">Operator / Driver <span class="text-rose-500">*</span></label>
@@ -715,6 +794,27 @@
         }
     }
 
+    // Logika Jenis Personil (Karyawan / Sukon / Custom)
+    function toggleCustomEmployeeType(val, mode) {
+        const wrapper = document.getElementById(mode === 'edit' ? 'editCustomEmployeeTypeWrapper' : 'addCustomEmployeeTypeWrapper');
+        const input = document.getElementById(mode === 'edit' ? 'editCustomEmployeeTypeInput' : 'addCustomEmployeeTypeInput');
+        if (wrapper) {
+            if (val === '__CUSTOM__') {
+                wrapper.classList.remove('hidden');
+                if (input) {
+                    input.required = true;
+                    input.focus();
+                }
+            } else {
+                wrapper.classList.add('hidden');
+                if (input) {
+                    input.required = false;
+                    input.value = '';
+                }
+            }
+        }
+    }
+
     // Logika Penguncian Input SIMPER jika Bukan Driver
     function toggleSimperInput(type) {
         let opSelect, dateInput;
@@ -791,6 +891,36 @@
             expDate = emp.simper_expired_at.substring(0, 10);
         }
         document.getElementById('editSimperDate').value = expDate;
+        
+        // Set jenis personil
+        const editTypeSelect = document.getElementById('editEmployeeType');
+        const editCustomWrapper = document.getElementById('editCustomEmployeeTypeWrapper');
+        const editCustomInput = document.getElementById('editCustomEmployeeTypeInput');
+        const empType = emp.employee_type || 'Karyawan';
+        let found = false;
+        if (editTypeSelect) {
+            for (let i = 0; i < editTypeSelect.options.length; i++) {
+                if (editTypeSelect.options[i].value === empType) {
+                    editTypeSelect.value = empType;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                editTypeSelect.value = '__CUSTOM__';
+                if (editCustomWrapper) editCustomWrapper.classList.remove('hidden');
+                if (editCustomInput) {
+                    editCustomInput.required = true;
+                    editCustomInput.value = empType;
+                }
+            } else {
+                if (editCustomWrapper) editCustomWrapper.classList.add('hidden');
+                if (editCustomInput) {
+                    editCustomInput.required = false;
+                    editCustomInput.value = '';
+                }
+            }
+        }
         
         // Cek status driver untuk mengunci/membuka input SIMPER
         toggleSimperInput('edit');
@@ -938,6 +1068,11 @@
         }
         if (addPhotoPlaceholder) {
             addPhotoPlaceholder.classList.remove('hidden');
+        }
+        const addTypeSelect = document.getElementById('addEmployeeTypeSelect');
+        if (addTypeSelect) {
+            addTypeSelect.value = 'Karyawan';
+            toggleCustomEmployeeType('Karyawan', 'add');
         }
         if (modal) modal.classList.remove('hidden');
     }

@@ -121,6 +121,18 @@ class EmployeeController extends Controller
             }
         }
 
+        // 4. Filter Jenis Personil / Karyawan (Karyawan, Sukon, dll)
+        if ($request->filled('employee_type')) {
+            $empType = trim($request->input('employee_type'));
+            if ($empType === 'Karyawan') {
+                $query->where(function ($q) {
+                    $q->where('employee_type', 'Karyawan')->orWhereNull('employee_type');
+                });
+            } else {
+                $query->where('employee_type', $empType);
+            }
+        }
+
         return $query->orderBy('name');
     }
 
@@ -131,7 +143,20 @@ class EmployeeController extends Controller
     {
         $employees = $this->getFilteredEmployees($request)->paginate(20)->withQueryString();
 
-        return view('hse.employees_index', compact('employees'));
+        $employeeTypes = Employee::whereNotNull('employee_type')
+            ->where('employee_type', '!=', '')
+            ->distinct()
+            ->pluck('employee_type')
+            ->all();
+
+        if (!in_array('Karyawan', $employeeTypes)) {
+            array_unshift($employeeTypes, 'Karyawan');
+        }
+        if (!in_array('Sukon', $employeeTypes)) {
+            $employeeTypes[] = 'Sukon';
+        }
+
+        return view('hse.employees_index', compact('employees', 'employeeTypes'));
     }
 
     /**
@@ -163,6 +188,7 @@ class EmployeeController extends Controller
             'No' => 6,
             'NIK' => 16,
             'Nama Lengkap' => 30,
+            'Jenis' => 16,
             'Jabatan' => 24,
             'Unit Kerja' => 20,
             'Divisi' => 20,
@@ -195,6 +221,7 @@ class EmployeeController extends Controller
                 $idx + 1,
                 $emp->nik,
                 $emp->name,
+                $emp->employee_type ?: 'Karyawan',
                 $emp->position ?: '-',
                 $emp->unit_kerja ?: '-',
                 $emp->division ?: '-',
@@ -208,6 +235,7 @@ class EmployeeController extends Controller
             'center', // No
             'center', // NIK
             'left',   // Nama
+            'center', // Jenis
             'left',   // Jabatan
             'left',   // Unit Kerja
             'left',   // Divisi
@@ -383,6 +411,7 @@ class EmployeeController extends Controller
             'unit_kerja' => null,
             'division' => null,
             'position' => null,
+            'employee_type' => null,
             'is_operator' => null,
             'simper_expired_at' => null,
         ];
@@ -405,6 +434,8 @@ class EmployeeController extends Controller
                     $colMap['division'] = $cIdx;
                 } elseif (str_contains($cellText, 'jabatan') || str_contains($cellText, 'posisi') || str_contains($cellText, 'position')) {
                     $colMap['position'] = $cIdx;
+                } elseif (str_contains($cellText, 'jenis') || str_contains($cellText, 'tipe') || str_contains($cellText, 'sukon')) {
+                    $colMap['employee_type'] = $cIdx;
                 } elseif (str_contains($cellText, 'operator') || str_contains($cellText, 'driver')) {
                     $colMap['is_operator'] = $cIdx;
                 } elseif (str_contains($cellText, 'simper') || str_contains($cellText, 'berlaku') || str_contains($cellText, 'expired')) {
@@ -452,6 +483,7 @@ class EmployeeController extends Controller
                 $unitKerja = trim((string) ($colMap['unit_kerja'] !== null ? ($row[$colMap['unit_kerja']] ?? 'Umum') : 'Umum'));
                 $division = trim((string) ($colMap['division'] !== null ? ($row[$colMap['division']] ?? '-') : '-'));
                 $position = trim((string) ($colMap['position'] !== null ? ($row[$colMap['position']] ?? '-') : '-'));
+                $employeeType = trim((string) ($colMap['employee_type'] !== null ? ($row[$colMap['employee_type']] ?? 'Karyawan') : 'Karyawan')) ?: 'Karyawan';
 
                 // Deteksi status driver (jika kolom ada dan berisi ya/driver)
                 $operatorRaw = $colMap['is_operator'] !== null ? strtolower(trim((string) ($row[$colMap['is_operator']] ?? ''))) : '';
@@ -482,6 +514,7 @@ class EmployeeController extends Controller
                 if ($isExisting) {
                     $isExisting->update([
                         'name' => $name,
+                        'employee_type' => $employeeType,
                         'unit_kerja' => $unitKerja ?: 'Umum',
                         'division' => $division ?: '-',
                         'position' => $position ?: '-',
@@ -494,6 +527,7 @@ class EmployeeController extends Controller
                     Employee::create([
                         'nik' => $nik,
                         'name' => $name,
+                        'employee_type' => $employeeType,
                         'unit_kerja' => $unitKerja ?: 'Umum',
                         'division' => $division ?: '-',
                         'position' => $position ?: '-',
@@ -551,6 +585,14 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? null) : null;
 
+        $employeeType = $request->input('employee_type');
+        if ($employeeType === '__CUSTOM__' && $request->filled('custom_employee_type')) {
+            $employeeType = trim($request->input('custom_employee_type'));
+        }
+        if (empty($employeeType)) {
+            $employeeType = 'Karyawan';
+        }
+
         $user = User::firstOrCreate(
             ['username' => $validated['nik']],
             [
@@ -574,6 +616,7 @@ class EmployeeController extends Controller
         Employee::create([
             'nik' => $validated['nik'],
             'name' => $validated['name'],
+            'employee_type' => $employeeType,
             'unit_kerja' => $validated['unit_kerja'],
             'division' => $validated['division'],
             'position' => $validated['position'],
@@ -611,6 +654,11 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? $employee->simper_expired_at) : null;
 
+        $employeeType = $request->input('employee_type');
+        if ($employeeType === '__CUSTOM__' && $request->filled('custom_employee_type')) {
+            $employeeType = trim($request->input('custom_employee_type'));
+        }
+
         $photoPath = $employee->photo_path;
         if ($request->hasFile('photo')) {
             ImageCompressionService::deleteIfExists($employee->photo_path);
@@ -620,6 +668,7 @@ class EmployeeController extends Controller
         $employee->update([
             'nik' => $validated['nik'] ?? $employee->nik,
             'name' => $validated['name'] ?? $employee->name,
+            'employee_type' => $employeeType ?? $employee->employee_type ?? 'Karyawan',
             'unit_kerja' => $validated['unit_kerja'] ?? $employee->unit_kerja,
             'division' => $validated['division'] ?? $employee->division,
             'position' => $validated['position'] ?? $employee->position,

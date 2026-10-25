@@ -157,11 +157,20 @@
                         <option value="{{ $s }}" {{ request('shift') === $s ? 'selected' : '' }}>{{ $s }}</option>
                     @endforeach
                 </select>
+
+                <!-- Filter Jenis Operator (Karyawan / Sukon) -->
+                <select name="operator_type" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                    <option value="">Semua Personil</option>
+                    <option value="Karyawan" {{ request('operator_type') === 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
+                    <option value="Sukon" {{ request('operator_type') === 'Sukon' ? 'selected' : '' }}>Sukon</option>
+                </select>
             </div>
 
             <!-- Tombol Reset Filter -->
             <div id="timesheetResetContainer">
-                @if(request()->anyFilled(['search', 'vehicle_id', 'shift']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
+                @if(request()->anyFilled(['search', 'vehicle_id', 'shift', 'operator_type']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
                     <a href="{{ url()->current() }}" 
                        id="timesheetResetBtn"
                        class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
@@ -259,8 +268,25 @@
 
                             <!-- Operator -->
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-slate-900 line-clamp-1">
-                                    {{ $ts->operator?->name ?: '-' }}
+                                <div class="flex items-center space-x-1.5">
+                                    <span class="font-bold text-slate-900 line-clamp-1">
+                                        {{ $ts->operator?->name ?: '-' }}
+                                    </span>
+                                    @if($ts->operator)
+                                        @if($ts->operator->employee_type === 'Sukon')
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-200 uppercase tracking-wider flex-shrink-0">
+                                                Sukon
+                                            </span>
+                                        @elseif($ts->operator->employee_type && $ts->operator->employee_type !== 'Karyawan')
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 uppercase tracking-wider flex-shrink-0">
+                                                {{ $ts->operator->employee_type }}
+                                            </span>
+                                        @else
+                                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase tracking-wider flex-shrink-0">
+                                                Karyawan
+                                            </span>
+                                        @endif
+                                    @endif
                                 </div>
                                 <div class="font-mono text-[10px] text-slate-400">
                                     NIK: {{ $ts->operator?->nik ?: '-' }}
@@ -324,6 +350,7 @@
                                                 'code' => $ts->vehicle?->code ?: '-',
                                                 'brand_type' => $ts->vehicle?->brand_type ?: '-',
                                                 'operator_name' => $ts->operator?->name ?: '-',
+                                                'operator_type' => $ts->operator?->employee_type ?: 'Karyawan',
                                                 'operator_nik' => $ts->operator?->nik ?: '-',
                                                 'start_meter' => number_format($ts->start_meter, 1, ',', '.'),
                                                 'end_meter' => number_format($ts->end_meter, 1, ',', '.'),
@@ -499,20 +526,55 @@
                 <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Pengemudi / Operator <span class="text-rose-500">*</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Pengemudi / Operator <span class="text-rose-500">*</span>
+                            </label>
+                            <!-- Segmented filter buttons operator -->
+                            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-[10px]">
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('all', 'add')" 
+                                        id="addOpFilter_all"
+                                        class="px-2 py-0.5 rounded font-bold transition bg-white text-emerald-800 shadow-2xs">
+                                    Semua
+                                </button>
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('Karyawan', 'add')" 
+                                        id="addOpFilter_Karyawan"
+                                        class="px-2 py-0.5 rounded font-bold transition text-slate-600 hover:text-slate-900">
+                                    Karyawan
+                                </button>
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('Sukon', 'add')" 
+                                        id="addOpFilter_Sukon"
+                                        class="px-2 py-0.5 rounded font-bold transition text-slate-600 hover:text-slate-900">
+                                    Sukon
+                                </button>
+                            </div>
+                        </div>
                         <select name="operator_id" 
                                 id="addOperatorSelect" 
                                 required 
                                 class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
                             <option value="">-- Pilih Operator --</option>
                             @foreach($operators as $op)
-                                <option value="{{ $op->id }}">
-                                    {{ $op->name }} ({{ $op->nik }}) {{ $op->is_operator ? '★ Operator' : '' }}
+                                @php
+                                    $opType = $op->employee_type ?: 'Karyawan';
+                                    $simperTag = '';
+                                    if ($op->simper_expired_at) {
+                                        $exp = \Carbon\Carbon::parse($op->simper_expired_at);
+                                        $simperTag = $exp->isPast() ? '[SIMPER EXPIRED]' : '[SIMPER S/D ' . $exp->format('d/m/y') . ']';
+                                    }
+                                @endphp
+                                <option value="{{ $op->id }}" data-type="{{ $opType }}">
+                                    [{{ $opType }}] {{ $op->name }} ({{ $op->nik }}) {{ $op->is_operator ? '★' : '' }} {{ $simperTag }}
                                 </option>
                             @endforeach
                         </select>
+                        <p id="addOperatorCountHelp" class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+                            <span>Total personil: {{ count($operators) }}</span>
+                            <span class="text-emerald-700 font-semibold" id="addOperatorCurrentFilterText">Filter: Semua</span>
+                        </p>
                     </div>
 
                     <div>
@@ -796,19 +858,55 @@
                 <!-- Baris 2: Pengemudi / Operator & Kategori Pekerjaan -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Pengemudi / Operator <span class="text-rose-500">*</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700">
+                                Pengemudi / Operator <span class="text-rose-500">*</span>
+                            </label>
+                            <!-- Segmented filter buttons operator edit -->
+                            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200 text-[10px]">
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('all', 'edit')" 
+                                        id="editOpFilter_all"
+                                        class="px-2 py-0.5 rounded font-bold transition bg-white text-emerald-800 shadow-2xs">
+                                    Semua
+                                </button>
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('Karyawan', 'edit')" 
+                                        id="editOpFilter_Karyawan"
+                                        class="px-2 py-0.5 rounded font-bold transition text-slate-600 hover:text-slate-900">
+                                    Karyawan
+                                </button>
+                                <button type="button" 
+                                        onclick="filterOperatorSelect('Sukon', 'edit')" 
+                                        id="editOpFilter_Sukon"
+                                        class="px-2 py-0.5 rounded font-bold transition text-slate-600 hover:text-slate-900">
+                                    Sukon
+                                </button>
+                            </div>
+                        </div>
                         <select name="operator_id" 
                                 id="editOperatorSelect" 
                                 required 
                                 class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="">-- Pilih Operator --</option>
                             @foreach($operators as $op)
-                                <option value="{{ $op->id }}">
-                                    {{ $op->name }} ({{ $op->nik }})
+                                @php
+                                    $opType = $op->employee_type ?: 'Karyawan';
+                                    $simperTag = '';
+                                    if ($op->simper_expired_at) {
+                                        $exp = \Carbon\Carbon::parse($op->simper_expired_at);
+                                        $simperTag = $exp->isPast() ? '[SIMPER EXPIRED]' : '[SIMPER S/D ' . $exp->format('d/m/y') . ']';
+                                    }
+                                @endphp
+                                <option value="{{ $op->id }}" data-type="{{ $opType }}">
+                                    [{{ $opType }}] {{ $op->name }} ({{ $op->nik }}) {{ $op->is_operator ? '★' : '' }} {{ $simperTag }}
                                 </option>
                             @endforeach
                         </select>
+                        <p id="editOperatorCountHelp" class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+                            <span>Total personil: {{ count($operators) }}</span>
+                            <span class="text-emerald-700 font-semibold" id="editOperatorCurrentFilterText">Filter: Semua</span>
+                        </p>
                     </div>
 
                     <div>
@@ -1062,6 +1160,75 @@
 @section('scripts')
 <script>
     window.unitSupportsData = @json($unitSupports);
+    window.allOperatorsData = @json($operators);
+
+    // Filter Segmented Operator (Semua / Karyawan / Sukon)
+    function filterOperatorSelect(type, mode, preserveSelectedId) {
+        const selectId = mode === 'edit' ? 'editOperatorSelect' : 'addOperatorSelect';
+        const select = document.getElementById(selectId);
+        if (!select) return;
+
+        // Update button states
+        const types = ['all', 'Karyawan', 'Sukon'];
+        types.forEach(t => {
+            const btn = document.getElementById(`${mode}OpFilter_${t}`);
+            if (btn) {
+                if (t === type) {
+                    btn.className = "px-2 py-0.5 rounded font-bold transition bg-white text-emerald-800 shadow-2xs";
+                } else {
+                    btn.className = "px-2 py-0.5 rounded font-bold transition text-slate-600 hover:text-slate-900";
+                }
+            }
+        });
+
+        // Update filter help text
+        const filterText = document.getElementById(`${mode}OperatorCurrentFilterText`);
+        if (filterText) {
+            filterText.textContent = `Filter: ${type === 'all' ? 'Semua' : type}`;
+        }
+
+        const currentVal = preserveSelectedId !== undefined ? String(preserveSelectedId) : select.value;
+        const options = select.querySelectorAll('option');
+        let visibleCount = 0;
+
+        options.forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                return;
+            }
+            const optType = opt.getAttribute('data-type') || 'Karyawan';
+            let match = false;
+            if (type === 'all') {
+                match = true;
+            } else if (type === 'Karyawan') {
+                match = optType === 'Karyawan';
+            } else if (type === 'Sukon') {
+                match = optType === 'Sukon';
+            } else {
+                match = optType.toLowerCase() === type.toLowerCase();
+            }
+
+            opt.hidden = !match;
+            if (match) visibleCount++;
+        });
+
+        // Update total count
+        const countHelp = document.getElementById(`${mode}OperatorCountHelp`);
+        if (countHelp) {
+            const spanFirst = countHelp.querySelector('span:first-child');
+            if (spanFirst) spanFirst.textContent = `Total personil: ${visibleCount}`;
+        }
+
+        // Restore or reset selection
+        if (currentVal) {
+            const selectedOpt = select.querySelector(`option[value="${currentVal}"]`);
+            if (selectedOpt && !selectedOpt.hidden) {
+                select.value = currentVal;
+            } else if (preserveSelectedId === undefined) {
+                select.value = '';
+            }
+        }
+    }
 
     // 1. Dropdown Ekspor
     function toggleExportMenu(event) {
@@ -1104,6 +1271,11 @@
             const startMeter = document.getElementById('addStartMeter');
             if (startMeter) startMeter.value = '';
 
+            // Reset filter operator ke Semua
+            filterOperatorSelect('all', 'add');
+            const addOpSelect = document.getElementById('addOperatorSelect');
+            if (addOpSelect) addOpSelect.value = '';
+
             // Otomatis tanggal dan jam realtime saat ini
             const now = new Date();
             const year = now.getFullYear();
@@ -1137,7 +1309,8 @@
             document.getElementById('detailTimesheetNo').textContent = ts.timesheet_no;
             document.getElementById('detailDateShift').textContent = `${ts.date} • ${ts.shift}`;
             document.getElementById('detailUnit').textContent = `${ts.code} - ${ts.brand_type}`;
-            document.getElementById('detailOperator').textContent = `${ts.operator_name} (NIK: ${ts.operator_nik})`;
+            const opTypeLabel = ts.operator_type ? ` [${ts.operator_type}]` : '';
+            document.getElementById('detailOperator').textContent = `${ts.operator_name}${opTypeLabel} (NIK: ${ts.operator_nik})`;
             document.getElementById('detailMeter').textContent = `${ts.start_meter} ${ts.meter_type}`;
             const detailStartTimeEl = document.getElementById('detailStartTime');
             if (detailStartTimeEl) {
@@ -1215,6 +1388,24 @@
         // Filter unit pada lokasi ini dengan memilih ts.vehicle_id
         onTimesheetLocationChanged(locSelect ? locSelect.value : targetLoc, 'edit', ts.vehicle_id);
 
+        // Cari jenis operator yang sedang diedit untuk mengaktifkan filter yang sesuai
+        let selectedOpType = 'all';
+        if (ts.operator_id && window.allOperatorsData) {
+            const foundOp = window.allOperatorsData.find(o => String(o.id) === String(ts.operator_id));
+            if (foundOp && foundOp.employee_type) {
+                selectedOpType = foundOp.employee_type;
+            }
+        } else if (ts.operator && ts.operator.employee_type) {
+            selectedOpType = ts.operator.employee_type;
+        }
+
+        if (selectedOpType === 'Sukon') {
+            filterOperatorSelect('Sukon', 'edit', ts.operator_id);
+        } else if (selectedOpType === 'Karyawan') {
+            filterOperatorSelect('Karyawan', 'edit', ts.operator_id);
+        } else {
+            filterOperatorSelect('all', 'edit', ts.operator_id);
+        }
         document.getElementById('editOperatorSelect').value = ts.operator_id;
         
         // Format tanggal YYYY-MM-DD

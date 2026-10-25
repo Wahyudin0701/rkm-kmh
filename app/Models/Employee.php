@@ -13,10 +13,14 @@ class Employee extends Model
 {
     use HasFactory;
 
+    public const TYPE_KARYAWAN = 'Karyawan';
+    public const TYPE_SUKON = 'Sukon';
+
     protected $fillable = [
         'user_id',
         'nik',
         'name',
+        'employee_type',
         'unit_kerja',
         'division',
         'position',
@@ -33,6 +37,29 @@ class Employee extends Model
     protected $appends = [
         'photo_url',
     ];
+
+    public function isSukon(): bool
+    {
+        return strcasecmp($this->employee_type ?? '', self::TYPE_SUKON) === 0;
+    }
+
+    public function isKaryawan(): bool
+    {
+        return empty($this->employee_type) || strcasecmp($this->employee_type, self::TYPE_KARYAWAN) === 0;
+    }
+
+    public function scopeSukon(Builder $query): Builder
+    {
+        return $query->where('employee_type', self::TYPE_SUKON);
+    }
+
+    public function scopeKaryawan(Builder $query): Builder
+    {
+        return $query->where(function ($q) {
+            $q->where('employee_type', self::TYPE_KARYAWAN)
+              ->orWhereNull('employee_type');
+        });
+    }
 
     /**
      * Cek apakah SIMPER masih aktif hari ini.

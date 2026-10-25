@@ -65,6 +65,13 @@ class SupportTimesheetController extends Controller
             $query->where('operator_id', $request->input('operator_id'));
         }
 
+        // Filter Jenis Personil / Operator (Karyawan / Sukon / dsb)
+        if ($request->filled('operator_type')) {
+            $query->whereHas('operator', function (Builder $oq) use ($request) {
+                $oq->where('employee_type', $request->input('operator_type'));
+            });
+        }
+
         // Filter Shift
         if ($request->filled('shift')) {
             $query->where('shift', $request->input('shift'));
@@ -132,7 +139,7 @@ class SupportTimesheetController extends Controller
             ->get();
 
         $operators = Employee::orderBy('name')
-            ->get(['id', 'nik', 'name', 'position', 'is_operator']);
+            ->get(['id', 'nik', 'name', 'position', 'is_operator', 'employee_type', 'simper_expired_at']);
 
         $shifts = self::SHIFTS;
         $activityTypes = self::PRESET_ACTIVITIES;
@@ -439,6 +446,7 @@ class SupportTimesheetController extends Controller
             'KODE UNIT' => 14,
             'MEREK / MODEL' => 26,
             'OPERATOR' => 24,
+            'JENIS' => 14,
             'NIK' => 16,
             'SATUAN' => 10,
             'START' => 14,
@@ -463,6 +471,7 @@ class SupportTimesheetController extends Controller
                 $ts->vehicle?->code ?: '-',
                 $ts->vehicle?->brand_type ?: '-',
                 $ts->operator?->name ?: '-',
+                $ts->operator?->employee_type ?: 'Karyawan',
                 $ts->operator?->nik ?: '-',
                 $ts->meter_type,
                 number_format($ts->start_meter, 2, ',', '.'),
@@ -484,6 +493,7 @@ class SupportTimesheetController extends Controller
             'TANGGAL' => 'center',
             'SHIFT' => 'center',
             'KODE UNIT' => 'center',
+            'JENIS' => 'center',
             'NIK' => 'center',
             'SATUAN' => 'center',
             'START' => 'right',
@@ -537,8 +547,8 @@ class SupportTimesheetController extends Controller
             ['title' => 'TANGGAL', 'width' => 20, 'align' => 'C'],
             ['title' => 'KODE', 'width' => 18, 'align' => 'C', 'bold' => true],
             ['title' => 'TIPE ALAT', 'width' => 38, 'align' => 'L', 'max_char' => 25],
-            ['title' => 'OPERATOR', 'width' => 35, 'align' => 'L', 'max_char' => 22],
-            ['title' => 'SHIFT', 'width' => 25, 'align' => 'C'],
+            ['title' => 'OPERATOR', 'width' => 40, 'align' => 'L', 'max_char' => 26],
+            ['title' => 'SHIFT', 'width' => 23, 'align' => 'C'],
             ['title' => 'START', 'width' => 18, 'align' => 'R'],
             ['title' => 'END', 'width' => 18, 'align' => 'R'],
             ['title' => 'JAM (HM)', 'width' => 18, 'align' => 'R', 'bold' => true],
@@ -553,7 +563,7 @@ class SupportTimesheetController extends Controller
                 $ts->date ? $ts->date->format('d/m/Y') : '-',
                 $ts->vehicle?->code ?: '-',
                 $ts->vehicle?->brand_type ?: '-',
-                $ts->operator?->name ?: '-',
+                $ts->operator?->name ? ($ts->operator->name . ' (' . ($ts->operator->employee_type ?: 'Karyawan') . ')') : '-',
                 $ts->shift,
                 number_format($ts->start_meter, 1, ',', '.'),
                 number_format($ts->end_meter, 1, ',', '.'),
