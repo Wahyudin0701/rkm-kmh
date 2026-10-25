@@ -189,4 +189,53 @@ class HseSimperTypeTest extends TestCase
         $this->assertTrue($emp->hasValidSimperForType('SIMPER-DT'));
         $this->assertFalse($emp->hasValidSimperForType('SIMPER-HEAVY'));
     }
+
+    /**
+     * Admin HSE dapat membuka view tersendiri (halaman penuh) untuk edit SIMPER personil.
+     */
+    public function test_admin_hse_can_access_dedicated_employee_edit_page(): void
+    {
+        $emp = Employee::create([
+            'nik' => 'KMH-EDIT-TEST',
+            'name' => 'Operator Ekskavator',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Teknik',
+            'division' => 'Operasi',
+            'position' => 'Operator',
+            'is_operator' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
+        ]);
+
+        $response = $this->actingAs($this->adminHse)->get(route('hse.employees.edit', $emp->id));
+        $response->assertStatus(200);
+        $response->assertSee('Kelola SIMPER Personil');
+        $response->assertSee('KMH-EDIT-TEST');
+        $response->assertSee('Operator Ekskavator');
+    }
+
+    /**
+     * Admin HSE dapat membuat jenis SIMPER dengan kategori cakupan alat berat yang tersinkronisasi.
+     */
+    public function test_admin_hse_can_create_simper_with_synced_heavy_equipment_category(): void
+    {
+        $data = [
+            'code' => 'SIMPER-EXCAVATOR',
+            'name' => 'SIMPER Excavator Unit',
+            'category_scope' => 'Excavator',
+            'description' => 'Izin mengoperasikan unit Excavator.',
+            'is_active' => '1',
+        ];
+
+        $response = $this->actingAs($this->adminHse)
+            ->from(route('hse.simper_types.index'))
+            ->post(route('hse.simper_types.store'), $data);
+
+        $response->assertRedirect(route('hse.simper_types.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('simper_types', [
+            'code' => 'SIMPER-EXCAVATOR',
+            'category_scope' => 'Excavator',
+        ]);
+    }
 }

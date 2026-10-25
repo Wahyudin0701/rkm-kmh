@@ -152,18 +152,30 @@ class Employee extends Model
 
         // 2. Berdasarkan kategori kendaraan
         if ($vehicle->isLightVehicle()) {
-            return $this->hasValidSimperForType('SIMPER-LV') || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
-        }
-
-        if ($vehicle->isUnitSupport() && $vehicle->is_timesheet_mobile) {
-            return $this->hasValidSimperForType('SIMPER-DT')
-                || $this->hasValidSimperForType('SIMPER-HEAVY')
+            return $this->hasValidSimperForType('SIMPER-LV') 
+                || $this->hasValidSimperForScope('light_vehicle') 
                 || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
         }
 
         if ($vehicle->isUnitSupport()) {
+            // Cek apakah personil memiliki izin SIMPER dengan scope kategori alat berat ini (misal: 'Dump Truck', 'Excavator', dll.)
+            if ($vehicle->unit_category && $this->hasValidSimperForScope($vehicle->unit_category)) {
+                return true;
+            }
+            if ($vehicle->brand_type && $this->hasValidSimperForScope($vehicle->brand_type)) {
+                return true;
+            }
+
+            if ($vehicle->is_timesheet_mobile) {
+                return $this->hasValidSimperForType('SIMPER-DT')
+                    || $this->hasValidSimperForType('SIMPER-HEAVY')
+                    || $this->hasValidSimperForScope('unit_support_mobile')
+                    || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
+            }
+
             return $this->hasValidSimperForType('SIMPER-HEAVY')
                 || $this->hasValidSimperForType('SIMPER-DT')
+                || $this->hasValidSimperForScope('unit_support_heavy')
                 || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
         }
 

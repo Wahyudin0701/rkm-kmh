@@ -253,16 +253,21 @@
                             <!-- Aksi (Edit Data Simper & Perpanjang SIMPER) -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                 @can('hse.employees.edit')
-                                <div class="flex items-center justify-center space-x-2">
+                                <div class="flex items-center justify-center space-x-1.5">
                                     <button onclick='openEditModal(@json($emp))' 
-                                            class="inline-flex items-center space-x-1 text-amber-500 hover:text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
-                                            title="Edit Data Simper Karyawan">
-                                        <i class="fa-regular fa-pen-to-square text-sm"></i>
+                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
+                                            title="Buka Modal Edit Data SIMPER">
+                                        <i class="fa-regular fa-pen-to-square text-xs"></i>
                                         <span class="text-xs font-semibold">Edit</span>
                                     </button>
+                                    <a href="{{ route('hse.employees.edit', $emp->id) }}" 
+                                       class="inline-flex items-center text-slate-400 hover:text-[#1b5e20] hover:bg-emerald-50 px-1.5 py-1 rounded-lg transition"
+                                       title="Buka di Halaman Penuh">
+                                        <i class="fa-solid fa-up-right-from-square text-[11px]"></i>
+                                    </a>
                                     <span class="text-slate-200">|</span>
                                     <button onclick="openRenewModal({{ $emp->id }}, '{{ $emp->name }}', '{{ $emp->simper_expired_at ? $emp->simper_expired_at->format('Y-m-d') : '' }}', {{ $emp->is_operator ? '1' : '0' }})" 
-                                            class="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px]"
+                                            class="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] px-1"
                                             title="Perpanjang Masa Berlaku SIMPER">
                                         Perpanjang
                                     </button>
@@ -314,183 +319,201 @@
 <!-- MODAL: TAMBAH KARYAWAN MANUAL -->
 <!-- ========================================================================= -->
 <div id="addKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
                 <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-user-plus text-[#1b5e20]"></i>
-                    <span>Tambah Data Karyawan</span>
+                    <span>Tambah Data Karyawan / Personil</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Daftarkan karyawan baru beserta informasi SIMPER jika pengemudi.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Daftarkan personil baru (Internal KMH / Sukon) beserta izin SIMPER pengemudi.</p>
             </div>
             <button type="button" onclick="closeAddKaryawanModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form action="{{ route('hse.employees.store') }}" method="POST" enctype="multipart/form-data" class="mt-5 space-y-4">
+        <form action="{{ route('hse.employees.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 mt-4">
             @csrf
 
-            <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-2.5">
-                <i class="fa-solid fa-circle-info text-emerald-600 text-xs mt-0.5"></i>
-                <div class="text-[11px] text-emerald-900 leading-relaxed">
-                    Akun login karyawan otomatis dibuatkan dengan <strong>Username NIK</strong> dan <strong>Password default: 123456</strong> (Role: Karyawan).
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan (Opsional)</label>
-                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
-                    <div id="addEmpPhotoPreviewContainer" class="w-14 h-14 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="addEmpPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
-                        <i id="addEmpPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-base"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <input type="file" 
-                               name="photo" 
-                               id="addEmpPhotoInput" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                               onchange="previewEmployeeImage(this, 'addEmpPhotoPreview', 'addEmpPhotoPlaceholder')"
-                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
-                        <p class="text-[10px] text-slate-400 mt-1">Format: JPG, PNG, WebP (Maks. 10MB). Resolusi & file dikompresi otomatis.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Jenis Personil / Karyawan (Karyawan / Sukon / Custom) -->
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">
-                    Jenis Personil / Karyawan <span class="text-rose-500">*</span>
-                </label>
-                <select name="employee_type" id="addEmployeeTypeSelect" onchange="toggleCustomEmployeeType(this.value, 'add')" required 
-                        class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
-                    <option value="Karyawan" selected>Karyawan (Internal KMH)</option>
-                    <option value="Sukon">Sukon (Subkontraktor)</option>
-                    @if(isset($employeeTypes))
-                        @foreach($employeeTypes as $t)
-                            @if($t !== 'Karyawan' && $t !== 'Sukon')
-                                <option value="{{ $t }}">{{ $t }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                    <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
-                </select>
-                <div id="addCustomEmployeeTypeWrapper" class="hidden mt-2">
-                    <input type="text" name="custom_employee_type" id="addCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru (misal: Vendor, Mitra, dll)..." 
-                           class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">NIK (Nomor Induk Karyawan) <span class="text-rose-500">*</span></label>
-                    <input type="text" name="nik" required placeholder="Contoh: KMH-2026-101" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Lengkap <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name" required placeholder="Contoh: Muhammad Rizki" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Unit Kerja <span class="text-rose-500">*</span></label>
-                    <select name="unit_kerja" required class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                        <option value="Pembangkit">Pembangkit</option>
-                        <option value="Bendungan">Bendungan</option>
-                        <option value="Teknik">Teknik</option>
-                        <option value="Umum" selected>Umum</option>
-                        <option value="Logistik">Logistik</option>
-                        <option value="HSE">HSE</option>
-                        <option value="QMA">QMA</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Divisi <span class="text-rose-500">*</span></label>
-                    <input type="text" name="division" required placeholder="Contoh: Operasi" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Posisi / Jabatan <span class="text-rose-500">*</span></label>
-                    <input type="text" name="position" required placeholder="Contoh: Driver" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Operator / Driver <span class="text-rose-500">*</span></label>
-                    <select name="is_operator" id="addOperatorSelect" onchange="toggleAddSimperDate(this.value)" required 
-                            class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
-                        <option value="1">YA (Aktif Mengemudi)</option>
-                        <option value="0">TIDAK (Bukan Driver)</option>
-                    </select>
-                </div>
-                <div id="addSimperDateWrapper" class="col-span-1 sm:col-span-2 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-800">
-                            Izin SIMPER yang Diberikan <span class="text-rose-500">*</span>
-                        </label>
-                        <span class="text-[10px] text-slate-400">Centang jenis izin & tentukan masa berlakunya</span>
-                    </div>
-
-                    <input type="hidden" name="simper_expired_at" id="addSimperDateInput">
-
-                    @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                            @foreach($availableSimperTypes as $st)
-                            <div class="p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
-                                <div class="flex items-center justify-between">
-                                    <label class="flex items-center space-x-2 text-xs font-bold text-slate-800 cursor-pointer">
-                                        <input type="checkbox" 
-                                               name="simper_assignments[{{ $st->id }}][enabled]" 
-                                               value="1" 
-                                               id="addSimperCheck_{{ $st->id }}"
-                                               onchange="toggleAddSimperFields({{ $st->id }})"
-                                               class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
-                                        <span>{{ $st->name }} ({{ $st->code }})</span>
-                                    </label>
-                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-bold uppercase">
-                                        {{ str_replace('_', ' ', $st->category_scope) }}
-                                    </span>
+            <div class="overflow-y-auto flex-1 pr-1 pb-2">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    <!-- Left Column: Identitas & Penugasan -->
+                    <div class="lg:col-span-5 space-y-3.5">
+                        <!-- Foto Profil -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan (Opsional)</label>
+                            <div class="flex items-center space-x-3 p-2.5 rounded-2xl border border-slate-200 bg-slate-50/50">
+                                <div id="addEmpPhotoPreviewContainer" class="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                    <img id="addEmpPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                                    <i id="addEmpPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-sm"></i>
                                 </div>
-                                <div id="addSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
-                                        <input type="text" 
-                                               name="simper_assignments[{{ $st->id }}][simper_number]" 
-                                               id="addSimperNum_{{ $st->id }}"
-                                               placeholder="Contoh: SMP-LV-001" 
-                                               class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-800 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER <span class="text-rose-500">*</span></label>
-                                        <input type="date" 
-                                               name="simper_assignments[{{ $st->id }}][expired_at]" 
-                                               id="addSimperExp_{{ $st->id }}"
-                                               onchange="syncAddPrimarySimperDate()"
-                                               class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-800">
-                                    </div>
+                                <div class="flex-1 min-w-0">
+                                    <input type="file" 
+                                           name="photo" 
+                                           id="addEmpPhotoInput" 
+                                           accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                           onchange="previewEmployeeImage(this, 'addEmpPhotoPreview', 'addEmpPhotoPlaceholder')"
+                                           class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, WebP (Maks. 10MB)</p>
                                 </div>
                             </div>
-                            @endforeach
                         </div>
-                    @else
+
+                        <!-- Jenis Personil -->
                         <div>
-                            <input type="date" name="simper_expired_at" id="addSimperDateLegacy" 
-                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                            <label class="block text-xs font-bold text-slate-800 mb-1">
+                                Jenis Personil / Karyawan <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="employee_type" id="addEmployeeTypeSelect" onchange="toggleCustomEmployeeType(this.value, 'add')" required 
+                                    class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="Karyawan" selected>Karyawan (Internal KMH)</option>
+                                <option value="Sukon">Sukon (Subkontraktor)</option>
+                                @if(isset($employeeTypes))
+                                    @foreach($employeeTypes as $t)
+                                        @if($t !== 'Karyawan' && $t !== 'Sukon')
+                                            <option value="{{ $t }}">{{ $t }}</option>
+                                        @endif
+                                    @endforeach
+                                @endif
+                                <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
+                            </select>
+                            <div id="addCustomEmployeeTypeWrapper" class="hidden mt-1.5">
+                                <input type="text" name="custom_employee_type" id="addCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru (misal: Vendor, Mitra)..." 
+                                       class="w-full text-xs px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                            </div>
                         </div>
-                    @endif
+
+                        <!-- NIK & Nama -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">NIK <span class="text-rose-500">*</span></label>
+                                <input type="text" name="nik" required placeholder="KMH-2026-101" 
+                                       class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
+                                <input type="text" name="name" required placeholder="Nama Lengkap" 
+                                       class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                            </div>
+                        </div>
+
+                        <!-- Unit Kerja, Divisi & Jabatan -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">Unit Kerja <span class="text-rose-500">*</span></label>
+                                <select name="unit_kerja" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                                    <option value="Pembangkit">Pembangkit</option>
+                                    <option value="Bendungan">Bendungan</option>
+                                    <option value="Teknik">Teknik</option>
+                                    <option value="Umum" selected>Umum</option>
+                                    <option value="Logistik">Logistik</option>
+                                    <option value="HSE">HSE</option>
+                                    <option value="QMA">QMA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">Divisi <span class="text-rose-500">*</span></label>
+                                <input type="text" name="division" required placeholder="Divisi" 
+                                       class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">Jabatan <span class="text-rose-500">*</span></label>
+                                <input type="text" name="position" required placeholder="Jabatan" 
+                                       class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
+                            </div>
+                        </div>
+
+                        <!-- Status Operator -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">Status Operator / Driver <span class="text-rose-500">*</span></label>
+                            <select name="is_operator" id="addOperatorSelect" onchange="toggleAddSimperDate(this.value)" required 
+                                    class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                                <option value="1">YA (Aktif Mengemudi)</option>
+                                <option value="0">TIDAK (Bukan Driver)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: SIMPER & Akun Info -->
+                    <div class="lg:col-span-7 space-y-3">
+                        <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 flex items-start gap-2.5">
+                            <i class="fa-solid fa-circle-info text-emerald-600 text-xs mt-0.5"></i>
+                            <div class="text-[11px] text-emerald-900 leading-relaxed">
+                                Akun login dibuat otomatis dengan <strong>Username NIK</strong> dan <strong>Password default: 123456</strong> (Role: Karyawan).
+                            </div>
+                        </div>
+
+                        <div id="addSimperDateWrapper" class="space-y-2">
+                            <div class="flex items-center justify-between pb-1">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-800">
+                                        Izin SIMPER yang Diberikan <span class="text-rose-500">*</span>
+                                    </label>
+                                    <p class="text-[10px] text-slate-400">Centang jenis izin & tentukan masa berlakunya</p>
+                                </div>
+                                <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
+                                    Multi-SIMPER
+                                </span>
+                            </div>
+
+                            <input type="hidden" name="simper_expired_at" id="addSimperDateInput">
+
+                            @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
+                                <div class="space-y-2 max-h-[48vh] overflow-y-auto pr-1">
+                                    @foreach($availableSimperTypes as $st)
+                                    <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
+                                                <input type="checkbox" 
+                                                       name="simper_assignments[{{ $st->id }}][enabled]" 
+                                                       value="1" 
+                                                       id="addSimperCheck_{{ $st->id }}"
+                                                       onchange="toggleAddSimperFields({{ $st->id }})"
+                                                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
+                                                <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
+                                            </label>
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0">
+                                                {{ str_replace('_', ' ', $st->category_scope) }}
+                                            </span>
+                                        </div>
+                                        <div id="addSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
+                                                <input type="text" 
+                                                       name="simper_assignments[{{ $st->id }}][simper_number]" 
+                                                       id="addSimperNum_{{ $st->id }}"
+                                                       placeholder="Contoh: SMP-LV-001" 
+                                                       class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER <span class="text-rose-500">*</span></label>
+                                                <input type="date" 
+                                                       name="simper_assignments[{{ $st->id }}][expired_at]" 
+                                                       id="addSimperExp_{{ $st->id }}"
+                                                       onchange="syncAddPrimarySimperDate()"
+                                                       class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div>
+                                    <input type="date" name="simper_expired_at" id="addSimperDateLegacy" 
+                                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="pt-5 border-t border-slate-100 flex items-center justify-end gap-2.5 mt-5">
-                <button type="button" onclick="closeAddKaryawanModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0">
+                <button type="button" onclick="closeAddKaryawanModal()" class="px-4 py-2 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
                     Batal
                 </button>
-                <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
+                <button type="submit" class="px-5 py-2 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
                     Simpan Karyawan
                 </button>
             </div>
@@ -635,168 +658,194 @@
 
 <!-- Modal Dialog Edit Data Simper Karyawan -->
 <div id="editModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
         <!-- Header Modal -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
-                <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Kelola SIMPER Karyawan
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-id-card-clip text-emerald-700"></i>
+                    <span>Kelola SIMPER & Personil</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Kelola status pengemudi dan masa berlaku izin SIMPER.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Kelola tipe personil, status driver, dan izin operasional SIMPER.</p>
             </div>
-            <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <a id="editFullPageLink" href="#" 
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#1b5e20] text-xs font-bold transition border border-emerald-200"
+                   title="Buka form di halaman tersendiri yang lebih leluasa">
+                    <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
+                    <span class="hidden sm:inline">Halaman Penuh</span>
+                </a>
+                <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
         </div>
 
-        <form id="editForm" method="POST" action="" enctype="multipart/form-data" class="mt-5 space-y-4">
+        <form id="editForm" method="POST" action="" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0 mt-4">
             @csrf
 
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan</label>
-                <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
-                    <div id="editEmpPhotoPreviewContainer" class="w-14 h-14 rounded-full border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="editEmpPhotoPreview" src="" alt="Foto Karyawan" class="w-full h-full object-cover hidden">
-                        <i id="editEmpPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-base"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <input type="file" 
-                               name="photo" 
-                               id="editEmpPhotoInput" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                               onchange="previewEmployeeImage(this, 'editEmpPhotoPreview', 'editEmpPhotoPlaceholder')"
-                               class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
-                        <p class="text-[10px] text-slate-400 mt-1">Pilih foto baru jika ingin mengganti. Otomatis dikompresi hemat storage.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Profil Master Data Karyawan (Read-Only Info Card) -->
-            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
-                <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-200/60">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Profil Karyawan</span>
-                    <span class="text-[10px] font-semibold text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full inline-flex items-center">
-                        <i class="fa-solid fa-lock text-[9px] mr-1.5 text-slate-400"></i>Master Super Admin
-                    </span>
-                </div>
-                <div class="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                        <span class="text-slate-400 block text-[11px]">NIK:</span>
-                        <span id="editNikDisplay" class="font-bold text-slate-800 font-mono"></span>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 block text-[11px]">Nama Lengkap:</span>
-                        <span id="editNameDisplay" class="font-bold text-slate-900"></span>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 block text-[11px]">Unit Kerja:</span>
-                        <span id="editUnitKerjaDisplay" class="font-semibold text-slate-700"></span>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 block text-[11px]">Divisi / Jabatan:</span>
-                        <span id="editDivisionPositionDisplay" class="font-semibold text-slate-700"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Jenis Personil / Karyawan (Karyawan / Sukon / Custom) -->
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">
-                    Jenis Personil / Karyawan <span class="text-rose-500">*</span>
-                </label>
-                <select name="employee_type" id="editEmployeeType" onchange="toggleCustomEmployeeType(this.value, 'edit')" required 
-                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                    <option value="Karyawan">Karyawan (Internal KMH)</option>
-                    <option value="Sukon">Sukon (Subkontraktor)</option>
-                    @if(isset($employeeTypes))
-                        @foreach($employeeTypes as $t)
-                            @if($t !== 'Karyawan' && $t !== 'Sukon')
-                                <option value="{{ $t }}">{{ $t }}</option>
-                            @endif
-                        @endforeach
-                    @endif
-                    <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
-                </select>
-                <div id="editCustomEmployeeTypeWrapper" class="hidden mt-2">
-                    <input type="text" name="custom_employee_type" id="editCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru (misal: Vendor, Mitra, dll)..." 
-                           class="w-full text-sm px-4 py-2.5 rounded-2xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
-                </div>
-            </div>
-
-            <!-- Bagian yang Dikelola HSE -->
-            <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Operator / Driver <span class="text-rose-500">*</span></label>
-                <select name="is_operator" id="editOperator" onchange="toggleSimperInput('edit')" required 
-                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                    <option value="1">YA (Aktif Mengemudi)</option>
-                    <option value="0">TIDAK (Bukan Driver)</option>
-                </select>
-            </div>
-            <div id="editSimperWrapper" class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <label class="block text-sm font-bold text-slate-800">
-                        Izin SIMPER yang Dimiliki <span class="text-rose-500">*</span>
-                    </label>
-                    <span class="text-[11px] text-slate-400">Pilih izin & perbarui masa berlakunya</span>
-                </div>
-
-                <input type="hidden" name="simper_expired_at" id="editSimperDate">
-
-                @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
-                    <div class="space-y-2.5 max-h-56 overflow-y-auto pr-1">
-                        @foreach($availableSimperTypes as $st)
-                        <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
-                            <div class="flex items-center justify-between">
-                                <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer">
-                                    <input type="checkbox" 
-                                           name="simper_assignments[{{ $st->id }}][enabled]" 
-                                           value="1" 
-                                           id="editSimperCheck_{{ $st->id }}"
-                                           onchange="toggleEditSimperFields({{ $st->id }})"
-                                           class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
-                                    <span>{{ $st->name }} ({{ $st->code }})</span>
-                                </label>
-                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700 font-bold uppercase">
-                                    {{ str_replace('_', ' ', $st->category_scope) }}
-                                </span>
-                            </div>
-                            <div id="editSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
-                                    <input type="text" 
-                                           name="simper_assignments[{{ $st->id }}][simper_number]" 
-                                           id="editSimperNum_{{ $st->id }}"
-                                           placeholder="No. SIMPER" 
-                                           class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold">
+            <div class="overflow-y-auto flex-1 pr-1 pb-2">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    <!-- Left Column: Profil & Driver Status -->
+                    <div class="lg:col-span-5 space-y-3.5">
+                        <!-- Foto Profil -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Profil Karyawan</label>
+                            <div class="flex items-center space-x-3 p-2.5 rounded-2xl border border-slate-200 bg-slate-50/50">
+                                <div id="editEmpPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                    <img id="editEmpPhotoPreview" src="" alt="Foto Karyawan" class="w-full h-full object-cover hidden">
+                                    <i id="editEmpPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
                                 </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER</label>
-                                    <input type="date" 
-                                           name="simper_assignments[{{ $st->id }}][expired_at]" 
-                                           id="editSimperExp_{{ $st->id }}"
-                                           onchange="syncEditPrimarySimperDate()"
-                                           class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold">
+                                <div class="flex-1 min-w-0">
+                                    <input type="file" 
+                                           name="photo" 
+                                           id="editEmpPhotoInput" 
+                                           accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                           onchange="previewEmployeeImage(this, 'editEmpPhotoPreview', 'editEmpPhotoPlaceholder')"
+                                           class="block w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-emerald-50 file:text-[#1b5e20] hover:file:bg-emerald-100 cursor-pointer">
+                                    <p class="text-[9px] text-slate-400 mt-0.5">JPG, PNG, WebP (Maks. 10MB)</p>
                                 </div>
                             </div>
                         </div>
-                        @endforeach
+
+                        <!-- Profil Read-Only Card -->
+                        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
+                            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Identitas Personil</span>
+                                <span class="text-[9px] font-semibold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full inline-flex items-center">
+                                    <i class="fa-solid fa-lock text-[8px] mr-1 text-slate-400"></i>Master HR
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2.5 text-xs">
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">NIK:</span>
+                                    <span id="editNikDisplay" class="font-bold text-slate-800 font-mono text-[11px]"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Nama Lengkap:</span>
+                                    <span id="editNameDisplay" class="font-bold text-slate-900 text-[11px] truncate block"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Unit Kerja:</span>
+                                    <span id="editUnitKerjaDisplay" class="font-semibold text-slate-700 text-[11px]"></span>
+                                </div>
+                                <div>
+                                    <span class="text-slate-400 block text-[10px]">Divisi / Jabatan:</span>
+                                    <span id="editDivisionPositionDisplay" class="font-semibold text-slate-700 text-[11px] truncate block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Jenis Personil -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">
+                                Jenis Personil / Karyawan <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="employee_type" id="editEmployeeType" onchange="toggleCustomEmployeeType(this.value, 'edit')" required 
+                                    class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="Karyawan">Karyawan (Internal KMH)</option>
+                                <option value="Sukon">Sukon (Subkontraktor)</option>
+                                @if(isset($employeeTypes))
+                                    @foreach($employeeTypes as $t)
+                                        @if($t !== 'Karyawan' && $t !== 'Sukon')
+                                            <option value="{{ $t }}">{{ $t }}</option>
+                                        @endif
+                                    @endforeach
+                                @endif
+                                <option value="__CUSTOM__">+ Ketik Jenis Baru...</option>
+                            </select>
+                            <div id="editCustomEmployeeTypeWrapper" class="hidden mt-1.5">
+                                <input type="text" name="custom_employee_type" id="editCustomEmployeeTypeInput" placeholder="Ketik jenis personil baru..." 
+                                       class="w-full text-xs px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                            </div>
+                        </div>
+
+                        <!-- Status Operator -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">Status Operator / Driver <span class="text-rose-500">*</span></label>
+                            <select name="is_operator" id="editOperator" onchange="toggleSimperInput('edit')" required 
+                                    class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                                <option value="1">YA (Aktif Mengemudi)</option>
+                                <option value="0">TIDAK (Bukan Driver)</option>
+                            </select>
+                        </div>
                     </div>
-                @else
-                    <div>
-                        <input type="date" name="simper_expired_at" id="editSimperDateLegacy" 
-                               class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+
+                    <!-- Right Column: Daftar Izin SIMPER -->
+                    <div class="lg:col-span-7 space-y-2.5">
+                        <div class="flex items-center justify-between pb-1">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800">
+                                    Izin SIMPER yang Dimiliki <span class="text-rose-500">*</span>
+                                </label>
+                                <p class="text-[10px] text-slate-400">Centang jenis SIMPER yang diizinkan dan tentukan masa berlakunya</p>
+                            </div>
+                            <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
+                                Multi-SIMPER
+                            </span>
+                        </div>
+
+                        <input type="hidden" name="simper_expired_at" id="editSimperDate">
+
+                        <div id="editSimperWrapper" class="space-y-2">
+                            @if(isset($availableSimperTypes) && count($availableSimperTypes) > 0)
+                                <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+                                    @foreach($availableSimperTypes as $st)
+                                    <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
+                                                <input type="checkbox" 
+                                                       name="simper_assignments[{{ $st->id }}][enabled]" 
+                                                       value="1" 
+                                                       id="editSimperCheck_{{ $st->id }}"
+                                                       onchange="toggleEditSimperFields({{ $st->id }})"
+                                                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
+                                                <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
+                                            </label>
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0">
+                                                {{ str_replace('_', ' ', $st->category_scope) }}
+                                            </span>
+                                        </div>
+                                        <div id="editSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-500 mb-1">Nomor Registrasi SIMPER</label>
+                                                <input type="text" 
+                                                       name="simper_assignments[{{ $st->id }}][simper_number]" 
+                                                       id="editSimperNum_{{ $st->id }}"
+                                                       placeholder="Contoh: SMP-LV-001" 
+                                                       class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold">
+                                            </div>
+                                            <div>
+                                                <label class="block text-[10px] font-bold text-slate-500 mb-1">Masa Berlaku SIMPER</label>
+                                                <input type="date" 
+                                                       name="simper_assignments[{{ $st->id }}][expired_at]" 
+                                                       id="editSimperExp_{{ $st->id }}"
+                                                       onchange="syncEditPrimarySimperDate()"
+                                                       class="w-full text-xs px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div>
+                                    <input type="date" name="simper_expired_at" id="editSimperDateLegacy" 
+                                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                @endif
+                </div>
             </div>
 
             <!-- Footer Tombol -->
-            <div class="pt-6 border-t border-slate-100 flex items-center justify-end space-x-3 mt-6">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2.5 flex-shrink-0">
                 <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" 
-                        class="px-6 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition">
+                        class="px-5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition">
                     Batal
                 </button>
                 <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-sm transition shadow-sm">
+                        class="px-5 py-2 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
                     Simpan Perubahan
                 </button>
             </div>
@@ -1146,6 +1195,11 @@
         
         // Cek status driver untuk mengunci/membuka input SIMPER
         toggleSimperInput('edit');
+        
+        const fullPageLink = document.getElementById('editFullPageLink');
+        if (fullPageLink) {
+            fullPageLink.href = `/hse/employees/${emp.id}/edit`;
+        }
         
         document.getElementById('editForm').action = `/hse/employees/${emp.id}`;
         document.getElementById('editModal').classList.remove('hidden');

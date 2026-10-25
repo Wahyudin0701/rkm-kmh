@@ -637,6 +637,24 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Tampilkan halaman khusus edit data personil & SIMPER (View Terpisah).
+     */
+    public function edit(int $id): View
+    {
+        $employee = Employee::with(['simpers.simperType'])->findOrFail($id);
+        $availableSimperTypes = SimperType::active()->orderBy('name')->get();
+
+        $employeeTypes = Employee::distinct()
+            ->whereNotNull('employee_type')
+            ->where('employee_type', '!=', '')
+            ->pluck('employee_type')
+            ->values()
+            ->all();
+
+        return view('hse.employees_edit', compact('employee', 'availableSimperTypes', 'employeeTypes'));
+    }
+
+    /**
      * Perpanjang atau perbarui data karyawan & SIMPER.
      */
     public function update(Request $request, int $id): RedirectResponse

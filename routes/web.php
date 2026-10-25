@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/employees/template-import', [EmployeeController::class, 'downloadImportTemplate'])->name('employees.import_template')->middleware('permission:hse.employees.create');
         Route::post('/employees/import', [EmployeeController::class, 'import'])->name('employees.import')->middleware('permission:hse.employees.create');
         Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store')->middleware('permission:hse.employees.create');
+        Route::get('/employees/{id}/edit', [EmployeeController::class, 'edit'])->name('employees.edit')->middleware('permission:hse.employees.edit');
         Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
 
         // Master Jenis SIMPER (Konfigurasi Fleksibel HSE)

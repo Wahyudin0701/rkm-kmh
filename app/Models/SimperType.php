@@ -24,6 +24,64 @@ class SimperType extends Model
         self::SCOPE_ALL => 'Semua Kategori Armada',
     ];
 
+    /**
+     * Dapatkan daftar cakupan armada yang disinkronisasikan langsung
+     * dengan data Master Kategori Heavy Equipment dari modul QMA.
+     *
+     * @return array<string, string>
+     */
+    public static function getAvailableScopes(): array
+    {
+        $scopes = [
+            self::SCOPE_ALL => 'Semua Kategori (Universal)',
+            self::SCOPE_LIGHT_VEHICLE => 'Light Vehicle (LV)',
+        ];
+
+        // Baseline kategori Heavy Equipment umum
+        $defaultHeavy = [
+            'Dump Truck',
+            'Excavator',
+            'Wheel Loader',
+            'Motor Grader',
+            'Truk Mixer',
+            'Water Truck',
+            'Forklift',
+            'Crane Truck',
+            'Crawler Crane',
+            'Concrete Pump Truck',
+        ];
+        foreach ($defaultHeavy as $dh) {
+            $scopes[$dh] = "Heavy: {$dh}";
+        }
+
+        // Sinkronisasi kategori Heavy Equipment dari data master QMA
+        try {
+            $heavyCategories = Vehicle::unitSupportCategories()
+                ->orderBy('unit_category')
+                ->get();
+
+            foreach ($heavyCategories as $cat) {
+                $key = $cat->unit_category ?: $cat->brand_type;
+                if ($key) {
+                    $codeSuffix = !empty($cat->code) ? " ({$cat->code})" : '';
+                    $scopes[$key] = "Heavy: {$key}{$codeSuffix}";
+                }
+            }
+        } catch (\Throwable $e) {
+            // Fallback saat migrasi awal jika tabel belum siap
+        }
+
+        // Dukungan fallback untuk cakupan legacy
+        if (!isset($scopes[self::SCOPE_UNIT_SUPPORT_MOBILE])) {
+            $scopes[self::SCOPE_UNIT_SUPPORT_MOBILE] = 'Heavy Mobile / Dump Truck (Legacy)';
+        }
+        if (!isset($scopes[self::SCOPE_UNIT_SUPPORT_HEAVY])) {
+            $scopes[self::SCOPE_UNIT_SUPPORT_HEAVY] = 'Alat Berat Operasional (Legacy)';
+        }
+
+        return $scopes;
+    }
+
     protected $fillable = [
         'code',
         'name',

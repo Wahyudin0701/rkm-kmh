@@ -150,17 +150,13 @@
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                     <i class="fa-solid fa-car-side mr-1"></i> Light Vehicle (LV)
                                 </span>
-                            @elseif($st->category_scope === 'unit_support_mobile')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                    <i class="fa-solid fa-truck-moving mr-1"></i> Heavy Mobile / Dump Truck
-                                </span>
-                            @elseif($st->category_scope === 'unit_support_heavy')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    <i class="fa-solid fa-trowel-bricks mr-1"></i> Alat Berat Operasional
-                                </span>
-                            @else
+                            @elseif($st->category_scope === 'all')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                     <i class="fa-solid fa-shapes mr-1"></i> Semua Kategori
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <i class="fa-solid fa-truck-moving mr-1"></i> {{ str_replace('_', ' ', $st->category_scope) }}
                                 </span>
                             @endif
                         </td>
@@ -249,9 +245,20 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">Cakupan Kendaraan <span class="text-rose-500">*</span></label>
                     <select name="category_scope" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
-                        @foreach($categoryScopes as $scopeKey => $scopeLabel)
-                            <option value="{{ $scopeKey }}">{{ $scopeLabel }}</option>
-                        @endforeach
+                        <optgroup label="Kategori Umum">
+                            <option value="all">Semua Kategori (Universal)</option>
+                            <option value="light_vehicle">Light Vehicle (LV)</option>
+                        </optgroup>
+                        @if(isset($heavyCategories) && count($heavyCategories) > 0)
+                        <optgroup label="Kategori Heavy Equipment (Sinkronisasi QMA)">
+                            @foreach($heavyCategories as $cat)
+                                @php $key = $cat->unit_category ?: $cat->brand_type; @endphp
+                                @if($key)
+                                    <option value="{{ $key }}">{{ $cat->brand_type ?: $key }} ({{ $cat->code }})</option>
+                                @endif
+                            @endforeach
+                        </optgroup>
+                        @endif
                     </select>
                 </div>
             </div>
@@ -319,9 +326,24 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1.5">Cakupan Kendaraan <span class="text-rose-500">*</span></label>
                     <select name="category_scope" id="editSimperScope" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
-                        @foreach($categoryScopes as $scopeKey => $scopeLabel)
-                            <option value="{{ $scopeKey }}">{{ $scopeLabel }}</option>
-                        @endforeach
+                        <optgroup label="Kategori Umum">
+                            <option value="all">Semua Kategori (Universal)</option>
+                            <option value="light_vehicle">Light Vehicle (LV)</option>
+                        </optgroup>
+                        @if(isset($heavyCategories) && count($heavyCategories) > 0)
+                        <optgroup label="Kategori Heavy Equipment (Sinkronisasi QMA)">
+                            @foreach($heavyCategories as $cat)
+                                @php $key = $cat->unit_category ?: $cat->brand_type; @endphp
+                                @if($key)
+                                    <option value="{{ $key }}">{{ $cat->brand_type ?: $key }} ({{ $cat->code }})</option>
+                                @endif
+                            @endforeach
+                        </optgroup>
+                        @endif
+                        <optgroup label="Cakupan Khusus / Legacy">
+                            <option value="unit_support_mobile">Heavy Mobile / Dump Truck (Legacy)</option>
+                            <option value="unit_support_heavy">Alat Berat Operasional (Legacy)</option>
+                        </optgroup>
                     </select>
                 </div>
             </div>

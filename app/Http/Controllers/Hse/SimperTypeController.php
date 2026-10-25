@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Hse;
 
 use App\Http\Controllers\Controller;
 use App\Models\SimperType;
+use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,9 +31,13 @@ class SimperTypeController extends Controller
         ->orderBy('name')
         ->get();
 
-        $categoryScopes = SimperType::SCOPES;
+        $categoryScopes = SimperType::getAvailableScopes();
 
-        return view('hse.simper_types_index', compact('simperTypes', 'categoryScopes'));
+        $heavyCategories = Vehicle::unitSupportCategories()
+            ->orderBy('unit_category')
+            ->get(['id', 'code', 'brand_type', 'unit_category']);
+
+        return view('hse.simper_types_index', compact('simperTypes', 'categoryScopes', 'heavyCategories'));
     }
 
     /**
@@ -40,10 +45,12 @@ class SimperTypeController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $validScopes = array_keys(SimperType::getAvailableScopes());
+
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:50', 'unique:simper_types,code'],
             'name' => ['required', 'string', 'max:100'],
-            'category_scope' => ['required', 'string', Rule::in(array_keys(SimperType::SCOPES))],
+            'category_scope' => ['required', 'string', Rule::in($validScopes)],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
         ]);
@@ -67,11 +74,12 @@ class SimperTypeController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $simperType = SimperType::findOrFail($id);
+        $validScopes = array_keys(SimperType::getAvailableScopes());
 
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:50', Rule::unique('simper_types', 'code')->ignore($simperType->id)],
             'name' => ['required', 'string', 'max:100'],
-            'category_scope' => ['required', 'string', Rule::in(array_keys(SimperType::SCOPES))],
+            'category_scope' => ['required', 'string', Rule::in($validScopes)],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
         ]);
