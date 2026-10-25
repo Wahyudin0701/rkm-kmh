@@ -116,7 +116,7 @@ class Employee extends Model
     {
         $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->with('simperType')->get();
         foreach ($simpers as $s) {
-            if ($s->simperType && $s->simperType->category_scope === $scope && $s->isValid()) {
+            if ($s->simperType && $s->simperType->coversScope($scope) && $s->isValid()) {
                 return true;
             }
         }

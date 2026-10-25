@@ -94,6 +94,95 @@ class SimperType extends Model
         'is_active' => 'boolean',
     ];
 
+    protected $appends = [
+        'scopes',
+        'category_scope_display',
+    ];
+
+    /**
+     * Dapatkan seluruh cakupan kategori dalam bentuk array terurai.
+     *
+     * @return array<string>
+     */
+    public function getScopesAttribute(): array
+    {
+        $raw = $this->category_scope;
+
+        if (empty($raw)) {
+            return [self::SCOPE_ALL];
+        }
+
+        if (is_array($raw)) {
+            return array_values(array_unique($raw));
+        }
+
+        if (is_string($raw)) {
+            $trimmed = trim($raw);
+            if (str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) {
+                $decoded = json_decode($trimmed, true);
+                if (is_array($decoded)) {
+                    return array_values(array_unique($decoded));
+                }
+            }
+            if (str_contains($trimmed, ',')) {
+                return array_values(array_filter(array_map('trim', explode(',', $trimmed))));
+            }
+            return [$trimmed];
+        }
+
+        return [(string) $raw];
+    }
+
+    /**
+     * Cek apakah jenis SIMPER ini mencakup scope target tertentu.
+     */
+    public function coversScope(string $targetScope): bool
+    {
+        $scopes = $this->scopes;
+
+        // Universal scope mencakup semua kategori
+        if (in_array(self::SCOPE_ALL, $scopes, true) || in_array('all', $scopes, true)) {
+            return true;
+        }
+
+        if (in_array($targetScope, $scopes, true)) {
+            return true;
+        }
+
+        // Bandingkan case-insensitive
+        foreach ($scopes as $s) {
+            if (strcasecmp($s, $targetScope) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Teks ringkas representasi cakupan kendaraan untuk badge UI.
+     */
+    public function getCategoryScopeDisplayAttribute(): string
+    {
+        $scopes = $this->scopes;
+
+        if (empty($scopes) || in_array(self::SCOPE_ALL, $scopes, true)) {
+            return 'Semua Kategori (Universal)';
+        }
+
+        if (count($scopes) === 1 && $scopes[0] === self::SCOPE_LIGHT_VEHICLE) {
+            return 'Light Vehicle (LV)';
+        }
+
+        $formatted = array_map(function ($s) {
+            if ($s === self::SCOPE_LIGHT_VEHICLE) return 'LV';
+            if ($s === self::SCOPE_ALL) return 'Universal';
+            return str_replace('_', ' ', $s);
+        }, $scopes);
+
+        return implode(', ', $formatted);
+    }
+
     public function employeeSimpers(): HasMany
     {
         return $this->hasMany(EmployeeSimper::class);

@@ -180,17 +180,17 @@
                                         </div>
                                     </label>
                                     
-                                    @if($st->category_scope === 'light_vehicle')
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
-                                            LV
-                                        </span>
-                                    @elseif($st->category_scope === 'all')
+                                    @if($st->coversScope('all'))
                                         <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-bold border border-purple-200">
                                             SEMUA ARMADA
                                         </span>
+                                    @elseif($st->scopes === ['light_vehicle'])
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
+                                            LV
+                                        </span>
                                     @else
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold border border-amber-200">
-                                            {{ strtoupper($st->category_scope) }}
+                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold border border-amber-200 max-w-[200px] truncate" title="{{ $st->category_scope_display }}">
+                                            {{ strtoupper($st->category_scope_display) }}
                                         </span>
                                     @endif
                                 </div>

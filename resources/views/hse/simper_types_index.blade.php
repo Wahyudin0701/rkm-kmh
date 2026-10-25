@@ -146,19 +146,32 @@
                             <span class="font-bold text-slate-900 text-xs">{{ $st->name }}</span>
                         </td>
                         <td class="py-3 px-4">
-                            @if($st->category_scope === 'light_vehicle')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    <i class="fa-solid fa-car-side mr-1"></i> Light Vehicle (LV)
-                                </span>
-                            @elseif($st->category_scope === 'all')
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                    <i class="fa-solid fa-shapes mr-1"></i> Semua Kategori
-                                </span>
-                            @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                    <i class="fa-solid fa-truck-moving mr-1"></i> {{ str_replace('_', ' ', $st->category_scope) }}
-                                </span>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-1 max-w-xs">
+                                @if($st->coversScope('all'))
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                        <i class="fa-solid fa-shapes mr-1"></i> Semua Kategori (Universal)
+                                    </span>
+                                @else
+                                    @php $scopesList = $st->scopes; @endphp
+                                    @foreach(array_slice($scopesList, 0, 3) as $scope)
+                                        @if($scope === 'light_vehicle')
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                <i class="fa-solid fa-car-side mr-1"></i> LV
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <i class="fa-solid fa-truck-moving mr-1"></i> {{ str_replace('_', ' ', $scope) }}
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                    @if(count($scopesList) > 3)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" 
+                                              title="{{ implode(', ', array_slice($scopesList, 3)) }}">
+                                            +{{ count($scopesList) - 3 }} lainnya
+                                        </span>
+                                    @endif
+                                @endif
+                            </div>
                         </td>
                         <td class="py-3 px-4 text-center font-bold">
                             <span class="font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
@@ -219,71 +232,140 @@
 <!-- MODAL: TAMBAH JENIS SIMPER                                                -->
 <!-- ========================================================================= -->
 <div id="addSimperTypeModal" onclick="if(event.target === this) closeAddSimperTypeModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
                 <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-id-card text-emerald-700"></i>
                     <span>Tambah Jenis SIMPER</span>
                 </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Definisikan kategori izin mengemudi dan cakupan unitnya.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Definisikan kategori izin mengemudi dan pilih satu atau lebih cakupan armada.</p>
             </div>
             <button type="button" onclick="closeAddSimperTypeModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form action="{{ route('hse.simper_types.store') }}" method="POST" class="mt-4 space-y-4">
+        <form action="{{ route('hse.simper_types.store') }}" method="POST" class="flex flex-col flex-1 min-h-0 mt-4">
             @csrf
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode SIMPER <span class="text-rose-500">*</span></label>
-                    <input type="text" name="code" required placeholder="Contoh: SIMPER-CRANE" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] transition uppercase">
+            <div class="overflow-y-auto flex-1 pr-1 pb-2 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode SIMPER <span class="text-rose-500">*</span></label>
+                        <input type="text" name="code" required placeholder="Contoh: SIMPER-HAULING" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] transition uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Jenis SIMPER <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" required placeholder="Contoh: SIMPER Angkutan Berat & Material" 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                    </div>
                 </div>
+
+                <!-- Cakupan Kendaraan (Multiple Choice Selection) -->
+                <div class="space-y-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800">
+                                Cakupan Armada yang Diizinkan <span class="text-rose-500">*</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500">Centang satu atau lebih jenis armada yang dapat dioperasikan pemegang SIMPER ini.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="addScopeSelectedCount" class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                0 Kategori Dipilih
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar Filter & Quick Actions -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" placeholder="Cari kategori unit (contoh: Dump Truck, Excavator)..." 
+                                   oninput="filterScopeOptions(this.value, 'add')" 
+                                   class="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-emerald-600">
+                        </div>
+                        <button type="button" onclick="selectAllHeavyScopes('add')" 
+                                class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition whitespace-nowrap">
+                            Pilih Semua Alat Berat
+                        </button>
+                        <button type="button" onclick="clearAllScopes('add')" 
+                                class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-[11px] font-bold transition">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Checkbox Grid -->
+                    <div class="max-h-56 overflow-y-auto pr-1 space-y-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/70">
+                        <!-- Pilihan Umum -->
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                Kategori Umum
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <label class="add-scope-item flex items-center space-x-2.5 p-2.5 rounded-xl border border-purple-200 bg-purple-50/40 hover:bg-purple-100/60 transition cursor-pointer text-xs" data-name="semua kategori universal all">
+                                    <input type="checkbox" name="category_scopes[]" value="all" onchange="updateScopeCount('add')" class="add-scope-cb w-4 h-4 rounded text-purple-700 border-purple-300 focus:ring-purple-500 flex-shrink-0">
+                                    <div>
+                                        <span class="font-extrabold text-purple-900 block text-xs">Semua Kategori (Universal)</span>
+                                        <span class="text-[10px] text-purple-600">Mencakup semua armada LV dan Heavy Equipment</span>
+                                    </div>
+                                </label>
+                                <label class="add-scope-item flex items-center space-x-2.5 p-2.5 rounded-xl border border-blue-200 bg-blue-50/40 hover:bg-blue-100/60 transition cursor-pointer text-xs" data-name="light vehicle lv mobil operasional">
+                                    <input type="checkbox" name="category_scopes[]" value="light_vehicle" onchange="updateScopeCount('add')" class="add-scope-cb w-4 h-4 rounded text-blue-700 border-blue-300 focus:ring-blue-500 flex-shrink-0">
+                                    <div>
+                                        <span class="font-extrabold text-blue-900 block text-xs">Light Vehicle (LV)</span>
+                                        <span class="text-[10px] text-blue-600">Khusus kendaraan operasional ringan proyek</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Heavy Equipment -->
+                        @php
+                            $generalKeys = ['all', 'light_vehicle'];
+                            $heavyScopes = array_diff_key($categoryScopes, array_flip($generalKeys));
+                        @endphp
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                Kategori Heavy Equipment (Alat Berat)
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                @foreach($heavyScopes as $scopeKey => $scopeLabel)
+                                <label data-name="{{ strtolower($scopeKey . ' ' . $scopeLabel) }}" 
+                                       class="add-scope-item flex items-center space-x-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50/70 hover:border-emerald-300 transition cursor-pointer text-xs">
+                                    <input type="checkbox" 
+                                           name="category_scopes[]" 
+                                           value="{{ $scopeKey }}" 
+                                           onchange="updateScopeCount('add')" 
+                                           class="add-scope-cb add-scope-heavy-cb w-4 h-4 rounded text-[#1b5e20] border-slate-300 focus:ring-emerald-500 flex-shrink-0">
+                                    <span class="font-bold text-slate-800 text-[11px] truncate" title="{{ $scopeKey }}">
+                                        {{ str_replace('Heavy: ', '', $scopeLabel) }}
+                                    </span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Cakupan Kendaraan <span class="text-rose-500">*</span></label>
-                    <select name="category_scope" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
-                        <optgroup label="Kategori Umum">
-                            <option value="all">Semua Kategori (Universal)</option>
-                            <option value="light_vehicle">Light Vehicle (LV)</option>
-                        </optgroup>
-                        @if(isset($heavyCategories) && count($heavyCategories) > 0)
-                        <optgroup label="Kategori Heavy Equipment (Sinkronisasi QMA)">
-                            @foreach($heavyCategories as $cat)
-                                @php $key = $cat->unit_category ?: $cat->brand_type; @endphp
-                                @if($key)
-                                    <option value="{{ $key }}">{{ $cat->brand_type ?: $key }} ({{ $cat->code }})</option>
-                                @endif
-                            @endforeach
-                        </optgroup>
-                        @endif
-                    </select>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Keterangan / Persyaratan K3 <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                    <textarea name="description" rows="2" placeholder="Catatan kualifikasi SIO, sertifikasi Kemnaker, atau jenis unit spesifik..." 
+                              class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" name="is_active" id="addSimperActive" value="1" checked 
+                           class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
+                    <label for="addSimperActive" class="text-xs font-bold text-slate-700 cursor-pointer">
+                        Aktifkan jenis SIMPER ini untuk penugasan ke personil
+                    </label>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Jenis SIMPER <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" required placeholder="Contoh: SIMPER Mobile Crane & Rigging" 
-                       class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Keterangan / Persyaratan K3 <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                <textarea name="description" rows="2" placeholder="Catatan kualifikasi SIO, sertifikasi Kemnaker, atau jenis unit spesifik..." 
-                          class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
-            </div>
-
-            <div class="flex items-center space-x-2 pt-1">
-                <input type="checkbox" name="is_active" id="addSimperActive" value="1" checked 
-                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
-                <label for="addSimperActive" class="text-xs font-bold text-slate-700 cursor-pointer">
-                    Aktifkan jenis SIMPER ini untuk penugasan ke personil
-                </label>
-            </div>
-
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0">
                 <button type="button" onclick="closeAddSimperTypeModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
                     Batal
                 </button>
@@ -299,8 +381,8 @@
 <!-- MODAL: EDIT JENIS SIMPER                                                  -->
 <!-- ========================================================================= -->
 <div id="editSimperTypeModal" onclick="if(event.target === this) closeEditSimperTypeModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
                 <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square text-amber-600"></i>
@@ -313,62 +395,123 @@
             </button>
         </div>
 
-        <form id="editSimperTypeForm" action="" method="POST" class="mt-4 space-y-4">
+        <form id="editSimperTypeForm" action="" method="POST" class="flex flex-col flex-1 min-h-0 mt-4">
             @csrf
             @method('PUT')
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode SIMPER <span class="text-rose-500">*</span></label>
-                    <input type="text" name="code" id="editSimperCode" required 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] transition uppercase">
+            <div class="overflow-y-auto flex-1 pr-1 pb-2 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode SIMPER <span class="text-rose-500">*</span></label>
+                        <input type="text" name="code" id="editSimperCode" required 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] transition uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Jenis SIMPER <span class="text-rose-500">*</span></label>
+                        <input type="text" name="name" id="editSimperName" required 
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
+                    </div>
                 </div>
+
+                <!-- Cakupan Kendaraan (Multiple Choice Selection) -->
+                <div class="space-y-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800">
+                                Cakupan Armada yang Diizinkan <span class="text-rose-500">*</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500">Centang satu atau lebih jenis armada yang dapat dioperasikan pemegang SIMPER ini.</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="editScopeSelectedCount" class="text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
+                                0 Kategori Dipilih
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Toolbar Filter & Quick Actions -->
+                    <div class="flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                            <input type="text" placeholder="Cari kategori unit (contoh: Dump Truck, Excavator)..." 
+                                   oninput="filterScopeOptions(this.value, 'edit')" 
+                                   class="w-full text-xs pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-amber-600">
+                        </div>
+                        <button type="button" onclick="selectAllHeavyScopes('edit')" 
+                                class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition whitespace-nowrap">
+                            Pilih Semua Alat Berat
+                        </button>
+                        <button type="button" onclick="clearAllScopes('edit')" 
+                                class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-[11px] font-bold transition">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Checkbox Grid -->
+                    <div class="max-h-56 overflow-y-auto pr-1 space-y-3 p-3 rounded-2xl border border-slate-200 bg-slate-50/70">
+                        <!-- Pilihan Umum -->
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                Kategori Umum
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <label class="edit-scope-item flex items-center space-x-2.5 p-2.5 rounded-xl border border-purple-200 bg-purple-50/40 hover:bg-purple-100/60 transition cursor-pointer text-xs" data-name="semua kategori universal all">
+                                    <input type="checkbox" name="category_scopes[]" value="all" onchange="updateScopeCount('edit')" class="edit-scope-cb w-4 h-4 rounded text-purple-700 border-purple-300 focus:ring-purple-500 flex-shrink-0">
+                                    <div>
+                                        <span class="font-extrabold text-purple-900 block text-xs">Semua Kategori (Universal)</span>
+                                        <span class="text-[10px] text-purple-600">Mencakup semua armada LV dan Heavy Equipment</span>
+                                    </div>
+                                </label>
+                                <label class="edit-scope-item flex items-center space-x-2.5 p-2.5 rounded-xl border border-blue-200 bg-blue-50/40 hover:bg-blue-100/60 transition cursor-pointer text-xs" data-name="light vehicle lv mobil operasional">
+                                    <input type="checkbox" name="category_scopes[]" value="light_vehicle" onchange="updateScopeCount('edit')" class="edit-scope-cb w-4 h-4 rounded text-blue-700 border-blue-300 focus:ring-blue-500 flex-shrink-0">
+                                    <div>
+                                        <span class="font-extrabold text-blue-900 block text-xs">Light Vehicle (LV)</span>
+                                        <span class="text-[10px] text-blue-600">Khusus kendaraan operasional ringan proyek</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan Heavy Equipment -->
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-1.5">
+                                Kategori Heavy Equipment (Alat Berat)
+                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                @foreach($heavyScopes as $scopeKey => $scopeLabel)
+                                <label data-name="{{ strtolower($scopeKey . ' ' . $scopeLabel) }}" 
+                                       class="edit-scope-item flex items-center space-x-2 p-2 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50/70 hover:border-emerald-300 transition cursor-pointer text-xs">
+                                    <input type="checkbox" 
+                                           name="category_scopes[]" 
+                                           value="{{ $scopeKey }}" 
+                                           onchange="updateScopeCount('edit')" 
+                                           class="edit-scope-cb edit-scope-heavy-cb w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
+                                    <span class="font-bold text-slate-800 text-[11px] truncate" title="{{ $scopeKey }}">
+                                        {{ str_replace('Heavy: ', '', $scopeLabel) }}
+                                    </span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Cakupan Kendaraan <span class="text-rose-500">*</span></label>
-                    <select name="category_scope" id="editSimperScope" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
-                        <optgroup label="Kategori Umum">
-                            <option value="all">Semua Kategori (Universal)</option>
-                            <option value="light_vehicle">Light Vehicle (LV)</option>
-                        </optgroup>
-                        @if(isset($heavyCategories) && count($heavyCategories) > 0)
-                        <optgroup label="Kategori Heavy Equipment (Sinkronisasi QMA)">
-                            @foreach($heavyCategories as $cat)
-                                @php $key = $cat->unit_category ?: $cat->brand_type; @endphp
-                                @if($key)
-                                    <option value="{{ $key }}">{{ $cat->brand_type ?: $key }} ({{ $cat->code }})</option>
-                                @endif
-                            @endforeach
-                        </optgroup>
-                        @endif
-                        <optgroup label="Cakupan Khusus / Legacy">
-                            <option value="unit_support_mobile">Heavy Mobile / Dump Truck (Legacy)</option>
-                            <option value="unit_support_heavy">Alat Berat Operasional (Legacy)</option>
-                        </optgroup>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Keterangan / Persyaratan K3 <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                    <textarea name="description" id="editSimperDescription" rows="2" 
+                              class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
+                </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" name="is_active" id="editSimperActive" value="1" 
+                           class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
+                    <label for="editSimperActive" class="text-xs font-bold text-slate-700 cursor-pointer">
+                        Aktifkan jenis SIMPER ini
+                    </label>
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Nama Jenis SIMPER <span class="text-rose-500">*</span></label>
-                <input type="text" name="name" id="editSimperName" required 
-                       class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] transition">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Keterangan / Persyaratan K3 <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                <textarea name="description" id="editSimperDescription" rows="2" 
-                          class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition resize-none"></textarea>
-            </div>
-
-            <div class="flex items-center space-x-2 pt-1">
-                <input type="checkbox" name="is_active" id="editSimperActive" value="1" 
-                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500">
-                <label for="editSimperActive" class="text-xs font-bold text-slate-700 cursor-pointer">
-                    Aktifkan jenis SIMPER ini
-                </label>
-            </div>
-
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5 flex-shrink-0">
                 <button type="button" onclick="closeEditSimperTypeModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs transition">
                     Batal
                 </button>
@@ -466,10 +609,50 @@
 
 @section('scripts')
 <script>
+    function updateScopeCount(prefix) {
+        const checked = document.querySelectorAll(`.${prefix}-scope-cb:checked`);
+        const badge = document.getElementById(`${prefix}ScopeSelectedCount`);
+        if (badge) {
+            badge.textContent = `${checked.length} Kategori Dipilih`;
+        }
+    }
+
+    function selectAllHeavyScopes(prefix) {
+        document.querySelectorAll(`.${prefix}-scope-heavy-cb`).forEach(cb => {
+            cb.checked = true;
+        });
+        updateScopeCount(prefix);
+    }
+
+    function clearAllScopes(prefix) {
+        document.querySelectorAll(`.${prefix}-scope-cb`).forEach(cb => {
+            cb.checked = false;
+        });
+        updateScopeCount(prefix);
+    }
+
+    function filterScopeOptions(keyword, prefix) {
+        const q = (keyword || '').toLowerCase().trim();
+        document.querySelectorAll(`.${prefix}-scope-item`).forEach(el => {
+            const text = (el.dataset.name || el.textContent || '').toLowerCase();
+            if (!q || text.includes(q)) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        });
+    }
+
     function openAddSimperTypeModal() {
+        document.querySelectorAll('.add-scope-cb').forEach(cb => {
+            cb.checked = (cb.value === 'all');
+        });
+        updateScopeCount('add');
+
         const modal = document.getElementById('addSimperTypeModal');
         if (modal) modal.classList.remove('hidden');
     }
+
     function closeAddSimperTypeModal() {
         const modal = document.getElementById('addSimperTypeModal');
         if (modal) modal.classList.add('hidden');
@@ -478,9 +661,25 @@
     function openEditSimperTypeModal(st) {
         document.getElementById('editSimperCode').value = st.code || '';
         document.getElementById('editSimperName').value = st.name || '';
-        document.getElementById('editSimperScope').value = st.category_scope || 'all';
         document.getElementById('editSimperDescription').value = st.description || '';
         document.getElementById('editSimperActive').checked = Boolean(st.is_active);
+
+        let targetScopes = [];
+        if (Array.isArray(st.scopes)) {
+            targetScopes = st.scopes;
+        } else if (typeof st.category_scope === 'string') {
+            try {
+                const parsed = JSON.parse(st.category_scope);
+                targetScopes = Array.isArray(parsed) ? parsed : [st.category_scope];
+            } catch(e) {
+                targetScopes = [st.category_scope];
+            }
+        }
+
+        document.querySelectorAll('.edit-scope-cb').forEach(cb => {
+            cb.checked = targetScopes.includes(cb.value);
+        });
+        updateScopeCount('edit');
 
         const form = document.getElementById('editSimperTypeForm');
         form.action = `/hse/simper-types/${st.id}`;
@@ -488,6 +687,7 @@
         const modal = document.getElementById('editSimperTypeModal');
         if (modal) modal.classList.remove('hidden');
     }
+
     function closeEditSimperTypeModal() {
         const modal = document.getElementById('editSimperTypeModal');
         if (modal) modal.classList.add('hidden');
@@ -501,6 +701,7 @@
         const modal = document.getElementById('deleteSimperTypeModal');
         if (modal) modal.classList.remove('hidden');
     }
+
     function closeDeleteSimperTypeModal() {
         const modal = document.getElementById('deleteSimperTypeModal');
         if (modal) modal.classList.add('hidden');
@@ -510,6 +711,7 @@
         const modal = document.getElementById('simperTypeGuideModal');
         if (modal) modal.classList.remove('hidden');
     }
+
     function closeSimperTypeGuideModal() {
         const modal = document.getElementById('simperTypeGuideModal');
         if (modal) modal.classList.add('hidden');

@@ -238,4 +238,96 @@ class HseSimperTypeTest extends TestCase
             'category_scope' => 'Excavator',
         ]);
     }
+
+    /**
+     * Admin HSE dapat membuat jenis SIMPER dengan pilihan multiple kategori kendaraan (multiple choice).
+     */
+    public function test_admin_hse_can_create_simper_with_multiple_category_scopes(): void
+    {
+        $data = [
+            'code' => 'SIMPER-HAUL-HEAVY',
+            'name' => 'SIMPER Alat Angkut & Gali',
+            'category_scopes' => [
+                'Dump Truck',
+                'Excavator',
+                'Wheel Loader',
+            ],
+            'description' => 'Izin mengoperasikan unit angkut dan galian material.',
+            'is_active' => '1',
+        ];
+
+        $response = $this->actingAs($this->adminHse)
+            ->from(route('hse.simper_types.index'))
+            ->post(route('hse.simper_types.store'), $data);
+
+        $response->assertRedirect(route('hse.simper_types.index'));
+        $response->assertSessionHas('success');
+
+        $created = SimperType::where('code', 'SIMPER-HAUL-HEAVY')->first();
+        $this->assertNotNull($created);
+        $this->assertCount(3, $created->scopes);
+        $this->assertTrue($created->coversScope('Dump Truck'));
+        $this->assertTrue($created->coversScope('Excavator'));
+        $this->assertTrue($created->coversScope('Wheel Loader'));
+        $this->assertFalse($created->coversScope('Forklift'));
+    }
+
+    /**
+     * Personil pemegang SIMPER multiple category diizinkan mengoperasikan armada yang tercakup.
+     */
+    public function test_employee_holding_multiple_scope_simper_is_authorized_on_any_covered_category(): void
+    {
+        $simperType = SimperType::create([
+            'code' => 'SIMPER-MULTIPLE-01',
+            'name' => 'SIMPER Galian & Dorong',
+            'category_scope' => json_encode(['Excavator', 'Wheel Loader']),
+            'is_active' => true,
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'OPR-MULTI-01',
+            'name' => 'Operator Multi Alat',
+            'is_operator' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
+        ]);
+
+        EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperType->id,
+            'simper_number' => 'SMP-MULTI-01',
+            'expired_at' => Carbon::now()->addYear(),
+            'status' => 'active',
+        ]);
+
+        $vehicleExcavator = \App\Models\Vehicle::create([
+            'code' => 'EX-8881',
+            'brand_type' => 'Komatsu PC200',
+            'category' => 'unit_support',
+            'unit_category' => 'Excavator',
+            'ownership' => 'Perusahaan',
+            'status' => 'Operasional',
+        ]);
+
+        $vehicleLoader = \App\Models\Vehicle::create([
+            'code' => 'WL-8882',
+            'brand_type' => 'CAT 950H',
+            'category' => 'unit_support',
+            'unit_category' => 'Wheel Loader',
+            'ownership' => 'Perusahaan',
+            'status' => 'Operasional',
+        ]);
+
+        $vehicleForklift = \App\Models\Vehicle::create([
+            'code' => 'FL-8883',
+            'brand_type' => 'Toyota 5 Ton',
+            'category' => 'unit_support',
+            'unit_category' => 'Forklift',
+            'ownership' => 'Perusahaan',
+            'status' => 'Operasional',
+        ]);
+
+        $this->assertTrue($employee->hasValidSimperForVehicle($vehicleExcavator));
+        $this->assertTrue($employee->hasValidSimperForVehicle($vehicleLoader));
+        $this->assertFalse($employee->hasValidSimperForVehicle($vehicleForklift));
+    }
 }

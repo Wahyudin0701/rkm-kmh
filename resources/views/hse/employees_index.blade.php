@@ -473,8 +473,8 @@
                                                        class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
                                                 <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
                                             </label>
-                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0">
-                                                {{ str_replace('_', ' ', $st->category_scope) }}
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0" title="{{ $st->category_scope_display }}">
+                                                {{ $st->category_scope_display }}
                                             </span>
                                         </div>
                                         <div id="addSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
@@ -802,8 +802,8 @@
                                                        class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
                                                 <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
                                             </label>
-                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0">
-                                                {{ str_replace('_', ' ', $st->category_scope) }}
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0" title="{{ $st->category_scope_display }}">
+                                                {{ $st->category_scope_display }}
                                             </span>
                                         </div>
                                         <div id="editSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">

@@ -45,22 +45,31 @@ class SimperTypeController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $scopes = $this->resolveScopesInput($request);
+        $request->merge(['category_scopes' => $scopes]);
+
         $validScopes = array_keys(SimperType::getAvailableScopes());
 
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:50', 'unique:simper_types,code'],
             'name' => ['required', 'string', 'max:100'],
-            'category_scope' => ['required', 'string', Rule::in($validScopes)],
+            'category_scopes' => ['required', 'array', 'min:1'],
+            'category_scopes.*' => ['required', 'string', Rule::in($validScopes)],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'category_scopes.required' => 'Pilih minimal satu cakupan kategori kendaraan.',
+            'category_scopes.min' => 'Pilih minimal satu cakupan kategori kendaraan.',
         ]);
 
         $code = strtoupper(trim($validated['code']));
+        $finalScopes = $validated['category_scopes'];
+        $storedScope = count($finalScopes) === 1 ? $finalScopes[0] : json_encode($finalScopes);
 
         SimperType::create([
             'code' => $code,
             'name' => trim($validated['name']),
-            'category_scope' => $validated['category_scope'],
+            'category_scope' => $storedScope,
             'description' => $validated['description'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
@@ -74,25 +83,65 @@ class SimperTypeController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $simperType = SimperType::findOrFail($id);
+        $scopes = $this->resolveScopesInput($request);
+        $request->merge(['category_scopes' => $scopes]);
+
         $validScopes = array_keys(SimperType::getAvailableScopes());
 
         $validated = $request->validate([
             'code' => ['required', 'string', 'max:50', Rule::unique('simper_types', 'code')->ignore($simperType->id)],
             'name' => ['required', 'string', 'max:100'],
-            'category_scope' => ['required', 'string', Rule::in($validScopes)],
+            'category_scopes' => ['required', 'array', 'min:1'],
+            'category_scopes.*' => ['required', 'string', Rule::in($validScopes)],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
+        ], [
+            'category_scopes.required' => 'Pilih minimal satu cakupan kategori kendaraan.',
+            'category_scopes.min' => 'Pilih minimal satu cakupan kategori kendaraan.',
         ]);
 
+        $code = strtoupper(trim($validated['code']));
+        $finalScopes = $validated['category_scopes'];
+        $storedScope = count($finalScopes) === 1 ? $finalScopes[0] : json_encode($finalScopes);
+
         $simperType->update([
-            'code' => strtoupper(trim($validated['code'])),
+            'code' => $code,
             'name' => trim($validated['name']),
-            'category_scope' => $validated['category_scope'],
+            'category_scope' => $storedScope,
             'description' => $validated['description'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
         return back()->with('success', "Jenis SIMPER '{$simperType->name}' berhasil diperbarui.");
+    }
+
+    /**
+     * Helper normalisasi input cakupan kategori kendaraan.
+     * Mendukung multiple array (category_scopes[]) maupun legacy single string (category_scope).
+     *
+     * @return array<string>
+     */
+    private function resolveScopesInput(Request $request): array
+    {
+        $raw = $request->input('category_scopes') ?? $request->input('category_scope');
+
+        if (is_string($raw)) {
+            $trimmed = trim($raw);
+            if (str_starts_with($trimmed, '[') && str_ends_with($trimmed, ']')) {
+                $decoded = json_decode($trimmed, true);
+                if (is_array($decoded)) {
+                    $raw = $decoded;
+                } else {
+                    $raw = [$trimmed];
+                }
+            } else {
+                $raw = [$trimmed];
+            }
+        } elseif (!is_array($raw)) {
+            $raw = [];
+        }
+
+        return array_values(array_filter(array_unique($raw)));
     }
 
     /**
