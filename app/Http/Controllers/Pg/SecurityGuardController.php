@@ -54,10 +54,15 @@ class SecurityGuardController extends Controller
      */
     public function index(Request $request): View
     {
+        $perPage = (int) $request->input('per_page', 20);
+        if (!in_array($perPage, [20, 50, 100])) {
+            $perPage = 20;
+        }
+
         $guards = $this->getGuardsQuery($request)
             ->orderBy('team')
             ->orderBy('name')
-            ->paginate(20)
+            ->paginate($perPage)
             ->withQueryString();
 
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
