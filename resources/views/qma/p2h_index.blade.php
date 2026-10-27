@@ -198,25 +198,22 @@
                         </tr>
                     @empty
                         <tr id="serverEmptyRow">
-                            <td colspan="10" class="py-12 text-center text-slate-400">
+                            <td colspan="10" class="py-16 text-center">
                                 @if(request('search'))
-                                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                                    <p class="text-sm font-semibold text-slate-700">
-                                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
+                                    <p class="text-sm font-bold text-slate-700">
+                                        Data "<span class="text-rose-600">{{ request('search') }}</span>" tidak ditemukan di tabel
                                     </p>
                                     <p class="text-xs text-slate-400 mt-1">
                                         Pastikan kata kunci yang dicari sudah benar.
                                     </p>
                                     <div class="mt-4">
-                                        <a href="{{ route('qma.p2h.index') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                        <a href="{{ route('qma.p2h.index') }}" class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
                                             <span>Hapus Pencarian</span>
                                         </a>
                                     </div>
                                 @else
-                                    <i class="fa-solid fa-clipboard-question text-3xl mb-2 text-slate-300 block"></i>
-                                    <span class="font-bold text-slate-600">Belum ada catatan riwayat P2H Heavy Equipment</span>
-                                    <p class="text-[11px] text-slate-400 mt-0.5">Form P2H yang dikirim oleh operator alat berat akan muncul pada daftar ini.</p>
+                                    <p class="text-sm font-bold text-slate-700">Belum ada catatan riwayat P2H Heavy Equipment</p>
+                                    <p class="text-xs text-slate-400 mt-1">Form P2H yang dikirim oleh operator alat berat akan otomatis muncul pada daftar ini.</p>
                                 @endif
                             </td>
                         </tr>
@@ -287,9 +284,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const emptyTr = document.createElement('tr');
                 emptyTr.id = 'clientSearchEmptyRow';
                 emptyTr.innerHTML = `
-                    <td colspan="10" class="py-12 text-center text-slate-400">
-                        <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                        <p class="text-sm font-semibold text-slate-700">
+                    <td colspan="10" class="py-16 text-center">
+                        <p class="text-sm font-bold text-slate-700">
                             Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
                         </p>
                         <p class="text-xs text-slate-400 mt-1">
@@ -298,8 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="mt-4">
                             <button type="button" 
                                     onclick="const inp = document.getElementById('p2hSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
+                                    class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
                                 <span>Hapus Pencarian</span>
                             </button>
                         </div>
