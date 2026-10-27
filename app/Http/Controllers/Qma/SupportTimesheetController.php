@@ -125,8 +125,13 @@ class SupportTimesheetController extends Controller
 
         // Jika user belum mengisi filter tanggal dan ingin semua, bisa dikosongkan.
         // Tapi default awal memuat hari ini agar cepat dan relevan.
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
         $query = $this->getFilteredQuery($request);
-        $timesheets = $query->paginate(15)->withQueryString();
+        $timesheets = $query->paginate($perPage)->withQueryString();
 
         // KPI Ringkasan Data Terfilter
         $statsQuery = clone $this->getFilteredQuery($request);

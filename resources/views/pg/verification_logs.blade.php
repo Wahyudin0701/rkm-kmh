@@ -64,10 +64,10 @@
     @endphp
 
     <!-- Form Filter & Pencarian Cepat (Aturan Standar: Separated Search Bar & Collapsible Filter Card) -->
-    <form method="GET" action="{{ route('pg.logs.index') }}" class="space-y-3">
+    <form method="GET" action="{{ route('pg.logs.index') }}" id="verificationLogFilterForm" class="space-y-3">
         <!-- Level 1: Quick Search Bar Mandiri di Luar Card Filter & Tombol Toggle -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <!-- Search Bar Utama (Real-Time) -->
+            <!-- Search Bar Utama (Real-Time Server Search) -->
             <div class="relative flex-1">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -80,8 +80,22 @@
                        class="w-full text-xs rounded-xl border border-slate-200 bg-white hover:border-slate-300 focus:bg-white pl-9 pr-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition shadow-2xs">
             </div>
 
-            <!-- Tombol Buka/Tutup Filter Card & Reset Filter -->
+            <!-- Tombol Buka/Tutup Filter Card & Pilihan Per Halaman -->
             <div class="flex items-center gap-2.5 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                <!-- Filter Tampilan Per Halaman -->
+                <select name="per_page" 
+                        onchange="this.form.submit()" 
+                        class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] shadow-2xs transition truncate">
+                    <option value="20" {{ request('per_page', '20') == '20' ? 'selected' : '' }}>20 / Hal</option>
+                    <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                    <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
+                </select>
+
+                <!-- Tombol Submit Pencarian -->
+                <button type="submit" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer whitespace-nowrap">
+                    Cari
+                </button>
+
                 <button type="button" 
                         id="filterToggleBtn"
                         onclick="toggleFilterCard()" 
@@ -97,7 +111,7 @@
                 </button>
 
                 <div id="headerResetFilterContainer">
-                    @if(request()->anyFilled(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date']))
+                    @if(request()->anyFilled(['search', 'team', 'security_guard_id', 'gate_id', 'direction', 'status', 'start_date', 'end_date', 'per_page']))
                         <a href="{{ route('pg.logs.index') }}" 
                            id="headerResetFilterBtn" 
                            class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100">
@@ -629,99 +643,22 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('verificationLogSearchInput');
-        const tableBody = document.getElementById('verificationLogTableBody');
-        const resetContainer = document.getElementById('headerResetFilterContainer');
-        const hasServerFilters = {{ request()->anyFilled($filterKeys) ? 'true' : 'false' }};
+        const filterForm = document.getElementById('verificationLogFilterForm');
+        let searchDebounce = null;
 
-        if (searchInput && tableBody) {
-            searchInput.addEventListener('input', function (e) {
-                const rawValue = e.target.value;
-                const query = rawValue.toLowerCase().trim();
-                const rows = tableBody.querySelectorAll('tr.verification-row');
-                let visibleCount = 0;
-
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    const match = text.includes(query);
-                    row.style.display = match ? '' : 'none';
-                    if (match) visibleCount++;
-                });
-
-                const serverEmptyRow = document.getElementById('serverVerificationEmptyRow');
-                if (serverEmptyRow) {
-                    serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
-                }
-
-                // Hapus baris pesan kosong pencarian jika ada sebelumnya
-                const existingEmptyRow = document.getElementById('verificationEmptySearchRow');
-                if (existingEmptyRow) {
-                    existingEmptyRow.remove();
-                }
-
-                // Tampilkan pesan instan jika tidak ada baris yang cocok di tabel
-                if (visibleCount === 0 && query.length > 0) {
-                    const emptyTr = document.createElement('tr');
-                    emptyTr.id = 'verificationEmptySearchRow';
-                    emptyTr.innerHTML = `
-                        <td colspan="10" class="py-12 text-center text-slate-400">
-                            <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                            <p class="text-sm font-semibold text-slate-700">
-                                <span class="inline-block mr-1">🔍</span>Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
-                            </p>
-                            <p class="text-xs text-slate-400 mt-1">
-                                Pastikan ejaan nomor transaksi, nomor plat, nama driver, atau petugas satpam yang dicari sudah benar.
-                            </p>
-                            <div class="mt-4">
-                                <button type="button" 
-                                        onclick="const inp = document.getElementById('verificationLogSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                    <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                                    <span>Hapus Pencarian</span>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tableBody.appendChild(emptyTr);
-                }
-
-                // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
-                let resetBtn = document.getElementById('headerResetFilterBtn');
-                if (query.length > 0) {
-                    if (!resetBtn && resetContainer) {
-                        resetBtn = document.createElement('a');
-                        resetBtn.href = "{{ route('pg.logs.index') }}";
-                        resetBtn.id = 'headerResetFilterBtn';
-                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100';
-
-                        const resetIcon = document.createElement('i');
-                        resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
-                        const resetText = document.createElement('span');
-                        resetText.textContent = 'Reset Filter';
-
-                        resetBtn.appendChild(resetIcon);
-                        resetBtn.appendChild(resetText);
-                        resetContainer.appendChild(resetBtn);
-                    }
-                } else if (!hasServerFilters && resetBtn) {
-                    resetBtn.remove();
-                }
-            });
+        if (searchInput && searchInput.value) {
+            searchInput.focus();
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
         }
 
-        // Reset filter click handler saat hanya input client-side tanpa server filter
-        if (resetContainer) {
-            resetContainer.addEventListener('click', function(e) {
-                const btn = e.target.closest('#headerResetFilterBtn');
-                if (btn && !hasServerFilters) {
-                    e.preventDefault();
-                    if (searchInput) {
-                        searchInput.value = '';
-                        searchInput.dispatchEvent(new Event('input'));
-                        searchInput.focus();
-                    }
-                }
-            });
-        }
+        searchInput?.addEventListener('input', function() {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(function() {
+                filterForm?.submit();
+            }, 500);
+        });
+    });
     });
 
     // Panduan Halaman Modal

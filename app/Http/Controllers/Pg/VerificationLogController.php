@@ -122,7 +122,12 @@ class VerificationLogController extends Controller
      */
     public function index(Request $request): View
     {
-        $activities = $this->getVerificationLogsQuery($request)->paginate(20)->withQueryString();
+        $perPage = (int) $request->input('per_page', 20);
+        if (!in_array($perPage, [20, 50, 100])) {
+            $perPage = 20;
+        }
+
+        $activities = $this->getVerificationLogsQuery($request)->paginate($perPage)->withQueryString();
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $guards = SecurityGuard::orderBy('name')->get();
 

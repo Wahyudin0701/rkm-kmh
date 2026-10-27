@@ -105,7 +105,12 @@ class ActivityLogController extends Controller
         $startDate = $request->input('start_date', $today);
         $endDate = $request->input('end_date', $today);
 
-        $activities = $this->getFilteredActivityQuery($request)->paginate(20)->withQueryString();
+        $perPage = (int) $request->input('per_page', 20);
+        if (!in_array($perPage, [20, 50, 100])) {
+            $perPage = 20;
+        }
+
+        $activities = $this->getFilteredActivityQuery($request)->paginate($perPage)->withQueryString();
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
 
         return view('qma.activity_log', compact('activities', 'gates', 'startDate', 'endDate'));

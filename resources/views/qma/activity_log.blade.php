@@ -63,10 +63,10 @@
     @endphp
 
     <!-- Form Filter & Pencarian Cepat -->
-    <form method="GET" action="{{ route('qma.activity.log') }}" class="space-y-3">
+    <form method="GET" action="{{ route('qma.activity.log') }}" id="activityLogFilterForm" class="space-y-3">
         <!-- Baris Atas: Search Bar Mandiri di Luar Card Filter & Tombol Toggle -->
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <!-- Search Bar Utama (Real-Time) -->
+            <!-- Search Bar Utama (Real-Time Server Search) -->
             <div class="relative flex-1">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -79,8 +79,22 @@
                        class="w-full text-xs rounded-xl border border-slate-200 bg-white hover:border-slate-300 focus:bg-white pl-9 pr-3.5 py-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition shadow-2xs">
             </div>
 
-            <!-- Tombol Buka/Tutup Filter Card & Reset Filter -->
+            <!-- Tombol Buka/Tutup Filter Card & Pilihan Per Halaman -->
             <div class="flex items-center gap-2.5 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                <!-- Filter Tampilan Per Halaman -->
+                <select name="per_page" 
+                        onchange="this.form.submit()" 
+                        class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] shadow-2xs transition truncate">
+                    <option value="20" {{ request('per_page', '20') == '20' ? 'selected' : '' }}>20 / Hal</option>
+                    <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                    <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
+                </select>
+
+                <!-- Tombol Submit Pencarian -->
+                <button type="submit" class="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer whitespace-nowrap">
+                    Cari
+                </button>
+
                 <button type="button" 
                         id="filterToggleBtn"
                         onclick="toggleFilterCard()" 
@@ -96,7 +110,7 @@
                 </button>
 
                 <div id="headerResetFilterContainer">
-                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status']))
+                    @if(request()->anyFilled(['search', 'start_date', 'end_date', 'gate_id', 'direction', 'status', 'per_page']))
                         <a href="{{ route('qma.activity.log') }}" 
                            id="headerResetFilterBtn" 
                            class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition px-3 py-2 rounded-xl hover:bg-rose-50 border border-transparent hover:border-rose-100">
@@ -449,88 +463,21 @@ function escapeHtml(str) {
 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('activityLogSearchInput');
-    const tableBody = document.getElementById('activityLogTableBody');
-    const resetContainer = document.getElementById('headerResetFilterContainer');
-    const paginationContainer = document.getElementById('activityPaginationContainer');
-    const serverEmptyRow = document.getElementById('serverActivityEmptyRow');
-    const hasServerFilters = {{ request()->anyFilled(['start_date', 'end_date', 'gate_id', 'direction', 'status']) ? 'true' : 'false' }};
+    const filterForm = document.getElementById('activityLogFilterForm');
+    let searchDebounce = null;
 
-    if (searchInput && tableBody) {
-        searchInput.addEventListener('input', function (e) {
-            const rawValue = e.target.value;
-            const query = rawValue.toLowerCase().trim();
-            const rows = tableBody.querySelectorAll('tr.activity-row');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            if (paginationContainer) {
-                paginationContainer.style.display = query.length > 0 ? 'none' : '';
-            }
-
-            const existingEmptyRow = document.getElementById('clientSearchEmptyRow');
-            if (existingEmptyRow) existingEmptyRow.remove();
-
-            if (serverEmptyRow) {
-                serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
-            }
-
-            if (visibleCount === 0 && query.length > 0) {
-                const emptyTr = document.createElement('tr');
-                emptyTr.id = 'clientSearchEmptyRow';
-                emptyTr.innerHTML = `
-                    <td colspan="11" class="py-12 px-4 text-center">
-                        <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                        <p class="text-sm font-semibold text-slate-700">
-                            Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
-                        </p>
-                        <p class="text-xs text-slate-400 mt-1">
-                            Pastikan kata kunci yang dicari sudah benar.
-                        </p>
-                        <div class="mt-4">
-                            <button type="button" 
-                                    onclick="const inp = document.getElementById('activityLogSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                                <span>Hapus Pencarian</span>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tableBody.appendChild(emptyTr);
-            }
-
-            if (resetContainer) {
-                let resetBtn = document.getElementById('headerResetFilterBtn');
-                if (query.length > 0 || hasServerFilters) {
-                    if (!resetBtn) {
-                        resetBtn = document.createElement('a');
-                        resetBtn.href = "{{ route('qma.activity.log') }}";
-                        resetBtn.id = 'headerResetFilterBtn';
-                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 transition';
-                        const resetIcon = document.createElement('i');
-                        resetIcon.className = 'fa-solid fa-rotate-left text-[11px]';
-                        const resetText = document.createElement('span');
-                        resetText.textContent = 'Reset Filter';
-
-                        resetBtn.appendChild(resetIcon);
-                        resetBtn.appendChild(resetText);
-                        resetContainer.appendChild(resetBtn);
-                    }
-                } else if (!hasServerFilters && resetBtn) {
-                    resetBtn.remove();
-                }
-            }
-        });
+    if (searchInput && searchInput.value) {
+        searchInput.focus();
+        const len = searchInput.value.length;
+        searchInput.setSelectionRange(len, len);
     }
+
+    searchInput?.addEventListener('input', function() {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(function() {
+            filterForm?.submit();
+        }, 500);
+    });
 });
 
     // Toggle Card Filter Lanjutan

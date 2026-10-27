@@ -62,7 +62,7 @@
 
 
     <!-- Kotak Pencarian & Filter Kategori Alat Berat -->
-    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+    <form method="GET" action="{{ route('qma.vehicles.support') }}" id="supportFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div class="relative w-full max-w-sm sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -77,20 +77,26 @@
 
         <div class="flex flex-wrap items-center gap-2">
             <!-- Filter Kategori Alat Berat -->
-            <form method="GET" action="{{ route('qma.vehicles.support') }}" class="flex items-center space-x-2">
-                @if(request('search'))
-                    <input type="hidden" name="search" value="{{ request('search') }}">
-                @endif
-                <select name="unit_category" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
-                    <option value="">Semua Kategori Alat</option>
-                    @foreach($availableCategories as $cat)
-                        <option value="{{ $cat }}" {{ request('unit_category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                    @endforeach
-                </select>
-            </form>
+            <select name="unit_category" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                <option value="">Semua Kategori Alat</option>
+                @foreach($availableCategories as $cat)
+                    <option value="{{ $cat }}" {{ request('unit_category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+                @endforeach
+            </select>
+
+            <!-- Filter Jumlah Per Halaman -->
+            <select name="per_page" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                <option value="15" {{ request('per_page', '15') == '15' ? 'selected' : '' }}>15 / Hal</option>
+                <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
+            </select>
+
+            <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+                Cari
+            </button>
 
             <div id="supportResetWrapper" class="flex items-center">
-                @if(request('search') || request('unit_category'))
+                @if(request()->anyFilled(['search', 'unit_category', 'per_page']))
                     <a id="supportResetBtn" href="{{ route('qma.vehicles.support') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>Reset</span>
@@ -98,7 +104,7 @@
                 @endif
             </div>
         </div>
-    </div>
+    </form>
 
     <!-- Tabel Data Kategori Heavy Equipment (Header Navy Solid #06213f) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -633,82 +639,21 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('supportSearchInput');
-        const tableBody = document.getElementById('supportTableBody');
-        const resetWrapper = document.getElementById('supportResetWrapper');
-        const paginationContainer = document.getElementById('supportPaginationContainer');
-        const serverEmptyRow = document.getElementById('serverSupportEmptyRow');
-        const hasServerFilters = {{ request()->anyFilled(['status', 'unit_category']) ? 'true' : 'false' }};
+        const filterForm = document.getElementById('supportFilterForm');
+        let searchDebounce = null;
 
-        if (searchInput && tableBody) {
-            searchInput.addEventListener('input', function (e) {
-                const rawValue = e.target.value;
-                const query = rawValue.toLowerCase().trim();
-                const rows = tableBody.querySelectorAll('tr.support-row');
-                let visibleCount = 0;
-
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    if (text.includes(query)) {
-                        row.style.display = '';
-                        visibleCount++;
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                if (paginationContainer) {
-                    paginationContainer.style.display = query.length > 0 ? 'none' : '';
-                }
-
-                const existingEmptyRow = document.getElementById('clientSupportEmptyRow');
-                if (existingEmptyRow) existingEmptyRow.remove();
-
-                if (serverEmptyRow) {
-                    serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
-                }
-
-                if (visibleCount === 0 && query.length > 0) {
-                    const emptyTr = document.createElement('tr');
-                    emptyTr.id = 'clientSupportEmptyRow';
-                    emptyTr.innerHTML = `
-                        <td colspan="8" class="py-12 text-center text-slate-400">
-                            <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                            <p class="text-sm font-semibold text-slate-700">
-                                Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
-                            </p>
-                            <p class="text-xs text-slate-400 mt-1">
-                                Pastikan kata kunci yang dicari sudah benar.
-                            </p>
-                            <div class="mt-4">
-                                <button type="button" 
-                                        onclick="const inp = document.getElementById('supportSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                        class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                    <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                                    <span>Hapus Pencarian</span>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    tableBody.appendChild(emptyTr);
-                }
-
-                if (resetWrapper) {
-                    let resetBtn = document.getElementById('supportResetBtn');
-                    if (query.length > 0 || hasServerFilters) {
-                        if (!resetBtn) {
-                            resetBtn = document.createElement('a');
-                            resetBtn.id = 'supportResetBtn';
-                            resetBtn.href = "{{ route('qma.vehicles.support') }}";
-                            resetBtn.className = 'text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1';
-                            resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left"></i><span>Reset</span>';
-                            resetWrapper.appendChild(resetBtn);
-                        }
-                    } else if (!hasServerFilters && resetBtn) {
-                        resetBtn.remove();
-                    }
-                }
-            });
+        if (searchInput && searchInput.value) {
+            searchInput.focus();
+            const len = searchInput.value.length;
+            searchInput.setSelectionRange(len, len);
         }
+
+        searchInput?.addEventListener('input', function() {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(function() {
+                filterForm?.submit();
+            }, 500);
+        });
     });
 
     // Daftar semua kode kendaraan heavy equipment yang sudah terdaftar di sistem

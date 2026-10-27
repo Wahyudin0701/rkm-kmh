@@ -115,7 +115,12 @@ class VehicleController extends Controller
      */
     public function indexLv(Request $request): View
     {
-        $vehicles = $this->getFilteredLvQuery($request)->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $vehicles = $this->getFilteredLvQuery($request)->paginate($perPage)->withQueryString();
 
         // Statistik Ringkasan Khusus LV
         $totalLv = Vehicle::lightVehicles()->count();
@@ -303,7 +308,12 @@ class VehicleController extends Controller
             });
         }
 
-        $vehicles = $query->orderBy('code')->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $vehicles = $query->orderBy('code')->paginate($perPage)->withQueryString();
 
         // Statistik Ringkasan Khusus Heavy Equipment
         $totalSupport = Vehicle::unitSupportCategories()->count();
@@ -386,7 +396,12 @@ class VehicleController extends Controller
             });
         }
 
-        $units = $query->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $units = $query->paginate($perPage)->withQueryString();
 
         $totalUnits = $category->units()->count();
         $totalOperation = $category->units()->where('status', 'Operation')->count();

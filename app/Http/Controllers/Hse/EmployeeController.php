@@ -143,7 +143,12 @@ class EmployeeController extends Controller
      */
     public function index(Request $request): View
     {
-        $employees = $this->getFilteredEmployees($request)->paginate(20)->withQueryString();
+        $perPage = (int) $request->input('per_page', 20);
+        if (!in_array($perPage, [20, 50, 100])) {
+            $perPage = 20;
+        }
+
+        $employees = $this->getFilteredEmployees($request)->paginate($perPage)->withQueryString();
 
         $employeeTypes = Employee::whereNotNull('employee_type')
             ->where('employee_type', '!=', '')

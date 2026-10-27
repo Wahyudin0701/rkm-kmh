@@ -60,7 +60,7 @@
 
 
     <!-- Kotak Pencarian & Filter Status P2H (Tanpa Card Pembungkus Sesuai Gambar Referensi) -->
-    <form method="GET" action="{{ route('qma.p2h.index') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+    <form method="GET" action="{{ route('qma.p2h.index') }}" id="p2hFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         @if(request('date'))
             <input type="hidden" name="date" value="{{ request('date') }}">
         @endif
@@ -95,8 +95,20 @@
                 <option value="has_defect" {{ request('summary_condition') === 'has_defect' ? 'selected' : '' }}>Ada Temuan Rusak</option>
             </select>
 
+            <!-- Filter Jumlah Per Halaman -->
+            <select name="per_page" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] shadow-sm">
+                <option value="15" {{ request('per_page', '15') == '15' ? 'selected' : '' }}>15 / Hal</option>
+                <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                <option value="100" {{ request('per_page') == '100' ? 'selected' : '' }}>Semua (100)</option>
+            </select>
+
+            <!-- Tombol Submit Pencarian -->
+            <button type="submit" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer whitespace-nowrap">
+                Cari
+            </button>
+
             <div id="p2hResetWrapper">
-                @if(request('search') || request('validation_status') || request('summary_condition') || request('date'))
+                @if(request()->anyFilled(['search', 'validation_status', 'summary_condition', 'date', 'per_page']))
                     <a id="p2hResetBtn" href="{{ route('qma.p2h.index') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1" title="Reset Semua Filter">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>Reset</span>
@@ -243,94 +255,21 @@ function escapeHtml(str) {
 
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('p2hSearchInput');
-    const tableBody = document.getElementById('p2hTableBody');
-    const resetWrapper = document.getElementById('p2hResetWrapper');
-    const serverEmptyRow = document.getElementById('serverEmptyRow');
-    const paginationContainer = document.getElementById('p2hPaginationContainer');
-    const hasServerFilters = {{ request()->anyFilled(['validation_status', 'summary_condition', 'date']) ? 'true' : 'false' }};
+    const filterForm = document.getElementById('p2hFilterForm');
+    let searchDebounce = null;
 
-    if (searchInput && tableBody) {
-        searchInput.addEventListener('input', function (e) {
-            const rawValue = e.target.value;
-            const query = rawValue.toLowerCase().trim();
-            const rows = tableBody.querySelectorAll('tr.p2h-row');
-            let visibleCount = 0;
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(query)) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-
-            // Sembunyikan pagination saat client-side search aktif
-            if (paginationContainer) {
-                paginationContainer.style.display = query.length > 0 ? 'none' : '';
-            }
-
-            const existingEmptyRow = document.getElementById('clientSearchEmptyRow');
-            if (existingEmptyRow) existingEmptyRow.remove();
-
-            // Sembunyikan server empty row saat mengetik jika ada
-            if (serverEmptyRow) {
-                serverEmptyRow.style.display = query.length > 0 ? 'none' : '';
-            }
-
-            // Tampilkan pesan kosong jika tidak ada baris yang cocok
-            if (visibleCount === 0 && query.length > 0) {
-                const emptyTr = document.createElement('tr');
-                emptyTr.id = 'clientSearchEmptyRow';
-                emptyTr.innerHTML = `
-                    <td colspan="10" class="py-16 text-center">
-                        <p class="text-sm font-bold text-slate-700">
-                            Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
-                        </p>
-                        <p class="text-xs text-slate-400 mt-1">
-                            Pastikan kata kunci yang dicari sudah benar.
-                        </p>
-                        <div class="mt-4">
-                            <button type="button" 
-                                    onclick="const inp = document.getElementById('p2hSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                    class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                <span>Hapus Pencarian</span>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tableBody.appendChild(emptyTr);
-            }
-
-            // Tampilkan atau sembunyikan tombol Reset Filter secara real-time
-            if (resetWrapper) {
-                let resetBtn = document.getElementById('p2hResetBtn');
-                if (query.length > 0 || hasServerFilters) {
-                    if (!resetBtn) {
-                        resetBtn = document.createElement('a');
-                        resetBtn.id = 'p2hResetBtn';
-                        resetBtn.href = "{{ route('qma.p2h.index') }}";
-                        resetBtn.className = 'text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1';
-                        resetBtn.title = 'Reset Semua Filter';
-
-                        const resetIcon = document.createElement('i');
-                        resetIcon.className = 'fa-solid fa-rotate-left';
-                        const resetText = document.createElement('span');
-                        resetText.textContent = 'Reset';
-
-                        resetBtn.appendChild(resetIcon);
-                        resetBtn.appendChild(resetText);
-                        resetWrapper.appendChild(resetBtn);
-                    }
-                } else {
-                    if (resetBtn && !hasServerFilters) {
-                        resetBtn.remove();
-                    }
-                }
-            }
-        });
+    if (searchInput && searchInput.value) {
+        searchInput.focus();
+        const len = searchInput.value.length;
+        searchInput.setSelectionRange(len, len);
     }
+
+    searchInput?.addEventListener('input', function() {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(function() {
+            filterForm?.submit();
+        }, 500);
+    });
 });
 
 function openGuideModal() {

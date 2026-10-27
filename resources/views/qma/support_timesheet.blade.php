@@ -101,7 +101,7 @@
     </div>
 
     <!-- Kotak Pencarian & Filter Status Timesheet (Tanpa Card Wrapper, Format Persis HSE Employees) -->
-    <form method="GET" action="{{ url()->current() }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+    <form method="GET" action="{{ url()->current() }}" id="timesheetFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
         <!-- Pencarian Cepat di Kiri dengan Tombol Cari -->
         <div class="relative w-full sm:max-w-md flex items-center">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
@@ -172,11 +172,20 @@
                     <option value="Karyawan" {{ request('operator_type') === 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
                     <option value="Sukon" {{ request('operator_type') === 'Sukon' ? 'selected' : '' }}>Sukon</option>
                 </select>
+
+                <!-- Filter Tampilan Per Halaman -->
+                <select name="per_page" 
+                        onchange="this.form.submit()" 
+                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                    <option value="15" {{ request('per_page', '15') == '15' ? 'selected' : '' }}>15 / Hal</option>
+                    <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                    <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
+                </select>
             </div>
 
             <!-- Tombol Reset Filter -->
             <div id="timesheetResetContainer">
-                @if(request()->anyFilled(['search', 'vehicle_id', 'shift', 'operator_type']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
+                @if(request()->anyFilled(['search', 'vehicle_id', 'shift', 'operator_type', 'per_page']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
                     <a href="{{ url()->current() }}" 
                        id="timesheetResetBtn"
                        class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
@@ -1626,68 +1635,22 @@
     document.getElementById('addMeterType')?.addEventListener('change', () => updateMeterUnitLabels('add'));
     document.getElementById('editMeterType')?.addEventListener('change', () => updateMeterUnitLabels('edit'));
 
-    // 8. Filter Pencarian Instan Real-Time (Persis Standar HSE Employees)
+    // 8. Pencarian Server-Side Otomatis (Global ke seluruh database)
+    const timesheetFilterForm = document.getElementById('timesheetFilterForm');
     const timesheetSearchInput = document.getElementById('timesheetSearchInput');
-    const timesheetResetContainer = document.getElementById('timesheetResetContainer');
-    const timesheetTableBody = document.getElementById('timesheetTableBody');
+    let timesheetSearchDebounce = null;
 
-    timesheetSearchInput?.addEventListener('input', function(e) {
-        const query = e.target.value.toLowerCase().trim();
-        const cleanQuery = query.replace(/[\s\-_]/g, '');
-        const rows = document.querySelectorAll('#timesheetTableBody tr.timesheet-row');
-        let visibleCount = 0;
+    if (timesheetSearchInput && timesheetSearchInput.value) {
+        timesheetSearchInput.focus();
+        const len = timesheetSearchInput.value.length;
+        timesheetSearchInput.setSelectionRange(len, len);
+    }
 
-        rows.forEach(row => {
-            const text = row.innerText.toLowerCase();
-            const cleanText = text.replace(/[\s\-_]/g, '');
-            const match = query === '' || text.includes(query) || (cleanQuery.length > 0 && cleanText.includes(cleanQuery));
-            if (match) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        // Dynamic empty state
-        const existingEmptyTr = document.getElementById('timesheetClientEmptyRow');
-        if (existingEmptyTr) existingEmptyTr.remove();
-
-        if (visibleCount === 0 && rows.length > 0) {
-            const emptyTr = document.createElement('tr');
-            emptyTr.id = 'timesheetClientEmptyRow';
-            emptyTr.innerHTML = `
-                <td colspan="9" class="py-12 text-center text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                    <p class="text-sm font-semibold text-slate-700">Tidak ada timesheet yang cocok</p>
-                    <p class="text-xs text-slate-400 mt-1">
-                        Tidak ditemukan data dengan kata kunci "${escapeHtml(query)}" pada halaman ini.
-                    </p>
-                    <div class="mt-4">
-                        <button type="button" 
-                                onclick="const inp = document.getElementById('timesheetSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                                class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                            <span>Hapus Pencarian</span>
-                        </button>
-                    </div>
-                </td>
-            `;
-            timesheetTableBody?.appendChild(emptyTr);
-        }
-
-        // Dynamic reset button
-        let resetBtn = document.getElementById('timesheetResetBtn');
-        if (query.length > 0) {
-            if (!resetBtn && timesheetResetContainer) {
-                resetBtn = document.createElement('a');
-                resetBtn.id = 'timesheetResetBtn';
-                resetBtn.href = window.location.pathname;
-                resetBtn.className = 'text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2';
-                resetBtn.innerHTML = '<i class="fa-solid fa-rotate-left text-[11px]"></i><span>Reset Filter</span>';
-                timesheetResetContainer.appendChild(resetBtn);
-            }
-        }
+    timesheetSearchInput?.addEventListener('input', function() {
+        clearTimeout(timesheetSearchDebounce);
+        timesheetSearchDebounce = setTimeout(function() {
+            timesheetFilterForm?.submit();
+        }, 500);
     });
 
     function escapeHtml(str) {

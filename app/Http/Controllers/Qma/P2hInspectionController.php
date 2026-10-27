@@ -58,7 +58,12 @@ class P2hInspectionController extends Controller
      */
     public function index(Request $request): View
     {
-        $records = $this->getFilteredP2hQuery($request)->paginate(15)->withQueryString();
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $records = $this->getFilteredP2hQuery($request)->paginate($perPage)->withQueryString();
 
         // Statistik Ringkasan P2H
         $totalP2h = P2hRecord::count();
