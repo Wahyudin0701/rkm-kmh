@@ -151,19 +151,19 @@
     <!-- Tabel Data Simper dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full text-xs text-left border-collapse">
+            <table class="w-full min-w-[1180px] text-xs text-left border-collapse">
                 <!-- Header Tabel Navy Gelap Solid #06213f -->
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
-                        <th class="py-3.5 px-4 text-center w-12">NO</th>
-                        <th class="py-3.5 px-4">NIK</th>
-                        <th class="py-3.5 px-4">NAMA LENGKAP</th>
-                        <th class="py-3.5 px-4 text-center">JENIS</th>
-                        <th class="py-3.5 px-4">JABATAN</th>
-                        <th class="py-3.5 px-4">UNIT / DIVISI</th>
-                        <th class="py-3.5 px-4 text-center">STATUS DRIVER</th>
-                        <th class="py-3.5 px-4 text-center">MASA BERLAKU SIMPER</th>
-                        <th class="py-3.5 px-4 text-center">AKSI</th>
+                        <th class="py-3.5 pl-6 pr-3 text-center w-14 min-w-[56px] whitespace-nowrap">NO</th>
+                        <th class="py-3.5 px-4 min-w-[120px] whitespace-nowrap">NIK</th>
+                        <th class="py-3.5 px-4 min-w-[190px]">NAMA LENGKAP</th>
+                        <th class="py-3.5 px-3 text-center min-w-[90px] whitespace-nowrap">JENIS</th>
+                        <th class="py-3.5 px-4 min-w-[140px]">JABATAN</th>
+                        <th class="py-3.5 px-4 min-w-[140px]">UNIT / DIVISI</th>
+                        <th class="py-3.5 px-3 text-center min-w-[110px] whitespace-nowrap">STATUS DRIVER</th>
+                        <th class="py-3.5 px-4 text-center min-w-[150px] whitespace-nowrap">MASA BERLAKU SIMPER</th>
+                        <th class="py-3.5 pl-3 pr-6 text-center min-w-[220px] whitespace-nowrap">AKSI</th>
                     </tr>
                 </thead>
                 <tbody id="simperTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
@@ -173,13 +173,13 @@
                         @endphp
                         <tr class="simper-row hover:bg-slate-50/70 transition">
                             <!-- Nomor -->
-                            <td class="py-3.5 px-4 text-center font-medium text-slate-400">{{ $employees->firstItem() ? ($employees->firstItem() + $index) : ($index + 1) }}</td>
+                            <td class="py-3.5 pl-6 pr-3 text-center font-medium text-slate-400 whitespace-nowrap">{{ $employees->firstItem() ? ($employees->firstItem() + $index) : ($index + 1) }}</td>
                             
                             <!-- NIK (Font Bold Hitam Tegas) -->
-                            <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs">{{ $emp->nik }}</td>
+                            <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs whitespace-nowrap">{{ $emp->nik }}</td>
                             
                             <!-- Nama Lengkap (Avatar + Font Bold Hitam) -->
-                            <td class="py-3.5 px-4 font-bold text-slate-900">
+                            <td class="py-3.5 px-4 font-bold text-slate-900 min-w-[190px]">
                                 <div class="flex items-center space-x-2.5">
                                     @if($emp->photo_path)
                                         <img src="{{ $emp->photo_url }}" alt="{{ $emp->name }}" class="w-8 h-8 rounded-full object-cover border border-slate-200 shadow-2xs flex-shrink-0 cursor-pointer" onclick='openEditModal(@json($emp))'>
@@ -193,7 +193,7 @@
                             </td>
 
                             <!-- Jenis Personil (Karyawan / Sukon) -->
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <td class="py-3.5 px-3 text-center whitespace-nowrap">
                                 @if($emp->isSukon())
                                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                         Sukon
@@ -210,10 +210,10 @@
                             </td>
                             
                             <!-- Jabatan -->
-                            <td class="py-3.5 px-4 text-slate-600">{{ $emp->position ?? '-' }}</td>
+                            <td class="py-3.5 px-4 text-slate-600 min-w-[140px]">{{ $emp->position ?? '-' }}</td>
                             
                             <!-- Unit / Divisi -->
-                            <td class="py-3.5 px-4 text-slate-500">
+                            <td class="py-3.5 px-4 text-slate-500 min-w-[140px]">
                                 <span class="font-medium text-slate-700">{{ $emp->unit_kerja ?? '-' }}</span>
                                 @if($emp->division)
                                     <span class="text-slate-400 block text-[10px]">{{ $emp->division }}</span>
@@ -221,7 +221,7 @@
                             </td>
                             
                             <!-- Status Driver -->
-                            <td class="py-3.5 px-4 text-center">
+                            <td class="py-3.5 px-3 text-center whitespace-nowrap">
                                 @if($emp->is_operator)
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
                                         Driver
@@ -234,13 +234,13 @@
                             </td>
                             
                             <!-- Masa Berlaku SIMPER & Multi-SIMPER Badges -->
-                            <td class="py-3.5 px-4 text-center">
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap min-w-[150px]">
                                 @if(!$emp->is_operator)
                                     <span class="text-slate-400 italic text-[11px]">-</span>
                                 @elseif($emp->simpers && $emp->simpers->isNotEmpty())
                                     <div class="flex flex-col gap-1 items-center">
                                         @foreach($emp->simpers as $sm)
-                                            @php
+                                             @php
                                                 $smValid = $sm->isValid();
                                                 $smCode = $sm->simperType?->code ?: 'SIMPER';
                                                 $shortCode = str_replace('SIMPER-', '', $smCode);
@@ -265,9 +265,9 @@
                             </td>
                             
                             <!-- Aksi (Edit Data Simper, Perpanjang, & Hapus Karyawan) -->
-                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <td class="py-3.5 pl-3 pr-6 text-center whitespace-nowrap min-w-[220px]">
                                 @if(auth()->user()->can('hse.employees.edit') || auth()->user()->can('hse.employees.delete'))
-                                <div class="flex items-center justify-center space-x-1.5">
+                                <div class="inline-flex items-center justify-center space-x-1">
                                     @can('hse.employees.edit')
                                     <button onclick='openEditModal(@json($emp))' 
                                             class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition cursor-pointer"
@@ -306,7 +306,7 @@
                         </tr>
                     @empty
                         <tr id="serverSimperEmptyRow">
-                            <td colspan="8" class="py-12 text-center text-slate-400">
+                            <td colspan="9" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
                                     <p class="text-sm font-semibold text-slate-700">
