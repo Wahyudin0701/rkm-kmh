@@ -1,0 +1,4399 @@
+[
+    {
+        "name": "Boomlift",
+        "code": "BL01",
+        "description": "Checksheet resmi P2H unit Boomlift (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Attachment",
+                "title": "Basket \/ Keranjang (enginee)",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Attachment",
+                "title": "Cylinder (Enginee)",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Attachment",
+                "title": "Boom (Enginee)",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Attachment",
+                "title": "Basket \/ Keranjang (Baterai)",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Attachment",
+                "title": "Cylinder Baterai",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Attachment",
+                "title": "Boom Baterai",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Fuel level",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Water Separator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Enginee",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik (enginee)",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik (Baterai)",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Water",
+                "title": "Air Radiator",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Elektrik",
+                "title": "Baterai enginee",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Elektrik",
+                "title": "Almpu Kerja (Enginee)",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klokson (enginee)",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel (enginee)",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Elektrik",
+                "title": "Baterai",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu kerja (Baterai)",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klakson (Baterai)",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel (Baterai)",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Grease",
+                "title": "10 h (enginee)",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Grease",
+                "title": "50 h (enginee)",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Grease",
+                "title": "10 h (baterai)",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Grease",
+                "title": "50 h (baterai)",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Fuel \/ BBM",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil enginee",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/Air (enginee)",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil (baterai)",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/ Air (baterai)",
+                "question_type": "choice",
+                "sequence": 29
+            }
+        ]
+    },
+    {
+        "name": "Bore Pile Rig",
+        "code": "VGRM7X",
+        "description": "Checksheet resmi P2H unit Bore Pile Rig \/ Drilling (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Attachment",
+                "title": "Cylinder",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Attachment",
+                "title": "Boom",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Fuel level",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Water Separator",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Enginee",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Water",
+                "title": "Air Radiator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Water",
+                "title": "Wiper",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Elektrik",
+                "title": "Baterai (enginee)",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu Kerja (enginee)",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klokson (enginee)",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel (enginee)",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Elektrik",
+                "title": "Baterai",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu kerja (Baterai)",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klakson (Baterai)",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel (Baterai)",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Grease",
+                "title": "10 h (enginee)",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Grease",
+                "title": "50 h (enginee)",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Fuel \/ BBM",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil enginee",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/Air",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Trak",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Alat",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Ruang kabin",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Fungsi-fungsi",
+                "title": "Fungsi steering",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Fungsi-fungsi",
+                "title": "Fungsi Kontrol",
+                "question_type": "choice",
+                "sequence": 26
+            }
+        ]
+    },
+    {
+        "name": "Carry Deck Crane",
+        "code": "CDRM7C",
+        "description": "Template form inspeksi P2H resmi untuk kategori Carry Deck Crane (Kode: CDRM7C).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Electric Compressor",
+        "code": "YMWL9T",
+        "description": "Template form inspeksi P2H resmi untuk kategori Electric Compressor (Kode: YMWL9T).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Engine Compressor",
+        "code": "YKWL9C",
+        "description": "Checksheet resmi P2H unit Compressor Engine (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level dan kondisi oli mesin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator\/claim radiator",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oli dan air",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Aki",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa saringan udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level dan kondisi oli kompresor",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kipas dan ketegangan Belt altenator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa core\/kisi kisi radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Menguras Air dan endapan di tangki Solar",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa actual Volume solar (BBM)",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kebocoran oli",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kencangkan baut dan mur",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Body unit",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & baut roda",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lakukan grease\/pelumasan pada unit",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan tutup oli dan udara tertutup rapat",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan switch baterai dalam kondisi ON",
+                "question_type": "text",
+                "sequence": 17
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan Lihat Monitor\/panel",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa indikator bahan bakar\/solar",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter unit",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kipas",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Oli, air & udara diarea Unit",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Suara Bunyi Tidak Normal",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Safety Equipment",
+                "title": "Bendera Safety",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Safety Equipment",
+                "title": "APAR \/ Alat Pemadam",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Safety Equipment",
+                "title": "Safety Cone",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Description",
+                "title": "Description",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Stop",
+                "title": "Stop",
+                "question_type": "choice",
+                "sequence": 28
+            }
+        ]
+    },
+    {
+        "name": "Trailer Concrete Pump Electric",
+        "code": "CPWL9P",
+        "description": "Checksheet resmi P2H Trailer Concrete Pump Electric (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oli dan air",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa saringan udara",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kipas dan ketegangan belt altenator",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kencangkan baut dan mur",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level dan kondisi oil hidrolik",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa selang hidrolik pompa utama",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa selang hidrolik silinder slider",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kencangkan baut dan mur",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Body unit & Kabin",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & baut roda",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "pelumasan silinder sleding dari grease nipple",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan tutup oli dan udara tertutup rapat",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan Lihat Monitor\/panel",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa level air di bak sleding pump",
+                "question_type": "text",
+                "sequence": 14
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan harnes sensor\/selenoid tersambung",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan socket tersambung dengan jungsen box",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter unit",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Oli, air & udara diarea Unit",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa sistem kerja di panel",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Piskopen",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Bucket\/hoper",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa kebocoran di sleding",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Suara Bunyi Tidak Normal",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa tombol pengoperasian",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Safety Equipment",
+                "title": "APAR \/ Alat Pemadam",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Description",
+                "title": "Description",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Stop",
+                "title": "Stop",
+                "question_type": "choice",
+                "sequence": 27
+            }
+        ]
+    },
+    {
+        "name": "Portable Concrete Pump Engine",
+        "code": "CPWL9E",
+        "description": "Checksheet resmi P2H Portable Concrete Pump Engine (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oli, air dan Solar",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator\/claim radiator",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Aki",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa actual volume solar (BBM)",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa saringan udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras air dan endapan ditangki solar",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kipas dan ketegangan belt altenator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa core\/kisi - kisi radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lumasi silinder sleding Hidrolik dari grease nipple",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kencangkan baut dan mur",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level dan kondisi oil hidrolik",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa selang hidrolik pompa utama",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa selang hidrolik silinder slider",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kencangkan baut dan mur",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Body unit & Kabin",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & fitting hidrolik",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & baut roda",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan tutup oli dan udara tertutup rapat",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan Lihat Monitor\/panel",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa level air di bak sleding pump",
+                "question_type": "text",
+                "sequence": 20
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan harnes sensor\/selenoid tersambung",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan socket tersambung dengan jungsen box",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter unit",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Oli, air & udara diarea Unit",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa sistem kerja di panel",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Suara Bunyi Tidak Normal",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi dan kondisi Bucket\/hoper",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi & Kondisi Kipas",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa kebocoran di sleding",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa tombol pengoperasian",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Safety Equipment",
+                "title": "APAR \/ Alat Pemadam",
+                "question_type": "choice",
+                "sequence": 31
+            }
+        ]
+    },
+    {
+        "name": "Concrete Pump Truck",
+        "code": "29NVFP",
+        "description": "Template form inspeksi P2H resmi untuk kategori Concrete Pump Truck (Kode: 29NVFP).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Crane Truck",
+        "code": "CT723D",
+        "description": "Checksheet resmi P2H armada Crane Truck (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Attachment",
+                "title": "Cylinder",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Attachment",
+                "title": "HOOK (Main \/ Aux)",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Fuel Level",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Water Sparator",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Engine",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Water",
+                "title": "Air Radiator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Water",
+                "title": "Wiper",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Air\/udara",
+                "title": "Water Compressor Drain",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Elektrik",
+                "title": "Battery",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu Kerja",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Grease",
+                "title": "10 h",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Grease",
+                "title": "50 h",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Fuel \/ BBM",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil \/ Oli",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/ Air",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Air\/Udara",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Ban",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Out Rigger",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Alat",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Ruang Kabin",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Brake",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Steering",
+                "question_type": "choice",
+                "sequence": 25
+            }
+        ]
+    },
+    {
+        "name": "Crawler Crane",
+        "code": "EH713B",
+        "description": "Checksheet resmi P2H unit Crawler Crane (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Attachment",
+                "title": "Boom",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Attachment",
+                "title": "HOOK (Main \/ Aux)",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Fuel Level",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Water Sparator",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Engine",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Water",
+                "title": "Air Radiator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Water",
+                "title": "Wiper",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Elektrik",
+                "title": "Battery",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu Kerja",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Grease",
+                "title": "10 h",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Grease",
+                "title": "50 h",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Fuel \/ BBM",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil \/ Oli",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/ Air",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Track",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Alat",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Ruang Kabin",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Steering",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Kontrol",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Seat Belt",
+                "question_type": "choice",
+                "sequence": 23
+            }
+        ]
+    },
+    {
+        "name": "Crawler Rig Drill",
+        "code": "CR77BD",
+        "description": "Checksheet resmi P2H unit Crawler Rig Drill (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli mesin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras Air & Endapan Air di tangki solar",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kipas & Ketegangan Belt Alternator",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Drifter",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Boom dan Drifer",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada Pin dan Bushing",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas pada Boom, Arm dari Grease Nipple",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi track shoe, track link, roller, idler & sprokets",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kebocoran oil pada travel",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Stik",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Traveling",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Arm",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Boom",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Suara bunyi tidak Normal",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Group Safety Equipment",
+                "title": "Bendera Safety",
+                "question_type": "choice",
+                "sequence": 32
+            }
+        ]
+    },
+    {
+        "name": "Dozer",
+        "code": "DZ76BR",
+        "description": "Checksheet resmi P2H unit Bulldozer \/ Dozer (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli Enginee, Steering, Angkat Kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik Pompa Utama",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Arm, Boom dan Bucket",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur Sasis",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Baut Roda",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Motor Swing",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem &\/ Brake Pad",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Lampu-Lampu",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi track shoe, track link, roller, idler, sprokets & counterweight",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada Pin dan Bushing",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas pada Boom, Arm Bucket dan kaki-kaki dari pada Grease Nipple",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil pada trevel",
+                "question_type": "text",
+                "sequence": 26
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Dump Truck",
+        "code": "R8D3SY",
+        "description": "Checksheet resmi P2H armada Dump Truck proyek (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli Enginee, Steering, Angkat Kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oli",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Tekanan Ban",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi dan Fungsi Pintu Dum",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Cabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lakukan Grease & Pelumasan pada unit",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Wiper",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Alaram Mundur",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Excavator",
+        "code": "EXD4RP",
+        "description": "Checksheet resmi P2H unit Excavator (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli Enginee, Steering, Angkat Kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Kondisi Baut",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Motor Swing",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Arm, Boom dan Bucket",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur Sasis",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi selang hidrolik & Pompa Utama",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi track shoe, track link, roller, idler, sprokets & counterweight",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem &\/ Brake Pad",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit & drum Mixer",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Lampu-Lampu",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada bucket & Blade",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada Pin dan Bushing",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas pada Boom, Arm Bucket dan kaki-kaki dari pada Grease Nipple",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Forklift",
+        "code": "FKD4LY",
+        "description": "Checksheet resmi P2H unit Forklift (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Mesin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Kipas & Belt Alternator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Level Oil Power Steering",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Fork",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder Lift, dan Silinder Tilt",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi selang hidrolik & Pompa Utama",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lakukan grease\/pelumasan pada unit",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Lampu-Lampu",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kipas",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Alaram Mundur",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Lampu-lampu & Rotary",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Brake \/ Rem Tangan",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Fuel Truck",
+        "code": "R5D3FT",
+        "description": "Checksheet resmi P2H armada Fuel Truck (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli Enginee, Steering, Angkat Kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang & Fitting Hidrolik",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur Pengecang Sasis & Roda",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Tekanan Ban",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Fungsi & Kondisi Pintu Dum",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Tangki Solar Tidak bocor, Peyok & Retak",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Busi (awal mula pemanasan)",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas Grease Pada unit",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Pulley dan ketegangan kondisi V Belt",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kekecangan baut kedudukan mesin",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Jumbo Drill",
+        "code": "JD7553D",
+        "description": "Template form inspeksi P2H resmi untuk kategori Jumbo Drill (Kode: JD7553D).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Manlift",
+        "code": "RF89BB",
+        "description": "Template form inspeksi P2H resmi untuk kategori Manlift (Kode: RF89BB).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Motor Grader",
+        "code": "MG79KB",
+        "description": "Checksheet resmi P2H unit Motor Grader (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli mesin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras Air & Endapan Air di tangki solar",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level air aki & wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan belt alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi baterai",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi mesin & kekencangan baut",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & kondisi motor swing",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & kondisi minya rem",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik Pompa utama",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, arm, boom dan blade",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Ketebalan kanpas rem & \/braket pad",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lumasi boom,arm bucket dan kaki kaki dari dari grease nipple",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kabin & Interiornya",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi lampu-lampu",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi keasuan blade",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi keausan pin & bushing",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan semua tutup, oli, solar, air dan udara ada dan tertutup rapat",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa kebocoran Oil & solar",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Alarm mundur",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Mucking Loader",
+        "code": "ML71KB",
+        "description": "Template form inspeksi P2H resmi untuk kategori Mucking Loader (Kode: ML71KB).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Rough Terrain Crane",
+        "code": "EH713C",
+        "description": "Checksheet resmi P2H unit Rough Terrain Crane (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Attachment",
+                "title": "Cylinder",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Attachment",
+                "title": "Boom",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Attachment",
+                "title": "HOOK (Main \/ Aux)",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Fuel Level",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Fuel \/ Bbm",
+                "title": "Water Sparator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Engine",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Oil",
+                "title": "Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Air \/ Udara",
+                "title": "Water Compressor Drain",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Water",
+                "title": "Air Radiator",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Water",
+                "title": "Wiper",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Elektrik",
+                "title": "Battery",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Elektrik",
+                "title": "Lampu Kerja",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Elektrik",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Elektrik",
+                "title": "Kontrol Panel",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Grease",
+                "title": "10 h",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Grease",
+                "title": "50 h",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Fuel \/ BBM",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Oil \/ Oli",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Water \/ Air",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Kebocoran",
+                "title": "Air \/ Udara",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Ban",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Undercarriage",
+                "title": "Out Rigger",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Alat",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Kebersihan",
+                "title": "Ruang Kabin",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Fungsi- Fungsi",
+                "title": "Fungsi Brake",
+                "question_type": "choice",
+                "sequence": 25
+            }
+        ]
+    },
+    {
+        "name": "Scissorlift",
+        "code": "SSLS5W",
+        "description": "Template form inspeksi P2H resmi untuk kategori Scissorlift (Kode: SSLS5W).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Shotcrete",
+        "code": "MS31AC",
+        "description": "Template form inspeksi P2H resmi untuk kategori Shotcrete (Kode: MS31AC).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Truk Mixer",
+        "code": "R8D3SW",
+        "description": "Checksheet resmi P2H armada Truk Mixer (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli Enginee, Steering, Angkat Kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik Pompa Utama",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Arm, Boom dan Bucket",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur Sasis",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Baut Roda",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Propeler Shaft\/Simpang Empat",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem &\/ Brake Pad",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin & Interior nya",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit & drum Mixer",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Lampu-Lampu",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada bucket & Blade",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada Pin dan Bushing",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas pada Boom, Arm Bucket dan kaki-kaki dari pada Grease Nipple",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Vibro",
+        "code": "MV54AH",
+        "description": "Checksheet resmi P2H unit Vibro Compactor (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli mesin angkat kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras Air & Endapan Air di filter separator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level air aki",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Fan belt",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level air aki & Wipper",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi baterai",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi mesin & kekencangan baut",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik & Fitting hidrolik",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi oil steering",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body & Roller frame",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kekencangan Baut",
+                "question_type": "text",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Perika kondisi roller drum",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Bersihkan Breather pada Roller Drum",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Baut \/ Mur \/ Pengencang Sasis & roda",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lakukan grease\/pelumasan pada unit",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & Baut Roda",
+                "question_type": "text",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kabin & Interiornya",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kondisi keausan pin & bushing",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan semua tutup, oli, air dan udara tertutup rapat",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi vibrating drum",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Water Pump",
+        "code": "CWPK3N",
+        "description": "Template form inspeksi P2H resmi untuk kategori Water Pump (Kode: CWPK3N).",
+        "items": [
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi fisik bodi, struktur, dan kebersihan unit",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Pemeriksaan kebocoran oli, air pendingin radiator, dan bahan bakar",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Pemeriksaan Keliling (Walk Around)",
+                "title": "Kondisi ban \/ track shoe, baut roda, dan tegangan track",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level oli mesin, oli hidrolik, dan minyak rem",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Level air radiator dan kondisi v-belt \/ fan belt",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Ruang Mesin & Kompartemen",
+                "title": "Kondisi baterai \/ aki dan kebersihan terminal kabel",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem rem (Service Brake & Parking Brake)",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi sistem kemudi, tuas hidrolik, dan instrumen indikator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Fungsi lampu kerja, lampu rotary, klakson, dan alarm mundur",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Kabin & Fungsi Operasional",
+                "title": "Ketersediaan APD standar dan APAR yang valid di dalam kabin",
+                "question_type": "choice",
+                "sequence": 10
+            }
+        ]
+    },
+    {
+        "name": "Water Truck",
+        "code": "WT51DB",
+        "description": "Checksheet resmi P2H armada Water Truck (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli mesin angkat kabin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level Air Aki & Wipper",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras Air & Endapan Air di filter separator",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level & Kondisi minyak rem",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik & fiting hidrolik",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi mesin & kekencangan baut",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kabin & Interiornya",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa level dan kondisi Oil",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa fungsi dan kondisi Pintu Dump",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kekencangan BAut & Mur",
+                "question_type": "text",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan semua tutup, oli, air dan udara ada dan tertutup rapat",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi tangki air tidak bocor, penyok & retak",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & Baut Roda",
+                "question_type": "text",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Lakukan grease\/pelumasan pada unit",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Bersihkan tangki secara menyeluruh",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan lubang pipa pengeluaran air untuk menyiram tdak ada yang tersumbat",
+                "question_type": "text",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kebisingan yang tidak normal di Pompa Air",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa busi (Awal Mula Pemanasan)",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Pulley dan ketegangan kondisi V-belt",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kekencangan baut kedudukan mesin",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Wheel Loader",
+        "code": "R8D3ST",
+        "description": "Checksheet resmi P2H unit Wheel Loader (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi OilEnginee",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Buang Endapan Air di Filter Separator",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kekencangan Belt Alternator & Compressor",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki & Wiper",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Baterai",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Mesin & Kencangkan Baut",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Level & Kondisi Minyak Rem",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik Pompa Utama",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Arm, Boom dan Bucket",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Roda & Baut Roda",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Propeler Shaft\/Simpang Empat",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Ketebalan Kanpas Rem &\/ Brake Pad",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Kabin",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Lampu-Lampu",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada bucket & Blade",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Keausan pada Pin dan Bushing",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas pada Boom, Arm Bucket dan kaki-kaki dari pada Grease Nipple",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Pastikan Penutup Oil, Air, Solar & Udara tertutup Rapat",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa Kebocoran Air, Oil dan Solar",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    },
+    {
+        "name": "Manitou (Telehandler)",
+        "code": "MNT01",
+        "description": "Checksheet resmi P2H unit Manitou Telehandler (SOP Amtis KMH).",
+        "items": [
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oli mesin",
+                "question_type": "choice",
+                "sequence": 1
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level Air Radiator & Pendingin Oil",
+                "question_type": "choice",
+                "sequence": 2
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Air Aki",
+                "question_type": "choice",
+                "sequence": 3
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kebocoran Oil, Air & Bahan Bakar",
+                "question_type": "choice",
+                "sequence": 4
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Saringan Udara",
+                "question_type": "choice",
+                "sequence": 5
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Volume Aktual Solar (BBM)",
+                "question_type": "choice",
+                "sequence": 6
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Kuras Air & Endapan Air di tangki solar",
+                "question_type": "choice",
+                "sequence": 7
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa & Bersihkan kisi-kisi\/Core Radiator",
+                "question_type": "choice",
+                "sequence": 8
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi roda & baut roda",
+                "question_type": "choice",
+                "sequence": 9
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kencang Baut & Mur",
+                "question_type": "choice",
+                "sequence": 10
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level & Kondisi Oil Hidrolik",
+                "question_type": "choice",
+                "sequence": 11
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Kondisi Body Unit",
+                "question_type": "choice",
+                "sequence": 12
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa lampu-lampu",
+                "question_type": "choice",
+                "sequence": 13
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Selang Hidrolik Pompa utama",
+                "question_type": "choice",
+                "sequence": 14
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Hose & Fitting Hidrolik Silinder, Lift dan silinder Tilt",
+                "question_type": "choice",
+                "sequence": 15
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa Level dan kondisi oli hidrolik",
+                "question_type": "choice",
+                "sequence": 16
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Beri Pelumas Grease pada unit",
+                "question_type": "choice",
+                "sequence": 17
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi kabin",
+                "question_type": "choice",
+                "sequence": 18
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa kondisi fork",
+                "question_type": "choice",
+                "sequence": 19
+            },
+            {
+                "section": "Sebelum Mesin Hidup",
+                "title": "Periksa semua gauge & control panel indicator berfungs",
+                "question_type": "choice",
+                "sequence": 20
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Pastikan Switch Baterai dalam kondisi ON",
+                "question_type": "choice",
+                "sequence": 21
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa dan lihat Panel Monitor",
+                "question_type": "choice",
+                "sequence": 22
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Periksa Indikator bahan bakar\/Solar",
+                "question_type": "choice",
+                "sequence": 23
+            },
+            {
+                "section": "Persiapan Menghidupkan Mesin",
+                "title": "Starter Mesin",
+                "question_type": "choice",
+                "sequence": 24
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa fungsi Panel & Monitor",
+                "question_type": "choice",
+                "sequence": 25
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Klakson",
+                "question_type": "choice",
+                "sequence": 26
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Alarm mundur",
+                "question_type": "choice",
+                "sequence": 27
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Lampu-lampu & rotary",
+                "question_type": "choice",
+                "sequence": 28
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Kipas",
+                "question_type": "choice",
+                "sequence": 29
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Fungsi steering\/stir",
+                "question_type": "choice",
+                "sequence": 30
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Fungsi braket\/rem tangan",
+                "question_type": "choice",
+                "sequence": 31
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa pedal rem & fungsinya",
+                "question_type": "choice",
+                "sequence": 32
+            },
+            {
+                "section": "Setelah Mesin Menyala",
+                "title": "Periksa pedal gas & fungsinya",
+                "question_type": "choice",
+                "sequence": 33
+            }
+        ]
+    }
+]

@@ -119,6 +119,16 @@ class P2hAmtisSyncSeeder extends Seeder
 
     public function run(): void
     {
+        $jsonPath = database_path('data/p2h_amtis_catalog.json');
+        if (file_exists($jsonPath)) {
+            $raw = file_get_contents($jsonPath);
+            $catalog = json_decode($raw, true);
+            if (!empty($catalog) && is_array($catalog)) {
+                $this->seedFromJson($catalog);
+                return;
+            }
+        }
+
         $filePath = base_path('Berkas/P2H..xlsx');
         if (!file_exists($filePath)) {
             $filePath = 'E:/rkm-kmh/Berkas/P2H..xlsx';
@@ -328,5 +338,73 @@ class P2hAmtisSyncSeeder extends Seeder
         });
 
         $zip->close();
+    }
+
+    /**
+     * Seed katalog P2H langsung dari file JSON mandiri.
+     */
+    protected function seedFromJson(array $catalog): void
+    {
+        DB::transaction(function () use ($catalog) {
+            foreach ($catalog as $tplData) {
+                $template = P2hTemplate::where('code', $tplData['code'])
+                    ->orWhere('name', $tplData['name'])
+                    ->first();
+
+                if (!$template) {
+                    $template = P2hTemplate::create([
+                        'code' => $tplData['code'],
+                        'name' => $tplData['name'],
+                        'description' => $tplData['description'] ?? "Checksheet resmi P2H unit {$tplData['name']}.",
+                        'is_active' => true,
+                    ]);
+                } else {
+                    $template->update([
+                        'name' => $tplData['name'],
+                        'description' => $tplData['description'] ?? $template->description,
+                        'is_active' => true,
+                    ]);
+                }
+
+                if (!empty($tplData['items'])) {
+                    P2hTemplateItem::where('template_id', $template->id)->delete();
+                    $now = now();
+                    $insertRows = [];
+                    foreach ($tplData['items'] as $it) {
+                        $insertRows[] = [
+                            'template_id' => $template->id,
+                            'section' => $it['section'],
+                            'title' => $it['title'],
+                            'question_type' => $it['question_type'] ?? 'choice',
+                            'sequence' => $it['sequence'],
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ];
+                    }
+                    P2hTemplateItem::insert($insertRows);
+                }
+
+                // Asosiasikan unit kendaraan berat yang relevan ke template ini
+                Vehicle::where('category', 'unit_support')
+                    ->where(function ($q) use ($tplData) {
+                        $q->where('unit_category', 'like', "%{$tplData['name']}%")
+                          ->orWhere('brand_type', 'like', "%{$tplData['name']}%");
+                    })
+                    ->update(['p2h_template_id' => $template->id]);
+            }
+
+            // Tautkan kendaraan spesifik yang memiliki nama mirip
+            Vehicle::where('category', 'unit_support')
+                ->where('unit_category', 'Truk Mixer')
+                ->update(['p2h_template_id' => P2hTemplate::where('code', 'R8D3SW')->value('id')]);
+
+            Vehicle::where('category', 'unit_support')
+                ->where('unit_category', 'Dump Truck')
+                ->update(['p2h_template_id' => P2hTemplate::where('code', 'R8D3SY')->value('id')]);
+
+            Vehicle::where('category', 'unit_support')
+                ->where('unit_category', 'Excavator')
+                ->update(['p2h_template_id' => P2hTemplate::where('code', 'EXD4RP')->value('id')]);
+        });
     }
 }
