@@ -4,52 +4,75 @@
 
 @section('content')
 <div class="w-full space-y-6">
-    <!-- Header Halaman Simple Kayak Satpam (Seamless, Tanpa Card Wrapper) -->
+    <!-- Header Halaman Minimalis (Clean Typography, Tanpa Ikon Berlebihan) -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
         <div class="min-w-0">
-            <div class="flex items-center flex-wrap gap-2.5">
+            <div class="flex items-center flex-wrap gap-2">
                 <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
                     Timesheet Kendaraan Ringan & Armada Mobile
                 </h1>
-                <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    Kendaraan Ringan (LV) & Heavy Mobile
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                    Katalog Mobilisasi
                 </span>
             </div>
-            <div class="text-sm sm:text-base text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-1.5">
+            <div class="text-xs sm:text-sm text-slate-600 font-medium truncate mt-1 flex items-center flex-wrap gap-2">
                 <span>Pengemudi: <strong class="text-slate-900 font-bold">{{ $employee ? $employee->name : auth()->user()->name }}</strong></span>
                 @if($employee && $employee->nik)
-                    <span class="text-slate-500 font-mono text-xs sm:text-sm font-semibold">({{ $employee->nik }})</span>
+                    <span class="text-slate-400 font-mono text-xs">({{ $employee->nik }})</span>
                 @endif
-                @if($employee && $employee->hasValidSimper())
-                    <span class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md ml-1">
-                        <i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i> SIMPER Aktif
+
+                @if(!empty($activeSimpers) && $activeSimpers->isNotEmpty())
+                    <span class="text-slate-300">|</span>
+                    <span class="text-slate-500 text-xs">SIMPER:</span>
+                    @foreach($activeSimpers as $as)
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            {{ $as->simperType ? $as->simperType->name : 'SIMPER Aktif' }}
+                        </span>
+                    @endforeach
+                @elseif($employee && $employee->hasValidSimper())
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        SIMPER Aktif
                     </span>
                 @elseif($employee)
-                    <span class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-md ml-1">
-                        <i class="fa-solid fa-circle-xmark mr-1 text-rose-600"></i> SIMPER Exp
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                        Belum Memiliki SIMPER
                     </span>
                 @endif
             </div>
         </div>
     </div>
 
-    <!-- Segmented Filter Tab: Semua Armada / LV / Heavy Mobile -->
-    <div class="flex items-center space-x-1 sm:space-x-2 border-b border-slate-200/80 overflow-x-auto pb-px">
-        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'all'])) }}" 
-           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? 'all') === 'all' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-            <i class="fa-solid fa-layer-group mr-1.5"></i>Semua Armada
-        </a>
-        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'light_vehicle'])) }}" 
-           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'light_vehicle' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-            <i class="fa-solid fa-car-side mr-1.5"></i>Light Vehicle (LV)
-        </a>
-        <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'unit_support'])) }}" 
-           class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'unit_support' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
-            <i class="fa-solid fa-truck-moving mr-1.5"></i>Heavy Equipment Mobile
-        </a>
-    </div>
+    @php
+        $showAllTab = !($isRestrictedEmployee ?? false) || ($hasUniversalScope ?? false) || (($canDriveLv ?? false) && !empty($heavyScopes ?? []));
+        $showLvTab = !($isRestrictedEmployee ?? false) || ($hasUniversalScope ?? false) || ($canDriveLv ?? false);
+        $showHeavyTab = !($isRestrictedEmployee ?? false) || ($hasUniversalScope ?? false) || !empty($heavyScopes ?? []);
+    @endphp
 
-    <!-- Filter & Search Bar (Tanpa Card Wrapper, Format Referensi Sesuai Standar) -->
+    @if($showAllTab || ($showLvTab && $showHeavyTab))
+        <!-- Segmented Filter Tab: Semua Armada / LV / Heavy Mobile (Minimalis Tanpa Ikon) -->
+        <div class="flex items-center space-x-1 sm:space-x-2 border-b border-slate-200/80 overflow-x-auto pb-px">
+            @if($showAllTab)
+                <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'all'])) }}" 
+                   class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? 'all') === 'all' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Semua Armada
+                </a>
+            @endif
+            @if($showLvTab)
+                <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'light_vehicle'])) }}" 
+                   class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'light_vehicle' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Light Vehicle (LV)
+                </a>
+            @endif
+            @if($showHeavyTab)
+                <a href="{{ route('mobilisasi.index', array_filter(['search' => request('search'), 'type' => 'unit_support'])) }}" 
+                   class="px-4 py-2 text-xs font-bold rounded-t-xl transition whitespace-nowrap {{ ($type ?? '') === 'unit_support' ? 'bg-[#1b5e20] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                    Heavy Equipment Mobile
+                </a>
+            @endif
+        </div>
+    @endif
+
+    <!-- Filter & Search Bar (Format Bersih Sesuai Standar) -->
     <form method="GET" action="{{ route('mobilisasi.index') }}" id="lvFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
         <input type="hidden" name="type" value="{{ $type ?? 'all' }}">
         <!-- Pencarian Cepat di Kiri dengan Tombol Cari -->
@@ -89,15 +112,15 @@
         @forelse($vehicles as $v)
             <div class="lv-card bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between">
                 <div>
-                    <!-- Badge Kategori & Status -->
+                    <!-- Badge Kategori & Status (Minimalis) -->
                     <div class="flex items-center justify-between mb-3">
                         @if($v->isLightVehicle())
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                <i class="fa-solid fa-car-side mr-1 text-emerald-600"></i> LV
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                LV
                             </span>
                         @else
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                <i class="fa-solid fa-truck-moving mr-1 text-amber-600"></i> Heavy Mobile
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                Heavy Mobile
                             </span>
                         @endif
                         
@@ -147,7 +170,6 @@
                 <div class="mt-5 pt-3 border-t border-slate-100">
                     @if($v->status === 'Breakdown')
                         <div class="w-full bg-rose-50 border border-rose-200 text-rose-700 font-bold py-2.5 px-4 rounded-xl text-center text-xs">
-                            <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
                             <span>Unit Sedang Breakdown</span>
                         </div>
                     @else
@@ -164,26 +186,35 @@
                 </div>
             </div>
         @empty
-            <div id="lvServerEmptyCard" class="col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center">
-                <div class="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-magnifying-glass text-2xl"></i>
+            @if($noActiveSimper ?? false)
+                <!-- Kartu Peringatan Bersih Jika Karyawan Belum Punya SIMPER Aktif -->
+                <div class="col-span-full bg-amber-50/80 border border-amber-200 rounded-2xl p-8 sm:p-10 text-center max-w-lg mx-auto my-6 space-y-2 shadow-xs">
+                    <h3 class="text-base font-bold text-amber-900">Akses Kendaraan Belum Tersedia</h3>
+                    <p class="text-xs text-amber-800 leading-relaxed">
+                        Anda belum memiliki SIMPER aktif yang terdaftar di HSE untuk mengemudikan kendaraan.
+                    </p>
+                    <p class="text-[11px] text-amber-700 font-medium pt-1">
+                        Silakan hubungi bagian HSE untuk pendaftaran atau pembaruan masa berlaku SIMPER Anda.
+                    </p>
                 </div>
-                @if(request('search'))
-                    <h3 class="text-base font-bold text-slate-800">
-                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
-                    </h3>
-                    <p class="text-xs text-slate-500 mt-1">Pastikan kode unit atau nopol kendaraan yang dicari sudah benar.</p>
-                    <div class="mt-4">
-                        <a href="{{ route('mobilisasi.index') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                            <span>Hapus Pencarian</span>
-                        </a>
-                    </div>
-                @else
-                    <h3 class="text-base font-bold text-slate-800">Kendaraan Ringan Tidak Ditemukan</h3>
-                    <p class="text-xs text-slate-500 mt-1">Belum ada unit kendaraan LV yang terdaftar.</p>
-                @endif
-            </div>
+            @else
+                <div id="lvServerEmptyCard" class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center shadow-xs">
+                    @if(request('search'))
+                        <h3 class="text-base font-bold text-slate-800">
+                            Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di katalog
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Pastikan kode unit atau nopol kendaraan yang dicari sudah benar.</p>
+                        <div class="mt-4">
+                            <a href="{{ route('mobilisasi.index', ['type' => $type ?? 'all']) }}" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
+                                <span>Hapus Pencarian</span>
+                            </a>
+                        </div>
+                    @else
+                        <h3 class="text-base font-bold text-slate-800">Tidak Ada Kendaraan Tersedia</h3>
+                        <p class="text-xs text-slate-500 mt-1">Tidak ada unit kendaraan yang sesuai dengan kategori atau izin mengemudi Anda.</p>
+                    @endif
+                </div>
+            @endif
         @endforelse
     </div>
 

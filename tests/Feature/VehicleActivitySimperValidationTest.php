@@ -107,15 +107,82 @@ class VehicleActivitySimperValidationTest extends TestCase
     }
 
     /**
-     * Unit heavy mobile muncul di katalog /timesheet.
+     * Driver yang hanya memiliki SIMPER LV hanya melihat armada LV di katalog /timesheet.
      */
-    public function test_timesheet_catalog_shows_both_lv_and_heavy_mobile(): void
+    public function test_driver_with_only_lv_simper_sees_only_lv_and_not_dump_truck(): void
     {
         $response = $this->actingAs($this->driverUser)->get(route('mobilisasi.index'));
         $response->assertStatus(200);
         $response->assertSee('LV-01');
+        $response->assertDontSee('DT-01');
+    }
+
+    /**
+     * Driver yang memiliki SIMPER Dump Truck hanya melihat unit Dump Truck yang sesuai izinnya.
+     */
+    public function test_driver_with_dt_simper_sees_dump_truck(): void
+    {
+        $driverDtUser = User::create([
+            'name' => 'Budi Sukon DT',
+            'username' => 'driver_dt',
+            'email' => 'dt@kmh.co.id',
+            'role' => 'employee',
+            'password' => bcrypt('password'),
+        ]);
+        $this->driverDtOnly->update(['user_id' => $driverDtUser->id]);
+
+        $response = $this->actingAs($driverDtUser)->get(route('mobilisasi.index'));
+        $response->assertStatus(200);
         $response->assertSee('DT-01');
-        $response->assertSee('Heavy Equipment Mobile');
+        $response->assertDontSee('Toyota Hilux');
+    }
+
+    /**
+     * Karyawan yang belum memiliki SIMPER aktif melihat kartu peringatan khusus.
+     */
+    public function test_employee_without_active_simper_sees_warning_card(): void
+    {
+        $userNoSimper = User::create([
+            'name' => 'Employee No Simper',
+            'username' => 'no_simper_user',
+            'email' => 'nosimper@kmh.co.id',
+            'role' => 'employee',
+            'password' => bcrypt('password'),
+        ]);
+        Employee::create([
+            'user_id' => $userNoSimper->id,
+            'nik' => 'EMP-NO-SMP',
+            'name' => 'Employee No Simper',
+            'is_operator' => false,
+        ]);
+
+        $response = $this->actingAs($userNoSimper)->get(route('mobilisasi.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Anda belum memiliki SIMPER aktif yang terdaftar di HSE untuk mengemudikan kendaraan.');
+        $response->assertDontSee('LV-01');
+        $response->assertDontSee('DT-01');
+    }
+
+    /**
+     * Super Admin dapat memantau seluruh armada (LV dan Heavy Mobile) tanpa batasan.
+     */
+    public function test_super_admin_sees_both_lv_and_heavy_mobile(): void
+    {
+        $this->seed(\Database\Seeders\RolePermissionSeeder::class);
+
+        $admin = User::create([
+            'name' => 'Super Admin Test',
+            'username' => 'superadmin_test',
+            'email' => 'super@kmh.co.id',
+            'role' => 'super_admin',
+            'password' => bcrypt('password'),
+        ]);
+        $admin->assignRole('super_admin');
+
+        $response = $this->actingAs($admin)->get(route('mobilisasi.index'));
+        $response->assertStatus(200);
+        $response->assertSee('LV-01');
+        $response->assertSee('DT-01');
     }
 
     /**
@@ -213,18 +280,32 @@ class VehicleActivitySimperValidationTest extends TestCase
         $response->assertSee('id="lvSearchBtn"', false);
         $response->assertSee('Cari');
 
-        // 2. Cari 'DT01' tanpa spasi mencocokkan kode 'DT-01'
-        $searchResponse1 = $this->actingAs($this->driverUser)->get(route('mobilisasi.index', ['search' => 'DT01']));
+        // 2. Driver LV cari 'LV01' tanpa tanda hubung mencocokkan kode 'LV-01'
+        $searchResponse1 = $this->actingAs($this->driverUser)->get(route('mobilisasi.index', ['search' => 'LV01']));
         $searchResponse1->assertStatus(200);
-        $searchResponse1->assertSee('DT-01');
-        $searchResponse1->assertDontSee('Toyota Hilux');
+        $searchResponse1->assertSee('LV-01');
 
         // 3. Cari plat nomor tanpa spasi 'BH1234' mencocokkan 'BH 1234 KM'
         $searchResponse2 = $this->actingAs($this->driverUser)->get(route('mobilisasi.index', ['search' => 'BH1234']));
         $searchResponse2->assertStatus(200);
         $searchResponse2->assertSee('Toyota Hilux');
-        $searchResponse2->assertDontSee('Hino 500');
         $searchResponse2->assertSee('LV-01');
-        $searchResponse2->assertDontSee('DT-01');
+
+        // 4. Driver DT cari 'DT01' tanpa tanda hubung mencocokkan 'DT-01'
+        $driverDtUser = User::firstOrCreate(
+            ['username' => 'driver_dt_search'],
+            [
+                'name' => 'Budi Sukon DT Search',
+                'email' => 'dt_search@kmh.co.id',
+                'role' => 'employee',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $this->driverDtOnly->update(['user_id' => $driverDtUser->id]);
+
+        $searchResponse3 = $this->actingAs($driverDtUser)->get(route('mobilisasi.index', ['search' => 'DT01']));
+        $searchResponse3->assertStatus(200);
+        $searchResponse3->assertSee('DT-01');
+        $searchResponse3->assertDontSee('Toyota Hilux');
     }
 }

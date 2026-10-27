@@ -24,9 +24,112 @@ class VehicleActivityFormController extends Controller
      */
     public function index(Request $request): View
     {
-        $type = $request->input('type', 'all');
+        $type = $request->input('type');
         $query = Vehicle::timesheetEligible();
 
+        $user = auth()->user();
+        $employee = null;
+        $isPrivilegedUser = false;
+        $activeSimpers = collect();
+        $allowedScopes = [];
+        $simperTypeIds = [];
+        $hasUniversalScope = false;
+        $canDriveLv = false;
+        $heavyScopes = [];
+        $isRestrictedEmployee = false;
+        $noActiveSimper = false;
+
+        if ($user) {
+            $employee = $user->getOrCreateEmployee();
+
+            // Admin privileged (Super Admin, QMA, Pos Gerbang) dapat memantau seluruh armada
+            $isPrivilegedUser = $user->role === 'super-admin'
+                || $user->hasRole('super-admin')
+                || $user->can('qma.vehicles.view')
+                || $user->can('qma.logs.view');
+
+            // Pengemudi / karyawan biasa dibatasi hanya pada armada sesuai izin SIMPER aktif miliknya
+            if (! $isPrivilegedUser && $employee) {
+                $isRestrictedEmployee = true;
+
+                $hasAnySimperRecord = $employee->simpers()->exists();
+                if ($hasAnySimperRecord) {
+                    $activeSimpers = $employee->simpers()->with('simperType')->get()->filter(fn($s) => $s->isValid());
+                } elseif ($employee->is_operator && $employee->hasValidSimper()) {
+                    // Fallback driver legacy sebelum ada multi-SIMPER
+                    $allowedScopes[] = 'light_vehicle';
+                    $canDriveLv = true;
+                }
+
+                if ($activeSimpers->isNotEmpty()) {
+                    foreach ($activeSimpers as $s) {
+                        if ($s->simperType) {
+                            $simperTypeIds[] = $s->simperType->id;
+                            $scopes = $s->simperType->scopes;
+                            foreach ($scopes as $sc) {
+                                $allowedScopes[] = $sc;
+                                if ($sc === \App\Models\SimperType::SCOPE_ALL || $sc === 'all') {
+                                    $hasUniversalScope = true;
+                                }
+                            }
+                        }
+                    }
+                    $allowedScopes = array_unique($allowedScopes);
+                    $canDriveLv = in_array(\App\Models\SimperType::SCOPE_LIGHT_VEHICLE, $allowedScopes, true)
+                        || in_array('light_vehicle', $allowedScopes, true);
+                    $heavyScopes = array_values(array_diff($allowedScopes, [\App\Models\SimperType::SCOPE_LIGHT_VEHICLE, 'light_vehicle']));
+                }
+
+                if (! $hasUniversalScope) {
+                    if (empty($allowedScopes)) {
+                        // Karyawan belum memiliki SIMPER aktif sama sekali
+                        $noActiveSimper = true;
+                        $query->whereRaw('1 = 0');
+                    } else {
+                        // Sesuaikan default tab type jika karyawan hanya berizin satu jenis
+                        if ($canDriveLv && empty($heavyScopes)) {
+                            if (! $type || $type === 'all' || $type === 'unit_support') {
+                                $type = 'light_vehicle';
+                            }
+                        } elseif (! $canDriveLv && ! empty($heavyScopes)) {
+                            if (! $type || $type === 'all' || $type === 'light_vehicle') {
+                                $type = 'unit_support';
+                            }
+                        }
+
+                        // Filter armada yang diizinkan sesuai SIMPER
+                        $query->where(function ($subQ) use ($canDriveLv, $heavyScopes, $simperTypeIds) {
+                            if ($canDriveLv) {
+                                $subQ->orWhere('category', 'light_vehicle');
+                            }
+                            if (! empty($heavyScopes)) {
+                                $subQ->orWhere(function ($hq) use ($heavyScopes, $simperTypeIds) {
+                                    $hq->where('category', 'unit_support')
+                                       ->where('is_timesheet_mobile', true)
+                                       ->where(function ($filterQ) use ($heavyScopes, $simperTypeIds) {
+                                           $filterQ->whereIn('unit_category', $heavyScopes)
+                                                   ->orWhereIn('brand_type', $heavyScopes);
+
+                                           if (! empty($simperTypeIds)) {
+                                               $filterQ->orWhereIn('required_simper_type_id', $simperTypeIds);
+                                           }
+
+                                           if (in_array(\App\Models\SimperType::SCOPE_UNIT_SUPPORT_MOBILE, $heavyScopes, true)
+                                               || in_array('SIMPER-DT', $heavyScopes, true)
+                                               || in_array('unit_support_mobile', $heavyScopes, true)) {
+                                               $filterQ->orWhere('is_timesheet_mobile', true);
+                                           }
+                                       });
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+        }
+
+        // Filter tab kategori eksplisit
+        $type = $type ?? 'all';
         if ($type === 'light_vehicle') {
             $query->where('category', 'light_vehicle');
         } elseif ($type === 'unit_support') {
@@ -44,7 +147,7 @@ class VehicleActivityFormController extends Controller
                   ->orWhere('ownership', 'like', "%{$search}%")
                   ->orWhere('unit_category', 'like', "%{$search}%");
 
-                if (!empty($cleanSearch)) {
+                if (! empty($cleanSearch)) {
                     $q->orWhereRaw("REPLACE(REPLACE(code, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"])
                       ->orWhereRaw("REPLACE(REPLACE(license_plate, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"]);
                 }
@@ -53,12 +156,17 @@ class VehicleActivityFormController extends Controller
 
         $vehicles = $query->orderBy('code')->paginate(24)->withQueryString();
 
-        $employee = null;
-        if (auth()->check()) {
-            $employee = auth()->user()->getOrCreateEmployee();
-        }
-
-        return view('mobilisasi.index', compact('vehicles', 'employee', 'type'));
+        return view('mobilisasi.index', compact(
+            'vehicles',
+            'employee',
+            'type',
+            'canDriveLv',
+            'heavyScopes',
+            'isRestrictedEmployee',
+            'noActiveSimper',
+            'activeSimpers',
+            'hasUniversalScope'
+        ));
     }
 
     /**
