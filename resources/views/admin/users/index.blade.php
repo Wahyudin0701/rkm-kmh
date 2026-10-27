@@ -290,7 +290,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: TAMBAH PENGGUNA BARU -->
 <!-- ========================================================================= -->
-<div id="createUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="createUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -368,36 +368,39 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
-                        <select name="unit_kerja" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="">-- Pilih Unit Kerja --</option>
-                            <option value="Pembangkit">Pembangkit</option>
-                            <option value="Bendungan">Bendungan</option>
-                            <option value="Teknik">Teknik</option>
-                            <option value="Umum">Umum</option>
-                            <option value="Logistik">Logistik</option>
-                            <option value="HSE">HSE</option>
-                            <option value="QMA">QMA</option>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
+                        <select name="employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
+                            <option value="karyawan">Karyawan (Internal KMH)</option>
+                            <option value="sukon">Sukon (Subkontraktor)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
-                        <input type="text" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
+                        <input type="text" 
+                               name="unit_kerja" 
+                               list="adminUnitKerjaSuggestions" 
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
+                               placeholder="Ketik atau pilih unit kerja...">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
+                        <input type="text" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                    </div>
+                    <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
                         <input type="text" name="position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
                     </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
-                        <select name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="0">TIDAK (Bukan Driver)</option>
-                            <option value="1">YA (Aktif Mengemudi)</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
+                    <select name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
+                        <option value="0">TIDAK (Bukan Driver)</option>
+                        <option value="1">YA (Aktif Mengemudi)</option>
+                    </select>
                 </div>
             </div>
 
@@ -416,7 +419,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: EDIT PENGGUNA -->
 <!-- ========================================================================= -->
-<div id="editUserModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="editUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
         <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
@@ -495,36 +498,40 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
-                        <select id="edit_unit_kerja" name="unit_kerja" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="">-- Pilih Unit Kerja --</option>
-                            <option value="Pembangkit">Pembangkit</option>
-                            <option value="Bendungan">Bendungan</option>
-                            <option value="Teknik">Teknik</option>
-                            <option value="Umum">Umum</option>
-                            <option value="Logistik">Logistik</option>
-                            <option value="HSE">HSE</option>
-                            <option value="QMA">QMA</option>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
+                        <select id="edit_employee_type" name="employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
+                            <option value="karyawan">Karyawan (Internal KMH)</option>
+                            <option value="sukon">Sukon (Subkontraktor)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
-                        <input type="text" id="edit_division" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
+                        <input type="text" 
+                               id="edit_unit_kerja" 
+                               name="unit_kerja" 
+                               list="adminUnitKerjaSuggestions" 
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
+                               placeholder="Ketik atau pilih unit kerja...">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
+                        <input type="text" id="edit_division" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                    </div>
+                    <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
                         <input type="text" id="edit_position" name="position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
                     </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
-                        <select id="edit_is_operator" name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="0">TIDAK (Bukan Driver)</option>
-                            <option value="1">YA (Aktif Mengemudi)</option>
-                        </select>
-                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
+                    <select id="edit_is_operator" name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
+                        <option value="0">TIDAK (Bukan Driver)</option>
+                        <option value="1">YA (Aktif Mengemudi)</option>
+                    </select>
                 </div>
             </div>
 
@@ -773,6 +780,8 @@
         if (editGateEl) editGateEl.value = user.gate_id || '';
 
         const emp = user.employee || {};
+        const editEmployeeType = document.getElementById('edit_employee_type');
+        if (editEmployeeType) editEmployeeType.value = (emp.employee_type ? emp.employee_type.toLowerCase() : 'karyawan');
         const editUnitKerja = document.getElementById('edit_unit_kerja');
         if (editUnitKerja) editUnitKerja.value = emp.unit_kerja || '';
         const editDivision = document.getElementById('edit_division');
@@ -866,4 +875,13 @@
         }
     });
 </script>
+
+<!-- Datalist Rekomendasi Unit Kerja (Sinkron Master HSE) -->
+<datalist id="adminUnitKerjaSuggestions">
+    @if(isset($unitKerjaList))
+        @foreach($unitKerjaList as $uk)
+            <option value="{{ $uk }}"></option>
+        @endforeach
+    @endif
+</datalist>
 @endsection

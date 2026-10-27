@@ -496,4 +496,64 @@ class SuperAdminRbacTest extends TestCase
         $this->assertTrue($targetUser->fresh()->can('employee.dashboard'));
         $this->assertTrue($targetUser->fresh()->can('qma.vehicles.view'));
     }
+
+    public function test_super_admin_user_management_syncs_flexible_unit_kerja_and_employee_type(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+
+        // 1. Cek UserController@index menyediakan $unitKerjaList dan datalist suggestions
+        $indexResponse = $this->actingAs($superAdmin)->get(route('admin.users.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertViewHas('unitKerjaList');
+        $indexResponse->assertSee('adminUnitKerjaSuggestions');
+        $indexResponse->assertSee('data-backdrop="static"', false);
+
+        // 2. Super Admin membuat user baru dengan unit_kerja fleksibel dan employee_type sukon
+        $response = $this->actingAs($superAdmin)->post(route('admin.users.store'), [
+            'name' => 'Budi Santoso',
+            'username' => 'BUDI-SUKON-001',
+            'email' => 'budi.sukon@kmh.co.id',
+            'password' => 'password123',
+            'role' => 'employee',
+            'employee_type' => 'sukon',
+            'unit_kerja' => 'Subkontraktor Sipil PT ABC',
+            'division' => 'Proyek Terowongan',
+            'position' => 'Driver Mixer',
+            'is_operator' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHas('success');
+
+        $user = User::where('username', 'BUDI-SUKON-001')->first();
+        $this->assertNotNull($user);
+
+        // Verifikasi data Employee terkait tersinkron otomatis
+        $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+        $this->assertNotNull($employee);
+        $this->assertEquals('Subkontraktor Sipil PT ABC', $employee->unit_kerja);
+        $this->assertEquals('Sukon', $employee->employee_type);
+        $this->assertEquals('Driver Mixer', $employee->position);
+        $this->assertTrue((bool)$employee->is_operator);
+
+        // 3. Super Admin memperbarui unit_kerja ke nilai kustom lain
+        $updateResponse = $this->actingAs($superAdmin)->post(route('admin.users.update', $user->id), [
+            'name' => 'Budi Santoso Baru',
+            'username' => 'BUDI-SUKON-001',
+            'email' => 'budi.sukon@kmh.co.id',
+            'role' => 'employee',
+            'employee_type' => 'karyawan',
+            'unit_kerja' => 'Pembangkit Unit 2 Baru',
+            'division' => 'Operasi Generator',
+            'position' => 'Operator Turbin',
+            'is_operator' => '0',
+        ]);
+
+        $updateResponse->assertRedirect(route('admin.users.index'));
+        $employee->refresh();
+        $this->assertEquals('Pembangkit Unit 2 Baru', $employee->unit_kerja);
+        $this->assertEquals('Karyawan', $employee->employee_type);
+        $this->assertEquals('Operator Turbin', $employee->position);
+        $this->assertFalse((bool)$employee->is_operator);
+    }
 }

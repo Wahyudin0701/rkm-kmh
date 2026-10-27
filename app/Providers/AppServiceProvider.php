@@ -25,10 +25,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Super Admin bypass: secara otomatis memiliki izin untuk semua ability
         Gate::before(function ($user, $ability) {
-            if ($user->role === 'super_admin' || $user->role === 'admin') {
+            if (in_array($user->role, ['super_admin', 'superadmin', 'admin'])) {
                 return true;
             }
             try {
+                if (method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin()) {
+                    return true;
+                }
                 return $user->hasRole('super_admin') ? true : null;
             } catch (\Throwable $e) {
                 return null;

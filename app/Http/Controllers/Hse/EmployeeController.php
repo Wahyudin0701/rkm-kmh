@@ -737,10 +737,18 @@ class EmployeeController extends Controller
             if (!$employee->user_id) {
                 $employee->update(['user_id' => $linkedUser->id]);
             }
-            $linkedUser->update([
+            $userData = [
                 'name' => $employee->name,
+                'username' => $employee->nik,
                 'photo_path' => $photoPath,
-            ]);
+            ];
+            if (str_ends_with($linkedUser->email, '@kmh.co.id')) {
+                $newCleanEmail = strtolower(str_replace(['-', ' '], '', $employee->nik)) . '@kmh.co.id';
+                if (!User::where('email', $newCleanEmail)->where('id', '!=', $linkedUser->id)->exists()) {
+                    $userData['email'] = $newCleanEmail;
+                }
+            }
+            $linkedUser->update($userData);
         }
 
         return back()->with('success', "Data SIMPER untuk {$employee->name} berhasil diperbarui.");

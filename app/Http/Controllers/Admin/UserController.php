@@ -60,7 +60,11 @@ class UserController extends Controller
         $gates = Gate::where('is_active', true)->orderBy('name')->get();
         $modules = config('rbac_permissions.modules', []);
 
-        return view('admin.users.index', compact('users', 'roles', 'gates', 'modules', 'rolePermissionsMap'));
+        $distinctUnits = Employee::query()->whereNotNull('unit_kerja')->where('unit_kerja', '!=', '')->distinct()->pluck('unit_kerja')->toArray();
+        $defaultUnits = ['Pembangkit', 'Bendungan', 'Teknik', 'Umum', 'Logistik', 'HSE', 'QMA'];
+        $unitKerjaList = array_values(array_unique(array_filter(array_merge($defaultUnits, $distinctUnits))));
+
+        return view('admin.users.index', compact('users', 'roles', 'gates', 'modules', 'rolePermissionsMap', 'unitKerjaList'));
     }
 
     /**
@@ -76,6 +80,7 @@ class UserController extends Controller
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'employee_type' => ['nullable', 'string', 'in:karyawan,sukon,Karyawan,Sukon'],
             'unit_kerja' => ['nullable', 'string', 'max:100'],
             'division' => ['nullable', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:100'],
@@ -134,6 +139,7 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'nik' => $user->username,
                 'name' => $user->name,
+                'employee_type' => !empty($validated['employee_type']) ? ucfirst(strtolower($validated['employee_type'])) : ($emp?->employee_type ?? 'Karyawan'),
                 'unit_kerja' => $validated['unit_kerja'] ?? ($emp?->unit_kerja ?? 'Umum'),
                 'division' => $validated['division'] ?? ($emp?->division ?? '-'),
                 'position' => $validated['position'] ?? ($emp?->position ?? ($isEmployeeRole ? 'Driver Operasional' : '-')),
@@ -184,6 +190,7 @@ class UserController extends Controller
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'employee_type' => ['nullable', 'string', 'in:karyawan,sukon,Karyawan,Sukon'],
             'unit_kerja' => ['nullable', 'string', 'max:100'],
             'division' => ['nullable', 'string', 'max:100'],
             'position' => ['nullable', 'string', 'max:100'],
@@ -249,6 +256,9 @@ class UserController extends Controller
                 'nik' => $user->username,
                 'photo_path' => $user->photo_path ?: $emp?->photo_path,
             ];
+            if (array_key_exists('employee_type', $validated) && $validated['employee_type'] !== null) {
+                $empData['employee_type'] = ucfirst(strtolower($validated['employee_type']));
+            }
             if (array_key_exists('unit_kerja', $validated) && $validated['unit_kerja'] !== null) {
                 $empData['unit_kerja'] = $validated['unit_kerja'];
             }
@@ -269,6 +279,7 @@ class UserController extends Controller
                 }
             } else {
                 $empData['user_id'] = $user->id;
+                $empData['employee_type'] = $empData['employee_type'] ?? 'Karyawan';
                 $empData['unit_kerja'] = $empData['unit_kerja'] ?? 'Umum';
                 $empData['division'] = $empData['division'] ?? '-';
                 $empData['position'] = $empData['position'] ?? ($isEmployeeRole ? 'Driver Operasional' : '-');
