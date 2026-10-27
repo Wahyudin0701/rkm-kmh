@@ -98,6 +98,38 @@ class P2hInspectionTest extends TestCase
         $response->assertSee($this->supportVehicle->code);
     }
 
+    public function test_p2h_catalog_search_is_space_and_hyphen_insensitive(): void
+    {
+        // Unit dengan spasi pada kode
+        $vehicleWithSpace = Vehicle::create([
+            'code' => 'EX 01',
+            'category' => 'unit_support',
+            'p2h_template_id' => $this->template->id,
+            'brand_type' => 'KOMATSU PC200 HYDRAULIC',
+            'unit_category' => 'Excavator',
+            'status' => 'Operation',
+            'current_km' => 2000.0,
+        ]);
+
+        // 1. Tombol 'Cari' tersedia di UI
+        $response = $this->actingAs($this->operatorUser)->get(route('p2h.index'));
+        $response->assertStatus(200);
+        $response->assertSee('id="p2hSearchBtn"', false);
+        $response->assertSee('Cari');
+
+        // 2. Cari 'EX01' tanpa spasi mencocokkan 'EX 01'
+        $searchResponse1 = $this->actingAs($this->operatorUser)->get(route('p2h.index', ['search' => 'EX01']));
+        $searchResponse1->assertStatus(200);
+        $searchResponse1->assertSee('EX 01');
+        $searchResponse1->assertDontSee('EX99');
+
+        // 3. Cari 'EX 99' dengan spasi mencocokkan 'EX99'
+        $searchResponse2 = $this->actingAs($this->operatorUser)->get(route('p2h.index', ['search' => 'EX 99']));
+        $searchResponse2->assertStatus(200);
+        $searchResponse2->assertSee('EX99');
+        $searchResponse2->assertDontSee('EX 01');
+    }
+
     public function test_all_28_p2h_categories_are_seeded_and_displayed(): void
     {
         $this->seed(\Database\Seeders\P2hTemplateSeeder::class);

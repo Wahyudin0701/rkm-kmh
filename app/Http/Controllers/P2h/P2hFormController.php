@@ -32,11 +32,19 @@ class P2hFormController extends Controller
 
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
+            $cleanSearch = preg_replace('/[^a-zA-Z0-9]/', '', $search);
+
+            $query->where(function ($q) use ($search, $cleanSearch) {
                 $q->where('code', 'like', "%{$search}%")
                   ->orWhere('brand_type', 'like', "%{$search}%")
                   ->orWhere('unit_category', 'like', "%{$search}%")
-                  ->orWhere('location', 'like', "%{$search}%");
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhere('license_plate', 'like', "%{$search}%");
+
+                if (!empty($cleanSearch)) {
+                    $q->orWhereRaw("REPLACE(REPLACE(code, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"])
+                      ->orWhereRaw("REPLACE(REPLACE(license_plate, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"]);
+                }
             });
         }
 

@@ -200,4 +200,31 @@ class VehicleActivitySimperValidationTest extends TestCase
             'current_km' => 5050.00,
         ]);
     }
+
+    /**
+     * Pencarian katalog timesheet tidak sensitif terhadap spasi dan tanda hubung,
+     * serta tombol submit Cari tersedia untuk pengguna mobile.
+     */
+    public function test_timesheet_catalog_search_is_space_and_hyphen_insensitive(): void
+    {
+        // 1. Tombol submit 'Cari' tersedia di tampilan mobile/desktop
+        $response = $this->actingAs($this->driverUser)->get(route('mobilisasi.index'));
+        $response->assertStatus(200);
+        $response->assertSee('id="lvSearchBtn"', false);
+        $response->assertSee('Cari');
+
+        // 2. Cari 'DT01' tanpa spasi mencocokkan kode 'DT-01'
+        $searchResponse1 = $this->actingAs($this->driverUser)->get(route('mobilisasi.index', ['search' => 'DT01']));
+        $searchResponse1->assertStatus(200);
+        $searchResponse1->assertSee('DT-01');
+        $searchResponse1->assertDontSee('Toyota Hilux');
+
+        // 3. Cari plat nomor tanpa spasi 'BH1234' mencocokkan 'BH 1234 KM'
+        $searchResponse2 = $this->actingAs($this->driverUser)->get(route('mobilisasi.index', ['search' => 'BH1234']));
+        $searchResponse2->assertStatus(200);
+        $searchResponse2->assertSee('Toyota Hilux');
+        $searchResponse2->assertDontSee('Hino 500');
+        $searchResponse2->assertSee('LV-01');
+        $searchResponse2->assertDontSee('DT-01');
+    }
 }

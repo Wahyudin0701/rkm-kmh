@@ -102,9 +102,9 @@
 
     <!-- Kotak Pencarian & Filter Status Timesheet (Tanpa Card Wrapper, Format Persis HSE Employees) -->
     <form method="GET" action="{{ url()->current() }}" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
-        <!-- Pencarian Cepat di Kiri -->
-        <div class="relative w-full sm:max-w-md">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+        <!-- Pencarian Cepat di Kiri dengan Tombol Cari -->
+        <div class="relative w-full sm:max-w-md flex items-center">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
             <input type="text" 
@@ -112,7 +112,13 @@
                    id="timesheetSearchInput"
                    value="{{ request('search') }}"
                    placeholder="Cari No. TS, nama/NIK operator, atau lokasi..." 
-                   class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+                   autocomplete="off"
+                   class="w-full text-xs pl-10 pr-20 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+            <button type="submit" 
+                    id="timesheetSearchBtn"
+                    class="absolute right-1.5 inset-y-1.5 px-3 bg-[#1b5e20] hover:bg-[#144918] active:scale-95 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer z-10">
+                <span>Cari</span>
+            </button>
         </div>
 
         <!-- Filter di Kanan (Pada Mobile: Sejajar Grid di Bawah Search Bar) -->
@@ -1627,12 +1633,15 @@
 
     timesheetSearchInput?.addEventListener('input', function(e) {
         const query = e.target.value.toLowerCase().trim();
+        const cleanQuery = query.replace(/[\s\-_]/g, '');
         const rows = document.querySelectorAll('#timesheetTableBody tr.timesheet-row');
         let visibleCount = 0;
 
         rows.forEach(row => {
             const text = row.innerText.toLowerCase();
-            if (query === '' || text.includes(query)) {
+            const cleanText = text.replace(/[\s\-_]/g, '');
+            const match = query === '' || text.includes(query) || (cleanQuery.length > 0 && cleanText.includes(cleanQuery));
+            if (match) {
                 row.style.display = '';
                 visibleCount++;
             } else {

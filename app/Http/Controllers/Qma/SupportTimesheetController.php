@@ -85,17 +85,24 @@ class SupportTimesheetController extends Controller
         // Filter Pencarian Kata Kunci
         if ($request->filled('search')) {
             $search = trim($request->input('search'));
-            $query->where(function (Builder $q) use ($search) {
+            $cleanSearch = preg_replace('/[^a-zA-Z0-9]/', '', $search);
+
+            $query->where(function (Builder $q) use ($search, $cleanSearch) {
                 $q->where('timesheet_no', 'like', "%{$search}%")
                   ->orWhere('location', 'like', "%{$search}%")
                   ->orWhere('activity_type', 'like', "%{$search}%")
                   ->orWhere('task_description', 'like', "%{$search}%")
                   ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhereHas('vehicle', function (Builder $vq) use ($search) {
+                  ->orWhereHas('vehicle', function (Builder $vq) use ($search, $cleanSearch) {
                       $vq->where('code', 'like', "%{$search}%")
                          ->orWhere('brand_type', 'like', "%{$search}%")
                          ->orWhere('license_plate', 'like', "%{$search}%")
                          ->orWhere('serial_number', 'like', "%{$search}%");
+
+                      if (!empty($cleanSearch)) {
+                          $vq->orWhereRaw("REPLACE(REPLACE(code, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"])
+                             ->orWhereRaw("REPLACE(REPLACE(license_plate, ' ', ''), '-', '') LIKE ?", ["%{$cleanSearch}%"]);
+                      }
                   })
                   ->orWhereHas('operator', function (Builder $oq) use ($search) {
                       $oq->where('name', 'like', "%{$search}%")

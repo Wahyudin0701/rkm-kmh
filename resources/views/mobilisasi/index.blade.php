@@ -52,9 +52,9 @@
     <!-- Filter & Search Bar (Tanpa Card Wrapper, Format Referensi Sesuai Standar) -->
     <form method="GET" action="{{ route('mobilisasi.index') }}" id="lvFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
         <input type="hidden" name="type" value="{{ $type ?? 'all' }}">
-        <!-- Pencarian Cepat di Kiri -->
-        <div class="relative w-full sm:max-w-md">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+        <!-- Pencarian Cepat di Kiri dengan Tombol Cari -->
+        <div class="relative w-full sm:max-w-md flex items-center">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
             <input type="text" 
@@ -62,13 +62,19 @@
                    id="lvSearchInput"
                    value="{{ request('search') }}" 
                    placeholder="Cari kode unit (LV01), nopol, atau model..." 
-                   class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+                   autocomplete="off"
+                   class="w-full text-xs pl-10 pr-20 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
+            <button type="submit" 
+                    id="lvSearchBtn"
+                    class="absolute right-1.5 inset-y-1.5 px-3 bg-[#1b5e20] hover:bg-[#144918] active:scale-95 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer z-10">
+                <span>Cari</span>
+            </button>
         </div>
 
         <!-- Tombol Reset Filter di Kanan -->
         <div id="lvResetContainer" class="flex items-center justify-end">
             @if(request()->filled('search'))
-                <a href="{{ route('mobilisasi.index') }}" 
+                <a href="{{ route('mobilisasi.index', ['type' => $type ?? 'all']) }}" 
                    id="lvResetBtn"
                    class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0">
                     <i class="fa-solid fa-rotate-left text-[11px]"></i>
@@ -191,12 +197,13 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Search Real-Time Client-Side
+    // Search Real-Time Client-Side & Smart Server Query
     const searchInput = document.getElementById('lvSearchInput');
     const resetContainer = document.getElementById('lvResetContainer');
     const cardsContainer = document.getElementById('lvCardsContainer');
     const paginationContainer = document.getElementById('lvPaginationContainer');
     const serverEmptyCard = document.getElementById('lvServerEmptyCard');
+    const filterForm = document.getElementById('lvFilterForm');
     const hasServerFilters = {{ request()->filled('search') ? 'true' : 'false' }};
 
     function escapeHtml(str) {
@@ -208,12 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
     searchInput?.addEventListener('input', function(e) {
         const rawValue = e.target.value;
         const query = rawValue.toLowerCase().trim();
+        const cleanQuery = query.replace(/[\s\-_]/g, '');
         const items = document.querySelectorAll('#lvCardsContainer .lv-card');
         let visibleCount = 0;
 
         items.forEach(item => {
             const text = item.textContent.toLowerCase();
-            const match = text.includes(query);
+            const cleanText = text.replace(/[\s\-_]/g, '');
+            const match = text.includes(query) || (cleanQuery.length > 0 && cleanText.includes(cleanQuery));
             item.style.display = match ? '' : 'none';
             if (match) visibleCount++;
         });
@@ -229,22 +238,27 @@ document.addEventListener('DOMContentLoaded', function() {
             existingEmptyCard.remove();
         }
 
-        // Tampilkan pesan kosong jika tidak ada data yang cocok
+        // Tampilkan notifikasi jika tidak ada data yang cocok di halaman ini
         if (visibleCount === 0 && query.length > 0) {
             const emptyDiv = document.createElement('div');
             emptyDiv.id = 'lvEmptySearchCard';
-            emptyDiv.className = 'col-span-full bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm';
+            emptyDiv.className = 'col-span-full bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-sm';
             emptyDiv.innerHTML = `
                 <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-3">
                     <i class="fa-solid fa-magnifying-glass text-2xl"></i>
                 </div>
                 <h3 class="text-base font-bold text-slate-800">
-                    Data "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ditemukan di tabel
+                    Unit "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ada di halaman ini
                 </h3>
-                <p class="text-xs text-slate-500 mt-1">
-                    Pastikan kode unit atau nopol kendaraan yang dicari sudah benar.
+                <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                    Unit mungkin berada di halaman lain. Tekan tombol <strong>Cari di Semua Halaman</strong> untuk mencari di seluruh database kendaraan.
                 </p>
-                <div class="mt-4">
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <button type="submit" form="lvFilterForm" 
+                            class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] active:scale-95 transition shadow-sm cursor-pointer">
+                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+                        <span>Cari di Semua Halaman</span>
+                    </button>
                     <button type="button" 
                             onclick="const inp = document.getElementById('lvSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
                             class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
@@ -261,13 +275,13 @@ document.addEventListener('DOMContentLoaded', function() {
             paginationContainer.style.display = query.length > 0 ? 'none' : '';
         }
 
-        // Tampilkan / sembunyikan tombol Reset Filter (merah fa-rotate-left) secara real-time
+        // Tampilkan / sembunyikan tombol Reset Filter secara real-time
         let resetBtn = document.getElementById('lvResetBtn');
         if (query.length > 0) {
             if (!resetBtn && resetContainer) {
                 resetBtn = document.createElement('a');
                 resetBtn.id = 'lvResetBtn';
-                resetBtn.href = "{{ route('mobilisasi.index') }}";
+                resetBtn.href = "{{ route('mobilisasi.index', ['type' => $type ?? 'all']) }}";
                 resetBtn.className = "text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0";
                 
                 const resetIcon = document.createElement('i');
