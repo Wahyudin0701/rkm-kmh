@@ -82,90 +82,72 @@
     </div>
     @endif
 
-    <!-- Kartu KPI Ringkasan -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center text-lg flex-shrink-0">
-                <i class="fa-solid fa-id-card"></i>
-            </div>
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Kategori</p>
-                <p class="text-xl font-extrabold text-slate-900 mt-0.5">{{ count($simperTypes) }} Jenis</p>
-            </div>
+    <!-- Ringkasan Statistik Minimalis (Tanpa Ikon & Tanpa Card Fleksibilitas) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
+        <div class="bg-white rounded-2xl border border-slate-200/90 px-6 py-4 shadow-xs">
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Kategori</p>
+            <p class="text-2xl font-extrabold text-slate-900 mt-1">
+                {{ count($simperTypes) }} <span class="text-xs font-semibold text-slate-400">Jenis</span>
+            </p>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-lg flex-shrink-0">
-                <i class="fa-solid fa-users-gear"></i>
-            </div>
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pemegang Aktif</p>
-                <p class="text-xl font-extrabold text-slate-900 mt-0.5">
-                    {{ $simperTypes->sum('active_holders_count') }} Personil
-                </p>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg flex-shrink-0">
-                <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status Fleksibilitas</p>
-                <p class="text-sm font-extrabold text-slate-800 mt-0.5">Siap Dikustomisasi HSE</p>
-            </div>
+        <div class="bg-white rounded-2xl border border-slate-200/90 px-6 py-4 shadow-xs">
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pemegang Aktif</p>
+            <p class="text-2xl font-extrabold text-slate-900 mt-1">
+                {{ $simperTypes->sum('active_holders_count') }} <span class="text-xs font-semibold text-slate-400">Personil</span>
+            </p>
         </div>
     </div>
 
     <!-- Tabel Data Master Jenis SIMPER -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
-                        <th class="py-3.5 px-4 text-center w-12">NO</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">KODE</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[200px]">NAMA JENIS SIMPER</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">CAKUPAN KENDARAAN</th>
-                        <th class="py-3.5 px-4 text-center whitespace-nowrap">PEMEGANG AKTIF</th>
-                        <th class="py-3.5 px-4 text-center whitespace-nowrap">STATUS</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[220px]">KETERANGAN</th>
-                        <th class="py-3.5 px-4 text-center whitespace-nowrap w-24">AKSI</th>
+                        <th class="py-4 px-5 text-center w-14">NO</th>
+                        <th class="py-4 px-5 whitespace-nowrap">KODE</th>
+                        <th class="py-4 px-5 whitespace-nowrap min-w-[200px]">NAMA JENIS SIMPER</th>
+                        <th class="py-4 px-5 whitespace-nowrap min-w-[240px]">CAKUPAN KENDARAAN</th>
+                        <th class="py-4 px-5 text-center whitespace-nowrap">PEMEGANG AKTIF</th>
+                        <th class="py-4 px-5 text-center whitespace-nowrap">STATUS</th>
+                        <th class="py-4 px-5 whitespace-nowrap min-w-[240px]">KETERANGAN</th>
+                        <th class="py-4 px-5 text-center whitespace-nowrap w-28">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700 bg-white font-medium">
                     @forelse($simperTypes as $idx => $st)
                     <tr class="hover:bg-slate-50/80 transition">
-                        <td class="py-3 px-4 text-center text-slate-400 font-mono">{{ $idx + 1 }}</td>
-                        <td class="py-3 px-4">
-                            <span class="font-mono font-extrabold text-xs text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        <td class="py-4 px-5 text-center text-slate-400 font-mono">{{ $idx + 1 }}</td>
+                        <td class="py-4 px-5 whitespace-nowrap">
+                            <span class="inline-block font-mono font-extrabold text-xs text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 whitespace-nowrap">
                                 {{ $st->code }}
                             </span>
                         </td>
-                        <td class="py-3 px-4">
-                            <span class="font-bold text-slate-900 text-xs">{{ $st->name }}</span>
+                        <td class="py-4 px-5 min-w-[200px]">
+                            <span class="font-bold text-slate-900 text-[13px] block">{{ $st->name }}</span>
                         </td>
-                        <td class="py-3 px-4">
-                            <div class="flex flex-wrap items-center gap-1 max-w-xs">
+                        <td class="py-4 px-5">
+                            <div class="flex flex-wrap items-center gap-1.5 min-w-[240px]">
                                 @if($st->coversScope('all'))
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                                        <i class="fa-solid fa-shapes mr-1"></i> Semua Kategori (Universal)
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                        Semua Kategori (Universal)
                                     </span>
                                 @else
                                     @php $scopesList = $st->scopes; @endphp
                                     @foreach(array_slice($scopesList, 0, 3) as $scope)
                                         @if($scope === 'light_vehicle')
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                                <i class="fa-solid fa-car-side mr-1"></i> LV
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                                LV (Light Vehicle)
                                             </span>
                                         @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                                <i class="fa-solid fa-truck-moving mr-1"></i> {{ str_replace('_', ' ', $scope) }}
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                {{ str_replace('_', ' ', $scope) }}
                                             </span>
                                         @endif
                                     @endforeach
                                     @if(count($scopesList) > 3)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200" 
+                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200" 
                                               title="{{ implode(', ', array_slice($scopesList, 3)) }}">
                                             +{{ count($scopesList) - 3 }} lainnya
                                         </span>
@@ -173,38 +155,40 @@
                                 @endif
                             </div>
                         </td>
-                        <td class="py-3 px-4 text-center font-bold">
-                            <span class="font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
+                        <td class="py-4 px-5 text-center font-bold whitespace-nowrap">
+                            <span class="inline-block font-mono text-xs text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
                                 {{ $st->active_holders_count }} Personil
                             </span>
                         </td>
-                        <td class="py-3 px-4 text-center">
+                        <td class="py-4 px-5 text-center whitespace-nowrap">
                             @if($st->is_active)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     Aktif
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
                                     Nonaktif
                                 </span>
                             @endif
                         </td>
-                        <td class="py-3 px-4 text-slate-500 text-[11px] line-clamp-2">
-                            {{ $st->description ?: '-' }}
+                        <td class="py-4 px-5 min-w-[240px]">
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                                {{ $st->description ?: '-' }}
+                            </p>
                         </td>
-                        <td class="py-3 px-4 text-center whitespace-nowrap">
-                            <div class="flex items-center justify-center space-x-1">
+                        <td class="py-4 px-5 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-1.5">
                                 @can('hse.employees.edit')
                                 <button type="button" 
                                         onclick="openEditSimperTypeModal({{ json_encode($st) }})" 
-                                        class="p-1.5 rounded-lg text-amber-600 hover:text-amber-800 hover:bg-amber-50 transition cursor-pointer" 
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 transition border border-amber-200 cursor-pointer" 
                                         title="Edit Jenis SIMPER">
                                     <i class="fa-regular fa-pen-to-square text-xs"></i>
                                 </button>
                                 @if($st->total_holders_count == 0)
                                 <button type="button" 
                                         onclick="openDeleteSimperTypeModal({{ $st->id }}, '{{ $st->name }}')" 
-                                        class="p-1.5 rounded-lg text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition cursor-pointer" 
+                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 transition border border-rose-200 cursor-pointer" 
                                         title="Hapus Jenis SIMPER">
                                     <i class="fa-regular fa-trash-can text-xs"></i>
                                 </button>
@@ -215,9 +199,8 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-12 text-center text-slate-400">
-                            <i class="fa-solid fa-id-card text-3xl mb-2 block text-slate-300"></i>
-                            <p class="text-sm font-semibold text-slate-700">Belum ada data jenis SIMPER</p>
+                        <td colspan="8" class="py-16 text-center text-slate-400">
+                            <p class="text-sm font-bold text-slate-700">Belum ada data jenis SIMPER</p>
                             <p class="text-xs text-slate-400 mt-1">Klik tombol "+ Tambah Jenis SIMPER" untuk membuat kategori baru.</p>
                         </td>
                     </tr>
