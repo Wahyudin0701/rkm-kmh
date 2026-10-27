@@ -33,6 +33,12 @@
                 <i class="fa-solid fa-arrow-left text-[11px]"></i>
                 <span>Kembali ke Daftar</span>
             </a>
+            @can('hse.employees.delete')
+            <button type="button" onclick="openDeleteEmployeeModal()" class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition shadow-2xs cursor-pointer">
+                <i class="fa-regular fa-trash-can text-xs"></i>
+                <span>Hapus Karyawan</span>
+            </button>
+            @endcan
         </div>
     </div>
 
@@ -263,9 +269,71 @@
             <option value="{{ $unit }}">
         @endforeach
     </datalist>
+
+    <!-- ========================================================================= -->
+    <!-- MODAL POPUP: KONFIRMASI HAPUS DATA KARYAWAN                               -->
+    <!-- ========================================================================= -->
+    @can('hse.employees.delete')
+    <div id="deleteEmployeeModal" 
+         data-backdrop="static"
+         class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center animate-scale-in">
+            <!-- Icon Peringatan Sampah Merah -->
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+
+            <h3 class="text-lg font-bold text-slate-900 tracking-tight">
+                Konfirmasi Hapus Karyawan
+            </h3>
+
+            <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+                Apakah Anda yakin ingin menghapus data karyawan / personil <strong class="text-slate-900">{{ $employee->name }}</strong> (<span class="font-bold font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $employee->nik }}</span>)?
+            </p>
+
+            <p class="text-[11px] text-rose-600 mt-3 bg-rose-50/70 border border-rose-100 py-2 px-3 rounded-xl inline-flex items-center text-left">
+                <i class="fa-solid fa-circle-info mr-2 flex-shrink-0 text-xs"></i>
+                <span>Data personil beserta izin SIMPER dan akun login terkait akan dihapus permanen.</span>
+            </p>
+
+            <!-- Tombol Aksi (Batal & Hapus Data) -->
+            <div class="flex items-center space-x-3 mt-6">
+                <button type="button" 
+                        onclick="closeDeleteEmployeeModal()" 
+                        class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer">
+                    Batal
+                </button>
+                <form action="{{ route('hse.employees.destroy', $employee->id) }}" method="POST" class="flex-1">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer">
+                        <i class="fa-regular fa-trash-can text-xs"></i>
+                        <span>Ya, Hapus Data</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endcan
 </div>
 
 <script>
+    function openDeleteEmployeeModal() {
+        const modal = document.getElementById('deleteEmployeeModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDeleteEmployeeModal() {
+        const modal = document.getElementById('deleteEmployeeModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeDeleteEmployeeModal();
+        }
+    });
     function toggleSimperRow(id) {
         const chk = document.getElementById(`chkSimper_${id}`);
         const fields = document.getElementById(`fieldsSimper_${id}`);

@@ -264,12 +264,13 @@
                                 @endif
                             </td>
                             
-                            <!-- Aksi (Edit Data Simper & Perpanjang SIMPER) -->
+                            <!-- Aksi (Edit Data Simper, Perpanjang, & Hapus Karyawan) -->
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                @can('hse.employees.edit')
+                                @if(auth()->user()->can('hse.employees.edit') || auth()->user()->can('hse.employees.delete'))
                                 <div class="flex items-center justify-center space-x-1.5">
+                                    @can('hse.employees.edit')
                                     <button onclick='openEditModal(@json($emp))' 
-                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
+                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition cursor-pointer"
                                             title="Buka Modal Edit Data SIMPER">
                                         <i class="fa-regular fa-pen-to-square text-xs"></i>
                                         <span class="text-xs font-semibold">Edit</span>
@@ -280,15 +281,27 @@
                                         <i class="fa-solid fa-up-right-from-square text-[11px]"></i>
                                     </a>
                                     <span class="text-slate-200">|</span>
-                                    <button onclick="openRenewModal({{ $emp->id }}, '{{ $emp->name }}', '{{ $emp->simper_expired_at ? $emp->simper_expired_at->format('Y-m-d') : '' }}', {{ $emp->is_operator ? '1' : '0' }})" 
-                                            class="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] px-1"
+                                    <button onclick="openRenewModal({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->simper_expired_at ? $emp->simper_expired_at->format('Y-m-d') : '' }}', {{ $emp->is_operator ? '1' : '0' }})" 
+                                            class="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] px-1 cursor-pointer"
                                             title="Perpanjang Masa Berlaku SIMPER">
                                         Perpanjang
                                     </button>
+                                    @endcan
+
+                                    @can('hse.employees.delete')
+                                    <span class="text-slate-200">|</span>
+                                    <button type="button"
+                                            onclick="openDeleteEmployeeModal({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->nik }}')"
+                                            class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-1.5 py-1 rounded-lg transition cursor-pointer"
+                                            title="Hapus Data Karyawan / Personil">
+                                        <i class="fa-regular fa-trash-can text-xs"></i>
+                                        <span class="text-xs font-semibold">Hapus</span>
+                                    </button>
+                                    @endcan
                                 </div>
                                 @else
                                 <span class="text-xs text-slate-400 italic">Hanya lihat</span>
-                                @endcan
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -884,6 +897,51 @@
 </datalist>
 
 <!-- ========================================================================= -->
+<!-- MODAL POPUP: KONFIRMASI HAPUS DATA KARYAWAN                               -->
+<!-- ========================================================================= -->
+<div id="deleteEmployeeModal" 
+     data-backdrop="static"
+     class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center animate-scale-in">
+        <!-- Icon Peringatan Sampah Merah -->
+        <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <h3 class="text-lg font-bold text-slate-900 tracking-tight">
+            Konfirmasi Hapus Karyawan
+        </h3>
+
+        <p class="text-xs text-slate-600 mt-2 leading-relaxed">
+            Apakah Anda yakin ingin menghapus data karyawan / personil <span id="deleteEmployeeName" class="font-bold text-slate-900"></span> (<span id="deleteEmployeeNik" class="font-bold font-mono text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200"></span>)?
+        </p>
+
+        <p class="text-[11px] text-rose-600 mt-3 bg-rose-50/70 border border-rose-100 py-2 px-3 rounded-xl inline-flex items-center text-left">
+            <i class="fa-solid fa-circle-info mr-2 flex-shrink-0 text-xs"></i>
+            <span>Data personil beserta izin SIMPER dan akun login terkait akan dihapus permanen.</span>
+        </p>
+
+        <!-- Tombol Aksi (Batal & Hapus Data) -->
+        <div class="flex items-center space-x-3 mt-6">
+            <button type="button" 
+                    onclick="closeDeleteEmployeeModal()" 
+                    class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer">
+                Batal
+            </button>
+            <form id="deleteEmployeeForm" action="" method="POST" class="flex-1">
+                @csrf
+                @method('DELETE')
+                <button type="submit" 
+                        class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition shadow-sm flex items-center justify-center space-x-1.5 cursor-pointer">
+                    <i class="fa-regular fa-trash-can text-xs"></i>
+                    <span>Ya, Hapus Data</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
 <!-- MODAL POPUP: PANDUAN HALAMAN (DATA SIMPER)                                -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
@@ -1260,6 +1318,19 @@
         if (modal) modal.classList.add('hidden');
     }
 
+    function openDeleteEmployeeModal(id, name, nik) {
+        document.getElementById('deleteEmployeeName').textContent = name;
+        document.getElementById('deleteEmployeeNik').textContent = nik;
+        document.getElementById('deleteEmployeeForm').action = `/hse/employees/${id}`;
+        const modal = document.getElementById('deleteEmployeeModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeDeleteEmployeeModal() {
+        const modal = document.getElementById('deleteEmployeeModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     // Pencarian Server-side Otomatis (Global ke seluruh database)
     const employeeFilterForm = document.getElementById('employeeFilterForm');
     const searchInput = document.getElementById('simperSearchInput');
@@ -1306,6 +1377,7 @@
             closeEditModal();
             closeRenewModal();
             closeImportKaryawanModal();
+            closeDeleteEmployeeModal();
             const exportMenu = document.getElementById('exportMenuSimper');
             if (exportMenu) exportMenu.style.display = 'none';
         }

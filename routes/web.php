@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store')->middleware('permission:hse.employees.create');
         Route::get('/employees/{id}/edit', [EmployeeController::class, 'edit'])->name('employees.edit')->middleware('permission:hse.employees.edit');
         Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
+        Route::delete('/employees/{id}', [EmployeeController::class, 'destroy'])->name('employees.destroy')->middleware('permission:hse.employees.delete');
 
         // Master Jenis SIMPER (Konfigurasi Fleksibel HSE)
         Route::get('/simper-types', [SimperTypeController::class, 'index'])->name('simper_types.index')->middleware('permission:hse.simper_types.view|hse.employees.view');

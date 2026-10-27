@@ -147,4 +147,169 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
         $this->assertStringContainsString('value="Laboratorium Kimia"', $content);
         $this->assertStringContainsString('<datalist id="unitKerjaSuggestions">', $content);
     }
+
+    public function test_super_admin_and_authorized_user_sees_delete_button_and_modal(): void
+    {
+        Permission::firstOrCreate(['name' => 'hse.employees.delete']);
+        $this->hseAdmin->givePermissionTo('hse.employees.delete');
+
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_test',
+            'role' => 'super_admin',
+        ]);
+        $superRole = Role::firstOrCreate(['name' => 'super_admin']);
+        $superAdmin->assignRole($superRole);
+
+        $employee = Employee::create([
+            'nik' => 'KMH-DEL-001',
+            'name' => 'Bambang Sudirman',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Umum',
+            'division' => 'Operasional',
+            'position' => 'Staff',
+            'is_operator' => false,
+        ]);
+
+        // Verifikasi pada halaman index (tabel Data SIMPER)
+        $responseIndex = $this->actingAs($superAdmin)->get(route('hse.employees.index'));
+        $responseIndex->assertStatus(200);
+        $contentIndex = $responseIndex->getContent();
+
+        $this->assertStringContainsString('title="Hapus Data Karyawan / Personil"', $contentIndex);
+        $this->assertStringContainsString('openDeleteEmployeeModal', $contentIndex);
+        $this->assertStringContainsString('id="deleteEmployeeModal"', $contentIndex);
+
+        // Verifikasi pada halaman edit data karyawan
+        $responseEdit = $this->actingAs($superAdmin)->get(route('hse.employees.edit', $employee->id));
+        $responseEdit->assertStatus(200);
+        $contentEdit = $responseEdit->getContent();
+
+        $this->assertStringContainsString('Hapus Karyawan', $contentEdit);
+        $this->assertStringContainsString('id="deleteEmployeeModal"', $contentEdit);
+    }
+
+    public function test_user_without_delete_permission_cannot_see_delete_button_or_delete(): void
+    {
+        $officer = User::factory()->create([
+            'username' => 'viewer_only',
+            'role' => 'guest_officer',
+        ]);
+        $role = Role::firstOrCreate(['name' => 'guest_officer']);
+        $role->syncPermissions(['hse.employees.view']);
+        $officer->assignRole($role);
+
+        $employee = Employee::create([
+            'nik' => 'KMH-NO-DEL',
+            'name' => 'Pegawai Aman',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Teknik',
+            'division' => 'Teknik',
+            'position' => 'Staff',
+            'is_operator' => false,
+        ]);
+
+        $response = $this->actingAs($officer)->get(route('hse.employees.index'));
+        $response->assertStatus(200);
+        $response->assertDontSee('title="Hapus Data Karyawan / Personil"', false);
+
+        // Percobaan request hapus langsung ditolak 403
+        $delResponse = $this->actingAs($officer)->delete(route('hse.employees.destroy', $employee->id));
+        $delResponse->assertStatus(403);
+    }
+
+    public function test_authorized_user_can_delete_employee_and_cleans_up_linked_user(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_deleter',
+            'role' => 'super_admin',
+        ]);
+
+        $linkedUser = User::create([
+            'username' => 'KMH-EMP-LINKED',
+            'name' => 'Karyawan Dihapus',
+            'email' => 'kmhemplinked@kmh.co.id',
+            'password' => bcrypt('123456'),
+            'role' => 'employee',
+        ]);
+        $linkedUser->assignRole('employee');
+
+        $employee = Employee::create([
+            'nik' => 'KMH-EMP-LINKED',
+            'name' => 'Karyawan Dihapus',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Logistik',
+            'division' => 'Gudang',
+            'position' => 'Staff',
+            'is_operator' => false,
+            'user_id' => $linkedUser->id,
+        ]);
+
+        $response = $this->actingAs($superAdmin)
+            ->from(route('hse.employees.index'))
+            ->delete(route('hse.employees.destroy', $employee->id));
+
+        $response->assertSessionHasNoErrors();
+        $response->assertSessionHas('success');
+        $response->assertRedirect(route('hse.employees.index'));
+
+        $this->assertDatabaseMissing('employees', ['id' => $employee->id]);
+        $this->assertDatabaseMissing('users', ['id' => $linkedUser->id]);
+    }
+
+    public function test_cannot_delete_employee_with_operational_records(): void
+    {
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_check',
+            'role' => 'super_admin',
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'KMH-DRIVER-01',
+            'name' => 'Driver Senior',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Umum',
+            'division' => 'Pool',
+            'position' => 'Driver',
+            'is_operator' => true,
+        ]);
+
+        $gate = \App\Models\Gate::create([
+            'code' => 'GATE-01',
+            'name' => 'Main Gate',
+            'is_active' => true,
+        ]);
+
+        $vehicle = \App\Models\Vehicle::create([
+            'code' => 'LV-TEST-01',
+            'brand_type' => 'Toyota Hilux Single Cabin',
+            'license_plate' => 'BH 1234 XX',
+            'division' => 'Umum',
+            'category' => 'LV',
+            'ownership' => 'KMH',
+            'status' => 'Operation',
+            'current_km' => 1000,
+        ]);
+
+        \App\Models\VehicleActivity::create([
+            'transaction_no' => 'TRX-TEST-001',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $employee->id,
+            'gate_id' => $gate->id,
+            'direction' => 'out',
+            'previous_km' => 1000,
+            'current_km' => 1050,
+            'distance' => 50,
+            'purpose' => 'Operasional lapangan',
+            'recorded_at' => now(),
+            'validation_status' => 'approved',
+            'validated_at' => now(),
+        ]);
+
+        $response = $this->actingAs($superAdmin)
+            ->from(route('hse.employees.index'))
+            ->delete(route('hse.employees.destroy', $employee->id));
+
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('employees', ['id' => $employee->id]);
+    }
 }

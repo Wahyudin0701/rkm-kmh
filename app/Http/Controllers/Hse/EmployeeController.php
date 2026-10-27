@@ -747,6 +747,58 @@ class EmployeeController extends Controller
     }
 
     /**
+     * Hapus data personil / karyawan beserta izin SIMPER dan akun login terkait.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $employee = Employee::with(['user', 'activities', 'p2hRecords', 'supportTimesheets'])->findOrFail($id);
+
+        // 1. Proteksi integritas relasi: pastikan tidak ada logbook perjalanan kendaraan
+        if ($employee->activities()->exists()) {
+            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah tercatat dalam riwayat logbook operasional kendaraan.");
+        }
+
+        // 2. Proteksi integritas relasi: pastikan tidak ada data inspeksi P2H
+        if ($employee->p2hRecords()->exists()) {
+            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah memiliki formulir riwayat inspeksi P2H.");
+        }
+
+        // 3. Proteksi integritas relasi: pastikan tidak ada data timesheet unit support
+        if ($employee->supportTimesheets()->exists()) {
+            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah tercatat dalam riwayat timesheet unit support.");
+        }
+
+        $empName = $employee->name;
+        $empNik = $employee->nik;
+        $photoPath = $employee->photo_path;
+
+        DB::transaction(function () use ($employee, $photoPath) {
+            $user = $employee->user ?: User::where('username', $employee->nik)->first();
+
+            // Hapus berkas foto profil jika tersimpan secara lokal di storage
+            if ($photoPath) {
+                ImageCompressionService::deleteIfExists($photoPath);
+            }
+
+            // Hapus data karyawan (relasi employee_simpers otomatis cascade terhapus)
+            $employee->delete();
+
+            // Hapus akun login User terkait jika perannya murni hanya karyawan (bukan admin)
+            if ($user && $user->role === 'employee' && ! $user->hasAnyRole(['super_admin', 'hse_admin', 'qma_admin', 'pg_admin', 'gate_officer'])) {
+                $user->syncRoles([]);
+                $user->delete();
+            }
+        });
+
+        // Jika request berasal dari halaman edit terpisah, arahkan kembali ke index
+        if (url()->previous() === route('hse.employees.edit', $id)) {
+            return redirect()->route('hse.employees.index')->with('success', "Data karyawan '{$empName}' ({$empNik}) berhasil dihapus dari sistem.");
+        }
+
+        return back()->with('success', "Data karyawan '{$empName}' ({$empNik}) berhasil dihapus dari sistem.");
+    }
+
+    /**
      * Helper sinkronisasi multi-SIMPER personil.
      */
     private function syncEmployeeSimpers(Employee $employee, Request $request, bool $isOperator, ?string $fallbackDate): void
