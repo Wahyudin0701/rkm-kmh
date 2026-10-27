@@ -80,5 +80,6 @@ class DatabaseSeeder extends Seeder
 
         // 4. Seed 28 Master Template Checksheet P2H Unit Support & Pertanyaan Pemeriksaan
         $this->call(P2hTemplateSeeder::class);
+        $this->call(P2hAmtisSyncSeeder::class);
     }
 }
