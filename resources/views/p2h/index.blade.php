@@ -170,106 +170,38 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Search Real-Time Client-Side & Smart Server Query
+    // Search Server-Side dengan Debounce Pintar & Submit Cepat
     const searchInput = document.getElementById('p2hSearchInput');
-    const resetContainer = document.getElementById('p2hResetContainer');
-    const cardsContainer = document.getElementById('p2hCardsContainer');
-    const paginationContainer = document.getElementById('p2hPaginationContainer');
-    const serverEmptyCard = document.getElementById('p2hServerEmptyCard');
     const filterForm = document.getElementById('p2hFilterForm');
-    const hasServerFilters = {{ request()->anyFilled(['search', 'unit_category']) ? 'true' : 'false' }};
+    const hasServerSearch = {{ request()->filled('search') ? 'true' : 'false' }};
+    let debounceTimer = null;
 
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
+    // Otomatis cari ke seluruh database server setelah jeda mengetik 550ms
     searchInput?.addEventListener('input', function(e) {
-        const rawValue = e.target.value;
-        const query = rawValue.toLowerCase().trim();
-        const cleanQuery = query.replace(/[\s\-_]/g, '');
-        // Pencarian multi-field ke kartu/baris unit
-        const items = document.querySelectorAll('#p2hCardsContainer .p2h-card, #p2hCardsContainer tr.p2h-row');
-        let visibleCount = 0;
+        clearTimeout(debounceTimer);
+        const val = e.target.value.trim();
 
-        items.forEach(item => {
-            const text = item.textContent.toLowerCase();
-            const cleanText = text.replace(/[\s\-_]/g, '');
-            const match = text.includes(query) || (cleanQuery.length > 0 && cleanText.includes(cleanQuery));
-            item.style.display = match ? '' : 'none';
-            if (match) visibleCount++;
-        });
-
-        // Sembunyikan pesan SSR kosong saat mengetik
-        if (serverEmptyCard) {
-            serverEmptyCard.style.display = query.length > 0 ? 'none' : '';
+        // Jika input dikosongkan setelah sebelumnya ada pencarian, langsung reload reset
+        if (val === '' && hasServerSearch) {
+            debounceTimer = setTimeout(() => {
+                filterForm.submit();
+            }, 300);
+            return;
         }
 
-        // Hapus pesan kosong pencarian jika ada sebelumnya
-        const existingEmptyCard = document.getElementById('p2hEmptySearchCard');
-        if (existingEmptyCard) {
-            existingEmptyCard.remove();
+        // Auto submit setelah berhenti mengetik minimal 2 karakter
+        if (val.length >= 2) {
+            debounceTimer = setTimeout(() => {
+                filterForm.submit();
+            }, 550);
         }
+    });
 
-        // Tampilkan pesan kosong jika tidak ada data yang cocok di halaman ini
-        if (visibleCount === 0 && query.length > 0) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.id = 'p2hEmptySearchCard';
-            emptyDiv.className = 'col-span-full bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-sm';
-            emptyDiv.innerHTML = `
-                <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-magnifying-glass text-2xl"></i>
-                </div>
-                <h3 class="text-base font-bold text-slate-800">
-                    Unit "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ada di halaman ini
-                </h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                    Unit mungkin berada di halaman lain atau kategori lain. Tekan tombol <strong>Cari di Semua Halaman</strong> untuk mencari di seluruh database alat berat.
-                </p>
-                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <button type="submit" form="p2hFilterForm" 
-                            class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] active:scale-95 transition shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-                        <span>Cari di Semua Halaman</span>
-                    </button>
-                    <button type="button" 
-                            onclick="const inp = document.getElementById('p2hSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                            class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                        <span>Hapus Pencarian</span>
-                    </button>
-                </div>
-            `;
-            cardsContainer?.appendChild(emptyDiv);
-        }
-
-        // Sembunyikan pagination saat client-side search aktif
-        if (paginationContainer) {
-            paginationContainer.style.display = query.length > 0 ? 'none' : '';
-        }
-
-        // Tampilkan/sembunyikan tombol Reset Filter (merah fa-rotate-left) secara real-time
-        let resetBtn = document.getElementById('p2hResetBtn');
-        if (query.length > 0) {
-            if (!resetBtn && resetContainer) {
-                resetBtn = document.createElement('a');
-                resetBtn.id = 'p2hResetBtn';
-                resetBtn.href = "{{ route('p2h.index') }}";
-                resetBtn.className = "text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2";
-                
-                const resetIcon = document.createElement('i');
-                resetIcon.className = "fa-solid fa-rotate-left text-[11px]";
-                
-                const resetText = document.createElement('span');
-                resetText.textContent = "Reset Filter";
-                
-                resetBtn.appendChild(resetIcon);
-                resetBtn.appendChild(resetText);
-                resetContainer.appendChild(resetBtn);
-            }
-        } else if (!hasServerFilters && resetBtn) {
-            resetBtn.remove();
+    // Submit langsung seketika saat tombol Enter ditekan di keyboard
+    searchInput?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(debounceTimer);
+            filterForm.submit();
         }
     });
 });

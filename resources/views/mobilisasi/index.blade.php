@@ -197,105 +197,38 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Search Real-Time Client-Side & Smart Server Query
+    // Search Server-Side dengan Debounce Pintar & Submit Cepat
     const searchInput = document.getElementById('lvSearchInput');
-    const resetContainer = document.getElementById('lvResetContainer');
-    const cardsContainer = document.getElementById('lvCardsContainer');
-    const paginationContainer = document.getElementById('lvPaginationContainer');
-    const serverEmptyCard = document.getElementById('lvServerEmptyCard');
     const filterForm = document.getElementById('lvFilterForm');
-    const hasServerFilters = {{ request()->filled('search') ? 'true' : 'false' }};
+    const hasServerSearch = {{ request()->filled('search') ? 'true' : 'false' }};
+    let debounceTimer = null;
 
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
+    // Otomatis cari ke seluruh database server setelah jeda mengetik 550ms
     searchInput?.addEventListener('input', function(e) {
-        const rawValue = e.target.value;
-        const query = rawValue.toLowerCase().trim();
-        const cleanQuery = query.replace(/[\s\-_]/g, '');
-        const items = document.querySelectorAll('#lvCardsContainer .lv-card');
-        let visibleCount = 0;
+        clearTimeout(debounceTimer);
+        const val = e.target.value.trim();
 
-        items.forEach(item => {
-            const text = item.textContent.toLowerCase();
-            const cleanText = text.replace(/[\s\-_]/g, '');
-            const match = text.includes(query) || (cleanQuery.length > 0 && cleanText.includes(cleanQuery));
-            item.style.display = match ? '' : 'none';
-            if (match) visibleCount++;
-        });
-
-        // Sembunyikan pesan SSR kosong saat mengetik
-        if (serverEmptyCard) {
-            serverEmptyCard.style.display = query.length > 0 ? 'none' : '';
+        // Jika input dikosongkan setelah sebelumnya ada pencarian, langsung reload reset
+        if (val === '' && hasServerSearch) {
+            debounceTimer = setTimeout(() => {
+                filterForm.submit();
+            }, 300);
+            return;
         }
 
-        // Hapus pesan kosong pencarian jika ada sebelumnya
-        const existingEmptyCard = document.getElementById('lvEmptySearchCard');
-        if (existingEmptyCard) {
-            existingEmptyCard.remove();
+        // Auto submit setelah berhenti mengetik minimal 2 karakter
+        if (val.length >= 2) {
+            debounceTimer = setTimeout(() => {
+                filterForm.submit();
+            }, 550);
         }
+    });
 
-        // Tampilkan notifikasi jika tidak ada data yang cocok di halaman ini
-        if (visibleCount === 0 && query.length > 0) {
-            const emptyDiv = document.createElement('div');
-            emptyDiv.id = 'lvEmptySearchCard';
-            emptyDiv.className = 'col-span-full bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-sm';
-            emptyDiv.innerHTML = `
-                <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-3">
-                    <i class="fa-solid fa-magnifying-glass text-2xl"></i>
-                </div>
-                <h3 class="text-base font-bold text-slate-800">
-                    Unit "<span class="text-rose-600 font-bold">${escapeHtml(rawValue)}</span>" tidak ada di halaman ini
-                </h3>
-                <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                    Unit mungkin berada di halaman lain. Tekan tombol <strong>Cari di Semua Halaman</strong> untuk mencari di seluruh database kendaraan.
-                </p>
-                <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <button type="submit" form="lvFilterForm" 
-                            class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] active:scale-95 transition shadow-sm cursor-pointer">
-                        <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-                        <span>Cari di Semua Halaman</span>
-                    </button>
-                    <button type="button" 
-                            onclick="const inp = document.getElementById('lvSearchInput'); if(inp){ inp.value=''; inp.dispatchEvent(new Event('input')); inp.focus(); }" 
-                            class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                        <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                        <span>Hapus Pencarian</span>
-                    </button>
-                </div>
-            `;
-            cardsContainer?.appendChild(emptyDiv);
-        }
-
-        // Sembunyikan pagination saat client-side search aktif
-        if (paginationContainer) {
-            paginationContainer.style.display = query.length > 0 ? 'none' : '';
-        }
-
-        // Tampilkan / sembunyikan tombol Reset Filter secara real-time
-        let resetBtn = document.getElementById('lvResetBtn');
-        if (query.length > 0) {
-            if (!resetBtn && resetContainer) {
-                resetBtn = document.createElement('a');
-                resetBtn.id = 'lvResetBtn';
-                resetBtn.href = "{{ route('mobilisasi.index', ['type' => $type ?? 'all']) }}";
-                resetBtn.className = "text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0";
-                
-                const resetIcon = document.createElement('i');
-                resetIcon.className = "fa-solid fa-rotate-left text-[11px]";
-                
-                const resetText = document.createElement('span');
-                resetText.textContent = "Reset Filter";
-                
-                resetBtn.appendChild(resetIcon);
-                resetBtn.appendChild(resetText);
-                resetContainer.appendChild(resetBtn);
-            }
-        } else if (!hasServerFilters && resetBtn) {
-            resetBtn.remove();
+    // Submit langsung seketika saat tombol Enter ditekan di keyboard
+    searchInput?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(debounceTimer);
+            filterForm.submit();
         }
     });
 });
