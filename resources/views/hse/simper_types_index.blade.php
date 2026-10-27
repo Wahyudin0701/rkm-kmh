@@ -105,30 +105,24 @@
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
-                        <th class="py-4 px-5 text-center w-14">NO</th>
-                        <th class="py-4 px-5 whitespace-nowrap">KODE</th>
-                        <th class="py-4 px-5 whitespace-nowrap min-w-[200px]">NAMA JENIS SIMPER</th>
-                        <th class="py-4 px-5 whitespace-nowrap min-w-[240px]">CAKUPAN KENDARAAN</th>
+                        <th class="py-4 px-5 text-center w-12">NO</th>
+                        <th class="py-4 px-5 whitespace-nowrap">NAMA JENIS SIMPER</th>
+                        <th class="py-4 px-5 whitespace-nowrap">CAKUPAN KENDARAAN</th>
                         <th class="py-4 px-5 text-center whitespace-nowrap">PEMEGANG AKTIF</th>
                         <th class="py-4 px-5 text-center whitespace-nowrap">STATUS</th>
-                        <th class="py-4 px-5 whitespace-nowrap min-w-[240px]">KETERANGAN</th>
-                        <th class="py-4 px-5 text-center whitespace-nowrap w-28">AKSI</th>
+                        <th class="py-4 px-5">KETERANGAN</th>
+                        <th class="py-4 px-5 text-center whitespace-nowrap w-24">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700 bg-white font-medium">
                     @forelse($simperTypes as $idx => $st)
-                    <tr class="hover:bg-slate-50/80 transition">
+                    <tr class="hover:bg-slate-50/80 transition" data-code="{{ $st->code }}">
                         <td class="py-4 px-5 text-center text-slate-400 font-mono">{{ $idx + 1 }}</td>
-                        <td class="py-4 px-5 whitespace-nowrap">
-                            <span class="inline-block font-mono font-extrabold text-xs text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 whitespace-nowrap">
-                                {{ $st->code }}
-                            </span>
-                        </td>
-                        <td class="py-4 px-5 min-w-[200px]">
+                        <td class="py-4 px-5">
                             <span class="font-bold text-slate-900 text-[13px] block">{{ $st->name }}</span>
                         </td>
                         <td class="py-4 px-5">
-                            <div class="flex flex-wrap items-center gap-1.5 min-w-[240px]">
+                            <div class="flex flex-wrap items-center gap-1.5 max-w-xs">
                                 @if($st->coversScope('all'))
                                     <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                                         Semua Kategori (Universal)
@@ -171,8 +165,8 @@
                                 </span>
                             @endif
                         </td>
-                        <td class="py-4 px-5 min-w-[240px]">
-                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                        <td class="py-4 px-5">
+                            <p class="text-xs text-slate-500 leading-relaxed line-clamp-2 max-w-sm">
                                 {{ $st->description ?: '-' }}
                             </p>
                         </td>
@@ -199,7 +193,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-16 text-center text-slate-400">
+                        <td colspan="7" class="py-16 text-center text-slate-400">
                             <p class="text-sm font-bold text-slate-700">Belum ada data jenis SIMPER</p>
                             <p class="text-xs text-slate-400 mt-1">Klik tombol "+ Tambah Jenis SIMPER" untuk membuat kategori baru.</p>
                         </td>
