@@ -165,7 +165,14 @@ class EmployeeController extends Controller
 
         $availableSimperTypes = SimperType::active()->orderBy('name')->get();
 
-        return view('hse.employees_index', compact('employees', 'employeeTypes', 'availableSimperTypes'));
+        $unitKerjaList = Employee::whereNotNull('unit_kerja')
+            ->where('unit_kerja', '!=', '')
+            ->distinct()
+            ->orderBy('unit_kerja')
+            ->pluck('unit_kerja')
+            ->all();
+
+        return view('hse.employees_index', compact('employees', 'employeeTypes', 'availableSimperTypes', 'unitKerjaList'));
     }
 
     /**
@@ -585,8 +592,8 @@ class EmployeeController extends Controller
             'nik.required' => 'NIK wajib diisi.',
             'nik.unique' => 'NIK sudah terdaftar dalam sistem.',
             'name.required' => 'Nama karyawan wajib diisi.',
-            'unit_kerja.required' => 'Unit kerja wajib dipilih.',
-            'division.required' => 'Divisi wajib dipilih.',
+            'unit_kerja.required' => 'Unit kerja wajib diisi.',
+            'division.required' => 'Divisi wajib diisi.',
             'position.required' => 'Posisi / Jabatan wajib diisi.',
             'is_operator.required' => 'Pilih apakah karyawan berstatus Operator / Driver.',
         ]);
@@ -656,7 +663,21 @@ class EmployeeController extends Controller
             ->values()
             ->all();
 
-        return view('hse.employees_edit', compact('employee', 'availableSimperTypes', 'employeeTypes'));
+        if (!in_array('Karyawan', $employeeTypes)) {
+            array_unshift($employeeTypes, 'Karyawan');
+        }
+        if (!in_array('Sukon', $employeeTypes)) {
+            $employeeTypes[] = 'Sukon';
+        }
+
+        $unitKerjaList = Employee::whereNotNull('unit_kerja')
+            ->where('unit_kerja', '!=', '')
+            ->distinct()
+            ->orderBy('unit_kerja')
+            ->pluck('unit_kerja')
+            ->all();
+
+        return view('hse.employees_edit', compact('employee', 'availableSimperTypes', 'employeeTypes', 'unitKerjaList'));
     }
 
     /**

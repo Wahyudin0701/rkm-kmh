@@ -258,7 +258,7 @@
 <!-- MODAL: TAMBAH SECTION & DAFTAR PERTANYAAN (BATCH)                         -->
 <!-- ========================================================================= -->
 <div id="addSectionModal" 
-     onclick="if(event.target === this) closeAddSectionModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 border border-slate-100 my-8 max-h-[90vh] flex flex-col">
         <!-- Modal Header -->
@@ -437,7 +437,7 @@
 <!-- MODAL: ATUR URUTAN POSISI SECTION (REORDER)                               -->
 <!-- ========================================================================= -->
 <div id="reorderSectionsModal" 
-     onclick="if(event.target === this) closeReorderSectionsModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-100 my-8 max-h-[90vh] flex flex-col">
         <!-- Header -->
@@ -522,7 +522,7 @@
 <!-- MODAL: EDIT BUTIR PERTANYAAN                                              -->
 <!-- ========================================================================= -->
 <div id="editItemModal" 
-     onclick="if(event.target === this) closeEditItemModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-5">
@@ -610,7 +610,7 @@
 <!-- MODAL: TAMBAH BUTIR PERTANYAAN TUNGGAL                                     -->
 <!-- ========================================================================= -->
 <div id="addItemModal" 
-     onclick="if(event.target === this) closeAddItemModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-100">
         <div class="flex items-center justify-between mb-5">
@@ -701,7 +701,7 @@
 <!-- MODAL: KONFIRMASI HAPUS PERTANYAAN                                        -->
 <!-- ========================================================================= -->
 <div id="deleteItemModal" 
-     onclick="if(event.target === this) closeDeleteItemModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-100 text-center">
         <div class="w-14 h-14 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">

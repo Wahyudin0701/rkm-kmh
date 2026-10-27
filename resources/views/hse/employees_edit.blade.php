@@ -121,6 +121,17 @@
                         </div>
                     </div>
 
+                    <!-- Unit Kerja (Fleksibel) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                            Unit Kerja <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="text" name="unit_kerja" list="unitKerjaSuggestions" required 
+                               value="{{ old('unit_kerja', $employee->unit_kerja) }}"
+                               placeholder="Contoh: Umum, HSE, dll"
+                               class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    </div>
+
                     <!-- Status Operator / Driver -->
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">
@@ -238,6 +249,20 @@
 
         </div>
     </form>
+
+    <!-- Datalist Saran Unit Kerja Fleksibel -->
+    <datalist id="unitKerjaSuggestions">
+        @php
+            $defaultUnits = ['Umum', 'HSE', 'QMA', 'Pembangkit', 'Bendungan', 'Teknik', 'Logistik', 'Security'];
+            $allUnits = collect($defaultUnits);
+            if (isset($unitKerjaList)) {
+                $allUnits = $allUnits->merge($unitKerjaList)->filter()->unique()->values();
+            }
+        @endphp
+        @foreach($allUnits as $unit)
+            <option value="{{ $unit }}">
+        @endforeach
+    </datalist>
 </div>
 
 <script>

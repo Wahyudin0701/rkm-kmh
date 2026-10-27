@@ -1185,6 +1185,13 @@
         document.addEventListener('mousedown', function(e) {
             const modal = e.target.closest('[id$="Modal"], [id$="modal"], .fixed.inset-0.z-50');
             if (modal && !modal.classList.contains('hidden') && modal.id !== 'mobileDrawer') {
+                // MODAL STATIS / FORM: Jangan pernah tutup modal input form via klik/drag backdrop
+                if (modal.dataset.backdrop === 'static' || modal.getAttribute('data-backdrop') === 'static' || modal.querySelector('form')) {
+                    isMouseDownOnBackdrop = false;
+                    activeBackdropModal = null;
+                    return;
+                }
+
                 const dialogCard = modal.querySelector('.bg-white, [role="dialog"], .modal-dialog, div[class*="rounded-"]');
                 // Tandai mousedown hanya jika terjadi langsung di luar kartu dialog (pada area backdrop)
                 if (dialogCard && !dialogCard.contains(e.target)) {
@@ -1210,6 +1217,11 @@
             const modal = activeBackdropModal;
             isMouseDownOnBackdrop = false;
             activeBackdropModal = null;
+
+            // MODAL STATIS / FORM: Lindungi form agar data input pengguna tidak hilang
+            if (modal.dataset.backdrop === 'static' || modal.getAttribute('data-backdrop') === 'static' || modal.querySelector('form')) {
+                return;
+            }
 
             // Proteksi: jangan tutup modal jika pengguna sedang menyeleksi / memblok teks
             const selection = window.getSelection();

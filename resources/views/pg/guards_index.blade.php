@@ -266,7 +266,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL POPUP: TAMBAH PETUGAS SATPAM BARU                                    -->
 <!-- ========================================================================= -->
-<div id="addGuardModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="addGuardModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -359,7 +359,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL POPUP: EDIT DATA PETUGAS SATPAM                                      -->
 <!-- ========================================================================= -->
-<div id="editGuardModal" onclick="if(event.target === this) closeEditGuardModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="editGuardModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-7 sm:p-8 border border-slate-100 overflow-hidden">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -431,7 +431,7 @@
 <!-- MODAL POPUP: KONFIRMASI AKTIFKAN / NONAKTIFKAN PETUGAS SATPAM             -->
 <!-- ========================================================================= -->
 <div id="toggleStatusModal" 
-     onclick="if(event.target === this) closeToggleStatusModal()" 
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
         <!-- Icon Dinamis (Rose untuk Nonaktifkan, Emerald untuk Aktifkan) -->
@@ -481,7 +481,7 @@
 <!-- MODAL POPUP: KONFIRMASI HAPUS PETUGAS SATPAM                              -->
 <!-- ========================================================================= -->
 <div id="deleteGuardModal" 
-     onclick="if(event.target === this) closeDeleteGuardModal()" 
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
         <!-- Icon Peringatan Sampah Merah -->
@@ -684,7 +684,6 @@
 <!-- MODAL POPUP: PANDUAN HALAMAN (DATA SATPAM)                                -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->

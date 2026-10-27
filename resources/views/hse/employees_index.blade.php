@@ -332,7 +332,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: TAMBAH KARYAWAN MANUAL -->
 <!-- ========================================================================= -->
-<div id="addKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="addKaryawanModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
@@ -416,15 +416,8 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                             <div>
                                 <label class="block text-xs font-bold text-slate-800 mb-1">Unit Kerja <span class="text-rose-500">*</span></label>
-                                <select name="unit_kerja" required class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20]">
-                                    <option value="Pembangkit">Pembangkit</option>
-                                    <option value="Bendungan">Bendungan</option>
-                                    <option value="Teknik">Teknik</option>
-                                    <option value="Umum" selected>Umum</option>
-                                    <option value="Logistik">Logistik</option>
-                                    <option value="HSE">HSE</option>
-                                    <option value="QMA">QMA</option>
-                                </select>
+                                <input type="text" name="unit_kerja" id="addUnitKerjaInput" list="unitKerjaSuggestions" required placeholder="Contoh: HSE, Umum, dll" value="{{ old('unit_kerja', 'Umum') }}" 
+                                       class="w-full text-xs px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] transition">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-800 mb-1">Divisi <span class="text-rose-500">*</span></label>
@@ -538,7 +531,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: IMPOR DATA KARYAWAN EXCEL -->
 <!-- ========================================================================= -->
-<div id="importKaryawanModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="importKaryawanModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div>
@@ -628,11 +621,11 @@
 </div>
 
 <!-- Modal Dialog Perpanjang SIMPER (Clean White Card) -->
-<div id="renewModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="renewModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-7 border border-slate-100 overflow-hidden">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <h3 class="text-xl font-bold text-slate-900 tracking-tight">Perpanjang SIMPER</h3>
-            <button type="button" onclick="document.getElementById('renewModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <button type="button" onclick="closeRenewModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
@@ -657,7 +650,7 @@
                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
             </div>
             <div class="pt-6 border-t border-slate-100 flex items-center justify-end space-x-3 mt-6">
-                <button type="button" onclick="document.getElementById('renewModal').classList.add('hidden')" 
+                <button type="button" onclick="closeRenewModal()" 
                         class="px-6 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition">
                     Batal
                 </button>
@@ -671,7 +664,7 @@
 </div>
 
 <!-- Modal Dialog Edit Data Simper Karyawan -->
-<div id="editModal" onclick="if(event.target === this) this.classList.add('hidden')" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="editModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
         <!-- Header Modal -->
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
@@ -689,7 +682,7 @@
                     <i class="fa-solid fa-up-right-from-square text-[10px]"></i>
                     <span class="hidden sm:inline">Halaman Penuh</span>
                 </a>
-                <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 transition p-1">
+                <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -774,6 +767,15 @@
                             </div>
                         </div>
 
+                        <!-- Unit Kerja (Fleksibel) -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1">
+                                Unit Kerja <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="unit_kerja" id="editUnitKerjaInput" list="unitKerjaSuggestions" required placeholder="Contoh: HSE, Umum, dll" 
+                                   class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                        </div>
+
                         <!-- Status Operator -->
                         <div>
                             <label class="block text-xs font-bold text-slate-800 mb-1">Status Operator / Driver <span class="text-rose-500">*</span></label>
@@ -854,7 +856,7 @@
 
             <!-- Footer Tombol -->
             <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2.5 flex-shrink-0">
-                <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" 
+                <button type="button" onclick="closeEditModal()" 
                         class="px-5 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition">
                     Batal
                 </button>
@@ -867,11 +869,24 @@
     </div>
 </div>
 
+<!-- Datalist Saran Unit Kerja Fleksibel -->
+<datalist id="unitKerjaSuggestions">
+    @php
+        $defaultUnits = ['Umum', 'HSE', 'QMA', 'Pembangkit', 'Bendungan', 'Teknik', 'Logistik', 'Security'];
+        $allUnits = collect($defaultUnits);
+        if (isset($unitKerjaList)) {
+            $allUnits = $allUnits->merge($unitKerjaList)->filter()->unique()->values();
+        }
+    @endphp
+    @foreach($allUnits as $unit)
+        <option value="{{ $unit }}">
+    @endforeach
+</datalist>
+
 <!-- ========================================================================= -->
 <!-- MODAL POPUP: PANDUAN HALAMAN (DATA SIMPER)                                -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->
@@ -1111,6 +1126,10 @@
         document.getElementById('editNikDisplay').textContent = emp.nik || '-';
         document.getElementById('editNameDisplay').textContent = emp.name || '-';
         document.getElementById('editUnitKerjaDisplay').textContent = emp.unit_kerja || '-';
+        const editUnitKerjaInput = document.getElementById('editUnitKerjaInput');
+        if (editUnitKerjaInput) {
+            editUnitKerjaInput.value = emp.unit_kerja || '';
+        }
         document.getElementById('editDivisionPositionDisplay').textContent = (emp.division || '-') + ' / ' + (emp.position || '-');
         document.getElementById('editOperator').value = emp.is_operator ? '1' : '0';
         
@@ -1219,6 +1238,11 @@
         document.getElementById('editModal').classList.remove('hidden');
     }
 
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
     function openRenewModal(id, name, expiredDate, isOperator) {
         document.getElementById('renewName').textContent = name;
         document.getElementById('renewOperator').value = isOperator ? '1' : '0';
@@ -1229,6 +1253,11 @@
 
         document.getElementById('renewForm').action = `/hse/employees/${id}`;
         document.getElementById('renewModal').classList.remove('hidden');
+    }
+
+    function closeRenewModal() {
+        const modal = document.getElementById('renewModal');
+        if (modal) modal.classList.add('hidden');
     }
 
     // Pencarian Server-side Otomatis (Global ke seluruh database)
@@ -1274,6 +1303,8 @@
         if (e.key === 'Escape') {
             closeGuideModal();
             closeAddKaryawanModal();
+            closeEditModal();
+            closeRenewModal();
             closeImportKaryawanModal();
             const exportMenu = document.getElementById('exportMenuSimper');
             if (exportMenu) exportMenu.style.display = 'none';
@@ -1283,6 +1314,8 @@
     // Modal Tambah Karyawan Manual
     function openAddKaryawanModal() {
         const modal = document.getElementById('addKaryawanModal');
+        const addUnitKerja = document.getElementById('addUnitKerjaInput');
+        if (addUnitKerja) addUnitKerja.value = 'Umum';
         const addPhotoPreview = document.getElementById('addEmpPhotoPreview');
         const addPhotoPlaceholder = document.getElementById('addEmpPhotoPlaceholder');
         const addPhotoInput = document.getElementById('addEmpPhotoInput');

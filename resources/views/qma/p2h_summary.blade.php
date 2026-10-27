@@ -514,7 +514,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- MODAL POPUP: PANDUAN HALAMAN (SUMMARY P2H)                                -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">

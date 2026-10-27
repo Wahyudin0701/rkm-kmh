@@ -417,7 +417,7 @@
 
 {{-- MODAL 1: KOREKSI ODOMETER DRIVER (HANYA STATUS PENDING) --}}
 <div id="driverEditKmModal" 
-     onclick="if(event.target === this) closeDriverEditKmModal()" 
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
      aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="relative z-10 bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-lg w-full border border-slate-200 animate-scale-in">
@@ -504,7 +504,7 @@
 
 {{-- MODAL 2: KONFIRMASI BATALKAN PERJALANAN --}}
 <div id="driverCancelModal" 
-     onclick="if(event.target === this) closeDriverCancelModal()" 
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
      aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="relative z-10 bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-md w-full border border-slate-200 animate-scale-in">
@@ -548,7 +548,6 @@
 
 {{-- MODAL 3: IN-APP LIVE QR/BARCODE SCANNER UNIT (LANGSUNG LIVE STREAMING KAMERA KE FORM) --}}
 <div id="unitQrScannerModal" 
-     onclick="if(event.target === this) closeUnitQrScannerModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
      aria-labelledby="qr-scanner-title" role="dialog" aria-modal="true">
     <div class="relative z-10 bg-slate-900 rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-md w-full border border-slate-800 animate-scale-in text-white">

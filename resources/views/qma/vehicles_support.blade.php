@@ -242,7 +242,7 @@
 <!-- MODAL: TAMBAH HEAVY EQUIPMENT (KENDARAAN BERAT) -->
 <!-- ========================================================================= -->
 <div id="addVehicleModal" 
-     onclick="if(event.target === this) closeAddModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between mb-4">
@@ -364,7 +364,7 @@
 <!-- MODAL: EDIT KATEGORI HEAVY EQUIPMENT -->
 <!-- ========================================================================= -->
 <div id="editVehicleModal" 
-     onclick="if(event.target === this) closeEditModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between mb-4">
@@ -483,7 +483,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: DETAIL SPESIFIKASI KATEGORI HEAVY EQUIPMENT -->
 <!-- ========================================================================= -->
-<div id="detailVehicleModal" onclick="if(event.target === this) closeDetailModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+<div id="detailVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -588,7 +588,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: KONFIRMASI HAPUS HEAVY EQUIPMENT (KENDARAAN BERAT) -->
 <!-- ========================================================================= -->
-<div id="deleteVehicleModal" onclick="if(event.target === this) closeDeleteModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
+<div id="deleteVehicleModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
         <!-- Icon Peringatan Elegan -->
         <div class="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
@@ -987,7 +987,6 @@
 <!-- MODAL POPUP: PANDUAN HALAMAN (HEAVY EQUIPMENT)                            -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->

@@ -543,7 +543,6 @@ document.addEventListener('DOMContentLoaded', function () {
 <!-- MODAL POPUP: PANDUAN HALAMAN (LOG AKTIVITAS KENDARAAN)                    -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->
@@ -625,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
 @can('qma.logs.edit_odometer')
 {{-- MODAL KOREKSI ODOMETER QMA --}}
 <div id="qmaOdometerModal" 
-     onclick="if(event.target === this) closeQmaOdometerModal()" 
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto" 
      aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="relative z-10 bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all my-8 max-w-lg w-full border border-slate-200 animate-scale-in">

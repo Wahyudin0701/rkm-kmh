@@ -208,7 +208,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: TAMBAH JENIS SIMPER                                                -->
 <!-- ========================================================================= -->
-<div id="addSimperTypeModal" onclick="if(event.target === this) closeAddSimperTypeModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="addSimperTypeModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
@@ -357,7 +357,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: EDIT JENIS SIMPER                                                  -->
 <!-- ========================================================================= -->
-<div id="editSimperTypeModal" onclick="if(event.target === this) closeEditSimperTypeModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="editSimperTypeModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-shrink-0">
             <div>
@@ -503,7 +503,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: HAPUS JENIS SIMPER                                                 -->
 <!-- ========================================================================= -->
-<div id="deleteSimperTypeModal" onclick="if(event.target === this) closeDeleteSimperTypeModal()" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="deleteSimperTypeModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-slate-100 text-center animate-scale-in">
         <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto mb-3">
             <i class="fa-solid fa-triangle-exclamation"></i>
@@ -529,7 +529,7 @@
 <!-- ========================================================================= -->
 <!-- MODAL: PANDUAN HALAMAN MASTER SIMPER                                      -->
 <!-- ========================================================================= -->
-<div id="simperTypeGuideModal" onclick="if(event.target === this) closeSimperTypeGuideModal()" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+<div id="simperTypeGuideModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
             <div class="flex items-center space-x-3">

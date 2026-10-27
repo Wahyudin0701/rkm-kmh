@@ -273,7 +273,7 @@
 <!-- MODAL: TAMBAH LIGHT VEHICLE -->
 <!-- ========================================================================= -->
 <div id="addVehicleModal" 
-     onclick="if(event.target === this) closeAddModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Tambah Aset -->
@@ -389,7 +389,7 @@
 <!-- MODAL: EDIT LIGHT VEHICLE -->
 <!-- ========================================================================= -->
 <div id="editVehicleModal" 
-     onclick="if(event.target === this) closeEditModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Tambah Aset -->
@@ -499,7 +499,6 @@
 <!-- MODAL: DETAIL LIGHT VEHICLE -->
 <!-- ========================================================================= -->
 <div id="detailVehicleModal" 
-     onclick="if(event.target === this) closeDetailModal()"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 border border-slate-100">
         <!-- Header Modal Bersih Tanpa Icon Box Sesuai Referensi Card Tambah Data -->
@@ -587,7 +586,7 @@
 <!-- MODAL: KONFIRMASI HAPUS KENDARAAN (LIGHT VEHICLE) -->
 <!-- ========================================================================= -->
 <div id="deleteVehicleModal" 
-     onclick="if(event.target === this) closeDeleteModal()"
+     data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-7 border border-slate-100 transform transition-all text-center">
         <!-- Icon Peringatan Elegan -->
@@ -631,7 +630,6 @@
 <!-- MODAL: PREVIEW & CETAK STIKER QR CODE KENDARAAN                            -->
 <!-- ========================================================================= -->
 <div id="qrVehicleModal" 
-     onclick="if(event.target === this) closeQrModal()"
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->
@@ -1420,7 +1418,6 @@
 <!-- MODAL POPUP: PANDUAN HALAMAN (LIGHT VEHICLE)                              -->
 <!-- ========================================================================= -->
 <div id="guideModal" 
-     onclick="if(event.target === this) closeGuideModal()" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->
