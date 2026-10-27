@@ -40,7 +40,7 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::prefix('gate-activity')->name('vehicle.activity.')->group(function () {
     Route::get('/{code}', [VehicleActivityFormController::class, 'show'])->name('form');
     Route::post('/{code}/check-nik', [VehicleActivityFormController::class, 'checkNik'])->middleware('throttle:60,1')->name('check.nik');
-    Route::post('/{code}', [VehicleActivityFormController::class, 'store'])->name('store');
+    Route::post('/{code}', [VehicleActivityFormController::class, 'store'])->middleware('throttle:30,1')->name('store');
 });
 
 // Group Terproteksi Autentikasi Sistem
@@ -181,7 +181,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('p2h')->name('p2h.')->middleware('permission:employee.p2h|qma.vehicles.view|qma.p2h.view')->group(function () {
         Route::get('/', [P2hFormController::class, 'index'])->name('index');
         Route::get('/{code}', [P2hFormController::class, 'show'])->name('form');
-        Route::post('/{code}', [P2hFormController::class, 'store'])->name('store');
+        Route::post('/{code}', [P2hFormController::class, 'store'])->middleware('throttle:30,1')->name('store');
     });
 
     // 6. Modul Karyawan (Dashboard, P2H, Timesheet)
