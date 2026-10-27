@@ -34,14 +34,14 @@
                 <span>Kembali ke Data Personil</span>
             </a>
 
-            @can('hse.employees.edit')
+            @if(auth()->user()->can('hse.simper_types.create') || auth()->user()->can('hse.employees.create') || auth()->user()->can('hse.employees.edit'))
             <button type="button" 
                     onclick="openAddSimperTypeModal()" 
                     class="w-full sm:w-auto bg-[#1b5e20] hover:bg-[#144919] text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 transition shadow-sm cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
                 <span>Tambah Jenis SIMPER</span>
             </button>
-            @endcan
+            @endif
         </div>
     </div>
 
@@ -178,14 +178,15 @@
                         </td>
                         <td class="py-4 px-5 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-1.5">
-                                @can('hse.employees.edit')
+                                @if(auth()->user()->can('hse.simper_types.edit') || auth()->user()->can('hse.employees.edit'))
                                 <button type="button" 
                                         onclick="openEditSimperTypeModal({{ json_encode($st) }})" 
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 transition border border-amber-200 cursor-pointer" 
                                         title="Edit Jenis SIMPER">
                                     <i class="fa-regular fa-pen-to-square text-xs"></i>
                                 </button>
-                                @if($st->total_holders_count == 0)
+                                @endif
+                                @if((auth()->user()->can('hse.simper_types.delete') || auth()->user()->can('hse.employees.edit')) && $st->total_holders_count == 0)
                                 <button type="button" 
                                         onclick="openDeleteSimperTypeModal({{ $st->id }}, '{{ $st->name }}')" 
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 transition border border-rose-200 cursor-pointer" 
@@ -193,7 +194,6 @@
                                     <i class="fa-regular fa-trash-can text-xs"></i>
                                 </button>
                                 @endif
-                                @endcan
                             </div>
                         </td>
                     </tr>

@@ -19,7 +19,7 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
-        if (Schema::hasTable('permissions') && \Spatie\Permission\Models\Permission::count() === 0) {
+        if (Schema::hasTable('roles') && \Spatie\Permission\Models\Role::where('name', 'super_admin')->count() === 0) {
             $this->seed(RolePermissionSeeder::class);
         }
 

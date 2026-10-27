@@ -25,7 +25,14 @@ class AppServiceProvider extends ServiceProvider
 
         // Super Admin bypass: secara otomatis memiliki izin untuk semua ability
         Gate::before(function ($user, $ability) {
-            return ($user->role === 'super_admin' || $user->hasRole('super_admin')) ? true : null;
+            if ($user->role === 'super_admin' || $user->role === 'admin') {
+                return true;
+            }
+            try {
+                return $user->hasRole('super_admin') ? true : null;
+            } catch (\Throwable $e) {
+                return null;
+            }
         });
 
         // Konfigurasi durasi "Ingat Saya" (Remember Me) menjadi 30 hari (43.200 menit)

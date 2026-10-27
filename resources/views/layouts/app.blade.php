@@ -253,25 +253,29 @@
                 @endif
 
                 <!-- Grup: Manajemen HSE -->
-                @can('hse.employees.view')
+                @if(auth()->user()->can('hse.employees.view') || auth()->user()->can('hse.simper_types.view'))
                 <div>
                     <p class="px-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN HSE
                     </p>
                     <nav class="space-y-1">
+                        @can('hse.employees.view')
                         <a href="{{ route('hse.employees.index') }}" 
                            class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-id-card text-base w-5 text-center"></i>
                             <span>Data Simper</span>
                         </a>
+                        @endcan
+                        @if(auth()->user()->can('hse.simper_types.view') || auth()->user()->can('hse.employees.view'))
                         <a href="{{ route('hse.simper_types.index') }}" 
                            class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('hse.simper_types.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-sliders text-base w-5 text-center"></i>
                             <span>Jenis SIMPER</span>
                         </a>
+                        @endif
                     </nav>
                 </div>
-                @endcan
+                @endif
 
                 <!-- Grup: Manajemen QMA -->
                 @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view', 'qma.p2h.view', 'qma.p2h.templates']))
@@ -631,23 +635,27 @@
                 @endif
 
                 <!-- Grup: Manajemen HSE Mobile -->
-                @can('hse.employees.view')
+                @if(auth()->user()->can('hse.employees.view') || auth()->user()->can('hse.simper_types.view'))
                 <div>
                     <p class="px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         MANAJEMEN HSE
                     </p>
                     <nav class="space-y-1">
+                        @can('hse.employees.view')
                         <a href="{{ route('hse.employees.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.employees.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-id-card w-5 text-center"></i>
                             <span>Data Simper</span>
                         </a>
+                        @endcan
+                        @if(auth()->user()->can('hse.simper_types.view') || auth()->user()->can('hse.employees.view'))
                         <a href="{{ route('hse.simper_types.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('hse.simper_types.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-sliders w-5 text-center"></i>
                             <span>Jenis SIMPER</span>
                         </a>
+                        @endif
                     </nav>
                 </div>
-                @endcan
+                @endif
 
                 <!-- Grup: Manajemen QMA Mobile -->
                 @if(auth()->user()->canAny(['qma.vehicles.view', 'qma.logs.view', 'qma.summary.view', 'qma.p2h.view', 'qma.p2h.templates']))

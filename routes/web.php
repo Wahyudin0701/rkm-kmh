@@ -66,10 +66,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/employees/{id}', [EmployeeController::class, 'update'])->name('employees.update')->middleware('permission:hse.employees.edit');
 
         // Master Jenis SIMPER (Konfigurasi Fleksibel HSE)
-        Route::get('/simper-types', [SimperTypeController::class, 'index'])->name('simper_types.index')->middleware('permission:hse.employees.view');
-        Route::post('/simper-types', [SimperTypeController::class, 'store'])->name('simper_types.store')->middleware('permission:hse.employees.create|hse.employees.edit');
-        Route::put('/simper-types/{id}', [SimperTypeController::class, 'update'])->name('simper_types.update')->middleware('permission:hse.employees.edit');
-        Route::delete('/simper-types/{id}', [SimperTypeController::class, 'destroy'])->name('simper_types.destroy')->middleware('permission:hse.employees.edit');
+        Route::get('/simper-types', [SimperTypeController::class, 'index'])->name('simper_types.index')->middleware('permission:hse.simper_types.view|hse.employees.view');
+        Route::post('/simper-types', [SimperTypeController::class, 'store'])->name('simper_types.store')->middleware('permission:hse.simper_types.create|hse.employees.create|hse.employees.edit');
+        Route::put('/simper-types/{id}', [SimperTypeController::class, 'update'])->name('simper_types.update')->middleware('permission:hse.simper_types.edit|hse.employees.edit');
+        Route::delete('/simper-types/{id}', [SimperTypeController::class, 'destroy'])->name('simper_types.destroy')->middleware('permission:hse.simper_types.delete|hse.employees.edit');
     });
 
     // 3. Modul QMA: Admin QMA - Dashboard, Data Kendaraan & Log Aktivitas

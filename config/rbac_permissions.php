@@ -70,6 +70,26 @@ return [
                     'label' => 'Memperbarui Data Karyawan & SIMPER',
                     'description' => 'Mengubah data karyawan, status pengemudi, atau memperpanjang tanggal masa berlaku SIMPER.',
                 ],
+                'hse.employees.delete' => [
+                    'label' => 'Menghapus Data Karyawan',
+                    'description' => 'Menghapus data personil/karyawan dari database K3.',
+                ],
+                'hse.simper_types.view' => [
+                    'label' => 'Melihat Master Jenis SIMPER',
+                    'description' => 'Melihat daftar kategori jenis SIMPER dan cakupan kendaraan/alat yang diizinkan.',
+                ],
+                'hse.simper_types.create' => [
+                    'label' => 'Menambah Jenis SIMPER Baru',
+                    'description' => 'Membuat kategori izin SIMPER baru dan menentukan cakupan armadanya.',
+                ],
+                'hse.simper_types.edit' => [
+                    'label' => 'Mengubah Data Jenis SIMPER',
+                    'description' => 'Mengubah nama kategori, fleksibilitas cakupan, atau status aktif jenis SIMPER.',
+                ],
+                'hse.simper_types.delete' => [
+                    'label' => 'Menghapus Jenis SIMPER',
+                    'description' => 'Menghapus kategori jenis SIMPER yang sudah tidak memiliki pemegang aktif.',
+                ],
             ],
         ],
         'qma' => [

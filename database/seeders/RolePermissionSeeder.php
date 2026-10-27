@@ -39,6 +39,11 @@ class RolePermissionSeeder extends Seeder
                 'hse.employees.view',
                 'hse.employees.create',
                 'hse.employees.edit',
+                'hse.employees.delete',
+                'hse.simper_types.view',
+                'hse.simper_types.create',
+                'hse.simper_types.edit',
+                'hse.simper_types.delete',
             ],
             'qma_admin' => [
                 'qma.vehicles.view',
