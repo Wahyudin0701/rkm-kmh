@@ -210,17 +210,23 @@
 
                         <!-- 3. Berita Acara -->
                         <td class="py-3.5 px-3.5 min-w-[200px]">
-                            <div class="font-bold text-slate-900 leading-tight">
-                                {{ $t->document_number }}
-                            </div>
-                            <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1" title="{{ $t->document_title }}">
-                                {{ $t->document_title }}
-                            </div>
-                            @if($t->document_file_path)
-                            <a href="{{ $t->document_file_url }}" target="_blank" class="inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-900 mt-1">
-                                <i class="fa-solid fa-paperclip"></i>
-                                <span>Lihat Lampiran</span>
-                            </a>
+                            @if($t->document_number)
+                                <div class="font-bold text-slate-900 leading-tight font-mono text-xs">
+                                    {{ $t->document_number }}
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1" title="{{ $t->document_title }}">
+                                    {{ $t->document_title }}
+                                </div>
+                                @if($t->document_file_path)
+                                <a href="{{ $t->document_file_url }}" target="_blank" class="inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-900 mt-1">
+                                    <i class="fa-solid fa-paperclip"></i>
+                                    <span>Lihat Lampiran</span>
+                                </a>
+                                @endif
+                            @else
+                                <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200">
+                                    <span>Tanpa BAST (Internal Site)</span>
+                                </span>
                             @endif
                         </td>
 

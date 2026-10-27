@@ -146,7 +146,7 @@ class QmaUnitTransferTest extends TestCase
             'vehicle_id' => $this->heavyEquipment->id,
             'transfer_date' => Carbon::now()->format('Y-m-d'),
             'to_location' => 'Adit 2 Intake',
-            'to_site_status' => 'inside_site',
+            'to_site_status' => 'outside_site',
             'description' => 'Relokasi untuk pengerjaan galian terowongan adit 2.',
             'reported_by' => 'Budi Santoso QMA',
             'transporter_vehicle_id' => $this->transporterTruck->id,
@@ -171,7 +171,7 @@ class QmaUnitTransferTest extends TestCase
         $this->assertEquals($this->heavyEquipment->id, $transfer->vehicle_id);
         $this->assertEquals('Main Dam', $transfer->from_location);
         $this->assertEquals('Adit 2 Intake', $transfer->to_location);
-        $this->assertEquals('inside_site', $transfer->to_site_status);
+        $this->assertEquals('outside_site', $transfer->to_site_status);
         $this->assertEquals($this->driver->name, $transfer->transporter_driver_name);
         $this->assertNotNull($transfer->document_file_path);
         Storage::disk('public')->assertExists($transfer->document_file_path);
@@ -179,7 +179,7 @@ class QmaUnitTransferTest extends TestCase
         // Pastikan posisi master unit alat berat terupdate otomatis
         $freshVehicle = $this->heavyEquipment->fresh();
         $this->assertEquals('Adit 2 Intake', $freshVehicle->location);
-        $this->assertEquals('inside_site', $freshVehicle->site_status);
+        $this->assertEquals('outside_site', $freshVehicle->site_status);
         $this->assertEquals('Budi Santoso QMA', $freshVehicle->location_updated_by);
 
         // Pastikan riwayat audit trail (VehicleLocationHistory) tercatat
@@ -194,21 +194,56 @@ class QmaUnitTransferTest extends TestCase
     }
 
     /**
-     * Validasi gagal jika field wajib tidak diisi.
+     * Validasi gagal jika field wajib tidak diisi untuk transfer luar site.
      */
     public function test_validation_errors_when_required_fields_missing(): void
     {
-        $response = $this->actingAs($this->qmaAdmin)->post(route('qma.unit_transfers.store'), []);
+        $response = $this->actingAs($this->qmaAdmin)->post(route('qma.unit_transfers.store'), [
+            'to_site_status' => 'outside_site',
+        ]);
 
         $response->assertSessionHasErrors([
             'vehicle_id',
             'transfer_date',
             'to_location',
-            'to_site_status',
             'reported_by',
             'document_number',
             'document_title',
         ]);
+    }
+
+    /**
+     * Transfer unit di dalam site berhasil tanpa memerlukan nomor berita acara (BAST).
+     */
+    public function test_qma_admin_can_transfer_inside_site_without_document_number(): void
+    {
+        $payload = [
+            'vehicle_id' => $this->heavyEquipment->id,
+            'from_location' => 'Main Dam',
+            'transfer_date' => Carbon::now()->format('Y-m-d'),
+            'to_location' => 'Adit 1 Intake',
+            'to_site_status' => 'inside_site',
+            'description' => 'Relokasi internal site tanpa surat BAST.',
+            'reported_by' => 'Budi Santoso QMA',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)->post(route('qma.unit_transfers.store'), $payload);
+
+        $transfer = UnitTransfer::where('vehicle_id', $this->heavyEquipment->id)
+            ->where('to_location', 'Adit 1 Intake')
+            ->first();
+
+        $this->assertNotNull($transfer);
+        $this->assertNull($transfer->document_number);
+        $this->assertNull($transfer->document_title);
+        $this->assertNull($transfer->document_file_path);
+        $this->assertEquals('inside_site', $transfer->to_site_status);
+
+        $response->assertRedirect(route('qma.unit_transfers.show', $transfer->id));
+        $response->assertSessionHas('success');
+
+        // Pastikan posisi master unit terupdate
+        $this->assertEquals('Adit 1 Intake', $this->heavyEquipment->fresh()->location);
     }
 
     /**

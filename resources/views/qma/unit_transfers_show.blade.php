@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Berita Acara Transfer Unit - ' . $transfer->document_number . ' | PT Kerinci Merangin Hidro')
+@section('title', ($transfer->document_number ? 'Berita Acara Transfer Unit - ' . $transfer->document_number : 'Detail Transfer Unit - ' . $transfer->transfer_no) . ' | PT Kerinci Merangin Hidro')
 
 @section('content')
 <div class="w-full max-w-4xl mx-auto space-y-6 pb-16">
@@ -35,7 +35,7 @@
                     onclick="window.print()" 
                     class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm inline-flex items-center space-x-1.5 cursor-pointer">
                 <i class="fa-solid fa-print"></i>
-                <span>Cetak BAST</span>
+                <span>{{ $transfer->document_number ? 'Cetak BAST' : 'Cetak Bukti Transfer' }}</span>
             </button>
 
             <!-- Tombol Buat Baru -->
@@ -95,14 +95,22 @@
         <!-- JUDUL & NOMOR BERITA ACARA -->
         <div class="text-center space-y-1.5">
             <h2 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-wide">
-                BERITA ACARA SERAH TERIMA & PEMINDAHAN ALAT BERAT
+                {{ $transfer->document_title ?: 'BUKTI PEMINDAHAN INTERNAL ALAT BERAT' }}
             </h2>
+            @if($transfer->document_number)
             <p class="font-mono text-xs sm:text-sm font-bold text-slate-700">
                 Nomor: {{ $transfer->document_number }}
             </p>
+            @else
+            <p class="font-mono text-xs sm:text-sm font-bold text-emerald-800 bg-emerald-50 inline-block px-3 py-1 rounded-md border border-emerald-200">
+                Pemindahan Di Dalam Site (Tanpa BAST)
+            </p>
+            @endif
+            @if($transfer->document_title)
             <div class="inline-block mt-1 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                 Perihal: {{ $transfer->document_title }}
             </div>
+            @endif
         </div>
 
         <!-- PARAGRAF PEMBUKA -->

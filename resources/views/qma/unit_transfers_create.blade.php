@@ -210,6 +210,7 @@
                                    name="to_site_status" 
                                    value="inside_site" 
                                    id="radio_inside_site"
+                                   onchange="onSiteStatusChanged(this.value)"
                                    {{ old('to_site_status', 'inside_site') === 'inside_site' ? 'checked' : '' }}
                                    class="text-[#1b5e20] focus:ring-[#1b5e20]">
                             <div class="text-left">
@@ -223,6 +224,7 @@
                                    name="to_site_status" 
                                    value="outside_site" 
                                    id="radio_outside_site"
+                                   onchange="onSiteStatusChanged(this.value)"
                                    {{ old('to_site_status') === 'outside_site' ? 'checked' : '' }}
                                    class="text-amber-600 focus:ring-amber-500">
                             <div class="text-left">
@@ -392,15 +394,16 @@
 
         <!-- ============================================================= -->
         <!-- BAGIAN 3: BERITA ACARA SERAH TERIMA (BAST) -->
+        <!-- Hanya muncul untuk Pemindahan ke Luar Site (outside_site) -->
         <!-- ============================================================= -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
+        <div id="bastSectionCard" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5 transition-all">
             <div class="flex items-center space-x-3 pb-3 border-b border-slate-100">
                 <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-base shrink-0">
                     <i class="fa-solid fa-file-contract"></i>
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900">3. Berita Acara Serah Terima (BAST)</h3>
-                    <p class="text-xs text-slate-500">Nomor surat, perihal, dan berkas lampiran berita acara resmi pemindahan alat berat.</p>
+                    <p class="text-xs text-slate-500">Nomor surat, perihal, dan berkas lampiran berita acara resmi pemindahan alat berat ke luar site.</p>
                 </div>
             </div>
 
@@ -417,7 +420,6 @@
                                name="document_number" 
                                id="document_number" 
                                value="{{ old('document_number', $defaultDocNumber) }}" 
-                               required 
                                placeholder="Contoh: 014/BAST-AB/QMA-KMH/X/2026" 
                                class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-mono font-bold">
                     </div>
@@ -437,8 +439,7 @@
                                name="document_title" 
                                id="document_title" 
                                value="{{ old('document_title', 'Berita Acara Pemindahan & Relokasi Unit Alat Berat') }}" 
-                               required 
-                               placeholder="Contoh: Berita Acara Pemindahan Excavator ke Area Adit 2" 
+                               placeholder="Contoh: Berita Acara Pemindahan Excavator ke Workshop Luar" 
                                class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-semibold">
                     </div>
                     @error('document_title')
@@ -471,9 +472,10 @@
                 Batal
             </a>
             <button type="submit" 
+                    id="submitBtn"
                     class="px-6 py-2.5 text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144919] rounded-xl transition shadow-sm cursor-pointer inline-flex items-center space-x-2">
                 <i class="fa-solid fa-check"></i>
-                <span>Simpan & Terbitkan BAST</span>
+                <span id="submitBtnText">Simpan Pemindahan Unit</span>
             </button>
         </div>
     </form>
@@ -507,7 +509,61 @@
         if (originSelect && originSelect.value) {
             onOriginLocationChanged(originSelect.value, "{{ old('vehicle_id', $selectedVehicleId ?? '') }}");
         }
+
+        // Inisialisasi tampilan BAST berdasarkan status site awal
+        const currentSiteStatus = document.querySelector('input[name="to_site_status"]:checked')?.value || 'inside_site';
+        onSiteStatusChanged(currentSiteStatus);
     });
+
+    /**
+     * Handler untuk Area Tujuan (Di Dalam Site vs Di Luar Site)
+     * Nomor BAST dan Dokumen hanya muncul saat transfer ke LUAR site.
+     */
+    function onSiteStatusChanged(status) {
+        const bastSection = document.getElementById('bastSectionCard');
+        const docNumberInput = document.getElementById('document_number');
+        const docTitleInput = document.getElementById('document_title');
+        const docFileInput = document.getElementById('document_file');
+        const submitBtnText = document.getElementById('submitBtnText');
+
+        if (status === 'outside_site') {
+            if (bastSection) {
+                bastSection.classList.remove('hidden');
+            }
+            if (docNumberInput) {
+                docNumberInput.removeAttribute('disabled');
+                docNumberInput.setAttribute('required', 'required');
+            }
+            if (docTitleInput) {
+                docTitleInput.removeAttribute('disabled');
+                docTitleInput.setAttribute('required', 'required');
+            }
+            if (docFileInput) {
+                docFileInput.removeAttribute('disabled');
+            }
+            if (submitBtnText) {
+                submitBtnText.textContent = 'Simpan & Terbitkan BAST';
+            }
+        } else {
+            if (bastSection) {
+                bastSection.classList.add('hidden');
+            }
+            if (docNumberInput) {
+                docNumberInput.removeAttribute('required');
+                docNumberInput.setAttribute('disabled', 'disabled');
+            }
+            if (docTitleInput) {
+                docTitleInput.removeAttribute('required');
+                docTitleInput.setAttribute('disabled', 'disabled');
+            }
+            if (docFileInput) {
+                docFileInput.setAttribute('disabled', 'disabled');
+            }
+            if (submitBtnText) {
+                submitBtnText.textContent = 'Simpan Pemindahan Unit';
+            }
+        }
+    }
 
     /**
      * Handler ketika Lokasi Awal (Asal) berubah

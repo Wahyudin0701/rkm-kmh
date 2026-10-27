@@ -192,8 +192,8 @@ class UnitTransferController extends Controller
             'transporter_driver_name' => ['nullable', 'string', 'max:255'],
             'transporter_description' => ['nullable', 'string', 'max:2000'],
             'update_transporter_location' => ['nullable', 'boolean'],
-            'document_number' => ['required', 'string', 'max:255'],
-            'document_title' => ['required', 'string', 'max:255'],
+            'document_number' => ['nullable', 'required_if:to_site_status,outside_site', 'string', 'max:255'],
+            'document_title' => ['nullable', 'required_if:to_site_status,outside_site', 'string', 'max:255'],
             'document_file' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
         ], [
             'vehicle_id.required' => 'Pilih unit alat berat yang dipindahkan.',
@@ -202,8 +202,8 @@ class UnitTransferController extends Controller
             'to_location.required' => 'Lokasi tujuan pemindahan wajib diisi.',
             'to_site_status.required' => 'Pilih area tujuan (Di Dalam atau Di Luar Site).',
             'reported_by.required' => 'Nama pelapor / penanggung jawab wajib diisi.',
-            'document_number.required' => 'Nomor surat / berita acara wajib diisi.',
-            'document_title.required' => 'Judul surat / perihal berita acara wajib diisi.',
+            'document_number.required_if' => 'Nomor surat / berita acara wajib diisi untuk pemindahan ke luar site.',
+            'document_title.required_if' => 'Judul surat / perihal berita acara wajib diisi untuk pemindahan ke luar site.',
             'document_file.max' => 'Ukuran berkas surat maksimal 5 MB.',
         ]);
 
@@ -245,6 +245,11 @@ class UnitTransferController extends Controller
             $toLocation = trim($validated['to_location']);
             $reportedBy = trim($validated['reported_by']);
 
+            $isOutside = $validated['to_site_status'] === 'outside_site';
+            $docNumber = $isOutside && !empty($validated['document_number']) ? trim($validated['document_number']) : null;
+            $docTitle = $isOutside && !empty($validated['document_title']) ? trim($validated['document_title']) : null;
+            $docFilePath = $isOutside ? $filePath : null;
+
             // 1. Simpan Data Transfer Unit
             $transfer = UnitTransfer::create([
                 'transfer_no' => $transferNo,
@@ -262,19 +267,20 @@ class UnitTransferController extends Controller
                 'transporter_driver_id' => $validated['transporter_driver_id'] ?? null,
                 'transporter_driver_name' => $transporterDriverName,
                 'transporter_description' => !empty($validated['transporter_description']) ? trim($validated['transporter_description']) : null,
-                'document_number' => trim($validated['document_number']),
-                'document_title' => trim($validated['document_title']),
-                'document_file_path' => $filePath,
+                'document_number' => $docNumber,
+                'document_title' => $docTitle,
+                'document_file_path' => $docFilePath,
                 'status' => 'completed',
             ]);
 
             // 2. Perbarui posisi master unit alat berat
+            $docLabel = $docNumber ? "BAST: {$docNumber}" : "Transfer Internal";
             $vehicle->update([
                 'location' => $toLocation,
                 'site_status' => $validated['to_site_status'],
                 'location_updated_at' => Carbon::now(),
                 'location_updated_by' => $reportedBy,
-                'location_note' => "Transfer Unit (BAST: {$validated['document_number']}) ke {$toLocation}",
+                'location_note' => "Transfer Unit ({$docLabel}) ke {$toLocation}",
             ]);
 
             // 3. Catat di audit log riwayat pergerakan unit (VehicleLocationHistory)
@@ -282,7 +288,8 @@ class UnitTransferController extends Controller
             if ($transporterDriverName) {
                 $transporterSummary .= " (Driver: {$transporterDriverName})";
             }
-            $historyNote = "Transfer BAST {$validated['document_number']}: {$validated['document_title']}.{$transporterSummary}";
+            $docHeader = $docNumber ? "Transfer BAST {$docNumber}: {$docTitle}" : "Transfer Internal Site ke {$toLocation}";
+            $historyNote = "{$docHeader}.{$transporterSummary}";
             if (!empty($validated['description'])) {
                 $historyNote .= " | " . trim($validated['description']);
             }
@@ -302,19 +309,25 @@ class UnitTransferController extends Controller
             if ($updateTransporter && !empty($validated['transporter_vehicle_id'])) {
                 $transporterVeh = Vehicle::find($validated['transporter_vehicle_id']);
                 if ($transporterVeh && $transporterVeh->id !== $vehicle->id) {
+                    $transporterNote = $docNumber 
+                        ? "Armada Pengangkut BAST {$docNumber} untuk {$vehicle->code} ke {$toLocation}"
+                        : "Armada Pengangkut Transfer Internal untuk {$vehicle->code} ke {$toLocation}";
                     $transporterVeh->update([
                         'location' => $toLocation,
                         'site_status' => $validated['to_site_status'],
                         'location_updated_at' => Carbon::now(),
                         'location_updated_by' => $reportedBy,
-                        'location_note' => "Armada Pengangkut BAST {$validated['document_number']} untuk {$vehicle->code} ke {$toLocation}",
+                        'location_note' => $transporterNote,
                     ]);
 
+                    $transporterHistNote = $docNumber
+                        ? "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) via BAST {$docNumber} ke {$toLocation}"
+                        : "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) transfer internal ke {$toLocation}";
                     VehicleLocationHistory::create([
                         'vehicle_id' => $transporterVeh->id,
                         'site_status' => $validated['to_site_status'],
                         'location' => $toLocation,
-                        'note' => "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) via BAST {$validated['document_number']} ke {$toLocation}",
+                        'note' => $transporterHistNote,
                         'source' => 'transfer',
                         'user_id' => auth()->id(),
                         'user_name' => $reportedBy,
@@ -326,8 +339,10 @@ class UnitTransferController extends Controller
             return $transfer;
         });
 
+        $msgSuffix = $transfer->document_number ? " Berita Acara {$transfer->document_number} telah diterbitkan." : "";
+
         return redirect()->route('qma.unit_transfers.show', $transfer->id)
-            ->with('success', "Pemindahan unit {$transfer->vehicle->code} berhasil diproses. Berita Acara {$transfer->document_number} telah diterbitkan.");
+            ->with('success', "Pemindahan unit {$transfer->vehicle->code} berhasil diproses.{$msgSuffix}");
     }
 
     /**
@@ -357,12 +372,12 @@ class UnitTransferController extends Controller
             Storage::disk('public')->delete($transfer->document_file_path);
         }
 
-        $docNo = $transfer->document_number;
+        $docNo = $transfer->document_number ? "dengan Berita Acara {$transfer->document_number}" : "(Transfer Internal)";
         $unitCode = $transfer->vehicle?->code ?? 'Unit';
         $transfer->delete();
 
         return redirect()->route('qma.unit_transfers.index')
-            ->with('success', "Data transfer unit {$unitCode} dengan Berita Acara {$docNo} berhasil dihapus.");
+            ->with('success', "Data transfer unit {$unitCode} {$docNo} berhasil dihapus.");
     }
 
     /**
@@ -407,8 +422,8 @@ class UnitTransferController extends Controller
                 $t->to_site_status_label,
                 $t->transporter_unit_name ?: ($t->transporterVehicle?->code ?? '-'),
                 $t->transporter_driver_name ?: ($t->transporterDriver?->name ?? '-'),
-                $t->document_number,
-                $t->document_title,
+                $t->document_number ?: '-',
+                $t->document_title ?: '-',
                 $t->reported_by,
             ];
         }
@@ -477,7 +492,7 @@ class UnitTransferController extends Controller
             $rows[] = [
                 $idx + 1,
                 $t->transfer_date ? $t->transfer_date->format('d/m/Y') : '-',
-                $t->document_number,
+                $t->document_number ?: '-',
                 $unitDesc,
                 $t->from_location,
                 $t->to_location,
