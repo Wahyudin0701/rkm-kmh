@@ -1,0 +1,707 @@
+{
+    "source": "DATA PLOTINGAN.xls - Plotingan jaga perpos",
+    "total": 87,
+    "teams": {
+        "team_1": 29,
+        "team_2": 29,
+        "team_3": 29
+    },
+    "personnel": [
+        {
+            "badge_id": "R1-001",
+            "name": "Aura Desila Putri",
+            "team": 1,
+            "gate_code": "OFFICEBT",
+            "gate_name": "Office BT",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-002",
+            "name": "Guntur",
+            "team": 1,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-003",
+            "name": "Raju Pratama",
+            "team": 1,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-004",
+            "name": "Niki Fedly Sona",
+            "team": 1,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-001",
+            "name": "Efendi",
+            "team": 2,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-002",
+            "name": "Randi Pratama",
+            "team": 2,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-003",
+            "name": "Angga P",
+            "team": 2,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-001",
+            "name": "Yodi Afnu p",
+            "team": 3,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-002",
+            "name": "Hanjasro",
+            "team": 3,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-003",
+            "name": "Beni Haryanto",
+            "team": 3,
+            "gate_code": "BTUNGGAL",
+            "gate_name": "Beringin Tunggal",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-005",
+            "name": "Bima Wardana",
+            "team": 1,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-006",
+            "name": "Erif Yusri Anggara",
+            "team": 1,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-004",
+            "name": "Ziad Afdoli Sona",
+            "team": 2,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-005",
+            "name": "Bagas Saputra",
+            "team": 2,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-004",
+            "name": "Arman",
+            "team": 3,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-005",
+            "name": "Pajri",
+            "team": 3,
+            "gate_code": "BTBWH",
+            "gate_name": "Pos 1 Beringin Tunggal Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-007",
+            "name": "Riki Afriadi",
+            "team": 1,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-008",
+            "name": "Mara Hidayat",
+            "team": 1,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-006",
+            "name": "Ronaldi",
+            "team": 2,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-007",
+            "name": "Sanyu Afrian",
+            "team": 2,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-006",
+            "name": "Pandra Taruzan",
+            "team": 3,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-007",
+            "name": "Dadang RM",
+            "team": 3,
+            "gate_code": "INTAKEDAM",
+            "gate_name": "Pos 3 Intake Dam",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-009",
+            "name": "Ravesa Mai Afrian",
+            "team": 1,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-010",
+            "name": "Dafwan",
+            "team": 1,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-008",
+            "name": "Juanda Rohimin",
+            "team": 2,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-009",
+            "name": "Wahyu Ronaldi",
+            "team": 2,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-008",
+            "name": "Deka Utama",
+            "team": 3,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-009",
+            "name": "Wahyu Moko Ginta",
+            "team": 3,
+            "gate_code": "TUNNEL",
+            "gate_name": "Pos 4 Tunnel",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-011",
+            "name": "Sangko Putra",
+            "team": 1,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-012",
+            "name": "Patrya Angga putra",
+            "team": 1,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-010",
+            "name": "Migel Pirdaus",
+            "team": 2,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-011",
+            "name": "Ronzi",
+            "team": 2,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-010",
+            "name": "Harick Charles",
+            "team": 3,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-011",
+            "name": "Aldo Yogi Aditya",
+            "team": 3,
+            "gate_code": "BDG6",
+            "gate_name": "Bedeng 6",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-013",
+            "name": "Dani Jayusman",
+            "team": 1,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-014",
+            "name": "Pemi Suryandi",
+            "team": 1,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-012",
+            "name": "Regi Pratama",
+            "team": 2,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-013",
+            "name": "Hengki Putra",
+            "team": 2,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-012",
+            "name": "Ranggi Oktofi",
+            "team": 3,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-013",
+            "name": "Siswandi",
+            "team": 3,
+            "gate_code": "ADIT2",
+            "gate_name": "Adit 2",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-015",
+            "name": "Ahmad Sapril",
+            "team": 1,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-016",
+            "name": "Ilfa Danil",
+            "team": 1,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-014",
+            "name": "Dendi Saputra",
+            "team": 2,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-015",
+            "name": "Edo Putra",
+            "team": 2,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-014",
+            "name": "Ahmad Daffa",
+            "team": 3,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-015",
+            "name": "Jerli Gunawan",
+            "team": 3,
+            "gate_code": "ADIT3ATAS",
+            "gate_name": "Pos Adit 3 Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-017",
+            "name": "Herwanto",
+            "team": 1,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-018",
+            "name": "Dodi Iskandar",
+            "team": 1,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-016",
+            "name": "Legiwi Putra",
+            "team": 2,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-017",
+            "name": "Aftorik",
+            "team": 2,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-016",
+            "name": "Surya Jaya K",
+            "team": 3,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-017",
+            "name": "Yogi Oriza",
+            "team": 3,
+            "gate_code": "ADIT3BWH",
+            "gate_name": "Pos Adit 3 Bawah",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-019",
+            "name": "Fransisko",
+            "team": 1,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-020",
+            "name": "Gio Fana Rivaldo",
+            "team": 1,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-018",
+            "name": "M.Iqbal Lovez",
+            "team": 2,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-019",
+            "name": "Yolsen",
+            "team": 2,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-018",
+            "name": "Dores Sidik",
+            "team": 3,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-019",
+            "name": "Lopendra",
+            "team": 3,
+            "gate_code": "GUDANG",
+            "gate_name": "Gudang Induk",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-021",
+            "name": "Sangkuriang",
+            "team": 1,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-022",
+            "name": "Popo Kiyacandra",
+            "team": 1,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-023",
+            "name": "Ratno",
+            "team": 1,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-020",
+            "name": "Ahmad Hendra",
+            "team": 2,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-021",
+            "name": "Aldo Adha",
+            "team": 2,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-022",
+            "name": "Rangga Setiawan",
+            "team": 2,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-020",
+            "name": "Leavan JD",
+            "team": 3,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-021",
+            "name": "Jodi Gunawan",
+            "team": 3,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-022",
+            "name": "Okta Rendi Dio Wendra",
+            "team": 3,
+            "gate_code": "VSHAFT",
+            "gate_name": "Vertical Shaft",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-024",
+            "name": "Rizki Halomon",
+            "team": 1,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-025",
+            "name": "Al Hakim",
+            "team": 1,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-023",
+            "name": "Pemas Pradinata",
+            "team": 2,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-024",
+            "name": "Andrean Azilfa",
+            "team": 2,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-023",
+            "name": "Ikshan",
+            "team": 3,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-024",
+            "name": "Aswan Hadi",
+            "team": 3,
+            "gate_code": "PHATAS",
+            "gate_name": "Pos Power House Atas",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-026",
+            "name": "Erwan Sinaga",
+            "team": 1,
+            "gate_code": "SWITCHYARD",
+            "gate_name": "Pos Switchyard",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-025",
+            "name": "Ade Susanto",
+            "team": 2,
+            "gate_code": "SWITCHYARD",
+            "gate_name": "Pos Switchyard",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-025",
+            "name": "Bayu Afroli",
+            "team": 3,
+            "gate_code": "SWITCHYARD",
+            "gate_name": "Pos Switchyard",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-027",
+            "name": "Rafi",
+            "team": 1,
+            "gate_code": "BUNDARAN",
+            "gate_name": "Pos Bundaran",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-026",
+            "name": "Oka Hamdani",
+            "team": 2,
+            "gate_code": "BUNDARAN",
+            "gate_name": "Pos Bundaran",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-026",
+            "name": "M.Repan Saputra",
+            "team": 3,
+            "gate_code": "BUNDARAN",
+            "gate_name": "Pos Bundaran",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-028",
+            "name": "Aldi Kurniawan",
+            "team": 1,
+            "gate_code": "TURBIN",
+            "gate_name": "Pos Turbin",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-027",
+            "name": "Ronaldi",
+            "team": 2,
+            "gate_code": "TURBIN",
+            "gate_name": "Pos Turbin",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-027",
+            "name": "Reci Arliansyah",
+            "team": 3,
+            "gate_code": "TURBIN",
+            "gate_name": "Pos Turbin",
+            "is_active": true
+        },
+        {
+            "badge_id": "R1-029",
+            "name": "Robi Iskandar",
+            "team": 1,
+            "gate_code": "JAKON",
+            "gate_name": "Dermaga Jakon",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-028",
+            "name": "Arif Anugrah",
+            "team": 2,
+            "gate_code": "JAKON",
+            "gate_name": "Dermaga Jakon",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-028",
+            "name": "Renol Fedora",
+            "team": 3,
+            "gate_code": "JAKON",
+            "gate_name": "Dermaga Jakon",
+            "is_active": true
+        },
+        {
+            "badge_id": "R3-029",
+            "name": "Zona Anggara",
+            "team": 3,
+            "gate_code": "JAKON",
+            "gate_name": "Dermaga Jakon",
+            "is_active": true
+        },
+        {
+            "badge_id": "R2-029",
+            "name": "Zakaria Yahya",
+            "team": 2,
+            "gate_code": "JAKON",
+            "gate_name": "Dermaga Jakon",
+            "is_active": true
+        }
+    ]
+}
