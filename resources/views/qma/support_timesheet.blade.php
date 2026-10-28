@@ -100,95 +100,88 @@
         </div>
     </div>
 
-    <!-- Kotak Pencarian & Filter Status Timesheet (Tanpa Card Wrapper, Format Persis HSE Employees) -->
-    <form method="GET" action="{{ url()->current() }}" id="timesheetFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
-        <!-- Pencarian Cepat di Kiri dengan Tombol Cari -->
-        <div class="relative w-full sm:max-w-md flex items-center">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 z-10">
+    <!-- Kotak Pencarian & Filter Status Timesheet -->
+    <form method="GET" action="{{ url()->current() }}" id="timesheetFilterForm" class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-2.5 sm:gap-3 flex-wrap">
+        <!-- Pencarian Cepat di Kiri -->
+        <div class="relative w-full lg:w-72 xl:w-80 flex-shrink-0">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
             </span>
             <input type="text" 
                    name="search"
                    id="timesheetSearchInput"
                    value="{{ request('search') }}"
-                   placeholder="Cari No. TS, nama/NIK operator, atau lokasi..." 
+                   placeholder="Cari No. TS, nama/NIK operator, lokasi..." 
                    autocomplete="off"
-                   class="w-full text-xs pl-10 pr-20 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
-            <button type="submit" 
-                    id="timesheetSearchBtn"
-                    class="absolute right-1.5 inset-y-1.5 px-3 bg-[#1b5e20] hover:bg-[#144918] active:scale-95 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition shadow-sm cursor-pointer z-10">
-                <span>Cari</span>
-            </button>
+                   class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition">
         </div>
 
-        <!-- Filter di Kanan (Pada Mobile: Sejajar Grid di Bawah Search Bar) -->
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-2.5 w-full sm:w-auto">
-            <div class="grid grid-cols-2 sm:flex sm:items-center sm:gap-2.5 w-full sm:w-auto">
-                <!-- Filter Rentang Tanggal Compact -->
-                <div class="col-span-2 sm:col-auto flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-2 shadow-sm">
-                    <i class="fa-regular fa-calendar text-slate-400 text-xs flex-shrink-0"></i>
-                    <input type="date" 
-                           name="start_date" 
-                           value="{{ request('start_date', $startDate) }}" 
-                           onchange="this.form.submit()" 
-                           class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
-                           title="Dari Tanggal">
-                    <span class="text-slate-300 text-xs">-</span>
-                    <input type="date" 
-                           name="end_date" 
-                           value="{{ request('end_date', $endDate) }}" 
-                           onchange="this.form.submit()" 
-                           class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
-                           title="Sampai Tanggal">
-                </div>
-
-                <!-- Filter Heavy Equipment -->
-                <select name="vehicle_id" 
-                        onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="">Semua Heavy Equipment</option>
-                    @foreach($unitSupports as $u)
-                        <option value="{{ $u->id }}" {{ request('vehicle_id') == $u->id ? 'selected' : '' }}>
-                            {{ $u->code }} - {{ $u->brand_type }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <!-- Filter Shift -->
-                <select name="shift" 
-                        onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="">Semua Shift</option>
-                    @foreach($shifts as $s)
-                        <option value="{{ $s }}" {{ request('shift') === $s ? 'selected' : '' }}>{{ $s }}</option>
-                    @endforeach
-                </select>
-
-                <!-- Filter Jenis Operator (Karyawan / Sukon) -->
-                <select name="operator_type" 
-                        onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="">Semua Personil</option>
-                    <option value="Karyawan" {{ request('operator_type') === 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
-                    <option value="Sukon" {{ request('operator_type') === 'Sukon' ? 'selected' : '' }}>Sukon</option>
-                </select>
-
-                <!-- Filter Tampilan Per Halaman -->
-                <select name="per_page" 
-                        onchange="this.form.submit()" 
-                        class="w-full sm:w-auto text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
-                    <option value="15" {{ request('per_page', '15') == '15' ? 'selected' : '' }}>15 / Hal</option>
-                    <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
-                    <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
-                </select>
+        <!-- Filter di Kanan -->
+        <div class="flex flex-wrap items-center justify-start lg:justify-end gap-2 sm:gap-2.5 w-full lg:w-auto">
+            <!-- Filter Rentang Tanggal Compact -->
+            <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-2 shadow-sm">
+                <i class="fa-regular fa-calendar text-slate-400 text-xs flex-shrink-0"></i>
+                <input type="date" 
+                       name="start_date" 
+                       value="{{ request('start_date', $startDate) }}" 
+                       onchange="this.form.submit()" 
+                       class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
+                       title="Dari Tanggal">
+                <span class="text-slate-300 text-xs">-</span>
+                <input type="date" 
+                       name="end_date" 
+                       value="{{ request('end_date', $endDate) }}" 
+                       onchange="this.form.submit()" 
+                       class="text-xs bg-transparent text-slate-700 font-semibold focus:outline-none" 
+                       title="Sampai Tanggal">
             </div>
+
+            <!-- Filter Heavy Equipment -->
+            <select name="vehicle_id" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate max-w-[200px]">
+                <option value="">Semua Heavy Equipment</option>
+                @foreach($unitSupports as $u)
+                    <option value="{{ $u->id }}" {{ request('vehicle_id') == $u->id ? 'selected' : '' }}>
+                        {{ $u->code }} - {{ $u->brand_type }}
+                    </option>
+                @endforeach
+            </select>
+
+            <!-- Filter Shift -->
+            <select name="shift" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                <option value="">Semua Shift</option>
+                @foreach($shifts as $s)
+                    <option value="{{ $s }}" {{ request('shift') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                @endforeach
+            </select>
+
+            <!-- Filter Jenis Operator (Karyawan / Sukon) -->
+            <select name="operator_type" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                <option value="">Semua Personil</option>
+                <option value="Karyawan" {{ request('operator_type') === 'Karyawan' ? 'selected' : '' }}>Karyawan</option>
+                <option value="Sukon" {{ request('operator_type') === 'Sukon' ? 'selected' : '' }}>Sukon</option>
+            </select>
+
+            <!-- Filter Tampilan Per Halaman -->
+            <select name="per_page" 
+                    onchange="this.form.submit()" 
+                    class="text-xs rounded-xl border border-slate-200 bg-white px-2.5 sm:px-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 shadow-sm transition truncate">
+                <option value="15" {{ request('per_page', '15') == '15' ? 'selected' : '' }}>15 / Hal</option>
+                <option value="50" {{ request('per_page', '50') == '50' ? 'selected' : '' }}>50 / Hal</option>
+                <option value="100" {{ request('per_page', '100') == '100' ? 'selected' : '' }}>Semua (100)</option>
+            </select>
 
             <!-- Tombol Reset Filter -->
             <div id="timesheetResetContainer">
                 @if(request()->anyFilled(['search', 'vehicle_id', 'shift', 'operator_type', 'per_page']) || (request('start_date') && request('start_date') !== now()->toDateString()) || (request('end_date') && request('end_date') !== now()->toDateString()))
                     <a href="{{ url()->current() }}" 
                        id="timesheetResetBtn"
-                       class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-2">
+                       class="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center justify-center sm:justify-start space-x-1.5 transition whitespace-nowrap py-1 sm:py-0 sm:ml-1">
                         <i class="fa-solid fa-rotate-left text-[11px]"></i>
                         <span>Reset Filter</span>
                     </a>
