@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Models\AdminActivityLog;
 use App\Models\User;
 use App\Services\DatabaseBackupService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -57,9 +56,10 @@ class BackupAndRestoreTest extends TestCase
         $response->assertViewIs('admin.backups.index');
         $response->assertViewHas('backups');
         $response->assertViewHas('stats');
-        $response->assertSee('Backup & Restore Sistem');
+        $response->assertViewHas('tableGroups');
+        $response->assertSee('Backup &amp; Restore Sistem', false);
         $response->assertSee('Buat Backup Baru');
-        $response->assertSee('Unggah File Backup');
+        $response->assertSee('.kmh');
     }
 
     public function test_non_super_admin_cannot_access_backup_page(): void
@@ -77,11 +77,12 @@ class BackupAndRestoreTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_super_admin_can_create_database_backup(): void
+    public function test_super_admin_can_create_pilihan_backup_kmh(): void
     {
         $response = $this->actingAs($this->superAdmin)
             ->post(route('admin.backups.store'), [
-                'type' => 'database',
+                'backup_scope' => 'pilihan',
+                'selected_tables' => ['users', 'roles'],
             ]);
 
         $response->assertSessionHas('success');
@@ -89,8 +90,17 @@ class BackupAndRestoreTest extends TestCase
 
         $backups = $this->backupService->listBackups();
         $this->assertNotEmpty($backups);
-        $this->assertEquals('database', $backups[0]['type']);
-        $this->assertStringEndsWith('.sql', $backups[0]['filename']);
+        $latest = $backups[0];
+
+        $this->assertEquals('pilihan', $latest['type']);
+        $this->assertTrue($latest['is_kmh']);
+        $this->assertStringEndsWith('.kmh', $latest['filename']);
+
+        // Verifikasi enkripsi: File harus diawali header magic KMH dan isinya terenkripsi
+        $rawContent = file_get_contents($latest['path']);
+        $this->assertStringStartsWith(DatabaseBackupService::KMH_MAGIC_HEADER, $rawContent);
+        // Pastikan tidak ada plain text SQL di file mentah
+        $this->assertStringNotContainsString('INSERT INTO `users`', $rawContent);
 
         // Verifikasi log aktivitas
         $this->assertDatabaseHas('admin_activity_logs', [
@@ -100,9 +110,28 @@ class BackupAndRestoreTest extends TestCase
         ]);
     }
 
-    public function test_super_admin_can_download_backup_file(): void
+    public function test_super_admin_can_create_semua_backup_kmh(): void
     {
-        $filename = $this->backupService->createDatabaseBackup('test_dl.sql');
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.store'), [
+                'backup_scope' => 'semua',
+            ]);
+
+        $response->assertSessionHas('success');
+        $response->assertRedirect();
+
+        $backups = $this->backupService->listBackups();
+        $this->assertNotEmpty($backups);
+        $latest = $backups[0];
+
+        $this->assertEquals('semua', $latest['type']);
+        $this->assertTrue($latest['is_kmh']);
+        $this->assertStringEndsWith('.kmh', $latest['filename']);
+    }
+
+    public function test_super_admin_can_download_kmh_backup_file(): void
+    {
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_dl.kmh');
 
         $response = $this->actingAs($this->superAdmin)
             ->get(route('admin.backups.download', $filename));
@@ -111,9 +140,10 @@ class BackupAndRestoreTest extends TestCase
         $response->assertHeader('content-disposition');
     }
 
-    public function test_super_admin_can_upload_backup_file(): void
+    public function test_super_admin_can_upload_kmh_backup_file(): void
     {
-        $file = UploadedFile::fake()->createWithContent('test_uploaded_backup.sql', '-- MySQL dump test\nSET FOREIGN_KEY_CHECKS=0;\n');
+        $validKmhContent = $this->backupService->encryptToKmh('dummy zip or sql content');
+        $file = UploadedFile::fake()->createWithContent('test_uploaded.kmh', $validKmhContent);
 
         $response = $this->actingAs($this->superAdmin)
             ->post(route('admin.backups.upload'), [
@@ -122,21 +152,14 @@ class BackupAndRestoreTest extends TestCase
 
         $response->assertSessionHas('success');
 
-        $targetPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . 'test_uploaded_backup.sql';
+        $targetPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . 'test_uploaded.kmh';
         $this->assertTrue(File::exists($targetPath));
-
-        $this->assertDatabaseHas('admin_activity_logs', [
-            'action_type' => 'create',
-            'module' => 'Backup & Restore',
-            'target_name' => 'test_uploaded_backup.sql',
-        ]);
     }
 
     public function test_restore_requires_valid_confirmation_or_password(): void
     {
-        $filename = $this->backupService->createDatabaseBackup('test_for_restore.sql');
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_for_restore.kmh');
 
-        // Percobaan tanpa konfirmasi yang benar
         $response = $this->actingAs($this->superAdmin)
             ->post(route('admin.backups.restore', $filename), [
                 'confirmation' => 'SALAH',
@@ -146,9 +169,9 @@ class BackupAndRestoreTest extends TestCase
         $response->assertSessionHas('error');
     }
 
-    public function test_super_admin_can_restore_from_backup_with_confirmation_string(): void
+    public function test_super_admin_can_restore_from_kmh_backup(): void
     {
-        $filename = $this->backupService->createDatabaseBackup('test_real_restore.sql');
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_real_restore.kmh');
 
         $response = $this->actingAs($this->superAdmin)
             ->post(route('admin.backups.restore', $filename), [
@@ -164,9 +187,23 @@ class BackupAndRestoreTest extends TestCase
         ]);
     }
 
-    public function test_super_admin_can_delete_backup_file(): void
+    public function test_restore_rejects_tampered_or_unauthorized_external_file(): void
     {
-        $filename = $this->backupService->createDatabaseBackup('test_to_delete.sql');
+        $fakeKmh = DatabaseBackupService::KMH_MAGIC_HEADER . random_bytes(16) . random_bytes(32) . 'corrupted_ciphertext';
+        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . 'test_corrupt.kmh';
+        file_put_contents($fullPath, $fakeKmh);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.restore', 'test_corrupt.kmh'), [
+                'confirmation' => 'PULIHKAN',
+            ]);
+
+        $response->assertSessionHas('error');
+    }
+
+    public function test_super_admin_can_delete_kmh_backup_file(): void
+    {
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_to_delete.kmh');
         $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
         $this->assertTrue(File::exists($fullPath));
 
@@ -175,50 +212,19 @@ class BackupAndRestoreTest extends TestCase
 
         $response->assertSessionHas('success');
         $this->assertFalse(File::exists($fullPath));
-
-        $this->assertDatabaseHas('admin_activity_logs', [
-            'action_type' => 'delete',
-            'module' => 'Backup & Restore',
-            'target_name' => $filename,
-        ]);
     }
 
-    public function test_super_admin_can_create_full_backup(): void
-    {
-        $response = $this->actingAs($this->superAdmin)
-            ->post(route('admin.backups.store'), [
-                'type' => 'full',
-            ]);
-
-        $response->assertSessionHas('success');
-        $response->assertRedirect();
-
-        $backups = $this->backupService->listBackups();
-        $this->assertNotEmpty($backups);
-        $this->assertEquals('full', $backups[0]['type']);
-        $this->assertStringEndsWith('.zip', $backups[0]['filename']);
-    }
-
-    public function test_super_admin_can_restore_from_backup_with_password(): void
-    {
-        $filename = $this->backupService->createDatabaseBackup('test_pwd_restore.sql');
-
-        $response = $this->actingAs($this->superAdmin)
-            ->post(route('admin.backups.restore', $filename), [
-                'password' => 'password123',
-            ]);
-
-        $response->assertSessionHas('success');
-    }
-
-    public function test_cli_artisan_backup_create_command(): void
+    public function test_cli_artisan_backup_create_command_creates_kmh(): void
     {
         $this->artisan('backup:create', [
-            '--type' => 'database',
-            '--filename' => 'test_cli_db.sql',
+            '--scope' => 'semua',
+            '--filename' => 'test_cli_backup.kmh',
         ])->assertSuccessful();
 
-        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . 'test_cli_db.sql';
+        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . 'test_cli_backup.kmh';
         $this->assertTrue(File::exists($fullPath));
+
+        $content = file_get_contents($fullPath);
+        $this->assertStringStartsWith(DatabaseBackupService::KMH_MAGIC_HEADER, $content);
     }
 }

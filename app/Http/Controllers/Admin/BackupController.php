@@ -27,55 +27,69 @@ class BackupController extends Controller
     {
         $backups = $this->backupService->listBackups();
         $stats = $this->backupService->getSystemStats();
+        $tableGroups = $this->backupService->getTableGroups();
 
-        return view('admin.backups.index', compact('backups', 'stats'));
+        return view('admin.backups.index', compact('backups', 'stats', 'tableGroups'));
     }
 
     /**
-     * Buat file backup baru (Database Saja atau Full Backup + Media).
+     * Buat file backup baru berekstensi khusus .kmh (Pilih Backup atau Backup Semua).
      */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'type' => ['required', 'in:database,full'],
+            'backup_scope' => ['required', 'in:pilihan,semua'],
+            'selected_tables' => ['nullable', 'array'],
+            'selected_tables.*' => ['string'],
+            'include_media' => ['nullable', 'in:1,0'],
         ], [
-            'type.required' => 'Pilih jenis backup yang ingin dibuat.',
-            'type.in' => 'Jenis backup harus bernilai database atau full.',
+            'backup_scope.required' => 'Pilih cakupan pencadangan: Pilih Backup atau Backup Semua.',
+            'backup_scope.in' => 'Cakupan backup tidak valid.',
         ]);
 
-        $type = $validated['type'];
+        $scope = $validated['backup_scope'];
+        $includeMedia = false;
+        $selectedTables = null;
+
+        if ($scope === 'semua') {
+            $includeMedia = true;
+            $selectedTables = null; // Semua tabel
+            $scopeLabel = 'Backup Semua (Database + Media Upload)';
+        } else {
+            $selectedTables = $request->input('selected_tables', []);
+            if (empty($selectedTables)) {
+                return back()->with('error', 'Silakan centang minimal satu tabel yang ingin Anda cadangkan.');
+            }
+            $includeMedia = (bool) $request->input('include_media', false);
+            $scopeLabel = 'Pilih Backup (' . count($selectedTables) . ' Tabel Terpilih)';
+        }
 
         try {
-            if ($type === 'full') {
-                $filename = $this->backupService->createFullBackup();
-                $typeLabel = 'Full Backup (+ Media)';
-            } else {
-                $filename = $this->backupService->createDatabaseBackup();
-                $typeLabel = 'Database SQL';
-            }
+            $filename = $this->backupService->createKmhBackup($selectedTables, $includeMedia);
 
-            // Catat ke Log Aktivitas Super Admin
+            // Rekam ke Log Aktivitas Super Admin
             AdminActivityLog::record(
                 actionType: 'create',
                 module: 'Backup & Restore',
-                description: "Membuat {$typeLabel} baru dengan nama file: {$filename}.",
+                description: "Membuat file backup terenkripsi .kmh: {$filename} [Cakupan: {$scopeLabel}].",
                 targetType: 'BackupFile',
                 targetName: $filename,
                 newValues: [
                     'filename' => $filename,
-                    'type' => $type,
-                    'created_at' => now()->toIso8601String(),
+                    'scope' => $scope,
+                    'table_count' => is_array($selectedTables) ? count($selectedTables) : 'all',
+                    'include_media' => $includeMedia,
                 ]
             );
 
-            return back()->with('success', "{$typeLabel} ({$filename}) berhasil dibuat dan disimpan di server.");
+            return back()->with('success', "Arsip terenkripsi .kmh ({$filename}) berhasil dibuat dan diamankan di server.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal membuat backup: ' . $e->getMessage());
         }
     }
 
     /**
-     * Unduh file backup ke penyimpanan lokal administrator.
+     * Unduh file backup .kmh ke penyimpanan komputer lokal.
      */
     public function download(string $filename): BinaryFileResponse|RedirectResponse
     {
@@ -89,7 +103,7 @@ class BackupController extends Controller
         AdminActivityLog::record(
             actionType: 'export',
             module: 'Backup & Restore',
-            description: "Mengunduh file backup: {$filename}.",
+            description: "Mengunduh file arsip backup: {$filename}.",
             targetType: 'BackupFile',
             targetName: $filename
         );
@@ -102,7 +116,7 @@ class BackupController extends Controller
     }
 
     /**
-     * Unggah file backup (.sql, .zip, .gz) dari komputer lokal ke server.
+     * Unggah file backup (.kmh, .sql, atau .zip) dari komputer lokal ke server.
      */
     public function upload(Request $request): RedirectResponse
     {
@@ -118,11 +132,10 @@ class BackupController extends Controller
         $originalName = basename($file->getClientOriginalName());
         $ext = strtolower($file->getClientOriginalExtension());
 
-        if (!in_array($ext, ['sql', 'zip', 'gz'])) {
-            return back()->with('error', 'Format file tidak didukung. File backup harus berekstensi .sql, .zip, atau .gz.');
+        if (!in_array($ext, ['kmh', 'sql', 'zip', 'gz'])) {
+            return back()->with('error', 'Format file tidak didukung. File backup harus berekstensi .kmh, .sql, atau .zip.');
         }
 
-        // Cegah nama ganda dengan menambahkan timestamp jika file sudah ada
         $targetDir = $this->backupService->getBackupDirectory();
         $targetFilename = $originalName;
 
@@ -142,14 +155,14 @@ class BackupController extends Controller
                 targetName: $targetFilename
             );
 
-            return back()->with('success', "File backup '{$targetFilename}' berhasil diunggah dan siap dipulihkan jika diperlukan.");
+            return back()->with('success', "File backup '{$targetFilename}' berhasil diunggah ke server.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal menyimpan file backup yang diunggah: ' . $e->getMessage());
         }
     }
 
     /**
-     * Pulihkan (Restore) database & aset sistem dari file backup.
+     * Pulihkan (Restore) database & aset sistem dari file backup (.kmh).
      */
     public function restore(Request $request, string $filename): RedirectResponse
     {
@@ -160,7 +173,7 @@ class BackupController extends Controller
             return back()->with('error', "File backup '{$filename}' tidak ditemukan di server.");
         }
 
-        // Verifikasi Keamanan: Harap ketik "PULIHKAN" atau masukkan password Super Admin
+        // Verifikasi Keamanan: Ketik "PULIHKAN" atau masukkan password Super Admin
         $confirmed = false;
         if ($request->filled('confirmation') && trim($request->input('confirmation')) === 'PULIHKAN') {
             $confirmed = true;
@@ -173,7 +186,6 @@ class BackupController extends Controller
         }
 
         try {
-            // Jalankan proses restore
             $this->backupService->restore($fullPath);
 
             // Bersihkan cache aplikasi & permission registrar Spatie
@@ -188,7 +200,7 @@ class BackupController extends Controller
                 targetName: $filename
             );
 
-            return back()->with('success', "Sistem berhasil dipulihkan dari file backup '{$filename}'. Seluruh data dan tabel telah disinkronkan kembali.");
+            return back()->with('success', "Sistem berhasil dipulihkan dari file backup '{$filename}'. Seluruh data tabel telah disinkronkan kembali.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Terjadi kesalahan saat memulihkan sistem: ' . $e->getMessage());
         }

@@ -11,45 +11,51 @@ class CreateBackupCommand extends Command
      * Nama dan signature perintah CLI.
      */
     protected $signature = 'backup:create 
-                            {--type=database : Jenis backup: database atau full}
-                            {--filename= : Nama kustom untuk file backup}';
+                            {--scope=semua : Cakupan backup: semua atau pilihan}
+                            {--tables= : Daftar nama tabel dipisah koma (jika scope=pilihan)}
+                            {--filename= : Nama kustom untuk file .kmh}';
 
     /**
      * Deskripsi perintah.
      */
-    protected $description = 'Buat backup database MySQL atau Full Backup (+ media upload) sistem RKM-KMH';
+    protected $description = 'Buat backup terenkripsi (.kmh) untuk sistem RKM-KMH';
 
     public function handle(DatabaseBackupService $service): int
     {
-        $type = strtolower($this->option('type') ?: 'database');
+        $scope = strtolower($this->option('scope') ?: 'semua');
         $customName = $this->option('filename');
+        $tablesOption = $this->option('tables');
 
-        if (!in_array($type, ['database', 'full'])) {
-            $this->error("Pilihan --type tidak valid. Gunakan 'database' atau 'full'.");
-            return Command::FAILURE;
+        $selectedTables = null;
+        $includeMedia = false;
+
+        if ($scope === 'semua') {
+            $includeMedia = true;
+            $this->info("Memulai pembuatan [Backup Semua] sistem RKM-KMH (.kmh)...");
+        } else {
+            if ($tablesOption) {
+                $selectedTables = array_map('trim', explode(',', $tablesOption));
+            } else {
+                $selectedTables = $service->getAllTableNames();
+            }
+            $this->info("Memulai pembuatan [Pilih Backup] (" . count($selectedTables) . " tabel) (.kmh)...");
         }
-
-        $this->info("Memulai pembuatan backup sistem RKM-KMH [Tipe: " . strtoupper($type) . "]...");
 
         try {
             $startTime = microtime(true);
-
-            if ($type === 'full') {
-                $filename = $service->createFullBackup($customName);
-            } else {
-                $filename = $service->createDatabaseBackup($customName);
-            }
-
+            $filename = $service->createKmhBackup($selectedTables, $includeMedia, $customName);
             $duration = round(microtime(true) - $startTime, 2);
+
             $fullPath = $service->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
-            $sizeHuman = FileSizeHelper::format(file_exists($fullPath) ? filesize($fullPath) : 0);
+            $size = file_exists($fullPath) ? filesize($fullPath) : 0;
+            $sizeHuman = FileSizeHelper::format($size);
 
             $this->newLine();
-            $this->info("✓ Backup berhasil dibuat!");
-            $this->line("  File : <comment>{$filename}</comment>");
+            $this->info("✓ File backup .kmh berhasil dibuat dan terenkripsi!");
+            $this->line("  File   : <comment>{$filename}</comment>");
             $this->line("  Lokasi : {$fullPath}");
             $this->line("  Ukuran : {$sizeHuman}");
-            $this->line("  Waktu : {$duration} detik");
+            $this->line("  Waktu  : {$duration} detik");
 
             return Command::SUCCESS;
         } catch (\Throwable $e) {
