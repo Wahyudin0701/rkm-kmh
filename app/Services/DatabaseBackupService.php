@@ -5,6 +5,7 @@ namespace App\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 use PDO;
 use RuntimeException;
 use ZipArchive;
@@ -571,9 +572,9 @@ class DatabaseBackupService
             ],
             'system' => [
                 'name' => 'Sistem & Internal Database',
-                'description' => 'Migrasi, sesi, cache, dan antrean background jobs.',
+                'description' => 'Migrasi, sesi, cache, pengaturan retensi, dan antrean background jobs.',
                 'tables' => array_values(array_intersect($allTables, [
-                    'migrations', 'sessions', 'cache', 'cache_locks', 
+                    'system_settings', 'migrations', 'sessions', 'cache', 'cache_locks', 
                     'jobs', 'job_batches', 'failed_jobs', 'password_reset_tokens'
                 ])),
             ],
@@ -674,6 +675,12 @@ class DatabaseBackupService
         fwrite($handle, "-- Dumping Data untuk `{$tableName}`\n");
 
         $query = DB::table($tableName);
+
+        // Pastikan data yang berada di tong sampah (soft-deleted) tidak bocor ke dalam data backup
+        if (Schema::hasColumn($tableName, 'deleted_at')) {
+            $query->whereNull('deleted_at');
+        }
+
         $totalRows = $query->count();
 
         if ($totalRows === 0) {

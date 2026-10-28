@@ -227,4 +227,46 @@ class BackupAndRestoreTest extends TestCase
         $content = file_get_contents($fullPath);
         $this->assertStringStartsWith(DatabaseBackupService::KMH_MAGIC_HEADER, $content);
     }
+
+    /**
+     * Memastikan data yang berada di tong sampah (soft-deleted) TIDAK bocor ke dalam file backup .kmh.
+     */
+    public function test_backup_does_not_leak_trashed_records(): void
+    {
+        // 1. Buat user aktif dan user yang dihapus (masuk tong sampah)
+        $activeUser = User::factory()->create([
+            'username' => 'user_aktif_backup',
+            'email' => 'aktif_backup@kmh.co.id',
+        ]);
+
+        $trashedUser = User::factory()->create([
+            'username' => 'user_sampah_backup',
+            'email' => 'sampah_backup@kmh.co.id',
+        ]);
+        $trashedUser->delete();
+
+        $this->assertSoftDeleted('users', ['id' => $trashedUser->id]);
+
+        // 2. Buat backup khusus tabel users
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_no_trash_leak.kmh');
+        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
+        $this->assertTrue(File::exists($fullPath));
+
+        // 3. Dekripsi paket .kmh dan baca file database.sql di dalamnya
+        $kmhContent = file_get_contents($fullPath);
+        $zipContent = $this->backupService->decryptFromKmh($kmhContent);
+
+        $tempZip = storage_path('app/temp_verify_leak_' . uniqid() . '.zip');
+        file_put_contents($tempZip, $zipContent);
+
+        $zip = new \ZipArchive();
+        $this->assertTrue($zip->open($tempZip));
+        $sqlContent = $zip->getFromName('database.sql');
+        $zip->close();
+        @unlink($tempZip);
+
+        // 4. Pastikan data user aktif ada di file SQL, sedangkan data di tong sampah TIDAK ADA SAMA SEKALI
+        $this->assertStringContainsString('aktif_backup@kmh.co.id', $sqlContent);
+        $this->assertStringNotContainsString('sampah_backup@kmh.co.id', $sqlContent);
+    }
 }
