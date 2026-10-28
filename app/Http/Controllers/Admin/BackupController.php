@@ -220,11 +220,11 @@ class BackupController extends Controller
         }
 
         $request->validate([
-            'backup_file' => ['required', 'file', 'max:204800'], // Maks. 200 MB
+            'backup_file' => ['required', 'file', 'max:1048576'], // Maks. 1024 MB (1 GB)
         ], [
             'backup_file.required' => 'Pilih file backup yang ingin diunggah.',
             'backup_file.file' => 'File yang diunggah tidak valid.',
-            'backup_file.max' => 'Ukuran file backup maksimal 200 MB.',
+            'backup_file.max' => 'Ukuran file backup maksimal 1 GB.',
         ]);
 
         $originalName = basename($file->getClientOriginalName());
