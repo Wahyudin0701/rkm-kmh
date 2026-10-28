@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\Employee;
+use App\Models\EmployeeSimper;
+use App\Models\SimperType;
 use App\Models\UnitSupportTimesheet;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -47,6 +49,7 @@ class QmaSupportTimesheetTest extends TestCase
         $this->supportUnit = Vehicle::create([
             'code' => 'EX01',
             'category' => 'unit_support',
+            'unit_category' => 'Excavator',
             'brand_type' => 'Komatsu PC200-8 Excavator',
             'status' => 'Operation',
             'site_status' => 'inside_site',
@@ -61,6 +64,7 @@ class QmaSupportTimesheetTest extends TestCase
             'department' => 'Civil Construction',
             'is_operator' => true,
             'is_driver' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
         ]);
     }
 
@@ -546,5 +550,129 @@ class QmaSupportTimesheetTest extends TestCase
         $responseKaryawan->assertStatus(200);
         $responseKaryawan->assertSee('TS-KARYAWAN-001');
         $responseKaryawan->assertDontSee('TS-SUKON-001');
+    }
+
+    /**
+     * Index memuat peta kualifikasi operator per alat berat (unitOperatorsMap).
+     */
+    public function test_index_passes_unit_operators_map_matching_equipment_simper(): void
+    {
+        $simperEx = SimperType::create([
+            'code' => 'SIMPER-EXCAVATOR',
+            'name' => 'SIMPER Alat Excavator',
+            'category_scope' => 'Excavator',
+            'is_active' => true,
+        ]);
+
+        $simperDt = SimperType::create([
+            'code' => 'SIMPER-DT-ONLY',
+            'name' => 'SIMPER Khusus DT',
+            'category_scope' => 'unit_support_mobile',
+            'is_active' => true,
+        ]);
+
+        $opEx = Employee::create([
+            'nik' => 'OP-EX-001',
+            'name' => 'Operator Khusus Excavator',
+            'is_operator' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
+        ]);
+        EmployeeSimper::create([
+            'employee_id' => $opEx->id,
+            'simper_type_id' => $simperEx->id,
+            'expired_at' => Carbon::now()->addYear(),
+            'status' => 'active',
+        ]);
+
+        $opDt = Employee::create([
+            'nik' => 'OP-DT-001',
+            'name' => 'Driver Khusus Dump Truck',
+            'is_operator' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
+        ]);
+        EmployeeSimper::create([
+            'employee_id' => $opDt->id,
+            'simper_type_id' => $simperDt->id,
+            'expired_at' => Carbon::now()->addYear(),
+            'status' => 'active',
+        ]);
+
+        $unitDumpTruck = Vehicle::create([
+            'code' => 'DT99',
+            'category' => 'unit_support',
+            'unit_category' => 'Dump Truck',
+            'brand_type' => 'Mitsubishi Fuso 220PS',
+            'is_timesheet_mobile' => true,
+            'status' => 'Operation',
+            'site_status' => 'inside_site',
+            'location' => 'Adit 1',
+            'current_km' => 500.0,
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.index'));
+
+        $response->assertStatus(200);
+        $response->assertViewHas('unitOperatorsMap');
+
+        $map = $response->viewData('unitOperatorsMap');
+        $this->assertIsArray($map);
+
+        // Unit EX01 harus memuat $opEx dan TIDAK memuat $opDt
+        $this->assertContains($opEx->id, $map[$this->supportUnit->id]);
+        $this->assertNotContains($opDt->id, $map[$this->supportUnit->id]);
+
+        // Unit DT99 harus memuat $opDt dan TIDAK memuat $opEx
+        $this->assertContains($opDt->id, $map[$unitDumpTruck->id]);
+        $this->assertNotContains($opEx->id, $map[$unitDumpTruck->id]);
+    }
+
+    /**
+     * Operator dengan SIMPER Dump Truck ditolak saat menginput timesheet alat berat Excavator.
+     */
+    public function test_store_fails_when_dump_truck_operator_attempts_excavator_timesheet(): void
+    {
+        $simperDt = SimperType::create([
+            'code' => 'SIMPER-DT-ONLY2',
+            'name' => 'SIMPER Khusus DT 2',
+            'category_scope' => 'unit_support_mobile',
+            'is_active' => true,
+        ]);
+
+        $opDt = Employee::create([
+            'nik' => 'OP-DT-002',
+            'name' => 'Driver DT Saja',
+            'is_operator' => true,
+            'simper_expired_at' => Carbon::now()->addYear(),
+        ]);
+        EmployeeSimper::create([
+            'employee_id' => $opDt->id,
+            'simper_type_id' => $simperDt->id,
+            'expired_at' => Carbon::now()->addYear(),
+            'status' => 'active',
+        ]);
+
+        $data = [
+            'vehicle_id' => $this->supportUnit->id, // Excavator
+            'operator_id' => $opDt->id,
+            'date' => Carbon::today()->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 1250.00,
+            'end_meter' => 1258.00,
+            'location' => 'Main Dam',
+            'activity_type' => 'Galian Material',
+            'status' => 'Operation',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->post(route('qma.support_timesheet.store'), $data);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('error');
+        $this->assertDatabaseMissing('unit_support_timesheets', [
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $opDt->id,
+        ]);
     }
 }

@@ -147,12 +147,25 @@ class SupportTimesheetController extends Controller
                 $q->whereNotNull('parent_id')
                   ->orWhereDoesntHave('units');
             })
+            ->with(['parent.requiredSimperType', 'requiredSimperType'])
             ->orderBy('code')
             ->get();
 
         $operators = Employee::with(['simpers.simperType'])
             ->orderBy('name')
             ->get(['id', 'nik', 'name', 'position', 'is_operator', 'employee_type', 'simper_expired_at']);
+
+        // Pemetaan kualifikasi SIMPER: Unit ID => Daftar Operator ID yang memiliki izin SIMPER sah
+        $unitOperatorsMap = [];
+        foreach ($unitSupports as $u) {
+            $eligibleIds = [];
+            foreach ($operators as $op) {
+                if ($op->hasValidSimperForVehicle($u)) {
+                    $eligibleIds[] = $op->id;
+                }
+            }
+            $unitOperatorsMap[$u->id] = $eligibleIds;
+        }
 
         $shifts = self::SHIFTS;
         $activityTypes = self::PRESET_ACTIVITIES;
@@ -178,6 +191,7 @@ class SupportTimesheetController extends Controller
             'breakdownCount',
             'unitSupports',
             'operators',
+            'unitOperatorsMap',
             'shifts',
             'activityTypes',
             'locationSuggestions',
@@ -254,8 +268,15 @@ class SupportTimesheetController extends Controller
             'activity_type.required' => 'Kategori pekerjaan wajib diisi.',
         ]);
 
-        $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
-        $operator = Employee::findOrFail($validated['operator_id']);
+        $vehicle = Vehicle::with(['parent.requiredSimperType', 'requiredSimperType'])->findOrFail($validated['vehicle_id']);
+        $operator = Employee::with(['simpers.simperType'])->findOrFail($validated['operator_id']);
+
+        if (!$operator->hasValidSimperForVehicle($vehicle)) {
+            $unitLabel = trim("{$vehicle->code} " . ($vehicle->brand_type ?? ''));
+            return back()
+                ->withInput()
+                ->with('error', "Operator {$operator->name} ({$operator->nik}) tidak memiliki izin SIMPER yang aktif/sah untuk mengoperasikan unit {$unitLabel}.");
+        }
 
         $startMeter = (float) $validated['start_meter'];
         $endMeter = isset($validated['end_meter']) && $validated['end_meter'] !== '' && $validated['end_meter'] !== null
@@ -400,6 +421,18 @@ class SupportTimesheetController extends Controller
             : null;
         $operatingHours = $endMeter !== null ? max(0, $endMeter - $startMeter) : null;
         $shift = $validated['shift'] ?: 'Shift Siang';
+
+        $vehicle = Vehicle::with(['parent.requiredSimperType', 'requiredSimperType'])->findOrFail($validated['vehicle_id']);
+        $operator = Employee::with(['simpers.simperType'])->findOrFail($validated['operator_id']);
+
+        if ((int) $timesheet->operator_id !== (int) $operator->id || (int) $timesheet->vehicle_id !== (int) $vehicle->id) {
+            if (!$operator->hasValidSimperForVehicle($vehicle)) {
+                $unitLabel = trim("{$vehicle->code} " . ($vehicle->brand_type ?? ''));
+                return back()
+                    ->withInput()
+                    ->with('error', "Operator {$operator->name} ({$operator->nik}) tidak memiliki izin SIMPER yang aktif/sah untuk mengoperasikan unit {$unitLabel}.");
+            }
+        }
 
         $timesheet->update([
             'vehicle_id' => $validated['vehicle_id'],

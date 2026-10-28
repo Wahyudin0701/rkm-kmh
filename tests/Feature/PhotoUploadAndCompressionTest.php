@@ -139,6 +139,11 @@ class PhotoUploadAndCompressionTest extends TestCase
         $deleteResponse->assertRedirect();
 
         $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
+        // Foto tetap dipertahankan saat soft delete agar dapat dipulihkan dari Trash/Recycle Bin
+        Storage::disk('public')->assertExists($photoPath);
+
+        // Ketika dihapus permanen melalui TrashService, file fisik baru terhapus
+        app(\App\Services\TrashService::class)->forceDeleteItem('vehicles', $vehicle->id);
         Storage::disk('public')->assertMissing($photoPath);
     }
 

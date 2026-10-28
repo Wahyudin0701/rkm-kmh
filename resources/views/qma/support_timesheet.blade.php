@@ -571,7 +571,7 @@
                                 id="addOperatorSelect" 
                                 required 
                                 class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="">-- Pilih Operator --</option>
+                            <option value="">-- Pilih Heavy Equipment Terlebih Dahulu --</option>
                             @foreach($operators as $op)
                                 @php
                                     $opType = $op->employee_type ?: 'Karyawan';
@@ -587,7 +587,7 @@
                             @endforeach
                         </select>
                         <p id="addOperatorCountHelp" class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
-                            <span>Total personil: {{ count($operators) }}</span>
+                            <span>Total personil: - (Pilih unit terlebih dahulu)</span>
                             <span class="text-emerald-700 font-semibold" id="addOperatorCurrentFilterText">Filter: Semua</span>
                         </p>
                     </div>
@@ -903,7 +903,7 @@
                                 id="editOperatorSelect" 
                                 required 
                                 class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="">-- Pilih Operator --</option>
+                            <option value="">-- Pilih Heavy Equipment Terlebih Dahulu --</option>
                             @foreach($operators as $op)
                                 @php
                                     $opType = $op->employee_type ?: 'Karyawan';
@@ -919,7 +919,7 @@
                             @endforeach
                         </select>
                         <p id="editOperatorCountHelp" class="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
-                            <span>Total personil: {{ count($operators) }}</span>
+                            <span>Total personil: - (Pilih unit terlebih dahulu)</span>
                             <span class="text-emerald-700 font-semibold" id="editOperatorCurrentFilterText">Filter: Semua</span>
                         </p>
                     </div>
@@ -1175,12 +1175,16 @@
 <script>
     window.unitSupportsData = @json($unitSupports);
     window.allOperatorsData = @json($operators);
+    window.unitOperatorsMap = @json($unitOperatorsMap);
 
-    // Filter Segmented Operator (Semua / Karyawan / Sukon)
+    // Filter Segmented Operator (Semua / Karyawan / Sukon) & Sinkronisasi Kualifikasi SIMPER Alat Berat
     function filterOperatorSelect(type, mode, preserveSelectedId) {
         const selectId = mode === 'edit' ? 'editOperatorSelect' : 'addOperatorSelect';
         const select = document.getElementById(selectId);
         if (!select) return;
+
+        type = type || 'all';
+        select.setAttribute('data-active-filter', type);
 
         // Update button states
         const types = ['all', 'Karyawan', 'Sukon'];
@@ -1201,36 +1205,91 @@
             filterText.textContent = `Filter: ${type === 'all' ? 'Semua' : type}`;
         }
 
+        const vehSelect = document.getElementById(`${mode}VehicleSelect`);
+        const selectedVehicleId = vehSelect ? vehSelect.value : null;
+
         const currentVal = preserveSelectedId !== undefined ? String(preserveSelectedId) : select.value;
         const options = select.querySelectorAll('option');
         let visibleCount = 0;
 
+        // 1. Jika belum ada unit Heavy Equipment yang dipilih
+        if (!selectedVehicleId) {
+            options.forEach(opt => {
+                if (!opt.value) {
+                    opt.textContent = '-- Pilih Heavy Equipment Terlebih Dahulu --';
+                    opt.hidden = false;
+                } else {
+                    opt.hidden = true;
+                }
+            });
+            select.value = '';
+
+            const countHelp = document.getElementById(`${mode}OperatorCountHelp`);
+            if (countHelp) {
+                const spanFirst = countHelp.querySelector('span:first-child');
+                if (spanFirst) {
+                    spanFirst.textContent = 'Total personil: - (Pilih unit terlebih dahulu)';
+                    spanFirst.className = 'text-slate-400';
+                }
+            }
+            return;
+        }
+
+        // 2. Dapatkan daftar ID operator yang kualifikasi SIMPER-nya aktif untuk unit ini
+        const eligibleMap = window.unitOperatorsMap || {};
+        const eligibleIds = eligibleMap[selectedVehicleId] || [];
+        const eligibleSet = new Set(eligibleIds.map(String));
+
+        if (preserveSelectedId !== undefined && preserveSelectedId !== null && preserveSelectedId !== '') {
+            eligibleSet.add(String(preserveSelectedId));
+        }
+
+        const hasEligible = eligibleSet.size > 0;
+
         options.forEach(opt => {
             if (!opt.value) {
+                if (!hasEligible) {
+                    opt.textContent = '-- Tidak ada operator dengan SIMPER untuk unit ini --';
+                } else {
+                    opt.textContent = `-- Pilih Operator (${eligibleSet.size} Memenuhi SIMPER) --`;
+                }
                 opt.hidden = false;
                 return;
             }
+
+            const opId = String(opt.value);
+            const isEligible = eligibleSet.has(opId);
             const optType = opt.getAttribute('data-type') || 'Karyawan';
-            let match = false;
+
+            let typeMatch = false;
             if (type === 'all') {
-                match = true;
+                typeMatch = true;
             } else if (type === 'Karyawan') {
-                match = optType === 'Karyawan';
+                typeMatch = optType === 'Karyawan';
             } else if (type === 'Sukon') {
-                match = optType === 'Sukon';
+                typeMatch = optType === 'Sukon';
             } else {
-                match = optType.toLowerCase() === type.toLowerCase();
+                typeMatch = optType.toLowerCase() === type.toLowerCase();
             }
 
+            const match = isEligible && typeMatch;
             opt.hidden = !match;
             if (match) visibleCount++;
         });
 
-        // Update total count
+        // Update total count & status
         const countHelp = document.getElementById(`${mode}OperatorCountHelp`);
         if (countHelp) {
             const spanFirst = countHelp.querySelector('span:first-child');
-            if (spanFirst) spanFirst.textContent = `Total personil: ${visibleCount}`;
+            if (spanFirst) {
+                if (!hasEligible) {
+                    spanFirst.textContent = 'Total personil: 0 (Tidak ada SIMPER yang cocok)';
+                    spanFirst.className = 'text-rose-600 font-semibold';
+                } else {
+                    spanFirst.textContent = `Total personil: ${visibleCount} dari ${eligibleSet.size} operator SIMPER aktif`;
+                    spanFirst.className = 'text-slate-500';
+                }
+            }
         }
 
         // Restore or reset selection
@@ -1241,6 +1300,8 @@
             } else if (preserveSelectedId === undefined) {
                 select.value = '';
             }
+        } else {
+            select.value = '';
         }
     }
 
@@ -1498,6 +1559,7 @@
             vehicleSelect.innerHTML = '<option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>';
             if (counterBadge) counterBadge.classList.add('hidden');
             if (previewEl) previewEl.classList.add('hidden');
+            filterOperatorSelect('all', prefix);
             return;
         } else if (selectedLoc === 'ALL' || selectedLoc === '__CUSTOM__') {
             filteredUnits = allUnits;
@@ -1566,6 +1628,7 @@
         } else {
             defaultPrompt.selected = true;
             if (previewEl) previewEl.classList.add('hidden');
+            filterOperatorSelect('all', prefix);
         }
     }
 
@@ -1620,6 +1683,11 @@
         if (locSelect && locSelect.value === 'ALL' && finalLoc && !finalLoc.value) {
             finalLoc.value = unitLocation;
         }
+
+        // Otomatis filter operator sesuai izin SIMPER aktif untuk alat berat ini
+        const opSelect = document.getElementById(`${prefix}OperatorSelect`);
+        const currentOpFilter = opSelect ? (opSelect.getAttribute('data-active-filter') || 'all') : 'all';
+        filterOperatorSelect(currentOpFilter, prefix);
     }
 
     function updateMeterUnitLabels(prefix) {

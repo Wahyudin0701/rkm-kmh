@@ -140,11 +140,12 @@ class Employee extends Model
             return $this->hasValidSimper();
         }
 
-        // 1. Jika kendaraan mensyaratkan spesifik required_simper_type_id
-        if ($vehicle->required_simper_type_id) {
+        // 1. Jika kendaraan atau parent category kendaraan mensyaratkan spesifik required_simper_type_id
+        $requiredTypeId = $vehicle->required_simper_type_id ?? $vehicle->parent?->required_simper_type_id;
+        if ($requiredTypeId) {
             $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->get();
             foreach ($simpers as $s) {
-                if ($s->simper_type_id === $vehicle->required_simper_type_id && $s->isValid()) {
+                if ($s->simper_type_id === $requiredTypeId && $s->isValid()) {
                     return true;
                 }
             }
@@ -159,23 +160,45 @@ class Employee extends Model
         }
 
         if ($vehicle->isUnitSupport()) {
+            $catName = $vehicle->unit_category ?: $vehicle->parent?->unit_category;
+            $brandName = $vehicle->brand_type ?: $vehicle->parent?->brand_type;
+
             // Cek apakah personil memiliki izin SIMPER dengan scope kategori alat berat ini (misal: 'Dump Truck', 'Excavator', dll.)
-            if ($vehicle->unit_category && $this->hasValidSimperForScope($vehicle->unit_category)) {
+            if ($catName && $this->hasValidSimperForScope($catName)) {
                 return true;
             }
-            if ($vehicle->brand_type && $this->hasValidSimperForScope($vehicle->brand_type)) {
+            if ($brandName && $this->hasValidSimperForScope($brandName)) {
                 return true;
             }
 
-            if ($vehicle->is_timesheet_mobile) {
+            // Cek jika brand type mengandung kategori spesifik yang dimiliki SIMPER personil
+            if ($brandName) {
+                $simpers = $this->relationLoaded('simpers') ? $this->simpers : $this->simpers()->with('simperType')->get();
+                foreach ($simpers as $s) {
+                    if ($s->isValid() && $s->simperType) {
+                        foreach ($s->simperType->scopes as $scope) {
+                            if (!in_array($scope, [SimperType::SCOPE_ALL, SimperType::SCOPE_LIGHT_VEHICLE, SimperType::SCOPE_UNIT_SUPPORT_MOBILE, SimperType::SCOPE_UNIT_SUPPORT_HEAVY], true)) {
+                                if (stripos($brandName, $scope) !== false) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $isMobile = $vehicle->is_timesheet_mobile 
+                || ($vehicle->parent && $vehicle->parent->is_timesheet_mobile)
+                || str_starts_with(strtoupper($vehicle->code), 'DT')
+                || (stripos($catName ?? '', 'Dump Truck') !== false);
+
+            if ($isMobile) {
                 return $this->hasValidSimperForType('SIMPER-DT')
-                    || $this->hasValidSimperForType('SIMPER-HEAVY')
                     || $this->hasValidSimperForScope('unit_support_mobile')
                     || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
             }
 
             return $this->hasValidSimperForType('SIMPER-HEAVY')
-                || $this->hasValidSimperForType('SIMPER-DT')
                 || $this->hasValidSimperForScope('unit_support_heavy')
                 || $this->hasValidSimperForScope(SimperType::SCOPE_ALL);
         }
