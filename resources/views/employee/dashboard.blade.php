@@ -312,9 +312,16 @@
                     <p class="text-xs text-slate-500">Catatan mobilisasi kendaraan yang pernah Anda isi di sistem.</p>
                 </div>
             </div>
-            <span class="text-xs font-semibold text-slate-400 self-start sm:self-center">
-                {{ $myRecentActivities->count() }} Perjalanan Terbaru
-            </span>
+            <div class="flex items-center gap-3 self-start sm:self-center">
+                <span class="text-xs font-semibold text-slate-400">
+                    {{ $myRecentActivities->count() }} Perjalanan Terbaru
+                </span>
+                <a href="{{ route('employee.history') }}" 
+                   class="inline-flex items-center text-xs font-bold text-[#1b5e20] hover:underline">
+                    <span>Lihat Seluruh Riwayat</span>
+                    <i class="fa-solid fa-arrow-right text-[10px] ml-1"></i>
+                </a>
+            </div>
         </div>
 
         <div class="overflow-x-auto -mx-5 sm:mx-0">
@@ -411,6 +418,11 @@
         <p class="text-[11px] text-slate-400 mt-1 max-w-sm mx-auto">
             Catatan mobilisasi unit kendaraan ringan (LV) yang Anda kendarai akan otomatis muncul di sini setelah Anda mengisi formulir perjalanan.
         </p>
+        <div class="mt-3">
+            <a href="{{ route('employee.history') }}" class="text-xs font-bold text-[#1b5e20] hover:underline">
+                Buka Halaman Riwayat Saya &rarr;
+            </a>
+        </div>
     </div>
     @endif
 </div>

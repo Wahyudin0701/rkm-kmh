@@ -3,11 +3,16 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use App\Models\P2hRecord;
+use App\Models\UnitSupportTimesheet;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
+use App\Services\P2hInspectionPdfExporter;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
@@ -199,6 +204,262 @@ class DashboardController extends Controller
             'rejection_note' => $activity->rejection_note,
             'recorded_at' => $activity->recorded_at ? $activity->recorded_at->format('H:i') . ' WIB' : null,
             'validated_at' => $activity->validated_at ? $activity->validated_at->format('H:i') . ' WIB' : null,
+        ]);
+    }
+
+    /**
+     * Tampilkan halaman Riwayat Aktivitas Pribadi Karyawan.
+     * Mengisolasi data hanya milik karyawan yang sedang login (P2H, Timesheet Alat Berat, dan Perjalanan LV).
+     * Tab yang tampil dinamis menyesuaikan hak akses dan catatan riwayat yang dimiliki karyawan.
+     */
+    public function history(Request $request): View
+    {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin() && !$user->can('employee.dashboard') && !$user->can('employee.timesheet') && !$user->can('employee.p2h') && !$user->isEmployee()) {
+            abort(403, 'Akses Ditolak: Anda tidak memiliki wewenang untuk membuka halaman riwayat aktivitas karyawan.');
+        }
+
+        $employee = $user->getOrCreateEmployee();
+
+        // 1. Periksa ketersediaan modul/tab berdasarkan wewenang (permission) & riwayat aktual karyawan
+        $canP2h = $user->can('employee.p2h') || ($employee && P2hRecord::where('employee_id', $employee->id)->exists());
+        $canTimesheet = ($employee && $employee->is_operator) || ($employee && UnitSupportTimesheet::where('operator_id', $employee->id)->exists()) || $user->can('qma.logs.view');
+        $canTrips = $user->can('employee.timesheet') || ($employee && VehicleActivity::where('driver_id', $employee->id)->exists());
+
+        // Hitung total catatan riwayat per kategori untuk badge tab
+        $p2hCount = $employee ? P2hRecord::where('employee_id', $employee->id)->count() : 0;
+        $timesheetCount = $employee ? UnitSupportTimesheet::where('operator_id', $employee->id)->count() : 0;
+        $tripCount = $employee ? VehicleActivity::where('driver_id', $employee->id)->count() : 0;
+
+        // Tentukan tab aktif
+        $availableTabs = [];
+        if ($canP2h) {
+            $availableTabs[] = 'p2h';
+        }
+        if ($canTimesheet) {
+            $availableTabs[] = 'timesheet';
+        }
+        if ($canTrips) {
+            $availableTabs[] = 'trips';
+        }
+
+        $requestedTab = $request->query('tab');
+        if ($requestedTab && in_array($requestedTab, $availableTabs, true)) {
+            $activeTab = $requestedTab;
+        } else {
+            $activeTab = $availableTabs[0] ?? 'none';
+        }
+
+        // Filter parameter
+        $search = trim((string) $request->query('search', ''));
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+        $status = $request->query('status');
+
+        $p2hRecords = collect();
+        $timesheetRecords = collect();
+        $tripRecords = collect();
+
+        // Query data khusus tab aktif
+        if ($employee && $activeTab === 'p2h') {
+            $query = P2hRecord::with(['vehicle', 'template', 'validator'])
+                ->where('employee_id', $employee->id);
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('transaction_no', 'like', "%{$search}%")
+                        ->orWhereHas('vehicle', function ($vq) use ($search) {
+                            $vq->where('code', 'like', "%{$search}%")
+                               ->orWhere('brand_type', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            if ($dateFrom) {
+                $query->whereDate('inspected_at', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('inspected_at', '<=', $dateTo);
+            }
+
+            if ($status) {
+                if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+                    $query->where('validation_status', $status);
+                } elseif (in_array($status, ['good', 'has_defect'], true)) {
+                    $query->where('summary_condition', $status);
+                }
+            }
+
+            $p2hRecords = $query->latest('inspected_at')
+                ->latest('id')
+                ->paginate(15)
+                ->withQueryString();
+        } elseif ($employee && $activeTab === 'timesheet') {
+            $query = UnitSupportTimesheet::with(['vehicle'])
+                ->where('operator_id', $employee->id);
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('timesheet_no', 'like', "%{$search}%")
+                        ->orWhere('location', 'like', "%{$search}%")
+                        ->orWhere('task_description', 'like', "%{$search}%")
+                        ->orWhereHas('vehicle', function ($vq) use ($search) {
+                            $vq->where('code', 'like', "%{$search}%")
+                               ->orWhere('brand_type', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            if ($dateFrom) {
+                $query->whereDate('date', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('date', '<=', $dateTo);
+            }
+
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            $timesheetRecords = $query->latest('date')
+                ->latest('id')
+                ->paginate(15)
+                ->withQueryString();
+        } elseif ($employee && $activeTab === 'trips') {
+            $query = VehicleActivity::with(['vehicle', 'gate', 'securityGuard'])
+                ->where('driver_id', $employee->id);
+
+            if ($search !== '') {
+                $query->where(function ($q) use ($search) {
+                    $q->where('transaction_no', 'like', "%{$search}%")
+                        ->orWhere('purpose', 'like', "%{$search}%")
+                        ->orWhereHas('vehicle', function ($vq) use ($search) {
+                            $vq->where('code', 'like', "%{$search}%")
+                               ->orWhere('brand_type', 'like', "%{$search}%")
+                               ->orWhere('license_plate', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('gate', function ($gq) use ($search) {
+                            $gq->where('name', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            if ($dateFrom) {
+                $query->whereDate('recorded_at', '>=', $dateFrom);
+            }
+            if ($dateTo) {
+                $query->whereDate('recorded_at', '<=', $dateTo);
+            }
+
+            if ($status) {
+                $query->where('validation_status', $status);
+            }
+
+            $tripRecords = $query->latest('recorded_at')
+                ->latest('id')
+                ->paginate(15)
+                ->withQueryString();
+        }
+
+        // Ringkasan KPI pribadi karyawan
+        $stats = [
+            'p2h_total' => $p2hCount,
+            'p2h_good' => $employee ? P2hRecord::where('employee_id', $employee->id)->where('summary_condition', 'good')->count() : 0,
+            'p2h_defects' => $employee ? P2hRecord::where('employee_id', $employee->id)->where('summary_condition', 'has_defect')->count() : 0,
+            'timesheet_total' => $timesheetCount,
+            'timesheet_hours' => $employee ? (float) UnitSupportTimesheet::where('operator_id', $employee->id)->sum('operating_hours') : 0.0,
+            'trip_total' => $tripCount,
+            'trip_distance' => $employee ? (float) VehicleActivity::where('driver_id', $employee->id)->sum('distance') : 0.0,
+        ];
+
+        return view('employee.history', compact(
+            'employee',
+            'canP2h',
+            'canTimesheet',
+            'canTrips',
+            'p2hCount',
+            'timesheetCount',
+            'tripCount',
+            'activeTab',
+            'p2hRecords',
+            'timesheetRecords',
+            'tripRecords',
+            'stats',
+            'search',
+            'dateFrom',
+            'dateTo',
+            'status'
+        ));
+    }
+
+    /**
+     * Detail checklist P2H pribadi karyawan (Format JSON untuk modal inspeksi).
+     */
+    public function p2hDetail(int $id): JsonResponse
+    {
+        $user = auth()->user();
+        $employee = $user->getOrCreateEmployee();
+
+        $record = P2hRecord::with(['vehicle', 'employee', 'template', 'validator', 'items'])
+            ->findOrFail($id);
+
+        if (!$user->isSuperAdmin() && (!$employee || $record->employee_id !== $employee->id)) {
+            abort(403, 'Aksi Ditolak: Anda hanya dapat melihat lembar pemeriksaan P2H milik Anda sendiri.');
+        }
+
+        return response()->json([
+            'id' => $record->id,
+            'transaction_no' => $record->transaction_no,
+            'vehicle_code' => $record->vehicle?->code ?? '-',
+            'vehicle_name' => $record->vehicle?->brand_type ?? '-',
+            'template_name' => $record->template?->name ?? 'P2H Checksheet',
+            'shift' => $record->shift,
+            'start_hm' => $record->start_hm,
+            'start_km' => $record->start_km,
+            'summary_condition' => $record->summary_condition,
+            'defect_count' => $record->defect_count,
+            'general_notes' => $record->general_notes,
+            'validation_status' => $record->validation_status,
+            'validator_name' => $record->validator?->name,
+            'validation_notes' => $record->validation_notes,
+            'validated_at' => $record->validated_at ? $record->validated_at->format('d/m/Y H:i') : null,
+            'inspected_at' => $record->inspected_at ? $record->inspected_at->format('d/m/Y H:i') : null,
+            'items' => $record->items->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'item_name' => $item->title,
+                    'section' => $item->section,
+                    'condition' => $item->condition_status,
+                    'notes' => $item->notes,
+                ];
+            }),
+        ]);
+    }
+
+    /**
+     * Download / Cetak PDF lembar pemeriksaan P2H pribadi milik karyawan.
+     */
+    public function p2hPdf(int $id): Response
+    {
+        $user = auth()->user();
+        $employee = $user->getOrCreateEmployee();
+
+        $record = P2hRecord::with(['vehicle', 'employee', 'template', 'validator', 'items'])
+            ->findOrFail($id);
+
+        if (!$user->isSuperAdmin() && (!$employee || $record->employee_id !== $employee->id)) {
+            abort(403, 'Aksi Ditolak: Anda hanya dapat mengunduh lembar pemeriksaan P2H milik Anda sendiri.');
+        }
+
+        $pdfBinary = P2hInspectionPdfExporter::generate($record);
+        $fileName = 'Lembar_P2H_' . ($record->vehicle->code ?? 'Unit') . '_' . $record->transaction_no . '.pdf';
+
+        return response($pdfBinary, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+            'Content-Length' => strlen($pdfBinary),
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'Pragma' => 'public',
         ]);
     }
 }

@@ -188,8 +188,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/{code}', [P2hFormController::class, 'store'])->middleware('throttle:30,1')->name('store');
     });
 
-    // 6. Modul Karyawan (Dashboard, P2H, Timesheet)
+    // 6. Modul Karyawan (Dashboard, Riwayat Aktivitas, P2H, Timesheet)
     Route::get('/karyawan/dashboard', [\App\Http\Controllers\Employee\DashboardController::class, 'index'])->name('employee.dashboard');
+    Route::get('/karyawan/riwayat', [\App\Http\Controllers\Employee\DashboardController::class, 'history'])->name('employee.history');
+    Route::get('/karyawan/riwayat/p2h/{id}', [\App\Http\Controllers\Employee\DashboardController::class, 'p2hDetail'])->name('employee.history.p2h_detail');
+    Route::get('/karyawan/riwayat/p2h/{id}/pdf', [\App\Http\Controllers\Employee\DashboardController::class, 'p2hPdf'])->name('employee.history.p2h_pdf');
     Route::get('/karyawan/aktivitas/status-polling', [\App\Http\Controllers\Employee\DashboardController::class, 'activeTripStatus'])->name('employee.activity.status_polling');
     Route::post('/karyawan/aktivitas/{id}/update-km', [\App\Http\Controllers\Employee\DashboardController::class, 'updateKm'])->name('employee.activity.update_km');
     Route::post('/karyawan/aktivitas/{id}/cancel', [\App\Http\Controllers\Employee\DashboardController::class, 'cancelActivity'])->name('employee.activity.cancel');

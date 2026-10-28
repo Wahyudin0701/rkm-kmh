@@ -501,6 +501,12 @@
                             <span>Timesheet</span>
                         </a>
                         @endcan
+
+                        <a href="{{ route('employee.history') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('employee.history*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
+                            <span>Riwayat Saya</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -881,6 +887,11 @@
                             <span>Timesheet</span>
                         </a>
                         @endcan
+
+                        <a href="{{ route('employee.history') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('employee.history*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
+                            <span>Riwayat Saya</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -987,6 +998,8 @@
                     Log Verifikasi Gerbang
                 @elseif(request()->routeIs('employee.dashboard'))
                     Dashboard Karyawan
+                @elseif(request()->routeIs('employee.history*'))
+                    Riwayat Aktivitas
                 @elseif(request()->routeIs('p2h.*'))
                     Pemeriksaan P2H
                 @elseif(request()->routeIs('timesheet.*') || request()->routeIs('mobilisasi.*'))
