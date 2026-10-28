@@ -789,6 +789,24 @@
                                    class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
                         </div>
 
+                        <!-- Divisi & Jabatan -->
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">
+                                    Divisi <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="division" id="editDivisionInput" required placeholder="Contoh: Operasi, Private Guard" 
+                                       class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800 mb-1">
+                                    Posisi / Jabatan <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="position" id="editPositionInput" required placeholder="Contoh: Anggota, Driver, Staff" 
+                                       class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] transition">
+                            </div>
+                        </div>
+
                         <!-- Status Operator -->
                         <div>
                             <label class="block text-xs font-bold text-slate-800 mb-1">Status Operator / Driver <span class="text-rose-500">*</span></label>
@@ -1187,6 +1205,14 @@
         const editUnitKerjaInput = document.getElementById('editUnitKerjaInput');
         if (editUnitKerjaInput) {
             editUnitKerjaInput.value = emp.unit_kerja || '';
+        }
+        const editDivisionInput = document.getElementById('editDivisionInput');
+        if (editDivisionInput) {
+            editDivisionInput.value = emp.division || '';
+        }
+        const editPositionInput = document.getElementById('editPositionInput');
+        if (editPositionInput) {
+            editPositionInput.value = emp.position || '';
         }
         document.getElementById('editDivisionPositionDisplay').textContent = (emp.division || '-') + ' / ' + (emp.position || '-');
         document.getElementById('editOperator').value = emp.is_operator ? '1' : '0';

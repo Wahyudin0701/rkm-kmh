@@ -138,6 +138,28 @@
                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
                     </div>
 
+                    <!-- Divisi & Jabatan -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                                Divisi <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="division" required 
+                                   value="{{ old('division', $employee->division) }}"
+                                   placeholder="Contoh: Operasi, Private Guard"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-800 mb-1.5">
+                                Posisi / Jabatan <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" name="position" required 
+                                   value="{{ old('position', $employee->position) }}"
+                                   placeholder="Contoh: Anggota, Driver, Staff"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        </div>
+                    </div>
+
                     <!-- Status Operator / Driver -->
                     <div>
                         <label class="block text-xs font-bold text-slate-800 mb-1.5">

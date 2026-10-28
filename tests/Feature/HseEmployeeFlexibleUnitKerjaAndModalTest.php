@@ -312,4 +312,122 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
         $response->assertSessionHas('error');
         $this->assertDatabaseHas('employees', ['id' => $employee->id]);
     }
+
+    public function test_hse_edit_modal_and_edit_page_render_division_and_position_inputs(): void
+    {
+        $employee = Employee::create([
+            'nik' => 'KMH-DIV-POS-01',
+            'name' => 'Hendro Siswanto',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Operasi',
+            'division' => 'Pembangkit Listrik',
+            'position' => 'Supervisor Turbin',
+            'is_operator' => false,
+        ]);
+
+        // Verifikasi pada index editModal
+        $responseIndex = $this->actingAs($this->hseAdmin)->get(route('hse.employees.index'));
+        $responseIndex->assertStatus(200);
+        $contentIndex = $responseIndex->getContent();
+
+        $this->assertStringContainsString('name="division" id="editDivisionInput"', $contentIndex);
+        $this->assertStringContainsString('name="position" id="editPositionInput"', $contentIndex);
+
+        // Verifikasi pada full page edit
+        $responseEdit = $this->actingAs($this->hseAdmin)->get(route('hse.employees.edit', $employee->id));
+        $responseEdit->assertStatus(200);
+        $contentEdit = $responseEdit->getContent();
+
+        $this->assertStringContainsString('name="division"', $contentEdit);
+        $this->assertStringContainsString('name="position"', $contentEdit);
+        $this->assertStringContainsString('value="Pembangkit Listrik"', $contentEdit);
+        $this->assertStringContainsString('value="Supervisor Turbin"', $contentEdit);
+    }
+
+    public function test_hse_can_update_employee_division_and_position(): void
+    {
+        $employee = Employee::create([
+            'nik' => 'KMH-DIV-POS-02',
+            'name' => 'Siti Nurhaliza',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Umum',
+            'division' => 'Operasi',
+            'position' => 'Staff',
+            'is_operator' => false,
+        ]);
+
+        $response = $this->actingAs($this->hseAdmin)
+            ->from(route('hse.employees.index'))
+            ->post(route('hse.employees.update', $employee->id), [
+                'unit_kerja' => 'K3 & Lingkungan',
+                'division' => 'HSE',
+                'position' => 'Officer K3',
+                'is_operator' => '0',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $employee->refresh();
+
+        $this->assertEquals('K3 & Lingkungan', $employee->unit_kerja);
+        $this->assertEquals('HSE', $employee->division);
+        $this->assertEquals('Officer K3', $employee->position);
+    }
+
+    public function test_security_guard_and_gate_officer_auto_populates_private_guard_and_anggota(): void
+    {
+        // 1. Pembuatan via SecurityGuardController
+        $adminPg = User::factory()->create([
+            'username' => 'admin_pg_test',
+            'role' => 'pg_admin',
+        ]);
+        $pgRole = Role::firstOrCreate(['name' => 'pg_admin']);
+        $adminPg->assignRole($pgRole);
+
+        $responseGuard = $this->actingAs($adminPg)
+            ->post(route('pg.guards.store'), [
+                'badge_id' => 'SEC-999',
+                'name' => 'Satpam Bambang',
+                'team' => 1,
+                'password' => 'secret123',
+            ]);
+
+        $responseGuard->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('employees', [
+            'nik' => 'SEC-999',
+            'name' => 'Satpam Bambang',
+            'unit_kerja' => 'Private Guard',
+            'division' => 'Private Guard',
+            'position' => 'Anggota',
+        ]);
+
+        // 2. Pembuatan via Super Admin UserController
+        $superAdmin = User::factory()->create([
+            'username' => 'superadmin_pg_test',
+            'role' => 'super_admin',
+        ]);
+        $superRole = Role::firstOrCreate(['name' => 'super_admin']);
+        $superAdmin->assignRole($superRole);
+
+        Role::firstOrCreate(['name' => 'gate_officer']);
+
+        $responseUser = $this->actingAs($superAdmin)
+            ->post(route('admin.users.store'), [
+                'name' => 'Satpam Wawan',
+                'username' => 'SEC-888',
+                'email' => 'sec888@kmh.co.id',
+                'password' => 'password123',
+                'role' => 'gate_officer',
+            ]);
+
+        $responseUser->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('employees', [
+            'nik' => 'SEC-888',
+            'name' => 'Satpam Wawan',
+            'unit_kerja' => 'Private Guard',
+            'division' => 'Private Guard',
+            'position' => 'Anggota',
+        ]);
+    }
 }

@@ -348,7 +348,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                <select name="role" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                <select name="role" id="create_role" onchange="handleUserRoleChange(this.value, 'create')" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
                     <option value="">-- Pilih Role --</option>
                     @foreach($roles as $role)
                         <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
@@ -369,7 +369,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
-                        <select name="employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
+                        <select name="employee_type" id="create_employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
                             <option value="karyawan">Karyawan (Internal KMH)</option>
                             <option value="sukon">Sukon (Subkontraktor)</option>
                         </select>
@@ -378,6 +378,7 @@
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
                         <input type="text" 
                                name="unit_kerja" 
+                               id="create_unit_kerja" 
                                list="adminUnitKerjaSuggestions" 
                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
                                placeholder="Ketik atau pilih unit kerja...">
@@ -387,11 +388,11 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
-                        <input type="text" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                        <input type="text" name="division" id="create_division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
                     </div>
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
-                        <input type="text" name="position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
+                        <input type="text" name="position" id="create_position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
                     </div>
                 </div>
 
@@ -479,7 +480,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                <select id="edit_role" name="role" required onchange="updatePermissionCheckboxes()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                <select id="edit_role" name="role" required onchange="handleUserRoleChange(this.value, 'edit')" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
                     @foreach($roles as $role)
                         <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
                     @endforeach
@@ -685,6 +686,30 @@
         }
     }
 
+    function handleUserRoleChange(role, mode) {
+        if (mode === 'edit') {
+            updatePermissionCheckboxes();
+        }
+        const isGuard = (role === 'gate_officer' || role === 'pg_admin');
+        const unitEl = document.getElementById(mode + '_unit_kerja');
+        const divEl = document.getElementById(mode + '_division');
+        const posEl = document.getElementById(mode + '_position');
+        const empTypeEl = document.getElementById(mode + '_employee_type');
+
+        if (isGuard) {
+            if (empTypeEl) empTypeEl.value = 'karyawan';
+            if (unitEl && (!unitEl.value || unitEl.value === 'Umum')) {
+                unitEl.value = 'Private Guard';
+            }
+            if (divEl && (!divEl.value || divEl.value === '-')) {
+                divEl.value = 'Private Guard';
+            }
+            if (posEl && (!posEl.value || posEl.value === '-')) {
+                posEl.value = (role === 'pg_admin') ? 'Admin PG' : 'Anggota';
+            }
+        }
+    }
+
     function updatePermissionCheckboxes() {
         const roleSelect = document.getElementById('edit_role');
         const selectedRole = roleSelect ? roleSelect.value : '';
@@ -780,14 +805,19 @@
         if (editGateEl) editGateEl.value = user.gate_id || '';
 
         const emp = user.employee || {};
+        const isGuard = (primaryRole === 'gate_officer' || primaryRole === 'pg_admin');
+        const defaultUnit = isGuard ? 'Private Guard' : '';
+        const defaultDivision = isGuard ? 'Private Guard' : '';
+        const defaultPosition = isGuard ? (primaryRole === 'pg_admin' ? 'Admin PG' : 'Anggota') : '';
+
         const editEmployeeType = document.getElementById('edit_employee_type');
         if (editEmployeeType) editEmployeeType.value = (emp.employee_type ? emp.employee_type.toLowerCase() : 'karyawan');
         const editUnitKerja = document.getElementById('edit_unit_kerja');
-        if (editUnitKerja) editUnitKerja.value = emp.unit_kerja || '';
+        if (editUnitKerja) editUnitKerja.value = emp.unit_kerja || defaultUnit;
         const editDivision = document.getElementById('edit_division');
-        if (editDivision) editDivision.value = emp.division || '';
+        if (editDivision) editDivision.value = (emp.division && emp.division !== '-') ? emp.division : defaultDivision;
         const editPosition = document.getElementById('edit_position');
-        if (editPosition) editPosition.value = emp.position || '';
+        if (editPosition) editPosition.value = (emp.position && emp.position !== '-') ? emp.position : defaultPosition;
         const editIsOperator = document.getElementById('edit_is_operator');
         if (editIsOperator) editIsOperator.value = (emp.is_operator ? '1' : '0');
 

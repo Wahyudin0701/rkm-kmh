@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pg;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\User;
@@ -255,6 +256,20 @@ class SecurityGuardController extends Controller
                 'user_id' => $user->id,
                 'is_active' => true,
             ]);
+
+            // 3. Otomatis buat / sinkronkan profil Employee untuk Satpam (Divisi: Private Guard, Jabatan: Anggota)
+            Employee::firstOrCreate(
+                ['nik' => $badgeId],
+                [
+                    'user_id' => $user->id,
+                    'name' => $request->input('name'),
+                    'employee_type' => 'Karyawan',
+                    'unit_kerja' => 'Private Guard',
+                    'division' => 'Private Guard',
+                    'position' => 'Anggota',
+                    'is_operator' => false,
+                ]
+            );
         });
 
         return back()->with('success', "Petugas Satpam {$request->input('name')} (ID: {$request->input('badge_id')}) berhasil didaftarkan.");
@@ -299,6 +314,17 @@ class SecurityGuardController extends Controller
 
                 $guard->user->update($userData);
             }
+
+            // Sinkronkan nama dan profil Employee Satpam
+            $emp = Employee::where('user_id', $guard->user_id)->orWhere('nik', $guard->badge_id)->first();
+            if ($emp) {
+                $emp->update([
+                    'name' => $guard->name,
+                    'unit_kerja' => $emp->unit_kerja ?: 'Private Guard',
+                    'division' => ($emp->division && $emp->division !== '-') ? $emp->division : 'Private Guard',
+                    'position' => ($emp->position && $emp->position !== '-') ? $emp->position : 'Anggota',
+                ]);
+            }
         });
 
         return back()->with('success', "Data petugas Satpam {$guard->name} berhasil diperbarui.");
@@ -333,11 +359,16 @@ class SecurityGuardController extends Controller
 
         DB::transaction(function () use ($guard) {
             $user = $guard->user;
+            $badgeId = $guard->badge_id;
+            $userId = $guard->user_id;
+
             $guard->delete();
 
             if ($user) {
                 $user->delete();
             }
+
+            Employee::where('user_id', $userId)->orWhere('nik', $badgeId)->delete();
         });
 
         return back()->with('success', "Data petugas Satpam {$guardName} ({$badgeId}) berhasil dihapus.");

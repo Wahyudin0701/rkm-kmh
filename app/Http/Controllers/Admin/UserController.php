@@ -52,7 +52,7 @@ class UserController extends Controller
             default => $query->latest('created_at'),
         };
 
-        $users = $query->with('permissions')->paginate(15)->withQueryString();
+        $users = $query->with(['permissions', 'roles', 'employee'])->paginate(15)->withQueryString();
         $roles = Role::with('permissions')->orderBy('name')->get();
         $rolePermissionsMap = $roles->mapWithKeys(function ($r) {
             return [$r->name => $r->permissions->pluck('name')->toArray()];
@@ -126,23 +126,30 @@ class UserController extends Controller
         // Reset permission cache Spatie
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Sinkronisasi profil master Employee jika role karyawan atau ada isian data karyawan
+        // Sinkronisasi profil master Employee jika role karyawan, gate officer, pg admin, atau ada isian data karyawan
         $isEmployeeRole = $user->isEmployee() || $validated['role'] === 'employee';
+        $isGateOfficer = $user->isGateOfficer() || $validated['role'] === 'gate_officer';
+        $isPgAdmin = $user->isPgAdmin() || $validated['role'] === 'pg_admin';
         $hasEmployeeFields = !empty($validated['unit_kerja']) || !empty($validated['division']) || !empty($validated['position']) || (isset($validated['is_operator']) && $validated['is_operator'] !== '');
 
-        if ($isEmployeeRole || $hasEmployeeFields) {
+        if ($isEmployeeRole || $isGateOfficer || $isPgAdmin || $hasEmployeeFields) {
             $isOperator = (isset($validated['is_operator']) && $validated['is_operator'] !== '')
                 ? (bool) $validated['is_operator']
                 : ($isEmployeeRole ? true : false);
+
+            $defaultUnit = ($isGateOfficer || $isPgAdmin) ? 'Private Guard' : 'Umum';
+            $defaultDivision = ($isGateOfficer || $isPgAdmin) ? 'Private Guard' : '-';
+            $defaultPosition = $isGateOfficer ? 'Anggota' : ($isPgAdmin ? 'Admin PG' : ($isEmployeeRole ? 'Driver Operasional' : '-'));
+
             $emp = Employee::where('user_id', $user->id)->orWhere('nik', $user->username)->first();
             $empData = [
                 'user_id' => $user->id,
                 'nik' => $user->username,
                 'name' => $user->name,
                 'employee_type' => !empty($validated['employee_type']) ? ucfirst(strtolower($validated['employee_type'])) : ($emp?->employee_type ?? 'Karyawan'),
-                'unit_kerja' => $validated['unit_kerja'] ?? ($emp?->unit_kerja ?? 'Umum'),
-                'division' => $validated['division'] ?? ($emp?->division ?? '-'),
-                'position' => $validated['position'] ?? ($emp?->position ?? ($isEmployeeRole ? 'Driver Operasional' : '-')),
+                'unit_kerja' => !empty($validated['unit_kerja']) ? $validated['unit_kerja'] : ($emp?->unit_kerja ?: $defaultUnit),
+                'division' => !empty($validated['division']) ? $validated['division'] : ($emp?->division ?: $defaultDivision),
+                'position' => !empty($validated['position']) ? $validated['position'] : ($emp?->position ?: $defaultPosition),
                 'is_operator' => $isOperator,
                 'photo_path' => $photoPath ?: $emp?->photo_path,
             ];
@@ -248,9 +255,15 @@ class UserController extends Controller
         // Sinkronkan data master Employee
         $emp = $user->employee ?: Employee::where('nik', $user->username)->first();
         $isEmployeeRole = $user->isEmployee() || $validated['role'] === 'employee';
+        $isGateOfficer = $user->isGateOfficer() || $validated['role'] === 'gate_officer';
+        $isPgAdmin = $user->isPgAdmin() || $validated['role'] === 'pg_admin';
         $hasEmployeeFields = !empty($validated['unit_kerja']) || !empty($validated['division']) || !empty($validated['position']) || (isset($validated['is_operator']) && $validated['is_operator'] !== '');
 
-        if ($emp || $isEmployeeRole || $hasEmployeeFields) {
+        if ($emp || $isEmployeeRole || $isGateOfficer || $isPgAdmin || $hasEmployeeFields) {
+            $defaultUnit = ($isGateOfficer || $isPgAdmin) ? 'Private Guard' : 'Umum';
+            $defaultDivision = ($isGateOfficer || $isPgAdmin) ? 'Private Guard' : '-';
+            $defaultPosition = $isGateOfficer ? 'Anggota' : ($isPgAdmin ? 'Admin PG' : ($isEmployeeRole ? 'Driver Operasional' : '-'));
+
             $empData = [
                 'name' => $user->name,
                 'nik' => $user->username,
@@ -259,15 +272,24 @@ class UserController extends Controller
             if (array_key_exists('employee_type', $validated) && $validated['employee_type'] !== null) {
                 $empData['employee_type'] = ucfirst(strtolower($validated['employee_type']));
             }
-            if (array_key_exists('unit_kerja', $validated) && $validated['unit_kerja'] !== null) {
+            if (!empty($validated['unit_kerja'])) {
                 $empData['unit_kerja'] = $validated['unit_kerja'];
+            } elseif ($isGateOfficer || $isPgAdmin) {
+                $empData['unit_kerja'] = ($emp && !empty($emp->unit_kerja)) ? $emp->unit_kerja : $defaultUnit;
             }
-            if (array_key_exists('division', $validated) && $validated['division'] !== null) {
+
+            if (!empty($validated['division'])) {
                 $empData['division'] = $validated['division'];
+            } elseif ($isGateOfficer || $isPgAdmin) {
+                $empData['division'] = ($emp && !empty($emp->division) && $emp->division !== '-') ? $emp->division : $defaultDivision;
             }
-            if (array_key_exists('position', $validated) && $validated['position'] !== null) {
+
+            if (!empty($validated['position'])) {
                 $empData['position'] = $validated['position'];
+            } elseif ($isGateOfficer || $isPgAdmin) {
+                $empData['position'] = ($emp && !empty($emp->position) && $emp->position !== '-') ? $emp->position : $defaultPosition;
             }
+
             if (array_key_exists('is_operator', $validated) && $validated['is_operator'] !== null && $validated['is_operator'] !== '') {
                 $empData['is_operator'] = (bool) $validated['is_operator'];
             }
@@ -280,9 +302,9 @@ class UserController extends Controller
             } else {
                 $empData['user_id'] = $user->id;
                 $empData['employee_type'] = $empData['employee_type'] ?? 'Karyawan';
-                $empData['unit_kerja'] = $empData['unit_kerja'] ?? 'Umum';
-                $empData['division'] = $empData['division'] ?? '-';
-                $empData['position'] = $empData['position'] ?? ($isEmployeeRole ? 'Driver Operasional' : '-');
+                $empData['unit_kerja'] = $empData['unit_kerja'] ?? $defaultUnit;
+                $empData['division'] = $empData['division'] ?? $defaultDivision;
+                $empData['position'] = $empData['position'] ?? $defaultPosition;
                 $empData['is_operator'] = $empData['is_operator'] ?? ($isEmployeeRole ? true : false);
                 Employee::create($empData);
             }
