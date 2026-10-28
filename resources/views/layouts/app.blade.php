@@ -248,6 +248,12 @@
                             <i class="fa-solid fa-clock-rotate-left text-base w-5 text-center"></i>
                             <span>Log Aktivitas Admin</span>
                         </a>
+
+                        <a href="{{ route('admin.backups.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.backups.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-database text-base w-5 text-center"></i>
+                            <span>Backup & Restore</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -630,6 +636,10 @@
                             <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i>
                             <span>Log Aktivitas Admin</span>
                         </a>
+                        <a href="{{ route('admin.backups.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.backups.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-database w-5 text-center"></i>
+                            <span>Backup & Restore</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -915,6 +925,10 @@
                     Kelola Pengguna
                 @elseif(request()->routeIs('admin.roles.*'))
                     Role & Permission
+                @elseif(request()->routeIs('admin.backups.*'))
+                    Backup & Restore
+                @elseif(request()->routeIs('admin.activity_logs.*'))
+                    Log Aktivitas Admin
                 @elseif(request()->routeIs('hse.dashboard') || request()->routeIs('qma.dashboard'))
                     Dashboard
                 @elseif(request()->routeIs('hse.employees.*'))

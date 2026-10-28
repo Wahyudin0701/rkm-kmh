@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminActivityLogController;
+use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\RolePermissionController;
 use App\Http\Controllers\Admin\UserController;
@@ -215,5 +216,13 @@ Route::middleware('auth')->group(function () {
 
         // Log Riwayat Aktivitas Super Admin
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity_logs.index');
+
+        // Backup & Restore Sistem (Database & Media)
+        Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
+        Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+        Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
+        Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
+        Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
+        Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
     });
 });

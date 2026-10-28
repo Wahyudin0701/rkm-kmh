@@ -54,6 +54,32 @@ return [
                 ],
             ],
         ],
+        'backups' => [
+            'name' => 'Backup & Restore Sistem',
+            'icon' => 'fa-solid fa-database',
+            'permissions' => [
+                'backups.view' => [
+                    'label' => 'Melihat Daftar Backup Sistem',
+                    'description' => 'Melihat daftar riwayat backup database dan file media di server.',
+                ],
+                'backups.create' => [
+                    'label' => 'Membuat File Backup Baru',
+                    'description' => 'Mencadangkan database SQL dan file media sistem secara manual.',
+                ],
+                'backups.download' => [
+                    'label' => 'Mengunduh File Backup',
+                    'description' => 'Mengunduh file arsip backup (.sql / .zip) ke komputer lokal.',
+                ],
+                'backups.restore' => [
+                    'label' => 'Memulihkan (Restore) Sistem',
+                    'description' => 'Melakukan pemulihan bencana (disaster recovery) database dan file media.',
+                ],
+                'backups.delete' => [
+                    'label' => 'Menghapus File Backup',
+                    'description' => 'Menghapus arsip backup lama dari media penyimpanan server.',
+                ],
+            ],
+        ],
         'hse' => [
             'name' => 'Modul K3 / HSE (Karyawan & SIMPER)',
             'icon' => 'fa-solid fa-id-card',
