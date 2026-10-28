@@ -139,6 +139,7 @@
                     <tr>
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
                         <th class="py-3.5 px-4">KODE UNIT</th>
+                        <th class="py-3.5 px-4 text-center whitespace-nowrap">QR CODE</th>
                         <th class="py-3.5 px-4">NO. SERI / RANGKA</th>
                         <th class="py-3.5 px-4 text-center">TAHUN</th>
                         <th class="py-3.5 px-4 text-center">NO. POLISI</th>
@@ -174,6 +175,28 @@
                                         </span>
                                     @endif
                                 </div>
+                            </td>
+
+                            <!-- QR Code Stiker Unit -->
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                @php
+                                    $qrTargetUrl = $u->is_timesheet_mobile 
+                                        ? url('/gate-activity/' . $u->code) 
+                                        : url('/p2h/' . $u->code);
+                                    $qrTypeTitle = $u->is_timesheet_mobile ? 'TIMESHEET & MOBILISASI' : 'P2H HEAVY EQUIPMENT';
+                                    $qrInstruction = $u->is_timesheet_mobile 
+                                        ? 'Scan QR ini menggunakan kamera HP untuk membuka formulir pencatatan kilometer & perlintasan gerbang.' 
+                                        : 'Scan QR ini menggunakan kamera HP untuk membuka formulir checklist inspeksi kelaikan harian (P2H).';
+                                @endphp
+                                <button type="button" 
+                                        onclick="openQrModal('{{ $u->code }}', '{{ addslashes($category->name . ($category->brand_type ? ' - ' . $category->brand_type : '')) }}', '{{ addslashes($u->license_plate ?? '-') }}', '{{ addslashes($u->location ?? '-') }}', '{{ $qrTargetUrl }}', '{{ $qrTypeTitle }}', '{{ addslashes($qrInstruction) }}', this)"
+                                        data-qr-base64="{{ base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::size(240)->margin(1)->generate($qrTargetUrl)) }}"
+                                        class="group inline-flex items-center justify-center p-1 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 transition shadow-2xs cursor-pointer"
+                                        title="Klik untuk Lihat, Unduh & Cetak Stiker QR {{ $u->code }} ({{ $qrTypeTitle }})">
+                                    <div class="w-7 h-7 bg-white rounded-lg border border-slate-200 group-hover:border-emerald-300 flex items-center justify-center p-0.5 overflow-hidden [&>svg]:w-full [&>svg]:h-full shadow-2xs">
+                                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(24)->margin(0)->generate($qrTargetUrl) !!}
+                                    </div>
+                                </button>
                             </td>
 
                             <td class="py-3.5 px-4 font-mono text-xs text-slate-700 whitespace-nowrap">
@@ -286,7 +309,7 @@
                         </tr>
                     @empty
                         <tr id="serverUnitEmptyRow">
-                            <td colspan="10" class="py-12 px-4 text-center text-slate-400">
+                            <td colspan="11" class="py-12 px-4 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
                                     <p class="text-sm font-semibold text-slate-700">
@@ -766,6 +789,122 @@
     </div>
 </div>
 
+<!-- ========================================================================= -->
+<!-- MODAL: PREVIEW & CETAK STIKER QR CODE HEAVY EQUIPMENT                     -->
+<!-- ========================================================================= -->
+<div id="qrVehicleModal" 
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+        <!-- Header Modal -->
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base border border-emerald-200/60 shadow-2xs">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Stiker QR Code Heavy Equipment</h3>
+                    <p class="text-xs text-slate-500">Siap dicetak dan ditempelkan pada fisik armada unit</p>
+                </div>
+            </div>
+            <button type="button" 
+                    onclick="closeQrModal()" 
+                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Area Kartu Stiker Fisik (Bisa Dicetak Langsung) -->
+        <div class="mt-5">
+            <div id="printableStickerArea" class="bg-white border-2 border-slate-900 rounded-3xl p-5 text-center shadow-sm max-w-[360px] mx-auto">
+                <!-- Kop Stiker Resmi Perusahaan -->
+                <div class="border-b-2 border-slate-900 pb-3 mb-4">
+                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
+                    <h4 id="modalQrSubTitle" class="text-xs font-black uppercase tracking-tight text-slate-900 mt-0.5">HEAVY EQUIPMENT • RKM SYSTEM</h4>
+                    <div id="modalQrCategoryText" class="text-[9px] font-bold text-slate-500 tracking-wider uppercase">{{ $category->name ?? $category->unit_category ?? 'ALAT BERAT' }}</div>
+                </div>
+
+                <!-- Kontainer QR Code Vektor -->
+                <div class="bg-white p-3.5 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs mb-4">
+                    <div id="modalQrCodeContainer" class="w-52 h-52 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
+                        <!-- SVG QR Code di-inject secara dinamis di sini -->
+                    </div>
+                </div>
+
+                <!-- Rincian Identitas Unit Kendaraan -->
+                <div class="space-y-1.5 mb-3 text-left bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
+                        <span id="modalQrCodeText" class="font-mono font-extrabold text-sm text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">-</span>
+                    </div>
+                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
+                        <span id="modalQrPlateText" class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">-</span>
+                    </div>
+                    <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
+                        <span id="modalQrBrandText" class="font-bold text-xs text-slate-900 text-right max-w-[200px]">-</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">LOKASI KERJA:</span>
+                        <span id="modalQrLocationText" class="font-bold text-xs text-slate-700">-</span>
+                    </div>
+                </div>
+
+                <!-- Panduan Driver / Operator -->
+                <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
+                    <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
+                            <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
+                        </svg>
+                    </div>
+                    <span id="modalQrInstructionText" class="leading-snug">
+                        <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir operasional unit.
+                    </span>
+                </div>
+
+                <!-- Tautan Langsung -->
+                <div class="mt-2.5 text-[9px] font-mono text-slate-400 break-all" id="modalQrUrlDisplay">
+                    -
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Aksi Cetak & Unduh -->
+        <div class="pt-4 mt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div class="flex items-center space-x-2">
+                <!-- Tombol Cetak Stiker -->
+                <button type="button" 
+                        onclick="printQrSticker()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm cursor-pointer">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak Stiker</span>
+                </button>
+
+                <!-- Tombol Download PNG -->
+                <button type="button" 
+                        id="btnDownloadSticker"
+                        onclick="downloadQrCode()" 
+                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Unduh PNG</span>
+                </button>
+            </div>
+
+            <div class="flex items-center space-x-2 justify-end">
+                <!-- Test Form Scan -->
+                <a id="modalQrTestLink" 
+                   href="#" 
+                   target="_blank" 
+                   class="inline-flex items-center space-x-1 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
+                   title="Buka form input di tab baru untuk pengetesan">
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                    <span>Tes Form</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const categoryCode = "{{ $category->code }}";
 
@@ -1003,5 +1142,355 @@
             if (exportMenu) exportMenu.style.display = 'none';
         }
     });
+
+    // =========================================================================
+    // MODAL & STIKER QR CODE HEAVY EQUIPMENT (PRINT & CANVAS PNG DOWNLOAD)
+    // =========================================================================
+    let currentQrCode = '';
+    let currentQrBase64 = '';
+    let currentSubTitle = '';
+
+    function openQrModal(code, brand, plate, location, url, subTitle, instruction, btn) {
+        currentQrCode = code;
+        currentSubTitle = subTitle || 'HEAVY EQUIPMENT • RKM SYSTEM';
+        const modal = document.getElementById('qrVehicleModal');
+        if (!modal) return;
+
+        // Ambil SVG QR Code dari data attribute button
+        const container = document.getElementById('modalQrCodeContainer');
+        const base64Svg = btn ? btn.getAttribute('data-qr-base64') : '';
+        currentQrBase64 = base64Svg || '';
+        if (container && base64Svg) {
+            try {
+                container.innerHTML = atob(base64Svg);
+            } catch(e) {
+                console.error('Error decoding QR SVG:', e);
+            }
+        }
+
+        const elCode = document.getElementById('modalQrCodeText');
+        const elPlate = document.getElementById('modalQrPlateText');
+        const elBrand = document.getElementById('modalQrBrandText');
+        const elLocation = document.getElementById('modalQrLocationText');
+        const elUrl = document.getElementById('modalQrUrlDisplay');
+        const elSub = document.getElementById('modalQrSubTitle');
+        const elInstr = document.getElementById('modalQrInstructionText');
+        const testLink = document.getElementById('modalQrTestLink');
+
+        if (elCode) elCode.textContent = code;
+        if (elPlate) elPlate.textContent = plate || '-';
+        if (elBrand) elBrand.textContent = brand || '-';
+        if (elLocation) elLocation.textContent = location || '-';
+        if (elUrl) elUrl.textContent = url;
+        if (elSub) elSub.textContent = currentSubTitle;
+        if (elInstr && instruction) elInstr.innerHTML = `<strong>Scan QR ini</strong> menggunakan kamera HP untuk ${instruction.replace(/^Scan QR ini menggunakan kamera HP untuk\s*/i, '')}`;
+        if (testLink) testLink.href = url;
+
+        modal.classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeQrModal() {
+        const modal = document.getElementById('qrVehicleModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function printQrSticker() {
+        window.print();
+    }
+
+    function downloadQrCode() {
+        const code = (currentQrCode || 'UNIT').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        const btnEl = document.getElementById('btnDownloadSticker');
+        const originalBtnHtml = btnEl ? btnEl.innerHTML : '';
+
+        if (btnEl) {
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>Memproses...</span>';
+        }
+
+        const plate = document.getElementById('modalQrPlateText')?.textContent?.trim() || '-';
+        const brand = document.getElementById('modalQrBrandText')?.textContent?.trim() || '-';
+        const locationText = document.getElementById('modalQrLocationText')?.textContent?.trim() || '-';
+        const urlText = document.getElementById('modalQrUrlDisplay')?.textContent?.trim() || '';
+        const subTitleText = document.getElementById('modalQrSubTitle')?.textContent?.trim() || 'HEAVY EQUIPMENT • RKM SYSTEM';
+        const categoryText = document.getElementById('modalQrCategoryText')?.textContent?.trim() || '';
+
+        let svgDataUri = '';
+        if (currentQrBase64) {
+            svgDataUri = 'data:image/svg+xml;base64,' + currentQrBase64;
+        } else {
+            const svgEl = document.querySelector('#modalQrCodeContainer svg');
+            if (svgEl) {
+                const raw = new XMLSerializer().serializeToString(svgEl);
+                svgDataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(raw)));
+            }
+        }
+
+        if (!svgDataUri) {
+            alert('Data QR Code tidak ditemukan. Silakan buka kembali modal QR.');
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+            return;
+        }
+
+        const qrImg = new Image();
+        qrImg.onload = function() {
+            const W = 1200;
+            const H = 1500;
+            const PAD = 50;
+            const CW = W - PAD * 2;
+            const CH = H - PAD * 2;
+            const R = 55;
+            const CX = PAD;
+            const CY = PAD;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            function roundRect(x, y, w, h, r) {
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); }
+                else {
+                    ctx.moveTo(x + r, y);
+                    ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+                    ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                    ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+                    ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+                }
+                ctx.closePath();
+            }
+
+            // 1. Background Luar
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, W, H);
+
+            // 2. Bingkai Stiker
+            roundRect(CX, CY, CW, CH, R);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+
+            // 3. Kop Perusahaan
+            const headerCenterX = W / 2;
+            let curY = CY + 52;
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#1b5e20';
+            ctx.font = '800 26px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('PT KERINCI MERANGIN HIDRO', headerCenterX, curY);
+
+            curY += 40;
+            ctx.fillStyle = '#0f172a';
+            ctx.font = '900 32px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText(subTitleText, headerCenterX, curY);
+
+            curY += 30;
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText(categoryText + ' \u2022 RKM SYSTEM', headerCenterX, curY);
+
+            // Garis Pembatas Kop
+            curY += 22;
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(CX + 35, curY);
+            ctx.lineTo(CX + CW - 35, curY);
+            ctx.stroke();
+
+            // 4. QR Code
+            const qrSize = 580;
+            const qrBoxPadding = 22;
+            const qrBoxSize = qrSize + qrBoxPadding * 2;
+            const qrBoxX = (W - qrBoxSize) / 2;
+            curY += 28;
+            const qrBoxY = curY;
+            const qrX = (W - qrSize) / 2;
+            const qrY = qrBoxY + qrBoxPadding;
+
+            roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+            // 5. Info Box Detail Unit
+            curY = qrBoxY + qrBoxSize + 30;
+            const infoX = CX + 40;
+            const infoW = CW - 80;
+            const infoH = 370;
+            const infoR = 28;
+
+            roundRect(infoX, curY, infoW, infoH, infoR);
+            ctx.fillStyle = '#f8fafc';
+            ctx.fill();
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const rowLeft = infoX + 30;
+            const rowRight = infoX + infoW - 30;
+            let rowY = curY + 54;
+
+            function drawInfoRow(label, value, isBadge, badgeColor, badgeBg, badgeBorder) {
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#64748b';
+                ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText(label, rowLeft, rowY);
+
+                if (isBadge) {
+                    ctx.font = '700 26px monospace';
+                    const tw = ctx.measureText(value).width;
+                    const bx = rowRight - tw - 28;
+                    roundRect(bx, rowY - 30, tw + 28, 40, 10);
+                    ctx.fillStyle = badgeBg;
+                    ctx.fill();
+                    ctx.strokeStyle = badgeBorder;
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    ctx.fillStyle = badgeColor;
+                    ctx.fillText(value, bx + 14, rowY);
+                } else {
+                    ctx.textAlign = 'right';
+                    ctx.fillStyle = '#0f172a';
+                    if (value.length > 25) {
+                        ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+                    } else {
+                        ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+                    }
+                    ctx.fillText(value, rowRight, rowY);
+                }
+
+                rowY += 18;
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(rowLeft, rowY);
+                ctx.lineTo(rowRight, rowY);
+                ctx.stroke();
+
+                rowY += 64;
+            }
+
+            drawInfoRow('KODE UNIT:', code, true, '#1b5e20', '#ecfdf5', '#a7f3d0');
+            drawInfoRow('NO. POLISI:', plate, true, '#78350f', '#fffbeb', '#fde68a');
+            drawInfoRow('MEREK & TIPE:', brand, false);
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#64748b';
+            ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('LOKASI KERJA:', rowLeft, rowY);
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#334155';
+            ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText(locationText, rowRight, rowY);
+
+            // 6. Banner Instruksi Scan
+            curY = curY + infoH + 22;
+            const banH = 104;
+            roundRect(infoX, curY, infoW, banH, 22);
+            ctx.fillStyle = '#ecfdf5';
+            ctx.fill();
+            ctx.strokeStyle = '#a7f3d0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            roundRect(infoX + 20, curY + 22, 60, 60, 16);
+            ctx.fillStyle = '#1b5e20';
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            roundRect(infoX + 32, curY + 42, 36, 26, 6);
+            ctx.fill();
+            ctx.fillStyle = '#1b5e20';
+            ctx.beginPath();
+            ctx.arc(infoX + 50, curY + 55, 7, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            roundRect(infoX + 43, curY + 36, 14, 7, 2);
+            ctx.fill();
+
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '600 21px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('Scan QR ini menggunakan kamera HP untuk', infoX + 98, curY + 44);
+            ctx.font = '400 21px "Plus Jakarta Sans", Arial, sans-serif';
+            ctx.fillText('membuka formulir pemeriksaan kelaikan unit & operasional.', infoX + 98, curY + 76);
+
+            // 7. URL Footer
+            curY = curY + banH + 34;
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '400 21px monospace';
+            ctx.fillText(urlText, headerCenterX, curY);
+
+            // Export PNG
+            const pngUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = 'Stiker_QR_' + code + '.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+        };
+
+        qrImg.onerror = function() {
+            alert('Gagal memuat gambar QR Code. Silakan coba lagi.');
+            if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
+        };
+    }
+</script>
+
+<style>
+    /* Hilangkan scrollbar default pada modal */
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+        width: 0px;
+        height: 0px;
+    }
+
+    /* Format Cetak Stiker Fisik Unit Heavy Equipment */
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+        #printableStickerArea, #printableStickerArea * {
+            visibility: visible !important;
+        }
+        #printableStickerArea {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 320px !important;
+            max-width: 90% !important;
+            box-shadow: none !important;
+            border: 2px solid #0f172a !important;
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 20px !important;
+            border-radius: 1.5rem !important;
+            z-index: 99999 !important;
+        }
+    }
+</style>
 </script>
 @endsection
