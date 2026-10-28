@@ -1,25 +1,5 @@
 # =========================================================================
-# STAGE 1: Frontend Asset Compilation via Vite & Node.js
-# =========================================================================
-FROM node:22-alpine AS frontend-builder
-
-WORKDIR /app
-
-# Copy dependency manifests
-COPY package.json package-lock.json* ./
-
-# Install dependencies
-RUN npm ci || npm install
-
-# Copy source assets needed for compilation
-COPY vite.config.js ./
-COPY resources/ ./resources/
-
-# Compile production assets into /app/public/build
-RUN npm run build
-
-# =========================================================================
-# STAGE 2: PHP 8.3-FPM Alpine Production Runtime
+# PHP 8.3-FPM Alpine Production Runtime
 # =========================================================================
 FROM php:8.3-fpm-alpine AS app
 
@@ -63,11 +43,8 @@ COPY docker/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Copy application source code
+# Copy application source code (termasuk public/build pre-compiled dari git)
 COPY . /var/www
-
-# Copy compiled frontend assets from Stage 1 (Overrides public/build)
-COPY --from=frontend-builder /app/public/build /var/www/public/build
 
 # Install Composer production dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
