@@ -8,6 +8,7 @@ use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -145,19 +146,18 @@ class SimperTypeController extends Controller
     }
 
     /**
-     * Hapus jenis SIMPER.
+     * Hapus jenis SIMPER ke Tong Sampah.
      */
     public function destroy(int $id): RedirectResponse
     {
         $simperType = SimperType::withCount('employeeSimpers')->findOrFail($id);
-
-        if ($simperType->employee_simpers_count > 0) {
-            return back()->with('error', "Jenis SIMPER '{$simperType->name}' tidak dapat dihapus karena masih digunakan oleh {$simperType->employee_simpers_count} personil. Anda dapat menonaktifkan statusnya.");
-        }
-
         $name = $simperType->name;
-        $simperType->delete();
 
-        return back()->with('success', "Jenis SIMPER '{$name}' berhasil dihapus.");
+        DB::transaction(function () use ($simperType) {
+            $simperType->employeeSimpers()->delete();
+            $simperType->delete();
+        });
+
+        return back()->with('success', "Jenis SIMPER '{$name}' berhasil dihapus dan dipindahkan ke Tong Sampah.");
     }
 }

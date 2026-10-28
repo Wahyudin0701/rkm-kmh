@@ -378,6 +378,12 @@ class TrashService
                     ->where('employee_id', $item->id)
                     ->restore();
             }
+
+            if ($item instanceof SimperType) {
+                EmployeeSimper::onlyTrashed()
+                    ->where('simper_type_id', $item->id)
+                    ->restore();
+            }
         });
 
         return true;
@@ -417,6 +423,12 @@ class TrashService
             if ($item instanceof Employee) {
                 EmployeeSimper::withTrashed()
                     ->where('employee_id', $item->id)
+                    ->forceDelete();
+            }
+
+            if ($item instanceof SimperType) {
+                EmployeeSimper::withTrashed()
+                    ->where('simper_type_id', $item->id)
                     ->forceDelete();
             }
 

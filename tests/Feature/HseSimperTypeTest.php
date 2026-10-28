@@ -330,4 +330,99 @@ class HseSimperTypeTest extends TestCase
         $this->assertTrue($employee->hasValidSimperForVehicle($vehicleLoader));
         $this->assertFalse($employee->hasValidSimperForVehicle($vehicleForklift));
     }
+
+    /**
+     * Super Admin dan Admin HSE dapat melihat tombol delete dan menghapus jenis SIMPER.
+     */
+    public function test_authorized_user_and_super_admin_can_delete_simper_type(): void
+    {
+        $superAdmin = User::factory()->create([
+            'role' => 'super_admin',
+        ]);
+        $superAdmin->assignRole(Role::firstOrCreate(['name' => 'super_admin']));
+
+        $simperType = SimperType::create([
+            'code' => 'SIMPER-CRANE-DEL',
+            'name' => 'SIMPER Mobile Crane Test',
+            'category_scope' => 'unit_support_heavy',
+            'is_active' => true,
+        ]);
+
+        // Super Admin melihat tombol hapus pada halaman index
+        $resIndex = $this->actingAs($superAdmin)->get(route('hse.simper_types.index'));
+        $resIndex->assertOk();
+        $resIndex->assertSee('SIMPER-CRANE-DEL');
+        $resIndex->assertSee('openDeleteSimperTypeModal', false);
+
+        // Eksekusi hapus oleh Super Admin
+        $resDelete = $this->actingAs($superAdmin)->delete(route('hse.simper_types.destroy', $simperType->id));
+        $resDelete->assertRedirect();
+        $resDelete->assertSessionHas('success');
+
+        $this->assertSoftDeleted('simper_types', [
+            'id' => $simperType->id,
+        ]);
+    }
+
+    /**
+     * User tanpa hak akses tidak dapat menghapus jenis SIMPER (403).
+     */
+    public function test_unauthorized_user_cannot_delete_simper_type(): void
+    {
+        $simperType = SimperType::create([
+            'code' => 'SIMPER-NO-DEL',
+            'name' => 'SIMPER Terlindungi',
+            'category_scope' => 'all',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($this->regularUser)->delete(route('hse.simper_types.destroy', $simperType->id));
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('simper_types', [
+            'id' => $simperType->id,
+            'deleted_at' => null,
+        ]);
+    }
+
+    /**
+     * Menghapus jenis SIMPER meng-cascade soft delete ke tabel employee_simpers terkait.
+     */
+    public function test_deleting_simper_type_cascades_soft_deletes_to_employee_simpers(): void
+    {
+        $superAdmin = User::factory()->create([
+            'role' => 'super_admin',
+        ]);
+        $superAdmin->assignRole(Role::firstOrCreate(['name' => 'super_admin']));
+
+        $simperType = SimperType::create([
+            'code' => 'SIMPER-CASCADE-01',
+            'name' => 'SIMPER Dozer & Grader',
+            'category_scope' => 'all',
+            'is_active' => true,
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'EMP-SIMPER-DEL',
+            'name' => 'Karyawan Pemegang SIMPER',
+            'is_operator' => true,
+        ]);
+
+        $empSimper = EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperType->id,
+            'simper_number' => 'SMP-CASCADE-99',
+            'expired_at' => Carbon::now()->addYear(),
+            'status' => 'active',
+        ]);
+
+        // Hapus jenis SIMPER
+        $response = $this->actingAs($superAdmin)->delete(route('hse.simper_types.destroy', $simperType->id));
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Keduanya masuk ke tong sampah
+        $this->assertSoftDeleted('simper_types', ['id' => $simperType->id]);
+        $this->assertSoftDeleted('employee_simpers', ['id' => $empSimper->id]);
+    }
 }

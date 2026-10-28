@@ -180,9 +180,9 @@
                                     <i class="fa-regular fa-pen-to-square text-xs"></i>
                                 </button>
                                 @endif
-                                @if((auth()->user()->can('hse.simper_types.delete') || auth()->user()->can('hse.employees.edit')) && $st->total_holders_count == 0)
+                                @if(auth()->user()->hasRole('super_admin') || auth()->user()->can('hse.simper_types.delete') || auth()->user()->can('hse.employees.edit'))
                                 <button type="button" 
-                                        onclick="openDeleteSimperTypeModal({{ $st->id }}, '{{ $st->name }}')" 
+                                        onclick="openDeleteSimperTypeModal({{ $st->id }}, '{{ addslashes($st->name) }}', {{ $st->total_holders_count }})" 
                                         class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-700 bg-rose-50 hover:bg-rose-100 transition border border-rose-200 cursor-pointer" 
                                         title="Hapus Jenis SIMPER">
                                     <i class="fa-regular fa-trash-can text-xs"></i>
@@ -504,22 +504,26 @@
 <!-- MODAL: HAPUS JENIS SIMPER                                                 -->
 <!-- ========================================================================= -->
 <div id="deleteSimperTypeModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 border border-slate-100 text-center animate-scale-in">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-sm sm:max-w-md w-full p-6 border border-slate-100 text-center animate-scale-in">
         <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto mb-3">
             <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
         <h3 class="text-sm font-bold text-slate-900 mb-1">Hapus Jenis SIMPER?</h3>
-        <p class="text-xs text-slate-500 mb-4">
+        <p class="text-xs text-slate-500 mb-3">
             Apakah Anda yakin ingin menghapus jenis SIMPER <strong id="deleteSimperTypeName" class="text-slate-800"></strong>?
         </p>
+
+        <div id="deleteSimperTypeWarning" class="hidden mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800">
+            <span class="font-bold">Perhatian:</span> Jenis SIMPER ini saat ini tercatat pada <span id="deleteSimperHoldersCount" class="font-bold"></span> personil. Data jenis SIMPER beserta izin terkait akan dipindahkan ke Tong Sampah.
+        </div>
 
         <form id="deleteSimperTypeForm" action="" method="POST" class="flex items-center justify-center gap-2">
             @csrf
             @method('DELETE')
-            <button type="button" onclick="closeDeleteSimperTypeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+            <button type="button" onclick="closeDeleteSimperTypeModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
                 Batal
             </button>
-            <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-xs">
+            <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
                 Ya, Hapus
             </button>
         </form>
@@ -670,8 +674,16 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    function openDeleteSimperTypeModal(id, name) {
+    function openDeleteSimperTypeModal(id, name, holdersCount = 0) {
         document.getElementById('deleteSimperTypeName').textContent = name;
+        const warning = document.getElementById('deleteSimperTypeWarning');
+        const holdersEl = document.getElementById('deleteSimperHoldersCount');
+        if (holdersCount > 0) {
+            holdersEl.textContent = `${holdersCount}`;
+            warning.classList.remove('hidden');
+        } else {
+            warning.classList.add('hidden');
+        }
         const form = document.getElementById('deleteSimperTypeForm');
         form.action = `/hse/simper-types/${id}`;
 
