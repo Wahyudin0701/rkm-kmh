@@ -284,21 +284,23 @@ class SupportTimesheetController extends Controller
             : null;
         $operatingHours = $endMeter !== null ? max(0, $endMeter - $startMeter) : null;
         $shift = $validated['shift'] ?: 'Shift Siang';
-
-        $timesheetNo = UnitSupportTimesheet::generateTimesheetNo(Carbon::parse($validated['date']));
         $updaterName = auth()->user()?->name ?? 'Admin QMA';
+        $timesheetNo = null;
 
         DB::transaction(function () use (
             $validated,
             $vehicle,
             $operator,
-            $timesheetNo,
             $startMeter,
             $endMeter,
             $operatingHours,
             $shift,
-            $updaterName
+            $updaterName,
+            &$timesheetNo
         ) {
+            // Generate nomor timesheet unik di dalam transaksi untuk meminimalkan bentrokan
+            $timesheetNo = UnitSupportTimesheet::generateTimesheetNo(Carbon::parse($validated['date']));
+
             // 1. Simpan Data Timesheet Heavy Equipment
             $timesheet = UnitSupportTimesheet::create([
                 'timesheet_no' => $timesheetNo,

@@ -87,7 +87,7 @@ class SimpleXlsxImporter
         $sharedStrings = [];
         $sharedXmlContent = $zip->getFromName('xl/sharedStrings.xml');
         if ($sharedXmlContent) {
-            $xml = @simplexml_load_string($sharedXmlContent);
+            $xml = @simplexml_load_string($sharedXmlContent, 'SimpleXMLElement', LIBXML_NONET);
             if ($xml && isset($xml->si)) {
                 foreach ($xml->si as $si) {
                     if (isset($si->t)) {
@@ -112,7 +112,7 @@ class SimpleXlsxImporter
             return $rows;
         }
 
-        $xml = @simplexml_load_string($sheetXmlContent);
+        $xml = @simplexml_load_string($sheetXmlContent, 'SimpleXMLElement', LIBXML_NONET);
         $zip->close();
 
         if (!$xml || !isset($xml->sheetData->row)) {

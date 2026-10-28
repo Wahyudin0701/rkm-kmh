@@ -67,6 +67,20 @@ class StoreVehicleActivityRequest extends FormRequest
             // 1. Validasi SIMPER Pengemudi (BR-01 & BR-02)
             $driver = Employee::find($this->input('driver_id'));
             if ($driver) {
+                // Proteksi IDOR: Karyawan biasa tidak boleh memalsukan perjalanan atas nama karyawan lain yang memiliki akun sendiri
+                $user = $this->user();
+                if ($user) {
+                    $userEmployee = $user->getOrCreateEmployee();
+                    $isStaffAdmin = $user->isSuperAdmin() || $user->isPgAdmin() || $user->isGateOfficer() || $user->isHseAdmin() || $user->isQmaAdmin();
+                    if (!$isStaffAdmin && $userEmployee && $driver->id !== $userEmployee->id && !empty($driver->user_id) && $driver->user_id !== $user->id) {
+                        $validator->errors()->add(
+                            'driver_id',
+                            "Akses Ditolak: Anda tidak diizinkan mencatatkan aktivitas kendaraan atas nama karyawan lain ({$driver->name}). Gunakan akun pribadi Anda."
+                        );
+                        return;
+                    }
+                }
+
                 if (!$driver->is_operator) {
                     $validator->errors()->add(
                         'driver_id',

@@ -62,6 +62,7 @@ class UnitSupportTimesheet extends Model
 
     /**
      * Generate nomor timesheet unik harian (Format: TS-US-YYYYMMDD-0001).
+     * Dilengkapi mitigasi tabrakan concurrency dan pengecekan soft deleted records.
      */
     public static function generateTimesheetNo(?Carbon $date = null): string
     {
@@ -69,7 +70,8 @@ class UnitSupportTimesheet extends Model
         $dateStr = $d->format('Ymd');
         $prefix = "TS-US-{$dateStr}-";
 
-        $last = self::where('timesheet_no', 'like', "{$prefix}%")
+        $last = self::withTrashed()
+            ->where('timesheet_no', 'like', "{$prefix}%")
             ->orderByDesc('id')
             ->first();
 
@@ -78,6 +80,14 @@ class UnitSupportTimesheet extends Model
             $seq = ((int) $matches[1]) + 1;
         }
 
-        return $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+        $candidate = $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+
+        // Mitigasi bentrokan concurrency: cek apakah candidate sudah pernah digunakan (termasuk soft deletes)
+        while (self::withTrashed()->where('timesheet_no', $candidate)->exists()) {
+            $seq++;
+            $candidate = $prefix . str_pad((string) $seq, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $candidate;
     }
 }

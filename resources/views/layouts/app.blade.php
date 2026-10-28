@@ -166,7 +166,7 @@
                     <nav class="space-y-1">
                         @if(auth()->user()->isSuperAdmin())
                             <a href="{{ route('admin.dashboard') }}" 
-                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                               class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="2"></rect>
@@ -575,7 +575,7 @@
                 <div>
                     <nav class="space-y-1">
                         @if(auth()->user()->isSuperAdmin())
-                            <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.dashboard') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                                 <svg class="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7" rx="2"></rect>
                                     <rect x="14" y="3" width="7" height="7" rx="2"></rect>
@@ -940,7 +940,7 @@
                 <i class="fa-solid fa-bars text-base"></i>
             </button>
             <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                @if(request()->routeIs('admin.dashboard') || request()->routeIs('superadmin.dashboard'))
+                @if(request()->routeIs('admin.dashboard'))
                     Dashboard Admin
                 @elseif(request()->routeIs('admin.users.*'))
                     Kelola Pengguna

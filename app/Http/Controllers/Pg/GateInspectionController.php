@@ -163,17 +163,13 @@ class GateInspectionController extends Controller
         $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
 
         if (!$guardId) {
-            $fallbackGuard = SecurityGuard::where('is_active', true)->first() ?? SecurityGuard::first();
-            if ($fallbackGuard) {
-                $guardId = $fallbackGuard->id;
-            } else {
-                $request->validate([
-                    'security_guard_id' => ['required', 'exists:security_guards,id'],
-                ], [
-                    'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan.',
-                ]);
-                $guardId = $request->input('security_guard_id');
-            }
+            $request->validate([
+                'security_guard_id' => ['required', 'exists:security_guards,id'],
+            ], [
+                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan fisik.',
+                'security_guard_id.exists' => 'Petugas Satpam yang dipilih tidak valid dalam sistem.',
+            ]);
+            $guardId = $request->input('security_guard_id');
         }
 
         $activity = VehicleActivity::with(['vehicle', 'gate'])->findOrFail($id);

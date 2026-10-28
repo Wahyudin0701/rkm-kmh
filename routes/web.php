@@ -48,13 +48,6 @@ Route::prefix('gate-activity')->name('vehicle.activity.')->group(function () {
 // Group Terproteksi Autentikasi Sistem
 Route::middleware('auth')->group(function () {
 
-    // Backward Compatibility: Rute Super Admin Legacy -> Admin Dashboard Baru
-    Route::prefix('superadmin')->name('superadmin.')->middleware('role:super_admin')->group(function () {
-        Route::get('/', fn() => redirect()->route('admin.dashboard'));
-        Route::get('/dashboard', fn() => redirect()->route('admin.dashboard'))->name('dashboard');
-        Route::get('/roles', fn() => redirect()->route('admin.roles.index'))->name('roles.index');
-    });
-
     // 2. Modul HSE: Admin HSE - Kelola Karyawan & SIMPER
     Route::prefix('hse')->name('hse.')->group(function () {
         Route::get('/dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard')->middleware('permission:hse.employees.view');
@@ -225,10 +218,10 @@ Route::middleware('auth')->group(function () {
         // Backup & Restore Sistem (Database & Media)
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
-        Route::post('/backups/restore-file', [BackupController::class, 'restoreFromFile'])->name('backups.restore_file');
+        Route::post('/backups/restore-file', [BackupController::class, 'restoreFromFile'])->name('backups.restore_file')->middleware('throttle:5,1');
         Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
         Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
-        Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
+        Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore')->middleware('throttle:5,1');
         Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
 
         // Tong Sampah / Recycle Bin & Retensi Otomatis

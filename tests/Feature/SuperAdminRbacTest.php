@@ -556,4 +556,112 @@ class SuperAdminRbacTest extends TestCase
         $this->assertEquals('Operator Turbin', $employee->position);
         $this->assertFalse((bool)$employee->is_operator);
     }
+
+    public function test_super_admin_cannot_delete_employee_core_role(): void
+    {
+        $superAdmin = User::where('username', 'superadmin')->first();
+        $employeeRole = Role::where('name', 'employee')->first();
+        $this->assertNotNull($employeeRole);
+
+        $response = $this->actingAs($superAdmin)->delete(route('admin.roles.destroy', $employeeRole->id));
+        $response->assertRedirect(route('admin.roles.index'));
+        $response->assertSessionHas('error');
+        $this->assertDatabaseHas('roles', ['name' => 'employee']);
+    }
+
+    public function test_unauthorized_employee_cannot_impersonate_another_employee_trip(): void
+    {
+        $gate = Gate::create([
+            'code' => 'GT-01',
+            'name' => 'Main Gate',
+            'is_active' => true,
+        ]);
+
+        $vehicle = \App\Models\Vehicle::create([
+            'code' => 'LV-SEC-01',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Toyota Hilux',
+            'license_plate' => 'BH 1111 XX',
+            'status' => 'Operation',
+            'current_km' => 1000,
+        ]);
+
+        // User A (Karyawan A)
+        $userA = User::factory()->create([
+            'username' => 'EMP-AAA',
+            'name' => 'Karyawan A',
+            'role' => 'employee',
+        ]);
+        $userA->assignRole('employee');
+        $empA = $userA->getOrCreateEmployee();
+
+        // User B (Karyawan B yang sah sebagai driver)
+        $userB = User::factory()->create([
+            'username' => 'EMP-BBB',
+            'name' => 'Karyawan B',
+            'role' => 'employee',
+        ]);
+        $userB->assignRole('employee');
+        $empB = $userB->getOrCreateEmployee();
+
+        // Karyawan A mencoba submit atas nama Karyawan B
+        $response = $this->actingAs($userA)->post(route('vehicle.activity.store', ['code' => $vehicle->code]), [
+            'driver_id' => $empB->id,
+            'gate_id' => $gate->id,
+            'direction' => 'out',
+            'current_km' => 1010,
+            'purpose' => 'Test Tampering',
+        ]);
+
+        $response->assertSessionHasErrors('driver_id');
+        $this->assertDatabaseMissing('vehicle_activities', [
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $empB->id,
+            'current_km' => 1010,
+        ]);
+    }
+
+    public function test_timesheet_concurrency_generator_avoids_duplicate_numbers(): void
+    {
+        $today = now();
+        $dateStr = $today->format('Ymd');
+        $expectedNo1 = "TS-US-{$dateStr}-0001";
+
+        $no1 = \App\Models\UnitSupportTimesheet::generateTimesheetNo($today);
+        $this->assertEquals($expectedNo1, $no1);
+
+        // Simulasikan ada record yang sudah dibuat dengan nomor tersebut
+        $vehicle = \App\Models\Vehicle::create([
+            'code' => 'HE-CONC-01',
+            'category' => 'unit_support',
+            'brand_type' => 'Excavator PC200',
+            'status' => 'Operation',
+            'current_km' => 500,
+        ]);
+
+        $emp = \App\Models\Employee::create([
+            'nik' => 'OP-CONC-01',
+            'name' => 'Operator Concurrency',
+            'is_operator' => true,
+        ]);
+
+        \App\Models\UnitSupportTimesheet::create([
+            'timesheet_no' => $expectedNo1,
+            'vehicle_id' => $vehicle->id,
+            'operator_id' => $emp->id,
+            'date' => $today->toDateString(),
+            'shift' => 'Shift Siang',
+            'meter_type' => 'HM',
+            'start_meter' => 100,
+            'end_meter' => 108,
+            'operating_hours' => 8,
+            'location' => 'Pit A',
+            'activity_type' => 'Galian',
+            'status' => 'Operation',
+        ]);
+
+        // Generator harus mendeteksi nomor 0001 sudah ada dan otomatis menghasilkan 0002
+        $no2 = \App\Models\UnitSupportTimesheet::generateTimesheetNo($today);
+        $this->assertEquals("TS-US-{$dateStr}-0002", $no2);
+    }
 }

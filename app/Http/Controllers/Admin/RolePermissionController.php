@@ -101,7 +101,7 @@ class RolePermissionController extends Controller
         $role = Role::findOrFail($roleId);
 
         // Proteksi role inti sistem
-        $coreRoles = ['super_admin', 'hse_admin', 'qma_admin', 'pg_admin', 'gate_officer'];
+        $coreRoles = ['super_admin', 'hse_admin', 'qma_admin', 'pg_admin', 'gate_officer', 'employee'];
         if (in_array($role->name, $coreRoles)) {
             return redirect()->route('admin.roles.index')
                 ->with('error', "Aksi Ditolak: Role inti sistem [{$role->name}] tidak dapat dihapus.");
