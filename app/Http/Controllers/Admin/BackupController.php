@@ -162,11 +162,16 @@ class BackupController extends Controller
             targetName: $filename
         );
 
+        // Perbarui status di log riwayat dan hapus file sementara dari disk VPS setelah unduhan selesai
+        BackupLog::where('filename', $filename)->update([
+            'status' => 'Tersimpan di Komputer Lokal',
+        ]);
+
         return response()->download($fullPath, $filename, [
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
-        ]);
+        ])->deleteFileAfterSend(true);
     }
 
     /**

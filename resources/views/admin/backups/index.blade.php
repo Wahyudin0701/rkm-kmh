@@ -21,11 +21,6 @@
                 Pulihkan dari File .kmh
             </button>
             <button type="button" 
-                    onclick="openUploadBackupModal()" 
-                    class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition shadow-2xs">
-                Unggah ke Server
-            </button>
-            <button type="button" 
                     onclick="openCreateBackupModal()" 
                     class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-xs">
                 Buat Backup Baru
