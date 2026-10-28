@@ -221,10 +221,26 @@ class DashboardController extends Controller
 
         $employee = $user->getOrCreateEmployee();
 
-        // 1. Periksa ketersediaan modul/tab berdasarkan wewenang (permission) & riwayat aktual karyawan
-        $canP2h = $user->can('employee.p2h') || ($employee && P2hRecord::where('employee_id', $employee->id)->exists());
-        $canTimesheet = ($employee && $employee->is_operator) || ($employee && UnitSupportTimesheet::where('operator_id', $employee->id)->exists()) || $user->can('qma.logs.view');
-        $canTrips = $user->can('employee.timesheet') || ($employee && VehicleActivity::where('driver_id', $employee->id)->exists());
+        // 1. Cek riwayat aktual yang pernah dikerjakan oleh karyawan
+        $hasP2hRecords = $employee ? P2hRecord::where('employee_id', $employee->id)->exists() : false;
+        $hasTimesheetRecords = $employee ? UnitSupportTimesheet::where('operator_id', $employee->id)->exists() : false;
+        $hasTripRecords = $employee ? VehicleActivity::where('driver_id', $employee->id)->exists() : false;
+
+        // 2. Cek kualifikasi SIMPER karyawan terhadap jenis armada (Heavy Equipment vs Light Vehicle)
+        $canHeavy = $user->isSuperAdmin() || ($employee && $employee->canOperateHeavyEquipment());
+        $canLv = $user->isSuperAdmin() || ($employee && $employee->canDriveLightVehicle());
+
+        // 3. Modul P2H Heavy Equipment:
+        // Hanya tampil jika karyawan memiliki riwayat P2H ATAU (memiliki hak akses employee.p2h DAN izin SIMPER alat berat)
+        $canP2h = $hasP2hRecords || ($user->can('employee.p2h') && $canHeavy);
+
+        // 4. Modul Timesheet Heavy Equipment:
+        // Hanya tampil jika karyawan memiliki riwayat timesheet ATAU (memiliki izin SIMPER alat berat dan status operator)
+        $canTimesheet = $hasTimesheetRecords || ($canHeavy && ($employee?->is_operator || $user->can('qma.logs.view')));
+
+        // 5. Modul Perjalanan Pos Gerbang (LV):
+        // Tampil jika karyawan memiliki riwayat perjalanan ATAU (memiliki hak akses employee.timesheet dan SIMPER LV)
+        $canTrips = $hasTripRecords || ($user->can('employee.timesheet') && ($canLv || !$canHeavy));
 
         // Hitung total catatan riwayat per kategori untuk badge tab
         $p2hCount = $employee ? P2hRecord::where('employee_id', $employee->id)->count() : 0;

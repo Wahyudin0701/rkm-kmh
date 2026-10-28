@@ -206,6 +206,84 @@ class Employee extends Model
         return $this->hasValidSimper();
     }
 
+    /**
+     * Cek apakah personil memiliki izin SIMPER aktif yang mencakup Heavy Equipment / Unit Support (Alat Berat atau Dump Truck).
+     */
+    public function canOperateHeavyEquipment(): bool
+    {
+        $hasAnySimper = $this->relationLoaded('simpers') ? $this->simpers->isNotEmpty() : $this->simpers()->exists();
+
+        if ($hasAnySimper) {
+            $simpers = $this->relationLoaded('simpers') 
+                ? $this->simpers 
+                : $this->simpers()->with('simperType')->get();
+
+            foreach ($simpers as $s) {
+                if ($s->isValid() && $s->simperType) {
+                    $type = $s->simperType;
+                    // Cakupan Universal (Semua Armada)
+                    if ($type->coversScope(SimperType::SCOPE_ALL)) {
+                        return true;
+                    }
+                    // Cakupan Heavy Equipment atau Mobile Unit Support (Dump Truck)
+                    if ($type->coversScope(SimperType::SCOPE_UNIT_SUPPORT_HEAVY) 
+                        || $type->coversScope(SimperType::SCOPE_UNIT_SUPPORT_MOBILE)
+                        || $type->code === 'SIMPER-HEAVY'
+                        || $type->code === 'SIMPER-DT') {
+                        return true;
+                    }
+                    // Cakupan kategori spesifik (Excavator, Bulldozer, Crane, dll.)
+                    foreach ($type->scopes as $scope) {
+                        if ($scope !== SimperType::SCOPE_LIGHT_VEHICLE && $scope !== 'light_vehicle') {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        // Fallback untuk driver/operator legacy: jika belum multi-simper, hanya jika ditandai is_operator
+        // dan posisinya mengandung kata 'operator', 'heavy', 'excavator', 'dt', dsb.
+        if ($this->is_operator && $this->hasValidSimper()) {
+            $pos = strtolower($this->position ?? '');
+            if (str_contains($pos, 'operator') || str_contains($pos, 'alat berat') || str_contains($pos, 'excavator') || str_contains($pos, 'dt') || str_contains($pos, 'dump truck')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Cek apakah personil memiliki izin SIMPER aktif untuk kendaraan ringan (Light Vehicle).
+     */
+    public function canDriveLightVehicle(): bool
+    {
+        $hasAnySimper = $this->relationLoaded('simpers') ? $this->simpers->isNotEmpty() : $this->simpers()->exists();
+
+        if ($hasAnySimper) {
+            $simpers = $this->relationLoaded('simpers') 
+                ? $this->simpers 
+                : $this->simpers()->with('simperType')->get();
+
+            foreach ($simpers as $s) {
+                if ($s->isValid() && $s->simperType) {
+                    if ($s->simperType->coversScope(SimperType::SCOPE_ALL) 
+                        || $s->simperType->coversScope(SimperType::SCOPE_LIGHT_VEHICLE)
+                        || $s->simperType->code === 'SIMPER-LV') {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        return $this->hasValidSimper();
+    }
+
     public function getPhotoUrlAttribute(): ?string
     {
         $path = $this->photo_path;

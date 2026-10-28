@@ -92,6 +92,30 @@ class EmployeeHistoryTest extends TestCase
                 'is_active' => true,
             ]
         );
+
+        // Berikan SIMPER Heavy Equipment untuk Operator A & B
+        $simperHeavy = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-HEAVY'],
+            [
+                'name' => 'Heavy Equipment',
+                'scopes' => ['unit_support_heavy', 'Excavator'],
+                'is_active' => true,
+            ]
+        );
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $this->empA->id,
+            'simper_type_id' => $simperHeavy->id,
+            'status' => 'active',
+            'expired_at' => Carbon::now()->addMonths(6),
+        ]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $this->empB->id,
+            'simper_type_id' => $simperHeavy->id,
+            'status' => 'active',
+            'expired_at' => Carbon::now()->addMonths(6),
+        ]);
     }
 
     public function test_guest_is_redirected_to_login(): void
@@ -334,5 +358,41 @@ class EmployeeHistoryTest extends TestCase
         // User A mencoba mengunduh PDF B -> 403 Forbidden
         $resPdf = $this->actingAs($this->userA)->get(route('employee.history.p2h_pdf', $recordB->id));
         $resPdf->assertStatus(403);
+    }
+
+    public function test_employee_with_only_lv_simper_does_not_see_heavy_equipment(): void
+    {
+        $simperLv = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-LV'],
+            [
+                'name' => 'Light Vehicle Only',
+                'scopes' => ['light_vehicle'],
+                'is_active' => true,
+            ]
+        );
+
+        $userDriver = User::create([
+            'name' => 'Driver Doni LV Only',
+            'username' => 'driver_doni',
+            'email' => 'doni@kerinci.local',
+            'password' => Hash::make('password123'),
+            'role' => 'employee',
+        ]);
+        $empDriver = $userDriver->getOrCreateEmployee();
+        $empDriver->update(['is_operator' => true]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $empDriver->id,
+            'simper_type_id' => $simperLv->id,
+            'status' => 'active',
+            'expired_at' => Carbon::now()->addMonths(6),
+        ]);
+
+        $response = $this->actingAs($userDriver)->get(route('employee.history'));
+        $response->assertStatus(200);
+        $response->assertSee('Mobilisasi');
+        $response->assertSee('Pos Gerbang');
+        $response->assertDontSee('P2H Heavy Equipment');
+        $response->assertDontSee('Timesheet Heavy Equipment');
     }
 }
