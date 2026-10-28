@@ -631,9 +631,9 @@
 <!-- ========================================================================= -->
 <div id="qrVehicleModal" 
      class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
+    <div id="qrModalDialog" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
         <!-- Header Modal -->
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base border border-emerald-200/60 shadow-2xs">
                     <i class="fa-solid fa-qrcode"></i>
@@ -643,16 +643,108 @@
                     <p class="text-xs text-slate-500">Siap dicetak dan ditempelkan pada fisik armada unit</p>
                 </div>
             </div>
-            <button type="button" 
-                    onclick="closeQrModal()" 
-                    class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
+
+            <!-- Switcher Orientasi & Tombol Tutup -->
+            <div class="flex items-center space-x-2.5 self-end sm:self-auto">
+                <!-- Toggle Tab Orientasi: Landscape & Portrait -->
+                <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
+                    <button type="button" 
+                            id="btnTabLandscape"
+                            onclick="setStickerOrientation('landscape')" 
+                            class="px-3 py-1.5 rounded-lg transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-image text-emerald-600"></i>
+                        <span>Landscape</span>
+                    </button>
+                    <button type="button" 
+                            id="btnTabPortrait"
+                            onclick="setStickerOrientation('portrait')" 
+                            class="px-3 py-1.5 rounded-lg transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1.5 cursor-pointer">
+                        <i class="fa-solid fa-file text-slate-400"></i>
+                        <span>Potrait</span>
+                    </button>
+                </div>
+
+                <button type="button" 
+                        onclick="closeQrModal()" 
+                        class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                        title="Tutup Modal">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Area Kartu Stiker Fisik (Bisa Dicetak Langsung) -->
         <div class="mt-5">
-            <div id="printableStickerArea" class="bg-white border-2 border-slate-900 rounded-3xl p-5 text-center shadow-sm max-w-[360px] mx-auto">
+            <!-- 1. PREVIEW STIKER LANDSCAPE (DEFAULT AKTIF) -->
+            <div id="printableStickerAreaLandscape" class="printable-card bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 text-left shadow-sm max-w-[660px] mx-auto">
+                <!-- Kop Stiker Resmi Perusahaan -->
+                <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+                    <div>
+                        <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
+                        <h4 class="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 mt-0.5">TIMESHEET KENDARAAN OPERASIONAL</h4>
+                        <div class="text-[9px] font-bold text-slate-500 tracking-wider">LIGHT VEHICLE (LV) • RKM SYSTEM</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-emerald-50 text-[#1b5e20] border border-emerald-200 modal-qr-code-badge">
+                            LV01
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Konten Landscape: 2 Kolom Seimbang -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                    <!-- Kolom Kiri: QR Code (5/12) -->
+                    <div class="sm:col-span-5 flex flex-col items-center justify-center">
+                        <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs">
+                            <div class="w-44 h-44 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
+                                <!-- SVG QR Code di-inject di sini -->
+                            </div>
+                        </div>
+                        <!-- Tautan Langsung -->
+                        <div class="mt-2 text-[9px] font-mono text-slate-400 break-all text-center modal-qr-url">
+                            http://.../gate-activity/LV01
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Rincian Unit & Panduan (7/12) -->
+                    <div class="sm:col-span-7 space-y-2.5">
+                        <!-- Rincian Identitas Unit Kendaraan -->
+                        <div class="space-y-1.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200 text-left">
+                            <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
+                                <span class="font-mono font-extrabold text-xs text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">LV01</span>
+                            </div>
+                            <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
+                                <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">BH 1024 AB</span>
+                            </div>
+                            <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
+                                <span class="font-bold text-xs text-slate-900 text-right max-w-[190px] modal-qr-brand-text">TOYOTA HILUX 4X4 DC</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">DIVISI:</span>
+                                <span class="font-bold text-xs text-slate-700 modal-qr-division-text">HSE</span>
+                            </div>
+                        </div>
+
+                        <!-- Panduan Driver -->
+                        <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
+                            <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
+                                    <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
+                                </svg>
+                            </div>
+                            <span class="leading-snug">
+                                <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir pencatatan kilometer & perlintasan gerbang.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. PREVIEW STIKER POTRAIT -->
+            <div id="printableStickerAreaPortrait" class="printable-card hidden bg-white border-2 border-slate-900 rounded-3xl p-5 text-center shadow-sm max-w-[360px] mx-auto">
                 <!-- Kop Stiker Resmi Perusahaan -->
                 <div class="border-b-2 border-slate-900 pb-3 mb-4">
                     <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
@@ -662,8 +754,8 @@
 
                 <!-- Kontainer QR Code Vektor -->
                 <div class="bg-white p-3.5 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs mb-4">
-                    <div id="modalQrCodeContainer" class="w-52 h-52 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full">
-                        <!-- SVG QR Code di-inject secara dinamis di sini -->
+                    <div class="w-52 h-52 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
+                        <!-- SVG QR Code di-inject di sini -->
                     </div>
                 </div>
 
@@ -671,19 +763,19 @@
                 <div class="space-y-1.5 mb-3 text-left bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
                     <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
-                        <span id="modalQrCodeText" class="font-mono font-extrabold text-sm text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">LV01</span>
+                        <span class="font-mono font-extrabold text-sm text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">LV01</span>
                     </div>
                     <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
-                        <span id="modalQrPlateText" class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">BH 1024 AB</span>
+                        <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">BH 1024 AB</span>
                     </div>
                     <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
-                        <span id="modalQrBrandText" class="font-bold text-xs text-slate-900 text-right max-w-[200px]">TOYOTA HILUX 4X4 DC</span>
+                        <span class="font-bold text-xs text-slate-900 text-right max-w-[200px] modal-qr-brand-text">TOYOTA HILUX 4X4 DC</span>
                     </div>
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">DIVISI:</span>
-                        <span id="modalQrDivisionText" class="font-bold text-xs text-slate-700">HSE</span>
+                        <span class="font-bold text-xs text-slate-700 modal-qr-division-text">HSE</span>
                     </div>
                 </div>
 
@@ -700,7 +792,7 @@
                 </div>
 
                 <!-- Tautan Langsung -->
-                <div class="mt-2.5 text-[9px] font-mono text-slate-400 break-all" id="modalQrUrlDisplay">
+                <div class="mt-2.5 text-[9px] font-mono text-slate-400 break-all modal-qr-url">
                     http://.../gate-activity/LV01
                 </div>
             </div>
@@ -708,23 +800,64 @@
 
         <!-- Tombol Aksi Cetak & Unduh -->
         <div class="pt-4 mt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-            <div class="flex items-center space-x-2">
-                <!-- Tombol Cetak Stiker -->
-                <button type="button" 
-                        onclick="printQrSticker()" 
-                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-4 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm cursor-pointer">
-                    <i class="fa-solid fa-print"></i>
-                    <span>Cetak Stiker</span>
-                </button>
+            <div class="flex flex-wrap items-center gap-2">
+                <!-- Dropdown / Tombol Cetak -->
+                <div class="relative inline-block text-left" id="printDropdownContainer">
+                    <div class="inline-flex rounded-xl shadow-sm">
+                        <button type="button" 
+                                onclick="printSticker()" 
+                                id="btnMainPrint"
+                                class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-l-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition cursor-pointer">
+                            <i class="fa-solid fa-print"></i>
+                            <span id="btnMainPrintLabel">Cetak Landscape</span>
+                        </button>
+                        <button type="button" 
+                                onclick="toggleQrDropdown('printDropdownMenu', event)"
+                                class="px-2.5 py-2.5 rounded-r-xl bg-[#144919] hover:bg-[#0f3612] text-white border-l border-emerald-800 transition cursor-pointer"
+                                title="Pilihan Orientasi Cetak">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </button>
+                    </div>
+                    <div id="printDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
+                        <button type="button" onclick="printSticker('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                            <i class="fa-solid fa-image text-emerald-600"></i>
+                            <span>Cetak Landscape</span>
+                        </button>
+                        <button type="button" onclick="printSticker('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                            <i class="fa-solid fa-file text-slate-500"></i>
+                            <span>Cetak Potrait</span>
+                        </button>
+                    </div>
+                </div>
 
-                <!-- Tombol Download PNG -->
-                <button type="button" 
-                        id="btnDownloadSticker"
-                        onclick="downloadQrCode()" 
-                        class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
-                    <i class="fa-solid fa-download"></i>
-                    <span>Unduh PNG</span>
-                </button>
+                <!-- Dropdown / Tombol Unduh PNG -->
+                <div class="relative inline-block text-left" id="downloadDropdownContainer">
+                    <div class="inline-flex rounded-xl shadow-sm border border-slate-200">
+                        <button type="button" 
+                                id="btnDownloadSticker"
+                                onclick="downloadQrCode()" 
+                                class="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-l-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                            <i class="fa-solid fa-download"></i>
+                            <span id="btnMainDownloadLabel">Unduh Landscape (PNG)</span>
+                        </button>
+                        <button type="button" 
+                                onclick="toggleQrDropdown('downloadDropdownMenu', event)"
+                                class="px-2.5 py-2.5 rounded-r-xl bg-slate-200 hover:bg-slate-300 text-slate-600 border-l border-slate-300 transition cursor-pointer"
+                                title="Pilihan Orientasi Unduh">
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </button>
+                    </div>
+                    <div id="downloadDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
+                        <button type="button" onclick="downloadQrCode('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                            <i class="fa-solid fa-image text-emerald-600"></i>
+                            <span>Unduh Landscape (PNG)</span>
+                        </button>
+                        <button type="button" onclick="downloadQrCode('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                            <i class="fa-solid fa-file text-slate-500"></i>
+                            <span>Unduh Potrait (PNG)</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="flex items-center space-x-2 justify-end">
@@ -743,6 +876,10 @@
                         class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
                     Tutup
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -1044,9 +1181,86 @@
         });
     @endif
 
-    // Buka & Tutup Modal QR Code Stiker
+    // =========================================================================
+    // MODAL STIKER QR CODE (DUAL ORIENTATION: LANDSCAPE & PORTRAIT)
+    // =========================================================================
     let currentQrCode = '';
     let currentQrBase64 = '';
+    let currentOrientation = 'landscape'; // Default Landscape
+
+    function setStickerOrientation(orient) {
+        currentOrientation = orient === 'portrait' ? 'portrait' : 'landscape';
+        const isLand = currentOrientation === 'landscape';
+
+        // Update active tab buttons
+        const tabLand = document.getElementById('btnTabLandscape');
+        const tabPort = document.getElementById('btnTabPortrait');
+        if (tabLand && tabPort) {
+            if (isLand) {
+                tabLand.className = "px-3 py-1.5 rounded-lg transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1.5 cursor-pointer";
+                tabPort.className = "px-3 py-1.5 rounded-lg transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1.5 cursor-pointer";
+            } else {
+                tabPort.className = "px-3 py-1.5 rounded-lg transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1.5 cursor-pointer";
+                tabLand.className = "px-3 py-1.5 rounded-lg transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1.5 cursor-pointer";
+            }
+        }
+
+        // Update Card Dialog Width
+        const dialog = document.getElementById('qrModalDialog');
+        if (dialog) {
+            if (isLand) {
+                dialog.classList.remove('max-w-lg');
+                dialog.classList.add('max-w-2xl', 'sm:max-w-3xl');
+            } else {
+                dialog.classList.remove('max-w-2xl', 'sm:max-w-3xl');
+                dialog.classList.add('max-w-lg');
+            }
+        }
+
+        // Toggle Area Visible
+        const areaLand = document.getElementById('printableStickerAreaLandscape');
+        const areaPort = document.getElementById('printableStickerAreaPortrait');
+        if (areaLand && areaPort) {
+            if (isLand) {
+                areaLand.classList.remove('hidden');
+                areaPort.classList.add('hidden');
+            } else {
+                areaLand.classList.add('hidden');
+                areaPort.classList.remove('hidden');
+            }
+        }
+
+        // Update main button labels
+        const printLabel = document.getElementById('btnMainPrintLabel');
+        if (printLabel) printLabel.textContent = isLand ? 'Cetak Landscape' : 'Cetak Potrait';
+        const downloadLabel = document.getElementById('btnMainDownloadLabel');
+        if (downloadLabel) downloadLabel.textContent = isLand ? 'Unduh Landscape (PNG)' : 'Unduh Potrait (PNG)';
+    }
+
+    function toggleQrDropdown(id, event) {
+        if (event) event.stopPropagation();
+        const el = document.getElementById(id);
+        if (!el) return;
+        const isHidden = el.style.display === 'none' || el.classList.contains('hidden');
+        closeAllQrDropdowns();
+        if (isHidden) {
+            el.style.display = 'block';
+            el.classList.remove('hidden');
+        }
+    }
+
+    function closeAllQrDropdowns() {
+        const p = document.getElementById('printDropdownMenu');
+        if (p) { p.style.display = 'none'; p.classList.add('hidden'); }
+        const d = document.getElementById('downloadDropdownMenu');
+        if (d) { d.style.display = 'none'; d.classList.add('hidden'); }
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#printDropdownContainer') && !e.target.closest('#downloadDropdownContainer')) {
+            closeAllQrDropdowns();
+        }
+    });
 
     function openQrModal(code, brand, plate, division, url, btn) {
         currentQrCode = code;
@@ -1054,30 +1268,35 @@
         if (!modal) return;
 
         // Ambil SVG QR Code dari data attribute button
-        const container = document.getElementById('modalQrCodeContainer');
         const base64Svg = btn ? btn.getAttribute('data-qr-base64') : '';
         currentQrBase64 = base64Svg || '';
-        if (container && base64Svg) {
+        let decodedSvg = '';
+        if (base64Svg) {
             try {
-                container.innerHTML = atob(base64Svg);
+                decodedSvg = atob(base64Svg);
             } catch(e) {
                 console.error('Error decoding QR SVG:', e);
             }
         }
 
-        const elCode = document.getElementById('modalQrCodeText');
-        const elPlate = document.getElementById('modalQrPlateText');
-        const elBrand = document.getElementById('modalQrBrandText');
-        const elDivision = document.getElementById('modalQrDivisionText');
-        const elUrl = document.getElementById('modalQrUrlDisplay');
-        const testLink = document.getElementById('modalQrTestLink');
+        // Set semua container SVG
+        document.querySelectorAll('.modal-qr-container').forEach(c => {
+            if (decodedSvg) c.innerHTML = decodedSvg;
+        });
 
-        if (elCode) elCode.textContent = code;
-        if (elPlate) elPlate.textContent = plate || '-';
-        if (elBrand) elBrand.textContent = brand || '-';
-        if (elDivision) elDivision.textContent = division || '-';
-        if (elUrl) elUrl.textContent = url;
+        // Set semua field teks di Landscape & Portrait
+        document.querySelectorAll('.modal-qr-code-text').forEach(el => el.textContent = code);
+        document.querySelectorAll('.modal-qr-code-badge').forEach(el => el.textContent = code);
+        document.querySelectorAll('.modal-qr-plate-text').forEach(el => el.textContent = plate || '-');
+        document.querySelectorAll('.modal-qr-brand-text').forEach(el => el.textContent = brand || '-');
+        document.querySelectorAll('.modal-qr-division-text').forEach(el => el.textContent = division || '-');
+        document.querySelectorAll('.modal-qr-url').forEach(el => el.textContent = url);
+
+        const testLink = document.getElementById('modalQrTestLink');
         if (testLink) testLink.href = url;
+
+        // Buka selalu dengan default Landscape
+        setStickerOrientation('landscape');
 
         modal.classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
@@ -1091,18 +1310,40 @@
             document.documentElement.classList.remove('modal-open');
             document.body.classList.remove('modal-open');
         }
+        closeAllQrDropdowns();
+    }
+
+    function printSticker(orient) {
+        orient = orient || currentOrientation;
+        setStickerOrientation(orient);
+        closeAllQrDropdowns();
+
+        document.body.setAttribute('data-print-mode', orient);
+
+        let styleEl = document.getElementById('dynamicPrintOrientationStyle');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'dynamicPrintOrientationStyle';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.innerHTML = `@page { size: ${orient}; margin: 8mm; }`;
+
+        setTimeout(() => {
+            window.print();
+        }, 50);
     }
 
     function printQrSticker() {
-        window.print();
+        printSticker(currentOrientation);
     }
 
     // =========================================================================
-    // UNDUH STIKER QR: Pure Canvas API (tanpa html2canvas)
-    // Menggambar seluruh kartu stiker secara manual ke Canvas, termasuk QR code.
-    // Ini menjamin QR Code PASTI ter-render karena menggunakan img.onload.
+    // UNDUH STIKER QR: Pure Canvas API (Landscape & Portrait)
     // =========================================================================
-    function downloadQrCode() {
+    function downloadQrCode(orient) {
+        orient = orient || currentOrientation;
+        closeAllQrDropdowns();
+
         const code = (currentQrCode || 'LV').toUpperCase().replace(/[^A-Z0-9_-]/g, '');
         const btnEl = document.getElementById('btnDownloadSticker');
         const originalBtnHtml = btnEl ? btnEl.innerHTML : '';
@@ -1112,18 +1353,16 @@
             btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-xs"></i><span>Memproses...</span>';
         }
 
-        // Baca data teks dari modal
-        const plate = document.getElementById('modalQrPlateText')?.textContent?.trim() || '-';
-        const brand = document.getElementById('modalQrBrandText')?.textContent?.trim() || '-';
-        const division = document.getElementById('modalQrDivisionText')?.textContent?.trim() || '-';
-        const urlText = document.getElementById('modalQrUrlDisplay')?.textContent?.trim() || '';
+        const plate = document.querySelector('.modal-qr-plate-text')?.textContent?.trim() || '-';
+        const brand = document.querySelector('.modal-qr-brand-text')?.textContent?.trim() || '-';
+        const division = document.querySelector('.modal-qr-division-text')?.textContent?.trim() || '-';
+        const urlText = document.querySelector('.modal-qr-url')?.textContent?.trim() || '';
 
-        // Dapatkan SVG source untuk QR Code
         let svgDataUri = '';
         if (currentQrBase64) {
             svgDataUri = 'data:image/svg+xml;base64,' + currentQrBase64;
         } else {
-            const svgEl = document.querySelector('#modalQrCodeContainer svg');
+            const svgEl = document.querySelector('.modal-qr-container svg');
             if (svgEl) {
                 const raw = new XMLSerializer().serializeToString(svgEl);
                 svgDataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(raw)));
@@ -1136,26 +1375,11 @@
             return;
         }
 
-        // Load QR SVG sebagai Image terlebih dahulu, baru gambar semua di onload
         const qrImg = new Image();
         qrImg.onload = function() {
-            // ---- Konfigurasi Dimensi Canvas ----
-            // Ukuran dihitung secara proporsional agar kartu padat, seimbang, dan tanpa ruang kosong di bawah
-            const W = 1200;  // lebar canvas total
-            const H = 1500;  // tinggi canvas total (sebelumnya 1900 sehingga ada ruang kosong besar)
-            const PAD = 50;  // padding luar putih
-            const CW = W - PAD * 2;  // 1100 (lebar kartu)
-            const CH = H - PAD * 2;  // 1400 (tinggi kartu)
-            const R = 55;    // radius sudut kartu
-            const CX = PAD;  // x kartu (50)
-            const CY = PAD;  // y kartu (50)
-
             const canvas = document.createElement('canvas');
-            canvas.width = W;
-            canvas.height = H;
             const ctx = canvas.getContext('2d');
 
-            // -- Helper: rounded rect --
             function roundRect(x, y, w, h, r) {
                 ctx.beginPath();
                 if (ctx.roundRect) { ctx.roundRect(x, y, w, h, r); }
@@ -1169,192 +1393,383 @@
                 ctx.closePath();
             }
 
-            // ---- 1. Background Putih Luar ----
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, W, H);
+            if (orient === 'landscape') {
+                // ==========================================
+                // CANVAS LANDSCAPE: 1600 x 1000 px
+                // ==========================================
+                const W = 1600;
+                const H = 1000;
+                const PAD = 40;
+                const CW = W - PAD * 2;  // 1520
+                const CH = H - PAD * 2;  // 920
+                const R = 45;
+                const CX = PAD;
+                const CY = PAD;
 
-            // ---- 2. Bingkai Kartu Stiker ----
-            roundRect(CX, CY, CW, CH, R);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 5;
-            ctx.stroke();
+                canvas.width = W;
+                canvas.height = H;
 
-            // ---- 3. Header: Kop Perusahaan ----
-            const headerCenterX = W / 2;
-            let curY = CY + 52;
+                // Background Luar
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, W, H);
 
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#1b5e20';
-            ctx.font = '800 26px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('PT KERINCI MERANGIN HIDRO', headerCenterX, curY);
+                // Bingkai Stiker
+                roundRect(CX, CY, CW, CH, R);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 5;
+                ctx.stroke();
 
-            curY += 40;
-            ctx.fillStyle = '#0f172a';
-            ctx.font = '900 32px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('TIMESHEET KENDARAAN OPERASIONAL', headerCenterX, curY);
+                // Kop Header
+                let curY = CY + 48;
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#1b5e20';
+                ctx.font = '800 24px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('PT KERINCI MERANGIN HIDRO', CX + 35, curY);
 
-            curY += 30;
-            ctx.fillStyle = '#64748b';
-            ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('LIGHT VEHICLE (LV) \u2022 RKM SYSTEM', headerCenterX, curY);
+                curY += 38;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '900 32px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('TIMESHEET KENDARAAN OPERASIONAL', CX + 35, curY);
 
-            // Garis pemisah header
-            curY += 22;
-            ctx.strokeStyle = '#0f172a';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(CX + 35, curY);
-            ctx.lineTo(CX + CW - 35, curY);
-            ctx.stroke();
+                curY += 28;
+                ctx.fillStyle = '#64748b';
+                ctx.font = '700 20px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('LIGHT VEHICLE (LV) \u2022 RKM SYSTEM', CX + 35, curY);
 
-            // ---- 4. QR Code (DIBESARKAN) ----
-            const qrSize = 580; // Dibesarkan dari 480 menjadi 580
-            const qrBoxPadding = 22;
-            const qrBoxSize = qrSize + qrBoxPadding * 2; // 624
-            const qrBoxX = (W - qrBoxSize) / 2;
-            curY += 28;
-            const qrBoxY = curY;
-            const qrX = (W - qrSize) / 2;
-            const qrY = qrBoxY + qrBoxPadding;
+                // Big Code Badge on top right
+                ctx.font = '800 34px monospace';
+                const codeWidth = ctx.measureText(code).width;
+                const badgePad = 22;
+                const badgeW = codeWidth + badgePad * 2;
+                const badgeH = 56;
+                const badgeX = CX + CW - 35 - badgeW;
+                const badgeY = CY + 35;
+                roundRect(badgeX, badgeY, badgeW, badgeH, 16);
+                ctx.fillStyle = '#ecfdf5';
+                ctx.fill();
+                ctx.strokeStyle = '#a7f3d0';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.fillStyle = '#1b5e20';
+                ctx.textAlign = 'center';
+                ctx.fillText(code, badgeX + badgeW / 2, badgeY + 40);
 
-            // Kotak border QR Code
-            roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32);
-            ctx.fillStyle = '#ffffff';
-            ctx.fill();
-            ctx.strokeStyle = '#cbd5e1';
-            ctx.lineWidth = 3;
-            ctx.stroke();
+                // Garis Pembatas Header
+                curY += 24;
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(CX + 35, curY);
+                ctx.lineTo(CX + CW - 35, curY);
+                ctx.stroke();
 
-            // Gambar QR Code tajam & presisi
-            ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+                // Body: 2 Kolom (Kiri QR Code, Kanan Info & Instruksi)
+                const bodyY = curY + 28;
+                const colLeftW = 580;
+                const colRightX = CX + 35 + colLeftW + 40;
+                const colRightW = CW - 70 - colLeftW - 40;
 
-            // ---- 5. Info Box Detail Kendaraan ----
-            curY = qrBoxY + qrBoxSize + 30;
-            const infoX = CX + 40;
-            const infoW = CW - 80;
-            const infoH = 370;
-            const infoR = 28;
+                // Left: QR Code Box
+                const qrBoxSize = 540;
+                const qrBoxX = CX + 35 + (colLeftW - qrBoxSize) / 2;
+                roundRect(qrBoxX, bodyY, qrBoxSize, qrBoxSize, 28);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 3;
+                ctx.stroke();
 
-            roundRect(infoX, curY, infoW, infoH, infoR);
-            ctx.fillStyle = '#f8fafc';
-            ctx.fill();
-            ctx.strokeStyle = '#e2e8f0';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+                // Draw QR Code
+                const qrDrawPadding = 18;
+                ctx.drawImage(qrImg, qrBoxX + qrDrawPadding, bodyY + qrDrawPadding, qrBoxSize - qrDrawPadding * 2, qrBoxSize - qrDrawPadding * 2);
 
-            // -- Helper baris info --
-            const rowLeft = infoX + 30;
-            const rowRight = infoX + infoW - 30;
-            let rowY = curY + 54;
+                // URL below QR Code
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '400 20px monospace';
+                ctx.fillText(urlText, qrBoxX + qrBoxSize / 2, bodyY + qrBoxSize + 36);
 
-            function drawInfoRow(label, value, isBadge, badgeColor, badgeBg, badgeBorder) {
-                // Label
+                // Right: Info Box
+                const infoBoxH = 430;
+                roundRect(colRightX, bodyY, colRightW, infoBoxH, 24);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fill();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                let rowY = bodyY + 62;
+                const rowLeft = colRightX + 30;
+                const rowRight = colRightX + colRightW - 30;
+
+                function drawInfoRow(label, value, isBadge, badgeColor, badgeBg, badgeBorder) {
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+                    ctx.fillText(label, rowLeft, rowY);
+
+                    if (isBadge) {
+                        ctx.font = '700 26px monospace';
+                        const tw = ctx.measureText(value).width;
+                        const bx = rowRight - tw - 26;
+                        roundRect(bx, rowY - 30, tw + 26, 40, 10);
+                        ctx.fillStyle = badgeBg;
+                        ctx.fill();
+                        ctx.strokeStyle = badgeBorder;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.fillStyle = badgeColor;
+                        ctx.textAlign = 'left';
+                        ctx.fillText(value, bx + 13, rowY);
+                    } else {
+                        ctx.textAlign = 'right';
+                        ctx.fillStyle = '#0f172a';
+                        if (value.length > 25) {
+                            ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+                        } else {
+                            ctx.font = '700 25px "Plus Jakarta Sans", Arial, sans-serif';
+                        }
+                        ctx.fillText(value, rowRight, rowY);
+                    }
+
+                    rowY += 18;
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(rowLeft, rowY);
+                    ctx.lineTo(rowRight, rowY);
+                    ctx.stroke();
+
+                    rowY += 70;
+                }
+
+                drawInfoRow('KODE UNIT:', code, true, '#1b5e20', '#ecfdf5', '#a7f3d0');
+                drawInfoRow('NO. POLISI:', plate, true, '#78350f', '#fffbeb', '#fde68a');
+                drawInfoRow('MEREK & TIPE:', brand, false);
+
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#64748b';
                 ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
-                ctx.fillText(label, rowLeft, rowY);
+                ctx.fillText('DIVISI:', rowLeft, rowY);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#334155';
+                ctx.font = '700 25px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText(division, rowRight, rowY);
 
-                if (isBadge) {
-                    ctx.font = '700 26px monospace';
-                    const tw = ctx.measureText(value).width;
-                    const bx = rowRight - tw - 28;
-                    roundRect(bx, rowY - 30, tw + 28, 40, 10);
-                    ctx.fillStyle = badgeBg;
-                    ctx.fill();
-                    ctx.strokeStyle = badgeBorder;
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    ctx.fillStyle = badgeColor;
-                    ctx.fillText(value, bx + 14, rowY);
-                } else {
-                    ctx.textAlign = 'right';
-                    ctx.fillStyle = '#0f172a';
-                    if (value.length > 25) {
-                        ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
-                    } else {
-                        ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
-                    }
-                    ctx.fillText(value, rowRight, rowY);
-                }
-
-                // Garis pemisah antar baris
-                rowY += 18;
-                ctx.strokeStyle = '#e2e8f0';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                ctx.moveTo(rowLeft, rowY);
-                ctx.lineTo(rowRight, rowY);
+                // Right: Instruction Banner below Info Box
+                const banY = bodyY + infoBoxH + 20;
+                const banH = 100;
+                roundRect(colRightX, banY, colRightW, banH, 20);
+                ctx.fillStyle = '#ecfdf5';
+                ctx.fill();
+                ctx.strokeStyle = '#a7f3d0';
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                rowY += 64;
+                roundRect(colRightX + 20, banY + 20, 60, 60, 16);
+                ctx.fillStyle = '#1b5e20';
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                roundRect(colRightX + 32, banY + 40, 36, 26, 6);
+                ctx.fill();
+                ctx.fillStyle = '#1b5e20';
+                ctx.beginPath();
+                ctx.arc(colRightX + 50, banY + 53, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#1e293b';
+                ctx.font = '600 20px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('Scan QR ini menggunakan kamera HP untuk membuka', colRightX + 96, banY + 42);
+                ctx.font = '400 20px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('formulir pencatatan kilometer & perlintasan gerbang.', colRightX + 96, banY + 72);
+
+            } else {
+                // ==========================================
+                // CANVAS PORTRAIT: 1200 x 1500 px
+                // ==========================================
+                const W = 1200;
+                const H = 1500;
+                const PAD = 50;
+                const CW = W - PAD * 2;
+                const CH = H - PAD * 2;
+                const R = 55;
+                const CX = PAD;
+                const CY = PAD;
+
+                canvas.width = W;
+                canvas.height = H;
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, W, H);
+
+                roundRect(CX, CY, CW, CH, R);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+
+                const headerCenterX = W / 2;
+                let curY = CY + 52;
+
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#1b5e20';
+                ctx.font = '800 26px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('PT KERINCI MERANGIN HIDRO', headerCenterX, curY);
+
+                curY += 40;
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '900 32px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('TIMESHEET KENDARAAN OPERASIONAL', headerCenterX, curY);
+
+                curY += 30;
+                ctx.fillStyle = '#64748b';
+                ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('LIGHT VEHICLE (LV) \u2022 RKM SYSTEM', headerCenterX, curY);
+
+                curY += 22;
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(CX + 35, curY);
+                ctx.lineTo(CX + CW - 35, curY);
+                ctx.stroke();
+
+                const qrSize = 580;
+                const qrBoxPadding = 22;
+                const qrBoxSize = qrSize + qrBoxPadding * 2;
+                const qrBoxX = (W - qrBoxSize) / 2;
+                curY += 28;
+                const qrBoxY = curY;
+                const qrX = (W - qrSize) / 2;
+                const qrY = qrBoxY + qrBoxPadding;
+
+                roundRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+
+                curY = qrBoxY + qrBoxSize + 30;
+                const infoX = CX + 40;
+                const infoW = CW - 80;
+                const infoH = 370;
+                const infoR = 28;
+
+                roundRect(infoX, curY, infoW, infoH, infoR);
+                ctx.fillStyle = '#f8fafc';
+                ctx.fill();
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const rowLeft = infoX + 30;
+                const rowRight = infoX + infoW - 30;
+                let rowY = curY + 54;
+
+                function drawInfoRow(label, value, isBadge, badgeColor, badgeBg, badgeBorder) {
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+                    ctx.fillText(label, rowLeft, rowY);
+
+                    if (isBadge) {
+                        ctx.font = '700 26px monospace';
+                        const tw = ctx.measureText(value).width;
+                        const bx = rowRight - tw - 28;
+                        roundRect(bx, rowY - 30, tw + 28, 40, 10);
+                        ctx.fillStyle = badgeBg;
+                        ctx.fill();
+                        ctx.strokeStyle = badgeBorder;
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                        ctx.fillStyle = badgeColor;
+                        ctx.textAlign = 'left';
+                        ctx.fillText(value, bx + 14, rowY);
+                    } else {
+                        ctx.textAlign = 'right';
+                        ctx.fillStyle = '#0f172a';
+                        if (value.length > 25) {
+                            ctx.font = '700 22px "Plus Jakarta Sans", Arial, sans-serif';
+                        } else {
+                            ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+                        }
+                        ctx.fillText(value, rowRight, rowY);
+                    }
+
+                    rowY += 18;
+                    ctx.strokeStyle = '#e2e8f0';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(rowLeft, rowY);
+                    ctx.lineTo(rowRight, rowY);
+                    ctx.stroke();
+
+                    rowY += 64;
+                }
+
+                drawInfoRow('KODE UNIT:', code, true, '#1b5e20', '#ecfdf5', '#a7f3d0');
+                drawInfoRow('NO. POLISI:', plate, true, '#78350f', '#fffbeb', '#fde68a');
+                drawInfoRow('MEREK & TIPE:', brand, false);
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#64748b';
+                ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('DIVISI:', rowLeft, rowY);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#334155';
+                ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText(division, rowRight, rowY);
+
+                curY = curY + infoH + 22;
+                const banH = 104;
+                roundRect(infoX, curY, infoW, banH, 22);
+                ctx.fillStyle = '#ecfdf5';
+                ctx.fill();
+                ctx.strokeStyle = '#a7f3d0';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                roundRect(infoX + 20, curY + 22, 60, 60, 16);
+                ctx.fillStyle = '#1b5e20';
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                roundRect(infoX + 32, curY + 42, 36, 26, 6);
+                ctx.fill();
+                ctx.fillStyle = '#1b5e20';
+                ctx.beginPath();
+                ctx.arc(infoX + 50, curY + 55, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#1e293b';
+                ctx.font = '600 21px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('Scan QR ini menggunakan kamera HP untuk', infoX + 98, curY + 44);
+                ctx.font = '400 21px "Plus Jakarta Sans", Arial, sans-serif';
+                ctx.fillText('membuka formulir pencatatan kilometer & perlintasan gerbang.', infoX + 98, curY + 76);
+
+                curY = curY + banH + 34;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '400 21px monospace';
+                ctx.fillText(urlText, headerCenterX, curY);
             }
 
-            drawInfoRow('KODE UNIT:', code, true, '#1b5e20', '#ecfdf5', '#a7f3d0');
-            drawInfoRow('NO. POLISI:', plate, true, '#78350f', '#fffbeb', '#fde68a');
-            drawInfoRow('MEREK & TIPE:', brand, false);
-            // Divisi (baris terakhir tanpa garis pembatas bawah)
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#64748b';
-            ctx.font = '700 24px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('DIVISI:', rowLeft, rowY);
-            ctx.textAlign = 'right';
-            ctx.fillStyle = '#334155';
-            ctx.font = '700 26px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText(division, rowRight, rowY);
-
-            // ---- 6. Banner Instruksi Scan HP ----
-            curY = curY + infoH + 22;
-            const banH = 104;
-            roundRect(infoX, curY, infoW, banH, 22);
-            ctx.fillStyle = '#ecfdf5';
-            ctx.fill();
-            ctx.strokeStyle = '#a7f3d0';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Kotak ikon kamera
-            roundRect(infoX + 20, curY + 22, 60, 60, 16);
-            ctx.fillStyle = '#1b5e20';
-            ctx.fill();
-            // Grafis ikon kamera
-            ctx.fillStyle = '#ffffff';
-            roundRect(infoX + 32, curY + 42, 36, 26, 6);
-            ctx.fill();
-            ctx.fillStyle = '#1b5e20';
-            ctx.beginPath();
-            ctx.arc(infoX + 50, curY + 55, 7, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            roundRect(infoX + 43, curY + 36, 14, 7, 2);
-            ctx.fill();
-
-            // Teks instruksi
-            ctx.textAlign = 'left';
-            ctx.fillStyle = '#1e293b';
-            ctx.font = '600 21px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('Scan QR ini menggunakan kamera HP untuk', infoX + 98, curY + 44);
-            ctx.font = '400 21px "Plus Jakarta Sans", Arial, sans-serif';
-            ctx.fillText('membuka formulir pencatatan kilometer & perlintasan gerbang.', infoX + 98, curY + 76);
-
-            // ---- 7. URL Footer (Pas & Rapi Menutup Kartu) ----
-            curY = curY + banH + 34;
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = '400 21px monospace';
-            ctx.fillText(urlText, headerCenterX, curY);
-
-            // ---- EXPORT PNG ----
+            const orientTitle = orient === 'landscape' ? 'Landscape' : 'Portrait';
             const pngUrl = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = pngUrl;
-            link.download = 'Stiker_QR_' + code + '.png';
+            link.download = 'Stiker_QR_' + code + '_' + orientTitle + '.png';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            // Kembalikan tombol ke keadaan semula
             if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = originalBtnHtml; }
         };
 
@@ -1508,15 +1923,44 @@
         height: 0px;
     }
 
-    /* Format Cetak Stiker Fisik Unit */
+    /* Format Cetak Stiker Fisik Unit (Landscape & Portrait) */
     @media print {
         body * {
             visibility: hidden !important;
         }
-        #printableStickerArea, #printableStickerArea * {
+
+        body[data-print-mode="landscape"] #printableStickerAreaLandscape,
+        body[data-print-mode="landscape"] #printableStickerAreaLandscape * {
             visibility: visible !important;
         }
-        #printableStickerArea {
+
+        body[data-print-mode="portrait"] #printableStickerAreaPortrait,
+        body[data-print-mode="portrait"] #printableStickerAreaPortrait * {
+            visibility: visible !important;
+        }
+
+        body:not([data-print-mode]) #printableStickerAreaLandscape,
+        body:not([data-print-mode]) #printableStickerAreaLandscape * {
+            visibility: visible !important;
+        }
+
+        #printableStickerAreaLandscape {
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 580px !important;
+            max-width: 95% !important;
+            box-shadow: none !important;
+            border: 2px solid #0f172a !important;
+            background: #ffffff !important;
+            margin: 0 !important;
+            padding: 24px !important;
+            border-radius: 1.5rem !important;
+            z-index: 99999 !important;
+        }
+
+        #printableStickerAreaPortrait {
             position: fixed !important;
             left: 50% !important;
             top: 50% !important;

@@ -112,13 +112,20 @@ class QmaBarcodeTest extends TestCase
         $response->assertSee(e($expectedUrl));
         $response->assertSee('data-qr-base64', false);
 
-        // 3. Modal Stiker QR Code
+        // 3. Modal Stiker QR Code (Dual Orientation: Landscape & Portrait)
         $response->assertSee('qrVehicleModal');
-        $response->assertSee('printableStickerArea');
+        $response->assertSee('printableStickerAreaLandscape');
+        $response->assertSee('printableStickerAreaPortrait');
+        $response->assertSee('btnTabLandscape');
+        $response->assertSee('btnTabPortrait');
+        $response->assertSee('Landscape');
+        $response->assertSee('Potrait');
         $response->assertSee('TIMESHEET KENDARAAN OPERASIONAL');
         $response->assertSee('LIGHT VEHICLE (LV) • RKM SYSTEM');
-        $response->assertSee('Cetak Stiker');
-        $response->assertSee('Unduh PNG');
+        $response->assertSee('Cetak Landscape');
+        $response->assertSee('Cetak Potrait');
+        $response->assertSee('Unduh Landscape (PNG)');
+        $response->assertSee('Unduh Potrait (PNG)');
         $response->assertSee('Tes Form');
     }
 
@@ -237,11 +244,18 @@ class QmaBarcodeTest extends TestCase
         $expectedStandardUrl = url('/p2h/' . $unitStandard->code);
         $response->assertSee(e($expectedStandardUrl));
 
-        // Verifikasi Modal Stiker QR Code Heavy Equipment
+        // Verifikasi Modal Stiker QR Code Heavy Equipment (Dual Orientation: Landscape & Portrait)
         $response->assertSee('qrVehicleModal');
-        $response->assertSee('printableStickerArea');
-        $response->assertSee('Cetak Stiker');
-        $response->assertSee('Unduh PNG');
+        $response->assertSee('printableStickerAreaLandscape');
+        $response->assertSee('printableStickerAreaPortrait');
+        $response->assertSee('btnTabLandscape');
+        $response->assertSee('btnTabPortrait');
+        $response->assertSee('Landscape');
+        $response->assertSee('Potrait');
+        $response->assertSee('Cetak Landscape');
+        $response->assertSee('Cetak Potrait');
+        $response->assertSee('Unduh Landscape (PNG)');
+        $response->assertSee('Unduh Potrait (PNG)');
         $response->assertSee('Tes Form');
     }
 
