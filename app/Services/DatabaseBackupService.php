@@ -728,7 +728,7 @@ class DatabaseBackupService
     /**
      * Format byte ke satuan yang mudah dibaca (KB, MB, GB).
      */
-    protected function formatBytes(int $bytes, int $precision = 2): string
+    public function formatBytes(int $bytes, int $precision = 2): string
     {
         if ($bytes <= 0) return '0 B';
 

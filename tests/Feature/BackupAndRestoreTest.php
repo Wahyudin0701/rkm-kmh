@@ -269,4 +269,45 @@ class BackupAndRestoreTest extends TestCase
         $this->assertStringContainsString('aktif_backup@kmh.co.id', $sqlContent);
         $this->assertStringNotContainsString('sampah_backup@kmh.co.id', $sqlContent);
     }
+
+    public function test_backup_creation_records_to_backup_logs_and_sets_auto_download(): void
+    {
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.store'), [
+                'backup_scope' => 'pilihan',
+                'selected_tables' => ['users'],
+            ]);
+
+        $response->assertSessionHas('success');
+        $response->assertSessionHas('auto_download');
+
+        $this->assertDatabaseHas('backup_logs', [
+            'user_id' => $this->superAdmin->id,
+            'scope' => 'pilihan',
+        ]);
+    }
+
+    public function test_super_admin_can_restore_directly_from_uploaded_kmh_file(): void
+    {
+        $filename = $this->backupService->createKmhBackup(['users'], false, 'test_direct_restore.kmh');
+        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
+        $kmhContent = file_get_contents($fullPath);
+
+        $uploadedFile = UploadedFile::fake()->createWithContent('backup_dari_pc.kmh', $kmhContent);
+
+        $response = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.restore_file'), [
+                'backup_file' => $uploadedFile,
+                'confirmation' => 'PULIHKAN',
+            ]);
+
+        $response->assertSessionHas('success');
+        $response->assertSessionMissing('error');
+
+        $this->assertDatabaseHas('admin_activity_logs', [
+            'action_type' => 'update',
+            'module' => 'Backup & Restore',
+            'target_name' => 'backup_dari_pc.kmh',
+        ]);
+    }
 }

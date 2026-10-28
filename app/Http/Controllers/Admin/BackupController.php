@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
+use App\Models\BackupLog;
 use App\Services\DatabaseBackupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,11 +30,42 @@ class BackupController extends Controller
         $stats = $this->backupService->getSystemStats();
         $tableGroups = $this->backupService->getTableGroups();
 
-        return view('admin.backups.index', compact('backups', 'stats', 'tableGroups'));
+        // Sinkronisasi file fisik di server ke riwayat BackupLog jika belum tercatat
+        foreach ($backups as $b) {
+            BackupLog::firstOrCreate(
+                ['filename' => $b['filename']],
+                [
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()?->name ?? auth()->user()?->username ?? 'Super Admin',
+                    'scope' => $b['type'],
+                    'scope_label' => $b['type_label'],
+                    'table_count' => ($b['type'] === 'semua') ? count($this->backupService->getAllTableNames()) : 0,
+                    'tables_included' => null,
+                    'include_media' => ($b['type'] === 'semua'),
+                    'file_size' => $b['size_raw'],
+                    'file_size_human' => $b['size_human'],
+                    'status' => 'Tersimpan di Server',
+                    'created_at' => $b['created_at'],
+                ]
+            );
+        }
+
+        // Ambil seluruh riwayat backup terurut dari yang terbaru
+        $backupLogs = BackupLog::latest()->get();
+        $backupDir = $this->backupService->getBackupDirectory();
+
+        // Tandai apakah file fisik masih ada di disk VPS server
+        $backupLogs->each(function ($log) use ($backupDir) {
+            $fullPath = $backupDir . DIRECTORY_SEPARATOR . $log->filename;
+            $log->file_exists = File::exists($fullPath);
+        });
+
+        return view('admin.backups.index', compact('backupLogs', 'backups', 'stats', 'tableGroups'));
     }
 
     /**
      * Buat file backup baru berekstensi khusus .kmh (Pilih Backup atau Backup Semua).
+     * Otomatis memicu unduhan langsung ke komputer Super Admin demi menghemat disk VPS kecil.
      */
     public function store(Request $request): RedirectResponse
     {
@@ -67,11 +99,30 @@ class BackupController extends Controller
         try {
             $filename = $this->backupService->createKmhBackup($selectedTables, $includeMedia);
 
+            $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
+            $sizeBytes = File::exists($fullPath) ? File::size($fullPath) : 0;
+            $sizeHuman = $this->backupService->formatBytes($sizeBytes);
+
+            // Rekam ke Riwayat Aktivitas Backup
+            BackupLog::create([
+                'user_id' => $request->user()?->id,
+                'user_name' => $request->user()?->name ?? $request->user()?->username ?? 'Super Admin',
+                'filename' => $filename,
+                'scope' => $scope,
+                'scope_label' => $scopeLabel,
+                'table_count' => is_array($selectedTables) ? count($selectedTables) : count($this->backupService->getAllTableNames()),
+                'tables_included' => $selectedTables,
+                'include_media' => $includeMedia,
+                'file_size' => $sizeBytes,
+                'file_size_human' => $sizeHuman,
+                'status' => 'Berhasil Diunduh',
+            ]);
+
             // Rekam ke Log Aktivitas Super Admin
             AdminActivityLog::record(
                 actionType: 'create',
                 module: 'Backup & Restore',
-                description: "Membuat file backup terenkripsi .kmh: {$filename} [Cakupan: {$scopeLabel}].",
+                description: "Membuat file backup terenkripsi .kmh: {$filename} [Cakupan: {$scopeLabel}]. File siap diunduh ke komputer lokal.",
                 targetType: 'BackupFile',
                 targetName: $filename,
                 newValues: [
@@ -79,10 +130,13 @@ class BackupController extends Controller
                     'scope' => $scope,
                     'table_count' => is_array($selectedTables) ? count($selectedTables) : 'all',
                     'include_media' => $includeMedia,
+                    'size' => $sizeHuman,
                 ]
             );
 
-            return back()->with('success', "Arsip terenkripsi .kmh ({$filename}) berhasil dibuat dan diamankan di server.");
+            return back()
+                ->with('success', "Arsip backup terenkripsi .kmh ({$filename}) berhasil dibuat dan langsung diunduh ke komputer Anda.")
+                ->with('auto_download', route('admin.backups.download', $filename));
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal membuat backup: ' . $e->getMessage());
         }
@@ -97,7 +151,7 @@ class BackupController extends Controller
         $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
 
         if (!File::exists($fullPath)) {
-            return back()->with('error', "File backup '{$filename}' tidak ditemukan di server.");
+            return back()->with('error', "File backup '{$filename}' tidak ditemukan di server (kemungkinan telah dihapus untuk menghemat kapasitas disk VPS).");
         }
 
         AdminActivityLog::record(
@@ -120,6 +174,18 @@ class BackupController extends Controller
      */
     public function upload(Request $request): RedirectResponse
     {
+        // Validasi ketersediaan file dan deteksi error PHP upload limit
+        if (!$request->hasFile('backup_file')) {
+            $iniMax = ini_get('upload_max_filesize') ?: '2M';
+            $postMax = ini_get('post_max_size') ?: '8M';
+            return back()->with('error', "Gagal mengunggah file. Server tidak menerima berkas file (kemungkinan ukuran file melebihi batas konfigurasi PHP server: upload_max_filesize={$iniMax}, post_max_size={$postMax}).");
+        }
+
+        $file = $request->file('backup_file');
+        if (!$file->isValid()) {
+            return back()->with('error', 'File yang diunggah tidak valid atau gagal terkirim: ' . $file->getErrorMessage());
+        }
+
         $request->validate([
             'backup_file' => ['required', 'file', 'max:204800'], // Maks. 200 MB
         ], [
@@ -128,7 +194,6 @@ class BackupController extends Controller
             'backup_file.max' => 'Ukuran file backup maksimal 200 MB.',
         ]);
 
-        $file = $request->file('backup_file');
         $originalName = basename($file->getClientOriginalName());
         $ext = strtolower($file->getClientOriginalExtension());
 
@@ -146,23 +211,43 @@ class BackupController extends Controller
 
         try {
             $file->move($targetDir, $targetFilename);
+            $storedPath = $targetDir . DIRECTORY_SEPARATOR . $targetFilename;
+            $fileSize = File::exists($storedPath) ? File::size($storedPath) : 0;
+            $fileSizeHuman = $this->backupService->formatBytes($fileSize);
+
+            // Rekam ke Riwayat Aktivitas Backup
+            BackupLog::firstOrCreate(
+                ['filename' => $targetFilename],
+                [
+                    'user_id' => $request->user()?->id,
+                    'user_name' => $request->user()?->name ?? $request->user()?->username ?? 'Super Admin',
+                    'scope' => str_contains($targetFilename, 'semua') ? 'semua' : 'pilihan',
+                    'scope_label' => 'Unggahan Eksternal (' . strtoupper($ext) . ')',
+                    'table_count' => 0,
+                    'tables_included' => null,
+                    'include_media' => false,
+                    'file_size' => $fileSize,
+                    'file_size_human' => $fileSizeHuman,
+                    'status' => 'Tersimpan di Server',
+                ]
+            );
 
             AdminActivityLog::record(
                 actionType: 'create',
                 module: 'Backup & Restore',
-                description: "Mengunggah file backup eksternal: {$targetFilename}.",
+                description: "Mengunggah file backup eksternal: {$targetFilename} ({$fileSizeHuman}).",
                 targetType: 'BackupFile',
                 targetName: $targetFilename
             );
 
-            return back()->with('success', "File backup '{$targetFilename}' berhasil diunggah ke server.");
+            return back()->with('success', "File backup '{$targetFilename}' ({$fileSizeHuman}) berhasil diunggah ke server.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Gagal menyimpan file backup yang diunggah: ' . $e->getMessage());
         }
     }
 
     /**
-     * Pulihkan (Restore) database & aset sistem dari file backup (.kmh).
+     * Pulihkan (Restore) database & aset sistem dari file backup (.kmh) yang sudah ada di server.
      */
     public function restore(Request $request, string $filename): RedirectResponse
     {
@@ -195,7 +280,7 @@ class BackupController extends Controller
             AdminActivityLog::record(
                 actionType: 'update',
                 module: 'Backup & Restore',
-                description: "Melakukan pemulihan (restore) database dan aset sistem dari file backup: {$filename}.",
+                description: "Melakukan pemulihan (restore) database dan aset sistem dari file backup server: {$filename}.",
                 targetType: 'BackupFile',
                 targetName: $filename
             );
@@ -207,24 +292,88 @@ class BackupController extends Controller
     }
 
     /**
-     * Hapus file backup dari penyimpanan server.
+     * Pulihkan (Restore) database & aset sistem secara langsung dari file (.kmh) yang diunggah/didrag & drop.
+     * Tidak meninggalkan file sampah di server sehingga sangat hemat disk VPS.
+     */
+    public function restoreFromFile(Request $request): RedirectResponse
+    {
+        if (!$request->hasFile('backup_file')) {
+            $iniMax = ini_get('upload_max_filesize') ?: '2M';
+            $postMax = ini_get('post_max_size') ?: '8M';
+            return back()->with('error', "File backup .kmh belum dipilih atau file melebihi batas upload PHP server (upload_max_filesize: {$iniMax}, post_max_size: {$postMax}).");
+        }
+
+        $file = $request->file('backup_file');
+        if (!$file->isValid()) {
+            return back()->with('error', 'File yang diunggah tidak valid atau gagal dibaca: ' . $file->getErrorMessage());
+        }
+
+        $ext = strtolower($file->getClientOriginalExtension());
+        if (!in_array($ext, ['kmh', 'sql', 'zip'])) {
+            return back()->with('error', 'Format file tidak didukung. File backup harus berekstensi .kmh, .sql, atau .zip.');
+        }
+
+        // Verifikasi Keamanan: Ketik "PULIHKAN" atau masukkan password Super Admin
+        $confirmed = false;
+        if ($request->filled('confirmation') && trim($request->input('confirmation')) === 'PULIHKAN') {
+            $confirmed = true;
+        } elseif ($request->filled('password') && Hash::check($request->input('password'), $request->user()->password)) {
+            $confirmed = true;
+        }
+
+        if (!$confirmed) {
+            return back()->with('error', 'Konfirmasi keamanan tidak sesuai. Silakan ketik kata "PULIHKAN" atau masukkan password akun Super Admin Anda untuk melanjutkan pemulihan.');
+        }
+
+        $tempPath = $file->getRealPath();
+        $originalName = $file->getClientOriginalName();
+
+        try {
+            $this->backupService->restore($tempPath);
+
+            // Bersihkan cache aplikasi & permission registrar Spatie
+            Artisan::call('cache:clear');
+            app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+            AdminActivityLog::record(
+                actionType: 'update',
+                module: 'Backup & Restore',
+                description: "Melakukan pemulihan (restore) langsung dari file lokal: {$originalName}.",
+                targetType: 'BackupFile',
+                targetName: $originalName
+            );
+
+            return back()->with('success', "Sistem berhasil dipulihkan secara langsung dari file '{$originalName}'. Seluruh data tabel dan media telah disinkronkan kembali.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Terjadi kesalahan saat memulihkan sistem: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Hapus file backup dari penyimpanan server untuk menghemat kapasitas disk VPS.
+     * Riwayat log backup tetap tersimpan di sistem.
      */
     public function destroy(string $filename): RedirectResponse
     {
         $filename = basename($filename);
 
         if ($this->backupService->deleteBackup($filename)) {
+            // Update status log jika ada
+            BackupLog::where('filename', $filename)->update([
+                'status' => 'Tersimpan di Komputer Lokal (Dihapus dari Server)',
+            ]);
+
             AdminActivityLog::record(
                 actionType: 'delete',
                 module: 'Backup & Restore',
-                description: "Menghapus file backup: {$filename}.",
+                description: "Menghapus file fisik backup dari disk server: {$filename}.",
                 targetType: 'BackupFile',
                 targetName: $filename
             );
 
-            return back()->with('success', "File backup '{$filename}' berhasil dihapus dari server.");
+            return back()->with('success', "File fisik '{$filename}' berhasil dihapus dari penyimpanan server untuk menghemat kapasitas disk VPS. Riwayat pencadangan tetap tersimpan.");
         }
 
-        return back()->with('error', "File backup '{$filename}' tidak ditemukan atau gagal dihapus.");
+        return back()->with('error', "File backup '{$filename}' tidak ditemukan di server atau sudah pernah dihapus.");
     }
 }
