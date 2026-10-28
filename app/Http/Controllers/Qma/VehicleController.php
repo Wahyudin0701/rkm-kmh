@@ -1187,12 +1187,9 @@ class VehicleController extends Controller
             }
         }
 
-        if ($vehicle->isSupportCategory()) {
-            foreach ($vehicle->units as $u) {
-                ImageCompressionService::deleteIfExists($u->photo_path);
-            }
-        }
-        ImageCompressionService::deleteIfExists($vehicle->photo_path);
+        // Berkas fisik foto tidak dihapus di sini karena data masuk ke Tong Sampah (Soft Delete).
+        // Berkas foto akan tetap aman sehingga jika dipulihkan (restore), foto unit tetap ada.
+        // Berkas fisik baru dihapus permanen ketika dieksekusi 'Hapus Permanen' di TrashService.
 
         $code = $vehicle->code;
         $vehicle->delete();

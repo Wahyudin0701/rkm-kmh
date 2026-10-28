@@ -310,4 +310,36 @@ class TrashAndAutoDeleteTest extends TestCase
             'id' => $freshActivity->id,
         ]);
     }
+
+    public function test_vehicle_photo_preserved_on_soft_delete_and_restored(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV-PHOTO-01',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Hilux',
+            'license_plate' => 'BH 9999 AA',
+            'status' => 'Operation',
+            'current_km' => 500,
+            'photo_path' => 'vehicles/dummy_photo.jpg',
+        ]);
+
+        // Simulasikan penghapusan kendaraan
+        $this->actingAs($this->superAdmin)
+            ->delete(route('qma.vehicles.destroy', $vehicle->id));
+
+        $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
+
+        // Verifikasi photo_path masih tersimpan di record
+        $trashed = Vehicle::onlyTrashed()->find($vehicle->id);
+        $this->assertNotNull($trashed);
+        $this->assertEquals('vehicles/dummy_photo.jpg', $trashed->photo_path);
+
+        // Pulihkan dari tong sampah
+        $this->actingAs($this->superAdmin)
+            ->post(route('admin.trash.restore', ['category' => 'vehicles', 'id' => $vehicle->id]));
+
+        $restored = Vehicle::find($vehicle->id);
+        $this->assertNotNull($restored);
+        $this->assertEquals('vehicles/dummy_photo.jpg', $restored->photo_path);
+    }
 }

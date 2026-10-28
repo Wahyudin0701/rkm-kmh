@@ -17,6 +17,7 @@ use App\Models\UnitTransfer;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleActivity;
+use App\Services\ImageCompressionService;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -430,6 +431,24 @@ class TrashService
                 EmployeeSimper::withTrashed()
                     ->where('simper_type_id', $item->id)
                     ->forceDelete();
+            }
+
+            // Hapus berkas fisik saat benar-benar dihapus permanen dari tong sampah
+            if ($item instanceof Vehicle) {
+                ImageCompressionService::deleteIfExists($item->photo_path);
+                if (method_exists($item, 'isSupportCategory') && $item->isSupportCategory()) {
+                    foreach ($item->units as $u) {
+                        ImageCompressionService::deleteIfExists($u->photo_path);
+                    }
+                }
+            }
+
+            if ($item instanceof Employee) {
+                ImageCompressionService::deleteIfExists($item->photo_path);
+            }
+
+            if ($item instanceof User) {
+                ImageCompressionService::deleteIfExists($item->photo_path ?? null);
             }
 
             $item->forceDelete();

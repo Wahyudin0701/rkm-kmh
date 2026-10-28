@@ -780,13 +780,11 @@ class EmployeeController extends Controller
         $empNik = $employee->nik;
         $photoPath = $employee->photo_path;
 
-        DB::transaction(function () use ($employee, $photoPath) {
+        DB::transaction(function () use ($employee) {
             $user = $employee->user ?: User::where('username', $employee->nik)->first();
 
-            // Hapus berkas foto profil jika tersimpan secara lokal di storage
-            if ($photoPath) {
-                ImageCompressionService::deleteIfExists($photoPath);
-            }
+            // Berkas foto tidak dihapus saat soft delete agar foto tetap ada jika dipulihkan dari tong sampah.
+            // Berkas baru dihapus permanen ketika dilakukan 'Hapus Permanen' (force delete) di TrashService.
 
             // Hapus data karyawan (relasi employee_simpers otomatis cascade terhapus)
             $employee->delete();
