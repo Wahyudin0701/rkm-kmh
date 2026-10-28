@@ -767,4 +767,20 @@ class P2hInspectionController extends Controller
 
         return back()->with('success', "Inspeksi P2H [{$record->transaction_no}] untuk unit {$record->vehicle->code} DITOLAK. Status unit diubah ke Breakdown.");
     }
+
+    /**
+     * Hapus pemeriksaan P2H Heavy Equipment (Soft Delete).
+     * Data yang dihapus akan dipindahkan ke Tong Sampah dan dapat dipulihkan sewaktu-waktu.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $record = P2hRecord::findOrFail($id);
+        $trxNo = $record->transaction_no;
+
+        // Cascade soft delete record items
+        $record->items()->delete();
+        $record->delete();
+
+        return redirect()->route('qma.p2h.index')->with('success', "Data pemeriksaan P2H [{$trxNo}] berhasil dihapus dan dipindahkan ke Tong Sampah.");
+    }
 }

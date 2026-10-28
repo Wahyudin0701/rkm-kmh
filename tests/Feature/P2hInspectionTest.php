@@ -734,6 +734,45 @@ class P2hInspectionTest extends TestCase
         $this->assertCount(4, $itemsAfterDelete);
         $this->assertEquals([1, 2, 3, 4], $itemsAfterDelete->pluck('sequence')->all());
     }
+
+    /**
+     * Admin QMA dapat menghapus data riwayat pemeriksaan P2H (Soft Delete ke Tong Sampah).
+     */
+    public function test_qma_admin_can_soft_delete_p2h_record(): void
+    {
+        $record = P2hRecord::create([
+            'transaction_no' => 'P2H-TEST-DEL-001',
+            'vehicle_id' => $this->supportVehicle->id,
+            'employee_id' => $this->operatorEmp->id,
+            'template_id' => $this->template->id,
+            'shift' => 'Shift Siang',
+            'start_hm' => 1500.0,
+            'summary_condition' => 'normal',
+            'validation_status' => 'pending',
+            'inspected_at' => Carbon::now(),
+        ]);
+
+        $item = \App\Models\P2hRecordItem::create([
+            'p2h_record_id' => $record->id,
+            'section' => 'Bagian A',
+            'title' => 'Cek Oli Mesin',
+            'question_type' => 'choice',
+            'condition_status' => 'baik',
+        ]);
+
+        $response = $this->actingAs($this->qmaAdmin)
+            ->delete(route('qma.p2h.destroy', $record->id));
+
+        $response->assertRedirect(route('qma.p2h.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertSoftDeleted('p2h_records', ['id' => $record->id]);
+        $this->assertSoftDeleted('p2h_record_items', ['id' => $item->id]);
+
+        // Pastikan muncul di TrashService
+        $trashItems = app(\App\Services\TrashService::class)->getTrashedItems('p2h_records');
+        $this->assertTrue(collect($trashItems->items())->contains('id', $record->id));
+    }
 }
 
 

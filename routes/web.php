@@ -146,6 +146,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/p2h-records/{id}/export-excel', [P2hInspectionController::class, 'exportSingleExcel'])->name('p2h.export_single_excel')->middleware('permission:qma.p2h.view|qma.vehicles.view');
         Route::post('/p2h-records/{id}/approve', [P2hInspectionController::class, 'approve'])->name('p2h.approve')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
         Route::post('/p2h-records/{id}/reject', [P2hInspectionController::class, 'reject'])->name('p2h.reject')->middleware('permission:qma.p2h.approve|qma.vehicles.edit');
+        Route::delete('/p2h-records/{id}', [P2hInspectionController::class, 'destroy'])->name('p2h.destroy')->middleware('permission:qma.vehicles.delete|qma.p2h.approve|qma.vehicles.edit');
 
         // Master 28 Template Checksheet P2H & Kelola Pertanyaan
         Route::get('/p2h-templates', [P2hTemplateController::class, 'index'])->name('p2h.templates')->middleware('permission:qma.p2h.templates|qma.vehicles.view');

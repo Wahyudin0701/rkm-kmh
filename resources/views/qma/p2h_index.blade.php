@@ -205,6 +205,12 @@
                                     <a href="{{ route('qma.p2h.export_single_excel', $rec->id) }}" class="w-7 h-7 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 flex items-center justify-center transition border border-emerald-200 shadow-2xs" title="Download Lembar P2H (Excel)">
                                         <i class="fa-solid fa-file-excel text-xs"></i>
                                     </a>
+                                    <button type="button" 
+                                            onclick="openDeleteP2hModal({{ $rec->id }}, '{{ $rec->transaction_no }}', '{{ $rec->vehicle->code ?? '' }}')"
+                                            class="w-7 h-7 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition border border-rose-200 shadow-2xs cursor-pointer" 
+                                            title="Hapus Pemeriksaan P2H">
+                                        <i class="fa-regular fa-trash-can text-xs"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -312,11 +318,63 @@ function closeGuideModal() {
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeGuideModal();
+            closeDeleteP2hModal();
             const exportMenu = document.getElementById('exportMenuP2h');
             if (exportMenu) exportMenu.style.display = 'none';
         }
     });
+
+    function openDeleteP2hModal(id, trxNo, unitCode) {
+        document.getElementById('deleteP2hForm').action = `/qma/p2h-records/${id}`;
+        document.getElementById('deleteP2hTxNo').textContent = trxNo;
+        document.getElementById('deleteP2hUnitCode').textContent = unitCode || '-';
+        const modal = document.getElementById('deleteP2hModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.style.display = 'block';
+        }
+    }
+
+    function closeDeleteP2hModal() {
+        const modal = document.getElementById('deleteP2hModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
 </script>
+
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: HAPUS PEMERIKSAAN P2H                                        -->
+<!-- ========================================================================= -->
+<div id="deleteP2hModal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" onclick="closeDeleteP2hModal()"></div>
+
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-6 text-center transform transition-all">
+            <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100">
+                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mb-1">Hapus Data Pemeriksaan P2H?</h3>
+            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                Apakah Anda yakin ingin menghapus inspeksi P2H <span id="deleteP2hTxNo" class="font-mono font-bold text-rose-600">-</span> untuk unit <span id="deleteP2hUnitCode" class="font-bold text-slate-800">-</span>? Data akan dipindahkan ke <strong>Tong Sampah</strong> dan dapat dipulihkan sewaktu-waktu.
+            </p>
+
+            <form id="deleteP2hForm" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="flex items-center justify-center space-x-3">
+                    <button type="button" onclick="closeDeleteP2hModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- ========================================================================= -->
 <!-- MODAL POPUP: PANDUAN HALAMAN (LOG P2H HEAVY EQUIPMENT)                   -->
