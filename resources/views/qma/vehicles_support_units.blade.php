@@ -793,252 +793,272 @@
 <!-- MODAL: PREVIEW & CETAK STIKER QR CODE HEAVY EQUIPMENT                     -->
 <!-- ========================================================================= -->
 <div id="qrVehicleModal" 
-     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-    <div id="qrModalDialog" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-7 border border-slate-100 transform transition-all my-8">
-        <!-- Header Modal -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base border border-emerald-200/60 shadow-2xs">
-                    <i class="fa-solid fa-qrcode"></i>
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Stiker QR Code Heavy Equipment</h3>
-                    <p class="text-xs text-slate-500">Siap dicetak dan ditempelkan pada fisik armada unit</p>
-                </div>
-            </div>
-
-            <!-- Switcher Orientasi & Tombol Tutup -->
-            <div class="flex items-center space-x-2.5 self-end sm:self-auto">
-                <!-- Toggle Tab Orientasi: Landscape & Portrait -->
-                <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
-                    <button type="button" 
-                            id="btnTabLandscape"
-                            onclick="setStickerOrientation('landscape')" 
-                            class="px-3 py-1.5 rounded-lg transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1.5 cursor-pointer">
-                        <i class="fa-solid fa-image text-emerald-600"></i>
-                        <span>Landscape</span>
-                    </button>
-                    <button type="button" 
-                            id="btnTabPortrait"
-                            onclick="setStickerOrientation('portrait')" 
-                            class="px-3 py-1.5 rounded-lg transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1.5 cursor-pointer">
-                        <i class="fa-solid fa-file text-slate-400"></i>
-                        <span>Potrait</span>
-                    </button>
-                </div>
-
-                <button type="button" 
-                        onclick="closeQrModal()" 
-                        class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
-                        title="Tutup Modal">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Area Kartu Stiker Fisik (Bisa Dicetak Langsung) -->
-        <div class="mt-5">
-            <!-- 1. PREVIEW STIKER LANDSCAPE (DEFAULT AKTIF) -->
-            <div id="printableStickerAreaLandscape" class="printable-card bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 text-left shadow-sm max-w-[660px] mx-auto">
-                <!-- Kop Stiker Resmi Perusahaan -->
-                <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+     class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm overflow-y-auto p-3 sm:p-5">
+    <div class="min-h-full flex items-center justify-center py-4 sm:py-6">
+        <div id="qrModalDialog" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-5 sm:p-6 border border-slate-100 transform transition-all my-auto max-h-[92vh] flex flex-col overflow-hidden">
+            <!-- Header Modal (Pinned / Locked at Top) -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-3.5 border-b border-slate-100 gap-3 flex-shrink-0 bg-white">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-[#1b5e20] flex items-center justify-center font-bold text-base border border-emerald-200/60 shadow-2xs">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
                     <div>
-                        <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
-                        <h4 class="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 mt-0.5 modal-qr-sub-title">HEAVY EQUIPMENT • RKM SYSTEM</h4>
-                        <div class="text-[9px] font-bold text-slate-500 tracking-wider uppercase modal-qr-category-text">{{ $category->name ?? $category->unit_category ?? 'ALAT BERAT' }}</div>
-                    </div>
-                    <div class="text-right">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-emerald-50 text-[#1b5e20] border border-emerald-200 modal-qr-code-badge">
-                            -
-                        </span>
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Stiker QR Code Heavy Equipment</h3>
+                        <p class="text-xs text-slate-500">Siap dicetak dan ditempelkan pada fisik armada unit</p>
                     </div>
                 </div>
 
-                <!-- Konten Landscape: 2 Kolom Seimbang -->
-                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                    <!-- Kolom Kiri: QR Code (5/12) -->
-                    <div class="sm:col-span-5 flex flex-col items-center justify-center">
-                        <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs">
-                            <div class="w-44 h-44 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
-                                <!-- SVG QR Code di-inject di sini -->
-                            </div>
-                        </div>
-                        <!-- Tautan Langsung -->
-                        <div class="mt-2 text-[9px] font-mono text-slate-400 break-all text-center modal-qr-url">
-                            -
-                        </div>
+                <!-- Switcher Orientasi & Tombol Tutup -->
+                <div class="flex items-center space-x-2 self-end sm:self-auto">
+                    <!-- Toggle Tab Orientasi: Landscape & Portrait -->
+                    <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-bold">
+                        <button type="button" 
+                                id="btnTabLandscape"
+                                onclick="setStickerOrientation('landscape')" 
+                                class="px-3 py-1.5 rounded-lg transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1.5 cursor-pointer">
+                            <i class="fa-solid fa-image text-emerald-600"></i>
+                            <span>Landscape</span>
+                        </button>
+                        <button type="button" 
+                                id="btnTabPortrait"
+                                onclick="setStickerOrientation('portrait')" 
+                                class="px-3 py-1.5 rounded-lg transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1.5 cursor-pointer">
+                            <i class="fa-solid fa-file text-slate-400"></i>
+                            <span>Potrait</span>
+                        </button>
                     </div>
 
-                    <!-- Kolom Kanan: Rincian Unit & Panduan (7/12) -->
-                    <div class="sm:col-span-7 space-y-2.5">
-                        <!-- Rincian Identitas Unit Kendaraan -->
-                        <div class="space-y-1.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200 text-left">
-                            <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
-                                <span class="font-mono font-extrabold text-xs text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">-</span>
-                            </div>
-                            <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
-                                <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">-</span>
-                            </div>
-                            <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
-                                <span class="font-bold text-xs text-slate-900 text-right max-w-[190px] modal-qr-brand-text">-</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">LOKASI KERJA:</span>
-                                <span class="font-bold text-xs text-slate-700 modal-qr-location-text">-</span>
-                            </div>
-                        </div>
+                    <button type="button" 
+                            onclick="closeQrModal()" 
+                            class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+                            title="Tutup Modal">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
 
-                        <!-- Panduan Driver / Operator -->
-                        <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
-                            <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
-                                    <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
-                                </svg>
-                            </div>
-                            <span class="leading-snug modal-qr-instruction-text">
-                                <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir operasional unit.
+            <!-- Area Kartu Stiker Fisik (Scrollable Body) -->
+            <div class="overflow-y-auto flex-1 my-3 pr-1">
+                <!-- 1. PREVIEW STIKER LANDSCAPE (DEFAULT AKTIF) -->
+                <div id="printableStickerAreaLandscape" class="printable-card bg-white border-2 border-slate-900 rounded-3xl p-5 sm:p-6 text-left shadow-sm max-w-[660px] mx-auto">
+                    <!-- Kop Stiker Resmi Perusahaan -->
+                    <div class="border-b-2 border-slate-900 pb-3 mb-4 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
+                            <h4 class="text-xs sm:text-sm font-black uppercase tracking-tight text-slate-900 mt-0.5 modal-qr-sub-title">HEAVY EQUIPMENT • RKM SYSTEM</h4>
+                            <div class="text-[9px] font-bold text-slate-500 tracking-wider uppercase modal-qr-category-text">{{ $category->name ?? $category->unit_category ?? 'ALAT BERAT' }}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-mono font-black bg-emerald-50 text-[#1b5e20] border border-emerald-200 modal-qr-code-badge">
+                                -
                             </span>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- 2. PREVIEW STIKER POTRAIT -->
-            <div id="printableStickerAreaPortrait" class="printable-card hidden bg-white border-2 border-slate-900 rounded-3xl p-5 text-center shadow-sm max-w-[360px] mx-auto">
-                <!-- Kop Stiker Resmi Perusahaan -->
-                <div class="border-b-2 border-slate-900 pb-3 mb-4">
-                    <div class="text-[10px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
-                    <h4 class="text-xs font-black uppercase tracking-tight text-slate-900 mt-0.5 modal-qr-sub-title">HEAVY EQUIPMENT • RKM SYSTEM</h4>
-                    <div class="text-[9px] font-bold text-slate-500 tracking-wider uppercase modal-qr-category-text">{{ $category->name ?? $category->unit_category ?? 'ALAT BERAT' }}</div>
-                </div>
+                    <!-- Konten Landscape: 2 Kolom Seimbang -->
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                        <!-- Kolom Kiri: QR Code (5/12) -->
+                        <div class="sm:col-span-5 flex flex-col items-center justify-center">
+                            <div class="bg-white p-3 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs">
+                                <div class="w-44 h-44 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
+                                    <!-- SVG QR Code di-inject di sini -->
+                                </div>
+                            </div>
+                            <!-- Tautan Langsung -->
+                            <div class="mt-2 text-[9px] font-mono text-slate-400 break-all text-center modal-qr-url">
+                                -
+                            </div>
+                        </div>
 
-                <!-- Kontainer QR Code Vektor -->
-                <div class="bg-white p-3.5 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs mb-4">
-                    <div class="w-52 h-52 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
-                        <!-- SVG QR Code di-inject di sini -->
-                    </div>
-                </div>
+                        <!-- Kolom Kanan: Rincian Unit & Panduan (7/12) -->
+                        <div class="sm:col-span-7 space-y-2.5">
+                            <!-- Rincian Identitas Unit Kendaraan -->
+                            <div class="space-y-1.5 bg-slate-50/80 p-3 rounded-2xl border border-slate-200 text-left">
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
+                                    <span class="font-mono font-extrabold text-xs text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">-</span>
+                                </div>
+                                <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
+                                    <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">-</span>
+                                </div>
+                                <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
+                                    <span class="font-bold text-xs text-slate-900 text-right max-w-[190px] modal-qr-brand-text">-</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">LOKASI KERJA:</span>
+                                    <span class="font-bold text-xs text-slate-700 modal-qr-location-text">-</span>
+                                </div>
+                            </div>
 
-                <!-- Rincian Identitas Unit Kendaraan -->
-                <div class="space-y-1.5 mb-3 text-left bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200">
-                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
-                        <span class="font-mono font-extrabold text-sm text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">-</span>
-                    </div>
-                    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
-                        <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">-</span>
-                    </div>
-                    <div class="flex items-start justify-between pb-1.5 border-b border-slate-200/60">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
-                        <span class="font-bold text-xs text-slate-900 text-right max-w-[200px] modal-qr-brand-text">-</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">LOKASI KERJA:</span>
-                        <span class="font-bold text-xs text-slate-700 modal-qr-location-text">-</span>
-                    </div>
-                </div>
-
-                <!-- Panduan Driver / Operator -->
-                <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
-                    <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
-                            <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
-                        </svg>
-                    </div>
-                    <span class="leading-snug modal-qr-instruction-text">
-                        <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir operasional unit.
-                    </span>
-                </div>
-
-                <!-- Tautan Langsung -->
-                <div class="mt-2.5 text-[9px] font-mono text-slate-400 break-all modal-qr-url">
-                    -
-                </div>
-            </div>
-        </div>
-
-        <!-- Tombol Aksi Cetak & Unduh -->
-        <div class="pt-4 mt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-            <div class="flex flex-wrap items-center gap-2">
-                <!-- Dropdown / Tombol Cetak -->
-                <div class="relative inline-block text-left" id="printDropdownContainer">
-                    <div class="inline-flex rounded-xl shadow-sm">
-                        <button type="button" 
-                                onclick="printSticker()" 
-                                id="btnMainPrint"
-                                class="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-l-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition cursor-pointer">
-                            <i class="fa-solid fa-print"></i>
-                            <span id="btnMainPrintLabel">Cetak Landscape</span>
-                        </button>
-                        <button type="button" 
-                                onclick="toggleQrDropdown('printDropdownMenu', event)"
-                                class="px-2.5 py-2.5 rounded-r-xl bg-[#144919] hover:bg-[#0f3612] text-white border-l border-emerald-800 transition cursor-pointer"
-                                title="Pilihan Orientasi Cetak">
-                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                        </button>
-                    </div>
-                    <div id="printDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
-                        <button type="button" onclick="printSticker('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
-                            <i class="fa-solid fa-image text-emerald-600"></i>
-                            <span>Cetak Landscape</span>
-                        </button>
-                        <button type="button" onclick="printSticker('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
-                            <i class="fa-solid fa-file text-slate-500"></i>
-                            <span>Cetak Potrait</span>
-                        </button>
+                            <!-- Panduan Driver / Operator -->
+                            <div class="text-[10px] text-slate-700 bg-emerald-50/90 p-2.5 rounded-xl border border-emerald-200/60 flex items-center space-x-2.5 text-left">
+                                <div class="w-6 h-6 rounded-lg bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3.5 h-3.5 fill-current">
+                                        <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
+                                    </svg>
+                                </div>
+                                <span class="leading-snug modal-qr-instruction-text">
+                                    <strong>Scan QR ini</strong> menggunakan kamera HP untuk membuka formulir operasional unit.
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Dropdown / Tombol Unduh PNG -->
-                <div class="relative inline-block text-left" id="downloadDropdownContainer">
-                    <div class="inline-flex rounded-xl shadow-sm border border-slate-200">
-                        <button type="button" 
-                                id="btnDownloadSticker"
-                                onclick="downloadQrCode()" 
-                                class="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-l-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
-                            <i class="fa-solid fa-download"></i>
-                            <span id="btnMainDownloadLabel">Unduh Landscape (PNG)</span>
-                        </button>
-                        <button type="button" 
-                                onclick="toggleQrDropdown('downloadDropdownMenu', event)"
-                                class="px-2.5 py-2.5 rounded-r-xl bg-slate-200 hover:bg-slate-300 text-slate-600 border-l border-slate-300 transition cursor-pointer"
-                                title="Pilihan Orientasi Unduh">
-                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
-                        </button>
+                <!-- 2. PREVIEW STIKER POTRAIT (COMPACT & RESPONSIVE) -->
+                <div id="printableStickerAreaPortrait" class="printable-card hidden bg-white border-2 border-slate-900 rounded-3xl p-4 sm:p-5 text-center shadow-sm max-w-[340px] mx-auto">
+                    <!-- Kop Stiker Resmi Perusahaan -->
+                    <div class="border-b-2 border-slate-900 pb-2.5 mb-3">
+                        <div class="text-[9px] font-extrabold uppercase tracking-widest text-[#1b5e20]">PT KERINCI MERANGIN HIDRO</div>
+                        <h4 class="text-xs font-black uppercase tracking-tight text-slate-900 mt-0.5 modal-qr-sub-title">HEAVY EQUIPMENT • RKM SYSTEM</h4>
+                        <div class="text-[9px] font-bold text-slate-500 tracking-wider uppercase modal-qr-category-text">{{ $category->name ?? $category->unit_category ?? 'ALAT BERAT' }}</div>
                     </div>
-                    <div id="downloadDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
-                        <button type="button" onclick="downloadQrCode('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
-                            <i class="fa-solid fa-image text-emerald-600"></i>
-                            <span>Unduh Landscape (PNG)</span>
-                        </button>
-                        <button type="button" onclick="downloadQrCode('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
-                            <i class="fa-solid fa-file text-slate-500"></i>
-                            <span>Unduh Potrait (PNG)</span>
-                        </button>
+
+                    <!-- Kontainer QR Code Vektor (Compact) -->
+                    <div class="bg-white p-2.5 rounded-2xl border-2 border-slate-200 inline-block shadow-2xs mb-3">
+                        <div class="w-40 h-40 flex items-center justify-center [&>svg]:w-full [&>svg]:h-full modal-qr-container">
+                            <!-- SVG QR Code di-inject di sini -->
+                        </div>
+                    </div>
+
+                    <!-- Rincian Identitas Unit Kendaraan -->
+                    <div class="space-y-1.5 mb-2.5 text-left bg-slate-50/80 p-3 rounded-2xl border border-slate-200">
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-200/60">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">KODE UNIT:</span>
+                            <span class="font-mono font-extrabold text-xs text-[#1b5e20] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 modal-qr-code-text">-</span>
+                        </div>
+                        <div class="flex items-center justify-between pb-1 border-b border-slate-200/60">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">NO. POLISI:</span>
+                            <span class="font-mono font-bold text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 modal-qr-plate-text">-</span>
+                        </div>
+                        <div class="flex items-start justify-between pb-1 border-b border-slate-200/60">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">MEREK & TIPE:</span>
+                            <span class="font-bold text-xs text-slate-900 text-right max-w-[170px] modal-qr-brand-text">-</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">LOKASI KERJA:</span>
+                            <span class="font-bold text-xs text-slate-700 modal-qr-location-text">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Panduan Driver / Operator -->
+                    <div class="text-[9px] text-slate-700 bg-emerald-50/90 p-2 rounded-xl border border-emerald-200/60 flex items-center space-x-2 text-left mb-2">
+                        <div class="w-5 h-5 rounded-md bg-[#1b5e20] text-white flex items-center justify-center flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="w-3 h-3 fill-current">
+                                <path d="M149.1 64l-21.7 48L64 112c-35.3 0-64 28.7-64 64L0 400c0 35.3 28.7 64 64 64l384 0c35.3 0 64-28.7 64-64l0-224c0-35.3-28.7-64-64-64l-63.4 0-21.7-48L149.1 64zM256 208a96 96 0 1 1 0 192 96 96 0 1 1 0-192zm0 48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/>
+                            </svg>
+                        </div>
+                        <span class="leading-tight modal-qr-instruction-text">
+                            <strong>Scan QR ini</strong> menggunakan HP untuk membuka formulir operasional unit.
+                        </span>
+                    </div>
+
+                    <!-- Tautan Langsung -->
+                    <div class="text-[8.5px] font-mono text-slate-400 break-all modal-qr-url">
+                        -
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2 justify-end">
-                <!-- Test Form Scan -->
-                <a id="modalQrTestLink" 
-                   href="#" 
-                   target="_blank" 
-                   class="inline-flex items-center space-x-1 px-3 py-2.5 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
-                   title="Buka form input di tab baru untuk pengetesan">
-                    <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
-                    <span>Tes Form</span>
-                </a>
+            <!-- Tombol Aksi Cetak & Unduh (Pinned / Locked at Bottom) -->
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 flex-shrink-0 bg-white">
+                <div class="flex flex-wrap items-center gap-2">
+                    <!-- Dropdown / Tombol Cetak -->
+                    <div class="relative inline-block text-left" id="printDropdownContainer">
+                        <div class="inline-flex rounded-xl shadow-sm">
+                            <button type="button" 
+                                    onclick="printSticker()" 
+                                    id="btnMainPrint"
+                                    class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-l-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition cursor-pointer">
+                                <i class="fa-solid fa-print"></i>
+                                <span id="btnMainPrintLabel">Cetak Landscape</span>
+                            </button>
+                            <button type="button" 
+                                    onclick="toggleQrDropdown('printDropdownMenu', event)"
+                                    class="px-2 py-2 rounded-r-xl bg-[#144919] hover:bg-[#0f3612] text-white border-l border-emerald-800 transition cursor-pointer"
+                                    title="Pilihan Orientasi Cetak">
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div id="printDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
+                            <button type="button" onclick="printSticker('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                                <i class="fa-solid fa-image text-emerald-600"></i>
+                                <span>Cetak Landscape</span>
+                            </button>
+                            <button type="button" onclick="printSticker('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-emerald-50 hover:text-[#1b5e20] rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                                <i class="fa-solid fa-file text-slate-500"></i>
+                                <span>Cetak Potrait</span>
+                            </button>
+                        </div>
+                    </div>
 
-                <button type="button" 
-                        onclick="closeQrModal()" 
-                        class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
-                    Tutup
-                </button>
+                    <!-- Dropdown / Tombol Unduh PNG -->
+                    <div class="relative inline-block text-left" id="downloadDropdownContainer">
+                        <div class="inline-flex rounded-xl shadow-sm border border-slate-200">
+                            <button type="button" 
+                                    id="btnDownloadSticker"
+                                    onclick="downloadQrCode()" 
+                                    class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-l-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                                <i class="fa-solid fa-download"></i>
+                                <span id="btnMainDownloadLabel">Unduh Landscape (PNG)</span>
+                            </button>
+                            <button type="button" 
+                                    onclick="toggleQrDropdown('downloadDropdownMenu', event)"
+                                    class="px-2 py-2 rounded-r-xl bg-slate-200 hover:bg-slate-300 text-slate-600 border-l border-slate-300 transition cursor-pointer"
+                                    title="Pilihan Orientasi Unduh">
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                        </div>
+                        <div id="downloadDropdownMenu" style="display: none;" class="absolute left-0 bottom-full mb-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 p-1.5">
+                            <button type="button" onclick="downloadQrCode('landscape')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                                <i class="fa-solid fa-image text-emerald-600"></i>
+                                <span>Unduh Landscape (PNG)</span>
+                            </button>
+                            <button type="button" onclick="downloadQrCode('portrait')" class="w-full text-left px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center space-x-2 transition cursor-pointer">
+                                <i class="fa-solid fa-file text-slate-500"></i>
+                                <span>Unduh Potrait (PNG)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Bottom Switcher -->
+                    <div class="inline-flex p-0.5 bg-slate-100 rounded-lg border border-slate-200 text-[11px] font-bold">
+                        <button type="button" 
+                                id="btnFooterTabLandscape"
+                                onclick="setStickerOrientation('landscape')" 
+                                class="px-2.5 py-1 rounded-md transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1 cursor-pointer">
+                            <i class="fa-solid fa-image text-emerald-600 text-[10px]"></i>
+                            <span>Landscape</span>
+                        </button>
+                        <button type="button" 
+                                id="btnFooterTabPortrait"
+                                onclick="setStickerOrientation('portrait')" 
+                                class="px-2.5 py-1 rounded-md transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1 cursor-pointer">
+                            <i class="fa-solid fa-file text-slate-400 text-[10px]"></i>
+                            <span>Potrait</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 justify-end">
+                    <!-- Test Form Scan -->
+                    <a id="modalQrTestLink" 
+                       href="#" 
+                       target="_blank" 
+                       class="inline-flex items-center space-x-1 px-2.5 py-2 rounded-xl text-xs font-semibold text-blue-700 hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
+                       title="Buka form input di tab baru untuk pengetesan">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+                        <span>Tes Form</span>
+                    </a>
+
+                    <button type="button" 
+                            onclick="closeQrModal()" 
+                            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -1294,7 +1314,7 @@
         currentOrientation = orient === 'portrait' ? 'portrait' : 'landscape';
         const isLand = currentOrientation === 'landscape';
 
-        // Update active tab buttons
+        // Update active tab buttons (Header & Footer)
         const tabLand = document.getElementById('btnTabLandscape');
         const tabPort = document.getElementById('btnTabPortrait');
         if (tabLand && tabPort) {
@@ -1307,15 +1327,27 @@
             }
         }
 
+        const fTabLand = document.getElementById('btnFooterTabLandscape');
+        const fTabPort = document.getElementById('btnFooterTabPortrait');
+        if (fTabLand && fTabPort) {
+            if (isLand) {
+                fTabLand.className = "px-2.5 py-1 rounded-md transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1 cursor-pointer";
+                fTabPort.className = "px-2.5 py-1 rounded-md transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1 cursor-pointer";
+            } else {
+                fTabPort.className = "px-2.5 py-1 rounded-md transition text-slate-800 bg-white shadow-2xs border border-slate-200/60 font-bold flex items-center space-x-1 cursor-pointer";
+                fTabLand.className = "px-2.5 py-1 rounded-md transition text-slate-500 hover:text-slate-800 font-semibold flex items-center space-x-1 cursor-pointer";
+            }
+        }
+
         // Update Card Dialog Width
         const dialog = document.getElementById('qrModalDialog');
         if (dialog) {
             if (isLand) {
-                dialog.classList.remove('max-w-lg');
+                dialog.classList.remove('max-w-md');
                 dialog.classList.add('max-w-2xl', 'sm:max-w-3xl');
             } else {
                 dialog.classList.remove('max-w-2xl', 'sm:max-w-3xl');
-                dialog.classList.add('max-w-lg');
+                dialog.classList.add('max-w-md');
             }
         }
 

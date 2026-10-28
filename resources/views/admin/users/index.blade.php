@@ -288,319 +288,381 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: TAMBAH PENGGUNA BARU -->
+<!-- MODAL: TAMBAH PENGGUNA BARU (LANDSCAPE 2 KOLOM) -->
 <!-- ========================================================================= -->
-<div id="createUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-user-plus text-indigo-600"></i>
-                Tambah Pengguna Baru
-            </h3>
-            <button type="button" onclick="closeCreateUserModal()" class="text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-base"></i>
-            </button>
-        </div>
-
-        <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-            @csrf
-
-            <!-- Upload Foto Profil (Opsional) -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna (Opsional)</label>
+<div id="createUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-3 sm:p-5">
+    <div class="min-h-full flex items-center justify-center py-4 sm:py-6">
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[92vh] my-auto animate-scale-in">
+            <!-- Header Modal (Pinned at Top) -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
                 <div class="flex items-center space-x-3">
-                    <div id="addUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="addUserPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
-                        <i id="addUserPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <input type="file" 
-                               name="photo" 
-                               id="addUserPhotoInput" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                               onchange="previewUserImage(this, 'addUserPhotoPreview', 'addUserPhotoPlaceholder')"
-                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                        <p class="text-[10px] text-slate-400 mt-0.5">Otomatis dikompresi hemat storage (Maks. 10MB).</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
-                <input type="text" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: Ahmad Rizky">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
-                    <input type="text" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono" placeholder="Contoh: KMH-2026-101">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
-                    <input type="email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="ahmad@kmh.co.id">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
-                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                <select name="role" id="create_role" onchange="handleUserRoleChange(this.value, 'create')" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                    <option value="">-- Pilih Role --</option>
-                    @foreach($roles as $role)
-                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Section: Data Profil Karyawan & Penugasan (Selaras Master HSE) -->
-            <div class="pt-3 border-t border-slate-100 space-y-3">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-id-badge text-indigo-600"></i>
-                        <span>Data Profil Karyawan & Penugasan</span>
-                    </label>
-                    <span class="text-[10px] text-slate-400 font-medium">(Opsional)</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
-                        <select name="employee_type" id="create_employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="karyawan">Karyawan (Internal KMH)</option>
-                            <option value="sukon">Sukon (Subkontraktor)</option>
-                        </select>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base border border-indigo-200/60 shadow-2xs">
+                        <i class="fa-solid fa-user-plus"></i>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
-                        <input type="text" 
-                               name="unit_kerja" 
-                               id="create_unit_kerja" 
-                               list="adminUnitKerjaSuggestions" 
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
-                               placeholder="Ketik atau pilih unit kerja...">
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Tambah Pengguna Baru</h3>
+                        <p class="text-xs text-slate-500">Pendaftaran akun akses sistem & integrasi data profil personil/anggota</p>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
-                        <input type="text" name="division" id="create_division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
-                        <input type="text" name="position" id="create_position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
-                    <select name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                        <option value="0">TIDAK (Bukan Driver)</option>
-                        <option value="1">YA (Aktif Mengemudi)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
-                    Simpan Pengguna
+                <button type="button" onclick="closeCreateUserModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-        </form>
+
+            <!-- Form Body (Scrollable & Landscape 2-Column Grid) -->
+            <form action="{{ route('admin.users.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
+                @csrf
+
+                <div class="overflow-y-auto flex-1 p-5 sm:p-6 space-y-5">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                        <!-- KOLOM KIRI: Kredensial & Akun Login -->
+                        <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved text-indigo-600"></i>
+                                    1. Kredensial & Akun Login
+                                </span>
+                                <span class="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold">Wajib Diisi</span>
+                            </div>
+
+                            <!-- Upload Foto Profil (Opsional) -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna (Opsional)</label>
+                                <div class="flex items-center space-x-3">
+                                    <div id="addUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                        <img id="addUserPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
+                                        <i id="addUserPhotoPlaceholder" class="fa-solid fa-camera text-slate-400 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" 
+                                               name="photo" 
+                                               id="addUserPhotoInput" 
+                                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                               onchange="previewUserImage(this, 'addUserPhotoPreview', 'addUserPhotoPlaceholder')"
+                                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                                        <p class="text-[10px] text-slate-400 mt-0.5">Otomatis dikompresi hemat storage (Maks. 10MB).</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                                <input type="text" name="name" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Contoh: Ahmad Rizky">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
+                                    <input type="text" name="username" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono" placeholder="Contoh: KMH-2026-101">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
+                                    <input type="email" name="email" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="ahmad@kmh.co.id">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Password *</label>
+                                <input type="password" name="password" required minlength="6" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Minimal 6 karakter">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                                <select name="role" id="create_role" onchange="handleUserRoleChange(this.value, 'create')" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer font-medium text-slate-800">
+                                    <option value="">-- Pilih Role --</option>
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- KOLOM KANAN: Data Profil Karyawan & Penugasan -->
+                        <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-badge text-emerald-600"></i>
+                                    2. Profil Personil & Penugasan
+                                </span>
+                                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Sinkron Master HSE</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
+                                    <select name="employee_type" id="create_employee_type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700 cursor-pointer">
+                                        <option value="karyawan">Karyawan (Internal KMH)</option>
+                                        <option value="sukon">Sukon (Subkontraktor)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
+                                    <input type="text" 
+                                           name="unit_kerja" 
+                                           id="create_unit_kerja" 
+                                           list="adminUnitKerjaSuggestions" 
+                                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
+                                           placeholder="Ketik atau pilih unit kerja...">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
+                                    <input type="text" name="division" id="create_division" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
+                                    <input type="text" name="position" id="create_position" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Anggota / Staff">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
+                                <select name="is_operator" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700 cursor-pointer">
+                                    <option value="0">TIDAK (Bukan Driver)</option>
+                                    <option value="1">YA (Aktif Mengemudi)</option>
+                                </select>
+                            </div>
+
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-info text-indigo-500 mt-0.5 flex-shrink-0"></i>
+                                <span class="leading-relaxed">Data profil personil otomatis terintegrasi ke Master Karyawan HSE, modul SIMPER pengemudi, serta pencatatan pergerakan armada / gate.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Modal (Pinned at Bottom) -->
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/80 flex-shrink-0">
+                    <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Simpan Pengguna</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: EDIT PENGGUNA -->
+<!-- MODAL: EDIT PENGGUNA (LANDSCAPE 2 KOLOM + DIRECT PERMISSIONS) -->
 <!-- ========================================================================= -->
-<div id="editUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-in">
-        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-user-pen text-indigo-600"></i>
-                Edit Data Pengguna
-            </h3>
-            <button type="button" onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-base"></i>
-            </button>
-        </div>
-
-        <form id="editUserForm" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
-            @csrf
-
-            <!-- Upload / Ganti Foto Profil -->
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna</label>
+<div id="editUserModal" data-backdrop="static" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-sm p-3 sm:p-5">
+    <div class="min-h-full flex items-center justify-center py-4 sm:py-6">
+        <div class="bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden border border-slate-100 flex flex-col max-h-[92vh] my-auto animate-scale-in">
+            <!-- Header Modal (Pinned at Top) -->
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-white">
                 <div class="flex items-center space-x-3">
-                    <div id="editUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="editUserPhotoPreview" src="" alt="Foto" class="w-full h-full object-cover hidden">
-                        <i id="editUserPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
-                    </div>
-                    <div class="flex-1">
-                        <input type="file" 
-                               name="photo" 
-                               id="editUserPhotoInput" 
-                               accept="image/jpeg,image/png,image/jpg,image/webp" 
-                               onchange="previewUserImage(this, 'editUserPhotoPreview', 'editUserPhotoPlaceholder')"
-                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
-                        <p class="text-[10px] text-slate-400 mt-0.5">Pilih file baru jika ingin mengganti foto profil.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
-                <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
-                    <input type="text" id="edit_username" name="username" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
-                    <input type="email" id="edit_email" name="email" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">
-                    Ganti Password <span class="text-slate-400 font-normal">(Kosongkan jika tidak ingin mengubah)</span>
-                </label>
-                <input type="password" name="password" minlength="6" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Masukkan password baru">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
-                <select id="edit_role" name="role" required onchange="handleUserRoleChange(this.value, 'edit')" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
-                    @foreach($roles as $role)
-                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Section: Data Profil Karyawan & Penugasan (Selaras Master HSE) -->
-            <div class="pt-3 border-t border-slate-100 space-y-3">
-                <div class="flex items-center justify-between">
-                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-id-badge text-indigo-600"></i>
-                        <span>Data Profil Karyawan & Penugasan</span>
-                    </label>
-                    <span class="text-[10px] text-slate-400 font-medium">(Opsional)</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
-                        <select id="edit_employee_type" name="employee_type" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                            <option value="karyawan">Karyawan (Internal KMH)</option>
-                            <option value="sukon">Sukon (Subkontraktor)</option>
-                        </select>
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base border border-indigo-200/60 shadow-2xs">
+                        <i class="fa-solid fa-user-pen"></i>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
-                        <input type="text" 
-                               id="edit_unit_kerja" 
-                               name="unit_kerja" 
-                               list="adminUnitKerjaSuggestions" 
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
-                               placeholder="Ketik atau pilih unit kerja...">
+                        <h3 class="text-base font-bold text-slate-900 tracking-tight leading-tight">Edit Data Pengguna</h3>
+                        <p class="text-xs text-slate-500">Perbarui identitas akun, profil personil/anggota, serta izin wewenang sistem</p>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
-                        <input type="text" id="edit_division" name="division" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
-                        <input type="text" id="edit_position" name="position" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Staff Finance">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
-                    <select id="edit_is_operator" name="is_operator" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700">
-                        <option value="0">TIDAK (Bukan Driver)</option>
-                        <option value="1">YA (Aktif Mengemudi)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Accordion: Izin Tambahan Khusus (Direct Permissions) -->
-            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/50">
-                <button type="button" 
-                        onclick="toggleDirectPermsAccordion()" 
-                        class="w-full px-4 py-2.5 bg-slate-100/70 hover:bg-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 transition">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-solid fa-key text-indigo-600"></i>
-                        <span>Izin Tambahan Khusus (Direct Permissions)</span>
-                    </span>
-                    <i id="directPermsChevron" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+                <button type="button" onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
+            </div>
 
-                <div id="directPermsContainer" class="hidden p-4 space-y-4 max-h-64 overflow-y-auto bg-white border-t border-slate-200 text-xs">
-                    <!-- Panduan Visual Matriks Izin -->
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-[11px] text-slate-600">
-                        <i class="fa-solid fa-circle-info text-indigo-600 text-sm mt-0.5 flex-shrink-0"></i>
-                        <div class="leading-relaxed">
-                            <span class="font-bold text-slate-800 block mb-0.5">Panduan Wewenang Pengguna:</span>
-                            Wewenang dengan tanda <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">✓ Bawaan Role</span> otomatis aktif dari Role utama yang dipilih di atas. Anda dapat mencentang kotak lainnya untuk memberikan <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">+ Izin Khusus</span> tambahan secara individual.
-                        </div>
-                    </div>
+            <!-- Form Body (Scrollable & Landscape 2-Column Grid) -->
+            <form id="editUserForm" method="POST" enctype="multipart/form-data" class="flex flex-col flex-1 min-h-0">
+                @csrf
 
-                    @foreach($modules as $moduleKey => $module)
-                        <div class="space-y-1.5 pb-2.5 border-b border-slate-100 last:border-0">
-                            <p class="font-bold text-[11px] text-indigo-950 flex items-center gap-1.5">
-                                <i class="{{ $module['icon'] }} text-[10px] text-indigo-600"></i>
-                                <span>{{ $module['name'] }}</span>
-                            </p>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-3">
-                                @foreach($module['permissions'] as $permKey => $permMeta)
-                                    <label class="perm-item-wrapper flex items-start justify-between gap-2 text-[11px] text-slate-700 cursor-pointer select-none p-1.5 rounded-lg border border-transparent transition">
-                                        <div class="flex items-start gap-2 min-w-0">
-                                            <input type="checkbox" 
-                                                   name="direct_permissions[]" 
-                                                   value="{{ $permKey }}" 
-                                                   id="edit_perm_{{ str_replace('.', '_', $permKey) }}"
-                                                   onchange="onDirectPermCheckboxChange(this)"
-                                                   class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 user-direct-perm-checkbox flex-shrink-0">
-                                            <div class="min-w-0">
-                                                <span class="font-medium text-slate-800 transition block truncate">
-                                                    {{ $permMeta['label'] }}
-                                                </span>
-                                                <span class="font-mono text-[9px] text-slate-400 block">{{ $permKey }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="flex-shrink-0 pt-0.5">
-                                            <span id="badge_edit_perm_{{ str_replace('.', '_', $permKey) }}" class="hidden"></span>
-                                        </div>
-                                    </label>
-                                @endforeach
+                <div class="overflow-y-auto flex-1 p-5 sm:p-6 space-y-5">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+                        <!-- KOLOM KIRI: Kredensial & Akun Login -->
+                        <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-shield-halved text-indigo-600"></i>
+                                    1. Identitas Akun Pengguna
+                                </span>
+                                <span class="text-[10px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 font-semibold">RBAC Auth</span>
+                            </div>
+
+                            <!-- Upload / Ganti Foto Profil -->
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Foto Profil Pengguna</label>
+                                <div class="flex items-center space-x-3">
+                                    <div id="editUserPhotoPreviewContainer" class="w-12 h-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
+                                        <img id="editUserPhotoPreview" src="" alt="Foto" class="w-full h-full object-cover hidden">
+                                        <i id="editUserPhotoPlaceholder" class="fa-solid fa-user text-slate-400 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" 
+                                               name="photo" 
+                                               id="editUserPhotoInput" 
+                                               accept="image/jpeg,image/png,image/jpg,image/webp" 
+                                               onchange="previewUserImage(this, 'editUserPhotoPreview', 'editUserPhotoPlaceholder')"
+                                               class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[11px] file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                                        <p class="text-[10px] text-slate-400 mt-0.5">Pilih file baru jika ingin mengganti foto profil.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lengkap *</label>
+                                <input type="text" id="edit_name" name="name" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">NIK (Nomor Induk Karyawan) *</label>
+                                    <input type="text" id="edit_username" name="username" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">Email *</label>
+                                    <input type="email" id="edit_email" name="email" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Ganti Password <span class="text-slate-400 font-normal">(Kosongkan jika tidak diubah)</span>
+                                </label>
+                                <input type="password" name="password" minlength="6" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white" placeholder="Masukkan password baru">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Role RBAC *</label>
+                                <select id="edit_role" name="role" required onchange="handleUserRoleChange(this.value, 'edit')" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white cursor-pointer font-medium text-slate-800">
+                                    @foreach($roles as $role)
+                                        <option value="{{ $role->name }}">{{ ucwords(str_replace('_', ' ', $role->name)) }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
-                    @endforeach
-                </div>
-            </div>
 
-            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
-                <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
-                    Batal
-                </button>
-                <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
-                    Simpan Perubahan
-                </button>
-            </div>
-        </form>
+                        <!-- KOLOM KANAN: Data Profil Karyawan & Penugasan -->
+                        <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200/80">
+                                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-id-badge text-emerald-600"></i>
+                                    2. Profil Personil & Penugasan
+                                </span>
+                                <span class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-semibold">Sinkron Master HSE</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Jenis Personil</label>
+                                    <select id="edit_employee_type" name="employee_type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700 cursor-pointer">
+                                        <option value="karyawan">Karyawan (Internal KMH)</option>
+                                        <option value="sukon">Sukon (Subkontraktor)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Unit Kerja</label>
+                                    <input type="text" 
+                                           id="edit_unit_kerja" 
+                                           name="unit_kerja" 
+                                           list="adminUnitKerjaSuggestions" 
+                                           class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" 
+                                           placeholder="Ketik atau pilih unit kerja...">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Divisi</label>
+                                    <input type="text" id="edit_division" name="division" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Operasi / Keuangan">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Posisi / Jabatan</label>
+                                    <input type="text" id="edit_position" name="position" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700" placeholder="Contoh: Driver / Anggota / Staff">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">Operator / Driver</label>
+                                <select id="edit_is_operator" name="is_operator" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-700 cursor-pointer">
+                                    <option value="0">TIDAK (Bukan Driver)</option>
+                                    <option value="1">YA (Aktif Mengemudi)</option>
+                                </select>
+                            </div>
+
+                            <div class="p-3 bg-white rounded-xl border border-slate-200 text-[11px] text-slate-600 flex items-start gap-2.5">
+                                <i class="fa-solid fa-circle-info text-indigo-500 mt-0.5 flex-shrink-0"></i>
+                                <span class="leading-relaxed">Perubahan pada data profil personil akan otomatis menyelaraskan data di Master Karyawan HSE dan izin SIMPER.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accordion: Izin Tambahan Khusus (Direct Permissions) -->
+                    <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/50">
+                        <button type="button" 
+                                onclick="toggleDirectPermsAccordion()" 
+                                class="w-full px-4 py-3 bg-slate-100/70 hover:bg-slate-100 flex items-center justify-between text-xs font-bold text-slate-700 transition cursor-pointer">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-key text-indigo-600"></i>
+                                <span>Izin Tambahan Khusus (Direct Permissions)</span>
+                            </span>
+                            <i id="directPermsChevron" class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"></i>
+                        </button>
+
+                        <div id="directPermsContainer" class="hidden p-4 space-y-4 max-h-64 overflow-y-auto bg-white border-t border-slate-200 text-xs">
+                            <!-- Panduan Visual Matriks Izin -->
+                            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5 text-[11px] text-slate-600">
+                                <i class="fa-solid fa-circle-info text-indigo-600 text-sm mt-0.5 flex-shrink-0"></i>
+                                <div class="leading-relaxed">
+                                    <span class="font-bold text-slate-800 block mb-0.5">Panduan Wewenang Pengguna:</span>
+                                    Wewenang dengan tanda <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">✓ Bawaan Role</span> otomatis aktif dari Role utama yang dipilih di atas. Anda dapat mencentang kotak lainnya untuk memberikan <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200">+ Izin Khusus</span> tambahan secara individual.
+                                </div>
+                            </div>
+
+                            @foreach($modules as $moduleKey => $module)
+                                <div class="space-y-1.5 pb-2.5 border-b border-slate-100 last:border-0">
+                                    <p class="font-bold text-[11px] text-indigo-950 flex items-center gap-1.5">
+                                        <i class="{{ $module['icon'] }} text-[10px] text-indigo-600"></i>
+                                        <span>{{ $module['name'] }}</span>
+                                    </p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-3">
+                                        @foreach($module['permissions'] as $permKey => $permMeta)
+                                            <label class="perm-item-wrapper flex items-start justify-between gap-2 text-[11px] text-slate-700 cursor-pointer select-none p-1.5 rounded-lg border border-transparent transition">
+                                                <div class="flex items-start gap-2 min-w-0">
+                                                    <input type="checkbox" 
+                                                           name="direct_permissions[]" 
+                                                           value="{{ $permKey }}" 
+                                                           id="edit_perm_{{ str_replace('.', '_', $permKey) }}"
+                                                           onchange="onDirectPermCheckboxChange(this)"
+                                                           class="mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 user-direct-perm-checkbox flex-shrink-0">
+                                                    <div class="min-w-0">
+                                                        <span class="font-medium text-slate-800 transition block truncate">
+                                                            {{ $permMeta['label'] }}
+                                                        </span>
+                                                        <span class="font-mono text-[9px] text-slate-400 block">{{ $permKey }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-shrink-0 pt-0.5">
+                                                    <span id="badge_edit_perm_{{ str_replace('.', '_', $permKey) }}" class="hidden"></span>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Modal (Pinned at Bottom) -->
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-slate-50/80 flex-shrink-0">
+                    <button type="button" onclick="closeEditUserModal()" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
