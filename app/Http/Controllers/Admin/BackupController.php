@@ -60,7 +60,35 @@ class BackupController extends Controller
             $log->file_exists = File::exists($fullPath);
         });
 
-        return view('admin.backups.index', compact('backupLogs', 'backups', 'stats', 'tableGroups'));
+        // Ambil info batas upload server PHP saat ini
+        $uploadMax = ini_get('upload_max_filesize') ?: '256M';
+        $postMax = ini_get('post_max_size') ?: '256M';
+        $maxUploadBytes = min($this->parseIniBytes($uploadMax), $this->parseIniBytes($postMax));
+        $maxUploadHuman = $this->backupService->formatBytes($maxUploadBytes);
+
+        return view('admin.backups.index', compact('backupLogs', 'backups', 'stats', 'tableGroups', 'maxUploadBytes', 'maxUploadHuman'));
+    }
+
+    /**
+     * Konversi notasi string PHP INI (misal 256M, 1G) ke byte integer.
+     */
+    protected function parseIniBytes(string $val): int
+    {
+        $val = trim($val);
+        $last = strtolower($val[strlen($val) - 1] ?? '');
+        $num = (int) $val;
+        switch ($last) {
+            case 'g':
+                $num *= 1024 * 1024 * 1024;
+                break;
+            case 'm':
+                $num *= 1024 * 1024;
+                break;
+            case 'k':
+                $num *= 1024;
+                break;
+        }
+        return $num > 0 ? $num : 268435456; // Fallback 256 MB
     }
 
     /**

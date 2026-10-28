@@ -444,7 +444,7 @@
                         </div>
                         <p class="text-xs font-bold text-slate-800" id="directRestoreFileName">Tarik &amp; Letakkan file .kmh di sini</p>
                         <p class="text-[11px] text-slate-400 mt-1">atau <span class="text-amber-700 font-semibold underline">klik untuk memilih dari komputer Anda</span></p>
-                        <p class="text-[10px] text-slate-400 mt-1.5">Format didukung: .kmh terenkripsi (Maks. 200 MB)</p>
+                        <p class="text-[10px] text-slate-400 mt-1.5">Format didukung: .kmh terenkripsi (Batas upload server: {{ $maxUploadHuman ?? '256 MB' }})</p>
                     </div>
 
                     <div id="directRestoreFileDisplay" class="hidden mt-1 p-3 rounded-xl bg-amber-50 border border-amber-200 text-left">
@@ -752,6 +752,14 @@
     function handleDirectRestoreFileChange(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
+            const maxBytes = {{ $maxUploadBytes ?? 268435456 }};
+            if (file.size > maxBytes) {
+                const fileMb = (file.size / (1024 * 1024)).toFixed(1);
+                const limitMb = (maxBytes / (1024 * 1024)).toFixed(0);
+                alert(`Peringatan: Ukuran file (${fileMb} MB) melebihi batas upload PHP server (${limitMb} MB). Mohon sesuaikan pengaturan php.ini server Anda.`);
+                input.value = '';
+                return;
+            }
             const sizeHuman = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
             document.getElementById('directRestorePillName').textContent = file.name;
             document.getElementById('directRestorePillSize').textContent = sizeHuman;
