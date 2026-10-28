@@ -5,8 +5,8 @@
 @section('content')
 <div class="space-y-6">
     <!-- Header Halaman (Clean Minimalist) -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-100">
-        <div>
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-100">
+        <div class="min-w-0 flex-1">
             <h1 class="text-xl font-bold text-slate-900 tracking-tight">
                 Backup &amp; Restore Sistem
             </h1>
@@ -14,15 +14,15 @@
                 Pencadangan terenkripsi berformat <code>.kmh</code> khusus untuk sistem RKM-KMH. Langsung unduh ke komputer lokal dan hemat kapasitas disk VPS server.
             </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
             <button type="button" 
                     onclick="openDirectRestoreModal()" 
-                    class="px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold transition shadow-2xs">
+                    class="whitespace-nowrap px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold transition shadow-2xs inline-flex items-center gap-1.5">
                 Pulihkan dari File .kmh
             </button>
             <button type="button" 
                     onclick="openCreateBackupModal()" 
-                    class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-xs">
+                    class="whitespace-nowrap px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-xs inline-flex items-center gap-1.5">
                 Buat Backup Baru
             </button>
         </div>
