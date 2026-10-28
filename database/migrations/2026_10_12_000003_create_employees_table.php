@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('simper_expired_at')->nullable();
             $table->string('photo_path')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

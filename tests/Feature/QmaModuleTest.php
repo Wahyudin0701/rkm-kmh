@@ -223,7 +223,7 @@ class QmaModuleTest extends TestCase
 
         $response = $this->actingAs($this->qmaAdmin)->delete("/qma/vehicles/{$vehicle->id}");
         $response->assertSessionHas('success');
-        $this->assertDatabaseMissing('vehicles', ['id' => $vehicle->id]);
+        $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
     }
 
     /**

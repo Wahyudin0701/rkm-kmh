@@ -28,6 +28,7 @@ return new class extends Migration
             $table->text('rejection_note')->nullable();
             $table->timestamp('validated_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             // Indexes untuk percepatan performa filter log & antrean gerbang
             $table->index(['gate_id', 'validation_status']);

@@ -138,7 +138,7 @@ class PhotoUploadAndCompressionTest extends TestCase
         $deleteResponse = $this->actingAs($this->adminQma)->delete(route('qma.vehicles.destroy', $vehicle->id));
         $deleteResponse->assertRedirect();
 
-        $this->assertDatabaseMissing('vehicles', ['id' => $vehicle->id]);
+        $this->assertSoftDeleted('vehicles', ['id' => $vehicle->id]);
         Storage::disk('public')->assertMissing($photoPath);
     }
 

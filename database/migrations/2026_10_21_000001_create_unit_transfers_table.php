@@ -38,6 +38,7 @@ return new class extends Migration
             $table->string('status', 30)->default('completed');
 
             $table->timestamps();
+            $table->softDeletes();
 
             // Index
             $table->index(['vehicle_id', 'transfer_date']);

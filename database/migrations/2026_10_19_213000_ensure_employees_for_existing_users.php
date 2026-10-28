@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // Pastikan seluruh user dengan role employee memiliki profil data master Employee
-        $users = User::where('role', 'employee')
+        $users = User::withoutGlobalScopes()->where('role', 'employee')
             ->orWhereHas('roles', fn ($q) => $q->where('name', 'employee'))
             ->get();
 

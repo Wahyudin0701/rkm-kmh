@@ -34,6 +34,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->foreignId('created_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
+            $table->softDeletes();
 
             // Index performa query & pelaporan
             $table->index(['date', 'shift']);

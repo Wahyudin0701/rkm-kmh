@@ -326,7 +326,7 @@ class QmaUnitTransferTest extends TestCase
         $response = $this->actingAs($this->qmaAdmin)->delete(route('qma.unit_transfers.destroy', $transfer->id));
 
         $response->assertRedirect(route('qma.unit_transfers.index'));
-        $this->assertDatabaseMissing('unit_transfers', ['id' => $transfer->id]);
+        $this->assertSoftDeleted('unit_transfers', ['id' => $transfer->id]);
     }
 
     /**

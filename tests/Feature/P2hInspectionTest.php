@@ -380,7 +380,7 @@ class P2hInspectionTest extends TestCase
         // 6. Hapus kategori aset juga menghapus master template yang belum ada transaksi
         $deleteResponse = $this->actingAs($this->qmaAdmin)->delete('/qma/vehicles/' . $category->id);
         $deleteResponse->assertSessionHas('success');
-        $this->assertDatabaseMissing('p2h_templates', ['id' => $template->id]);
+        $this->assertSoftDeleted('p2h_templates', ['id' => $template->id]);
     }
 
     public function test_qma_admin_can_edit_p2h_template_question(): void

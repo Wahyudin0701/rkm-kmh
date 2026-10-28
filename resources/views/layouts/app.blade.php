@@ -254,6 +254,12 @@
                             <i class="fa-solid fa-database text-base w-5 text-center"></i>
                             <span>Backup & Restore</span>
                         </a>
+
+                        <a href="{{ route('admin.trash.index') }}" 
+                           class="flex items-center space-x-3 px-3.5 py-2.5 text-sm {{ request()->routeIs('admin.trash.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-trash-can text-base w-5 text-center"></i>
+                            <span>Tong Sampah</span>
+                        </a>
                     </nav>
                 </div>
                 @endif
@@ -639,6 +645,10 @@
                         <a href="{{ route('admin.backups.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.backups.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
                             <i class="fa-solid fa-database w-5 text-center"></i>
                             <span>Backup & Restore</span>
+                        </a>
+                        <a href="{{ route('admin.trash.index') }}" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm {{ request()->routeIs('admin.trash.*') ? 'sidebar-item-active' : 'sidebar-item-inactive' }}">
+                            <i class="fa-solid fa-trash-can w-5 text-center"></i>
+                            <span>Tong Sampah</span>
                         </a>
                     </nav>
                 </div>

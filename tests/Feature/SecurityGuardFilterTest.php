@@ -170,9 +170,9 @@ class SecurityGuardFilterTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('success');
-        $this->assertDatabaseMissing('security_guards', ['id' => $guardId]);
+        $this->assertSoftDeleted('security_guards', ['id' => $guardId]);
         if ($userId) {
-            $this->assertDatabaseMissing('users', ['id' => $userId]);
+            $this->assertSoftDeleted('users', ['id' => $userId]);
         }
     }
 }

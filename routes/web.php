@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminActivityLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\RolePermissionController;
+use App\Http\Controllers\Admin\TrashController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
@@ -224,5 +225,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
         Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
         Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
+
+        // Tong Sampah / Recycle Bin & Retensi Otomatis
+        Route::get('/trash', [TrashController::class, 'index'])->name('trash.index');
+        Route::post('/trash/{category}/{id}/restore', [TrashController::class, 'restore'])->name('trash.restore');
+        Route::delete('/trash/{category}/{id}/force', [TrashController::class, 'forceDelete'])->name('trash.force_delete');
+        Route::post('/trash/empty', [TrashController::class, 'emptyAll'])->name('trash.empty');
+        Route::post('/trash/retention', [TrashController::class, 'updateRetention'])->name('trash.retention');
     });
 });

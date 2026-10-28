@@ -252,8 +252,8 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
         $response->assertSessionHas('success');
         $response->assertRedirect(route('hse.employees.index'));
 
-        $this->assertDatabaseMissing('employees', ['id' => $employee->id]);
-        $this->assertDatabaseMissing('users', ['id' => $linkedUser->id]);
+        $this->assertSoftDeleted('employees', ['id' => $employee->id]);
+        $this->assertSoftDeleted('users', ['id' => $linkedUser->id]);
     }
 
     public function test_cannot_delete_employee_with_operational_records(): void

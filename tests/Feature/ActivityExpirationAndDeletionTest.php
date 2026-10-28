@@ -228,7 +228,7 @@ class ActivityExpirationAndDeletionTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        $this->assertDatabaseMissing('vehicle_activities', ['id' => $activity->id]);
+        $this->assertSoftDeleted('vehicle_activities', ['id' => $activity->id]);
 
         // Verifikasi audit log tercatat
         $this->assertDatabaseHas('admin_activity_logs', [
@@ -289,7 +289,7 @@ class ActivityExpirationAndDeletionTest extends TestCase
         $response->assertRedirect();
         $response->assertSessionHas('success');
 
-        $this->assertDatabaseMissing('vehicle_activities', ['id' => $activity->id]);
+        $this->assertSoftDeleted('vehicle_activities', ['id' => $activity->id]);
 
         // Verifikasi audit log tercatat
         $this->assertDatabaseHas('admin_activity_logs', [

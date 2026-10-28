@@ -329,7 +329,7 @@ class QmaSupportTimesheetTest extends TestCase
             ->delete(route('qma.support_timesheet.destroy', $timesheet->id));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('unit_support_timesheets', ['id' => $timesheet->id]);
+        $this->assertSoftDeleted('unit_support_timesheets', ['id' => $timesheet->id]);
     }
 
     /**

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         // 2. Tabel Butir Pertanyaan / Item Cek per Template
@@ -31,6 +32,7 @@ return new class extends Migration
             $table->string('question_type', 50); // choice, datetime, number, text
             $table->integer('sequence')->default(0);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['template_id', 'sequence']);
         });
@@ -61,6 +63,7 @@ return new class extends Migration
             $table->text('validation_notes')->nullable();
             $table->dateTime('inspected_at');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['vehicle_id', 'inspected_at']);
             $table->index(['employee_id', 'inspected_at']);
@@ -79,6 +82,7 @@ return new class extends Migration
             $table->text('answer_value')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['p2h_record_id', 'condition_status']);
         });

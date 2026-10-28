@@ -37,6 +37,7 @@ return new class extends Migration
             $table->string('kir_document', 150)->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

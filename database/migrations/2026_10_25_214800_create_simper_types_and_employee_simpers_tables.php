@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->boolean('is_active')->default(true)->index();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         // 2. Tabel Relasi Multi-SIMPER Personil (Karyawan & Sukon)
@@ -33,6 +34,7 @@ return new class extends Migration
             $table->string('status', 20)->default('active')->index();
             $table->text('notes')->nullable();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['employee_id', 'simper_type_id']);
         });
