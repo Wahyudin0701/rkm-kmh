@@ -150,7 +150,7 @@ class GateInspectionController extends Controller
             'count' => $pendingActivities->count(),
             'items' => $items,
             'html' => view('pg.partials.queue_cards', compact('pendingActivities', 'currentGuard', 'guards'))->render(),
-        ]);
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
     /**

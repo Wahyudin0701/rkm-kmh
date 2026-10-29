@@ -560,11 +560,11 @@
         const pdfBtn = document.getElementById('modalDownloadPdfBtn');
         const tableBody = document.getElementById('modalItemsTableBody');
 
-        pdfBtn.href = "{{ url('/karyawan/riwayat/p2h') }}/" + recordId + "/pdf";
+        pdfBtn.href = "{{ url('/karyawan/riwayat/p2h', [], false) }}/" + recordId + "/pdf";
         tableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-slate-400">Memuat data...</td></tr>';
         modal.classList.remove('hidden');
 
-        fetch("{{ url('/karyawan/riwayat/p2h') }}/" + recordId)
+        fetch("{{ url('/karyawan/riwayat/p2h', [], false) }}/" + recordId)
             .then(res => {
                 if (!res.ok) throw new Error('Gagal memuat detail data.');
                 return res.json();

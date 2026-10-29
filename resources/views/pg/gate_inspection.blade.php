@@ -344,10 +344,11 @@
         isSyncing = true;
 
         try {
-            const response = await fetch("{{ route('pg.gate.live_queue') }}?gate_id={{ $gate ? $gate->id : '' }}", {
+            const response = await fetch("{{ route('pg.gate.live_queue', [], false) }}?gate_id={{ $gate ? $gate->id : '' }}&_t=" + Date.now(), {
                 headers: { 
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
                 }
             });
 
@@ -404,7 +405,7 @@
 
             // 3. Update Daftar Kartu Antrean Secara Halus (Hanya Jika Ada Perubahan)
             const listContainer = document.getElementById('queueListContainer');
-            if (listContainer && lastQueueHtml !== null && lastQueueHtml !== data.html) {
+            if (listContainer && data.html && lastQueueHtml !== data.html) {
                 listContainer.innerHTML = data.html;
             }
 

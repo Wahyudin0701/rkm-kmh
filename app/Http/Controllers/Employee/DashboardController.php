@@ -204,7 +204,7 @@ class DashboardController extends Controller
             'rejection_note' => $activity->rejection_note,
             'recorded_at' => $activity->recorded_at ? $activity->recorded_at->format('H:i') . ' WIB' : null,
             'validated_at' => $activity->validated_at ? $activity->validated_at->format('H:i') . ' WIB' : null,
-        ]);
+        ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     }
 
     /**

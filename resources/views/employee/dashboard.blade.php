@@ -1162,10 +1162,11 @@
 
             isPollingInProgress = true;
             try {
-                const response = await fetch(`{{ route('employee.activity.status_polling') }}?activity_id=${activityId}`, {
+                const response = await fetch(`{{ route('employee.activity.status_polling', [], false) }}?activity_id=${activityId}&_t=${Date.now()}`, {
                     headers: {
                         'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache'
                     }
                 });
 

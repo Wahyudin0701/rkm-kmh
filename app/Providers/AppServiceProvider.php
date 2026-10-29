@@ -23,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
         \Carbon\Carbon::setLocale('id');
         date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
 
+        // Deteksi HTTPS dari Cloudflare Reverse Proxy / Tunnel
+        if (request()->header('x-forwarded-proto') === 'https' || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') || str_starts_with(config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Super Admin bypass: secara otomatis memiliki izin untuk semua ability
         Gate::before(function ($user, $ability) {
             if (in_array($user->role, ['super_admin', 'superadmin', 'admin'])) {
