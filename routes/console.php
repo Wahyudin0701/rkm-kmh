@@ -15,6 +15,5 @@ Schedule::command(ExpirePendingActivitiesCommand::class)->hourly();
 // Jadwalkan pembersihan otomatis tong sampah sesuai retensi sistem setiap malam
 Schedule::command('trash:prune')->daily();
 
-// Jadwalkan pembuatan backup terenkripsi (.kmh) sistem otomatis setiap hari pukul 01:00
-Schedule::command('backup:create --scope=semua')->dailyAt('01:00');
+// Catatan: Backup sistem dijalankan secara manual oleh Super Admin via menu web untuk menghemat kapasitas storage VPS.
 
