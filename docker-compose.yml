@@ -22,6 +22,7 @@ services:
     volumes:
       - rkm_storage:/var/www/storage
       - rkm_bootstrap_cache:/var/www/bootstrap/cache
+      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini:ro
     depends_on:
       db:
         condition: service_healthy
