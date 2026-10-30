@@ -18,7 +18,7 @@
             <button type="button" 
                     onclick="openInspectModal()" 
                     class="whitespace-nowrap px-4 py-2.5 rounded-xl border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-900 text-xs font-semibold transition shadow-2xs inline-flex items-center gap-1.5">
-                🔍 Baca Arsip .kmh
+                Baca Arsip .kmh
             </button>
             <button type="button" 
                     onclick="openDirectRestoreModal()" 
@@ -632,16 +632,16 @@
 <!-- MODAL: PEMBACA & INSPEKTOR ARSIP BACKUP (.KMH READER) -->
 <!-- ========================================================================= -->
 <div id="inspectBackupModal" data-backdrop="static" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden animate-scale-in border border-slate-100 my-8">
-        <!-- Header -->
-        <div class="px-6 py-4 bg-sky-50/80 border-b border-sky-100 flex items-center justify-between">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden animate-scale-in border border-slate-100 my-8">
+        <!-- Header Modal (Clean Minimal Enterprise) -->
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                    KMH
-                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-sky-100 text-sky-800 border border-sky-200">
+                    KMH READER
+                </span>
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Pembaca &amp; Inspeksi Arsip .kmh</h3>
-                    <p class="text-xs text-sky-800 mt-0.5">Lihat struktur data, tabel, dan media tanpa memulihkan ke database (Read-Only).</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Lihat struktur data, jumlah baris, dan pratinjau isi tabel tanpa mengubah database.</p>
                 </div>
             </div>
             <button type="button" onclick="closeInspectModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1 leading-none">&times;</button>
@@ -651,10 +651,10 @@
             <!-- Navigasi Tab: Server vs Upload Komputer -->
             <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
                 <button type="button" id="tabInspectServer" onclick="switchInspectTab('server')" class="flex-1 py-2 px-3 rounded-lg bg-white shadow-2xs text-slate-800 transition">
-                    📁 Arsip di Server VPS
+                    Arsip di Server VPS
                 </button>
                 <button type="button" id="tabInspectUpload" onclick="switchInspectTab('upload')" class="flex-1 py-2 px-3 rounded-lg text-slate-500 hover:text-slate-700 transition">
-                    💻 Upload File dari Komputer (0 B Storage)
+                    Unggah File dari Komputer (0 B Storage)
                 </button>
             </div>
 
@@ -674,15 +674,15 @@
                     </div>
                 @else
                     <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500">
-                        Tidak ada berkas backup fisik di storage server saat ini. Silakan gunakan tab <strong>"Upload File dari Komputer"</strong> untuk membaca backup dari PC Anda.
+                        Tidak ada berkas backup fisik di storage server saat ini. Silakan gunakan tab <strong>"Unggah File dari Komputer"</strong> untuk membaca backup dari PC Anda.
                     </div>
                 @endif
             </div>
 
             <!-- Panel 2: Upload dari Komputer (Zero Storage Retention) -->
             <div id="panelInspectUpload" class="hidden space-y-3">
-                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900">
-                    💡 <strong>Bebas Kapasitas (0 B Storage):</strong> File yang Anda upload hanya dibaca di RAM/memori sementara dan langsung dihapus otomatis seketika setelah metadata selesai dibaca.
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
+                    <strong>Bebas Kapasitas Server:</strong> Berkas yang diunggah hanya dibaca sementara di memori dan langsung dihapus otomatis seketika setelah metadata selesai dibaca.
                 </div>
                 <div id="inspectUploadDropzone" 
                      class="border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-sky-50/20 transition cursor-pointer select-none"
@@ -724,8 +724,8 @@
                         <p class="text-[11px] text-slate-500 mt-0.5">Dibuat pada <strong id="resCreatedAt">-</strong> (<span id="resCreatedDiff">-</span>)</p>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 inline-flex items-center gap-1">
-                            🔒 <span id="resSecurity">AES-256-CBC Valid</span>
+                        <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center" id="resSecurity">
+                            AES-256-CBC Valid
                         </span>
                     </div>
                 </div>
@@ -750,14 +750,45 @@
                     </div>
                 </div>
 
-                <!-- Daftar Tabel -->
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800">Daftar Tabel Terarsip (<span id="resTableCount">0</span> tabel):</span>
-                        <span class="text-[11px] text-slate-400">Siap sinkron ke database</span>
+                <!-- Daftar Tabel & Pratinjau Isi Data (Table Inspector) -->
+                <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">
+                                Daftar Tabel &amp; Jumlah Baris Data (<span id="resTableCount">0</span> tabel):
+                            </span>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">
+                                Klik salah satu tombol tabel untuk membuka pratinjau kolom dan isi datanya di bawah.
+                            </span>
+                        </div>
+                        <input type="text" id="inspectTableFilterInput" oninput="filterInspectTables(this.value)" placeholder="Cari nama tabel..." class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 focus:outline-none focus:border-sky-500 w-full sm:w-48">
                     </div>
-                    <div id="resTableList" class="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto p-1.5 bg-slate-50 rounded-lg border border-slate-100">
-                        <!-- badges tabel -->
+
+                    <!-- Grid Tombol Tabel -->
+                    <div id="resTableList" class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-slate-50 rounded-xl border border-slate-100">
+                        <!-- tombol tabel -->
+                    </div>
+
+                    <!-- Pratinjau Isi Data Tabel yang Dipilih -->
+                    <div id="resTablePreviewCard" class="hidden pt-3 border-t border-slate-100 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-900 font-mono" id="previewTableName">users</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-700" id="previewTableRowCount">0 baris data</span>
+                            </div>
+                            <span class="text-[10px] text-slate-400">Pratinjau 5 baris pertama di dalam berkas arsip</span>
+                        </div>
+
+                        <div class="overflow-x-auto max-h-56 overflow-y-auto rounded-xl border border-slate-200">
+                            <table class="min-w-full divide-y divide-slate-200 text-left">
+                                <thead id="previewTableHead" class="bg-slate-50 font-semibold text-slate-600 sticky top-0 text-[11px]">
+                                    <!-- Kolom -->
+                                </thead>
+                                <tbody id="previewTableBody" class="divide-y divide-slate-100 bg-white font-mono text-[11px] text-slate-700">
+                                    <!-- Baris Sampel -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -1181,6 +1212,118 @@
         errorDiv.classList.remove('hidden');
     }
 
+    let currentTableDetails = {};
+    let activePreviewTable = null;
+
+    function renderTableButtons(filter = '') {
+        const tableListDiv = document.getElementById('resTableList');
+        tableListDiv.innerHTML = '';
+
+        const tableNames = Object.keys(currentTableDetails);
+        const filtered = filter ? tableNames.filter(t => t.toLowerCase().includes(filter.toLowerCase())) : tableNames;
+
+        if (filtered.length === 0) {
+            tableListDiv.innerHTML = '<span class="text-xs text-slate-400 italic p-1">Tidak ada tabel yang cocok dengan pencarian.</span>';
+            return;
+        }
+
+        filtered.forEach(tbl => {
+            const detail = currentTableDetails[tbl] || { rows_count: 0, columns: [], samples: [] };
+            const count = detail.rows_count ?? 0;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            const isActive = (tbl === activePreviewTable);
+
+            btn.className = isActive
+                ? 'px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold bg-sky-600 text-white shadow-2xs transition shrink-0'
+                : 'px-2.5 py-1 rounded-lg text-[11px] font-mono bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 shadow-2xs transition shrink-0';
+
+            btn.textContent = `${tbl} (${count} baris)`;
+            btn.onclick = function() {
+                selectPreviewTable(tbl);
+            };
+
+            tableListDiv.appendChild(btn);
+        });
+    }
+
+    function selectPreviewTable(tbl) {
+        activePreviewTable = tbl;
+        const filterInput = document.getElementById('inspectTableFilterInput');
+        renderTableButtons(filterInput ? filterInput.value : '');
+
+        const card = document.getElementById('resTablePreviewCard');
+        const detail = currentTableDetails[tbl];
+
+        if (!detail) {
+            card.classList.add('hidden');
+            return;
+        }
+
+        card.classList.remove('hidden');
+        document.getElementById('previewTableName').textContent = tbl;
+        document.getElementById('previewTableRowCount').textContent = `${detail.rows_count ?? 0} baris data`;
+
+        const thead = document.getElementById('previewTableHead');
+        const tbody = document.getElementById('previewTableBody');
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        const columns = detail.columns || [];
+        const samples = detail.samples || [];
+
+        if (columns.length === 0) {
+            thead.innerHTML = '<tr><th class="py-2 px-3 text-slate-400 font-semibold">Kolom</th></tr>';
+            tbody.innerHTML = '<tr><td class="py-3 px-3 text-slate-400 italic">Tabel kosong atau struktur kolom tidak terdefinisi.</td></tr>';
+            return;
+        }
+
+        // Header kolom
+        const trHead = document.createElement('tr');
+        columns.forEach(col => {
+            const th = document.createElement('th');
+            th.className = 'py-2 px-3 whitespace-nowrap text-slate-700 font-semibold';
+            th.textContent = col;
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+
+        // Baris data sampel
+        if (samples.length === 0) {
+            const trEmpty = document.createElement('tr');
+            const tdEmpty = document.createElement('td');
+            tdEmpty.colSpan = columns.length;
+            tdEmpty.className = 'py-4 px-3 text-center text-slate-400 italic';
+            tdEmpty.textContent = '(Tabel kosong / 0 baris data)';
+            trEmpty.appendChild(tdEmpty);
+            tbody.appendChild(trEmpty);
+        } else {
+            samples.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition';
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.className = 'py-1.5 px-3 whitespace-nowrap text-slate-800';
+                    const val = row[col];
+                    if (val === null || val === undefined) {
+                        td.innerHTML = '<span class="text-slate-300 italic">null</span>';
+                    } else if (typeof val === 'string' && val.length > 50) {
+                        td.textContent = val.substring(0, 50) + '...';
+                        td.title = val;
+                    } else {
+                        td.textContent = val;
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
+    function filterInspectTables(query) {
+        renderTableButtons(query);
+    }
+
     function renderInspectionResult(data, source) {
         document.getElementById('resFilename').textContent = data.filename;
         document.getElementById('resFileSize').textContent = data.file_size_human;
@@ -1193,17 +1336,19 @@
         document.getElementById('resMedia').textContent = data.has_media ? `${data.media_file_count} Berkas Media` : 'Tidak Ada Media';
         document.getElementById('resTableCount').textContent = data.table_count;
 
-        const tableListDiv = document.getElementById('resTableList');
-        tableListDiv.innerHTML = '';
-        if (data.tables && data.tables.length > 0) {
-            data.tables.forEach(tbl => {
-                const badge = document.createElement('span');
-                badge.className = 'px-2 py-0.5 bg-white border border-slate-200 rounded text-[11px] font-mono text-slate-700 shadow-2xs';
-                badge.textContent = tbl;
-                tableListDiv.appendChild(badge);
-            });
+        // Siapkan struktur detail tabel & baris data
+        currentTableDetails = data.table_details || {};
+        const tableKeys = Object.keys(currentTableDetails);
+        const filterInput = document.getElementById('inspectTableFilterInput');
+        if (filterInput) filterInput.value = '';
+
+        if (tableKeys.length > 0) {
+            activePreviewTable = tableKeys[0];
+            renderTableButtons('');
+            selectPreviewTable(tableKeys[0]);
         } else {
-            tableListDiv.innerHTML = '<span class="text-xs text-slate-400 italic">Daftar tabel tidak terdefinisi di manifest.</span>';
+            document.getElementById('resTableList').innerHTML = '<span class="text-xs text-slate-400 italic">Daftar tabel tidak terdefinisi di manifest.</span>';
+            document.getElementById('resTablePreviewCard').classList.add('hidden');
         }
 
         const btnProceed = document.getElementById('btnProceedRestore');

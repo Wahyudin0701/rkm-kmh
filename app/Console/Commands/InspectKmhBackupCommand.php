@@ -56,7 +56,7 @@ class InspectKmhBackupCommand extends Command
 
             $this->newLine();
             $this->line("=====================================================================");
-            $this->info(" 🔍 HASIL INSPEKSI ARSIP KMH (RKM BACKUP READER)");
+            $this->info(" HASIL INSPEKSI ARSIP KMH (RKM BACKUP READER)");
             $this->line("=====================================================================");
 
             $this->table(
@@ -78,12 +78,17 @@ class InspectKmhBackupCommand extends Command
 
             if (!empty($data['tables'])) {
                 $this->newLine();
-                $this->comment(" Daftar Tabel Terdaftar (" . count($data['tables']) . " tabel):");
-                $chunks = array_chunk($data['tables'], 4);
+                $this->comment(" Daftar Tabel & Jumlah Baris Data (" . count($data['tables']) . " tabel):");
+                $formattedTables = array_map(function ($t) use ($data) {
+                    $rows = $data['table_details'][$t]['rows_count'] ?? 0;
+                    return "{$t} ({$rows} baris)";
+                }, $data['tables']);
+
+                $chunks = array_chunk($formattedTables, 3);
                 $rows = array_map(function ($chunk) {
-                    return array_pad($chunk, 4, '');
+                    return array_pad($chunk, 3, '');
                 }, $chunks);
-                $this->table(['Kolom 1', 'Kolom 2', 'Kolom 3', 'Kolom 4'], $rows);
+                $this->table(['Tabel & Baris', 'Tabel & Baris', 'Tabel & Baris'], $rows);
             }
 
             if (!empty($data['media_samples'])) {

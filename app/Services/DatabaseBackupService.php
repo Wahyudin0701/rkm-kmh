@@ -203,6 +203,43 @@ class DatabaseBackupService
                 }
             }
 
+            // Kumpulkan statistik tabel dan sampel data untuk pratinjau instan di manifest
+            $tableDetails = [];
+            foreach ($targetTables as $tableName) {
+                try {
+                    $q = DB::table($tableName);
+                    if (Schema::hasColumn($tableName, 'deleted_at')) {
+                        $q->whereNull('deleted_at');
+                    }
+                    $totalRows = $q->count();
+                    $samples = $q->limit(5)->get()->map(function ($row) {
+                        $arr = (array) $row;
+                        foreach (['password', 'remember_token', 'two_factor_secret'] as $secret) {
+                            if (isset($arr[$secret])) {
+                                $arr[$secret] = '••••••••';
+                            }
+                        }
+                        return $arr;
+                    })->all();
+
+                    $cols = !empty($samples) ? array_keys($samples[0]) : (Schema::hasTable($tableName) ? Schema::getColumnListing($tableName) : []);
+
+                    $tableDetails[$tableName] = [
+                        'name' => $tableName,
+                        'rows_count' => $totalRows,
+                        'columns' => $cols,
+                        'samples' => $samples,
+                    ];
+                } catch (\Throwable $e) {
+                    $tableDetails[$tableName] = [
+                        'name' => $tableName,
+                        'rows_count' => 0,
+                        'columns' => [],
+                        'samples' => [],
+                    ];
+                }
+            }
+
             // Manifest informasi arsip .kmh
             $manifest = [
                 'system' => 'RKM-KMH (PT Kerinci Merangin Hidro)',
@@ -212,6 +249,7 @@ class DatabaseBackupService
                 'database' => $database,
                 'table_count' => count($targetTables),
                 'tables' => $targetTables,
+                'table_details' => $tableDetails,
                 'has_media' => $includeMedia,
                 'laravel_version' => app()->version(),
                 'php_version' => PHP_VERSION,
@@ -295,10 +333,17 @@ class DatabaseBackupService
                 }
             }
 
-            $zip->close();
-
             $tables = $manifest['tables'] ?? [];
             $tableCount = count($tables);
+
+            // Ambil rincian tabel & sampel data (dari manifest langsung atau fallback parse dari database.sql)
+            $tableDetails = $manifest['table_details'] ?? null;
+            if (empty($tableDetails)) {
+                $tableDetails = $this->parseTableDetailsFromSqlStream($zip, $tables);
+            }
+
+            $zip->close();
+
             $hasMedia = (bool) ($manifest['has_media'] ?? ($mediaCount > 0));
             $createdAt = isset($manifest['created_at']) ? Carbon::parse($manifest['created_at']) : Carbon::createFromTimestamp(filemtime($filePath));
 
@@ -319,6 +364,7 @@ class DatabaseBackupService
                 'database' => $manifest['database'] ?? config('database.connections.mysql.database', 'rkm_kmh'),
                 'table_count' => $tableCount,
                 'tables' => $tables,
+                'table_details' => $tableDetails,
                 'has_media' => $hasMedia,
                 'media_file_count' => $mediaCount,
                 'media_samples' => $mediaSamples,
@@ -334,6 +380,101 @@ class DatabaseBackupService
                 @unlink($tempZip);
             }
         }
+    }
+
+    /**
+     * Parse rincian nama kolom, total baris data, dan sampel 5 baris pertama
+     * langsung dari stream database.sql untuk file arsip yang belum memiliki table_details di manifest.
+     *
+     * @param ZipArchive $zip
+     * @param array<int, string> $tables
+     * @return array<string, array<string, mixed>>
+     */
+    protected function parseTableDetailsFromSqlStream(ZipArchive $zip, array $tables): array
+    {
+        $details = [];
+        foreach ($tables as $t) {
+            $details[$t] = [
+                'name' => $t,
+                'rows_count' => 0,
+                'columns' => [],
+                'samples' => [],
+            ];
+        }
+
+        $fp = $zip->getStream('database.sql');
+        if (!$fp) {
+            return $details;
+        }
+
+        $currentTable = null;
+        $currentColumns = [];
+        $collectingSamples = false;
+
+        while (($line = fgets($fp, 65536)) !== false) {
+            $trimmed = trim($line);
+            if (empty($trimmed)) continue;
+
+            if (preg_match('/^--\s*Struktur Tabel untuk\s*`([^`]+)`/i', $trimmed, $m)) {
+                $currentTable = $m[1];
+                if (!isset($details[$currentTable])) {
+                    $details[$currentTable] = [
+                        'name' => $currentTable,
+                        'rows_count' => 0,
+                        'columns' => [],
+                        'samples' => [],
+                    ];
+                }
+                $currentColumns = [];
+                $collectingSamples = false;
+                continue;
+            }
+
+            if (preg_match('/^INSERT INTO\s*`([^`]+)`\s*\(([^)]+)\)\s*VALUES/i', $trimmed, $m)) {
+                $currentTable = $m[1];
+                if (!isset($details[$currentTable])) {
+                    $details[$currentTable] = [
+                        'name' => $currentTable,
+                        'rows_count' => 0,
+                        'columns' => [],
+                        'samples' => [],
+                    ];
+                }
+                $rawCols = explode(',', $m[2]);
+                $currentColumns = array_map(fn($c) => trim($c, " \t\n\r\0\x0B`'\""), $rawCols);
+                $details[$currentTable]['columns'] = $currentColumns;
+                $collectingSamples = true;
+                continue;
+            }
+
+            if ($currentTable && $collectingSamples) {
+                if (str_starts_with($trimmed, '(')) {
+                    $details[$currentTable]['rows_count']++;
+                    if (count($details[$currentTable]['samples']) < 5) {
+                        $endPos = strrpos($trimmed, ')');
+                        if ($endPos !== false) {
+                            $valuesStr = substr($trimmed, 1, $endPos - 1);
+                            $parsedValues = str_getcsv($valuesStr, ',', "'", "\\");
+                            $rowAssoc = [];
+                            foreach ($currentColumns as $idx => $colName) {
+                                $val = $parsedValues[$idx] ?? null;
+                                if ($val === 'NULL') $val = null;
+                                if (in_array($colName, ['password', 'remember_token', 'two_factor_secret'])) {
+                                    $val = '••••••••';
+                                }
+                                $rowAssoc[$colName] = $val;
+                            }
+                            $details[$currentTable]['samples'][] = $rowAssoc;
+                        }
+                    }
+                } elseif (str_starts_with($trimmed, '--') || str_starts_with($trimmed, 'DROP TABLE')) {
+                    $collectingSamples = false;
+                }
+            }
+        }
+
+        fclose($fp);
+        return $details;
     }
 
     /**
