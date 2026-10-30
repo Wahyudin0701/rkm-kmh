@@ -230,13 +230,6 @@
                             <td class="py-3 px-5 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center gap-1.5">
                                     @if($hasServerFile)
-                                        <button type="button" 
-                                                onclick="inspectServerBackup('{{ $log->filename }}')" 
-                                                title="Inspeksi isi arsip backup (manifest, tabel, dan media)" 
-                                                class="px-2.5 py-1 rounded-lg border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-900 font-semibold text-[11px] transition">
-                                            Baca
-                                        </button>
-
                                         <a href="{{ route('admin.backups.download', $log->filename) }}" 
                                            class="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-[11px] transition">
                                             Unduh
@@ -255,13 +248,6 @@
                                             Hapus dari Server
                                         </button>
                                     @else
-                                        <button type="button" 
-                                                onclick="openInspectModal('upload')" 
-                                                title="Baca file arsip .kmh dari komputer lokal" 
-                                                class="px-2.5 py-1 rounded-lg border border-sky-300 bg-sky-50 hover:bg-sky-100 text-sky-900 font-semibold text-[11px] transition">
-                                            Baca File PC
-                                        </button>
-
                                         <button type="button" 
                                                 onclick="openDirectRestoreModal()" 
                                                 class="px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-[11px] transition">
@@ -641,49 +627,20 @@
                 </span>
                 <div>
                     <h3 class="text-base font-bold text-slate-900">Pembaca &amp; Inspeksi Arsip .kmh</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Lihat struktur data, jumlah baris, dan pratinjau isi tabel tanpa mengubah database.</p>
+                    <p class="text-xs text-slate-500 mt-0.5">Unggah file .kmh dari komputer untuk melihat struktur data, tabel, dan isi baris data tanpa mengubah database.</p>
                 </div>
             </div>
             <button type="button" onclick="closeInspectModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1 leading-none">&times;</button>
         </div>
 
         <div class="p-6 space-y-5">
-            <!-- Navigasi Tab: Server vs Upload Komputer -->
-            <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
-                <button type="button" id="tabInspectServer" onclick="switchInspectTab('server')" class="flex-1 py-2 px-3 rounded-lg bg-white shadow-2xs text-slate-800 transition">
-                    Arsip di Server VPS
-                </button>
-                <button type="button" id="tabInspectUpload" onclick="switchInspectTab('upload')" class="flex-1 py-2 px-3 rounded-lg text-slate-500 hover:text-slate-700 transition">
-                    Unggah File dari Komputer (0 B Storage)
-                </button>
+            <!-- Informasi Zero Storage Retention -->
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 leading-relaxed">
+                <strong>Bebas Kapasitas Server:</strong> Berkas yang Anda unggah hanya dibaca sementara di memori dan langsung dihapus otomatis seketika setelah metadata selesai dibaca (0 Byte tersimpan di harddisk server VPS).
             </div>
 
-            <!-- Panel 1: Pilih dari Server -->
-            <div id="panelInspectServer" class="space-y-3">
-                <label class="block text-xs font-semibold text-slate-700">Pilih Berkas Backup yang Tersedia di Server:</label>
-                @if(!empty($backups) && count($backups) > 0)
-                    <div class="flex gap-2">
-                        <select id="serverInspectFilenameSelect" class="flex-1 text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-sky-500 font-mono">
-                            @foreach($backups as $b)
-                                <option value="{{ $b['filename'] }}">{{ $b['filename'] }} ({{ $b['size_human'] ?? '' }})</option>
-                            @endforeach
-                        </select>
-                        <button type="button" onclick="inspectSelectedServerBackup()" class="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold transition shrink-0">
-                            Periksa Arsip
-                        </button>
-                    </div>
-                @else
-                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500">
-                        Tidak ada berkas backup fisik di storage server saat ini. Silakan gunakan tab <strong>"Unggah File dari Komputer"</strong> untuk membaca backup dari PC Anda.
-                    </div>
-                @endif
-            </div>
-
-            <!-- Panel 2: Upload dari Komputer (Zero Storage Retention) -->
-            <div id="panelInspectUpload" class="hidden space-y-3">
-                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
-                    <strong>Bebas Kapasitas Server:</strong> Berkas yang diunggah hanya dibaca sementara di memori dan langsung dihapus otomatis seketika setelah metadata selesai dibaca.
-                </div>
+            <!-- Panel Upload dari Komputer (Zero Storage Retention) -->
+            <div id="panelInspectUpload" class="space-y-3">
                 <div id="inspectUploadDropzone" 
                      class="border-2 border-dashed border-slate-300 hover:border-sky-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-sky-50/20 transition cursor-pointer select-none"
                      onclick="document.getElementById('inspectFileInput').click()"
@@ -793,13 +750,18 @@
                 </div>
 
                 <!-- Action Footer -->
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
                     <span class="text-[11px] text-slate-500">
                         Status: <strong class="text-emerald-600">Arsip Sah &amp; Tidak Mengubah Data Aktif</strong>
                     </span>
-                    <button type="button" id="btnProceedRestore" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition shadow-xs inline-flex items-center gap-1.5">
-                        Lanjutkan Pulihkan Sistem
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="resetInspectToUpload()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
+                            Periksa File Lain
+                        </button>
+                        <button type="button" id="btnProceedRestore" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs transition shadow-xs inline-flex items-center gap-1.5">
+                            Lanjutkan Pulihkan Sistem
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1068,16 +1030,14 @@
     }
 
     /* ========================================================================= */
-    /* PEMBACA & INSPEKSI ARSIP .KMH (KMH READER JAVASCRIPT)                     */
+    /* PEMBACA & INSPEKSI ARSIP .KMH (KMH READER JAVASCRIPT - MODEL UPLOAD)      */
     /* ========================================================================= */
     let currentInspectedFile = null;
-    let currentInspectedSource = 'server';
 
-    function openInspectModal(initialTab = 'server') {
+    function openInspectModal() {
         document.getElementById('inspectBackupModal').classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
-        switchInspectTab(initialTab);
-        resetInspectResult();
+        resetInspectToUpload();
     }
 
     function closeInspectModal() {
@@ -1085,71 +1045,19 @@
         document.documentElement.classList.remove('modal-open');
     }
 
-    function switchInspectTab(tab) {
-        currentInspectedSource = tab;
-        const tabServer = document.getElementById('tabInspectServer');
-        const tabUpload = document.getElementById('tabInspectUpload');
-        const panelServer = document.getElementById('panelInspectServer');
-        const panelUpload = document.getElementById('panelInspectUpload');
-
-        if (tab === 'server') {
-            tabServer.classList.add('bg-white', 'shadow-2xs', 'text-slate-800');
-            tabServer.classList.remove('text-slate-500');
-            tabUpload.classList.remove('bg-white', 'shadow-2xs', 'text-slate-800');
-            tabUpload.classList.add('text-slate-500');
-            panelServer.classList.remove('hidden');
-            panelUpload.classList.add('hidden');
-        } else {
-            tabUpload.classList.add('bg-white', 'shadow-2xs', 'text-slate-800');
-            tabUpload.classList.remove('text-slate-500');
-            tabServer.classList.remove('bg-white', 'shadow-2xs', 'text-slate-800');
-            tabServer.classList.add('text-slate-500');
-            panelUpload.classList.remove('hidden');
-            panelServer.classList.add('hidden');
-        }
+    function resetInspectToUpload() {
+        document.getElementById('inspectLoading').classList.add('hidden');
+        document.getElementById('inspectError').classList.add('hidden');
+        document.getElementById('inspectResult').classList.add('hidden');
+        document.getElementById('panelInspectUpload').classList.remove('hidden');
+        const fileInput = document.getElementById('inspectFileInput');
+        if (fileInput) fileInput.value = '';
     }
 
     function resetInspectResult() {
         document.getElementById('inspectLoading').classList.add('hidden');
         document.getElementById('inspectError').classList.add('hidden');
         document.getElementById('inspectResult').classList.add('hidden');
-    }
-
-    function inspectSelectedServerBackup() {
-        const select = document.getElementById('serverInspectFilenameSelect');
-        if (select && select.value) {
-            inspectServerBackup(select.value);
-        }
-    }
-
-    function inspectServerBackup(filename) {
-        openInspectModal('server');
-        const select = document.getElementById('serverInspectFilenameSelect');
-        if (select) select.value = filename;
-
-        resetInspectResult();
-        const loading = document.getElementById('inspectLoading');
-        loading.classList.remove('hidden');
-
-        fetch(`/admin/backups/${encodeURIComponent(filename)}/inspect`, {
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(res => res.json())
-        .then(res => {
-            loading.classList.add('hidden');
-            if (res.success && res.data) {
-                renderInspectionResult(res.data, 'server');
-            } else {
-                showInspectError(res.message || 'Gagal membaca arsip.');
-            }
-        })
-        .catch(err => {
-            loading.classList.add('hidden');
-            showInspectError('Terjadi kesalahan jaringan saat membaca arsip: ' + err.message);
-        });
     }
 
     function handleInspectFileInput(input) {
@@ -1174,6 +1082,7 @@
         }
 
         resetInspectResult();
+        document.getElementById('panelInspectUpload').classList.add('hidden');
         const loading = document.getElementById('inspectLoading');
         document.getElementById('inspectLoadingText').textContent = `Mengunggah & memeriksa "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`;
         loading.classList.remove('hidden');
@@ -1197,11 +1106,13 @@
                 currentInspectedFile = file;
                 renderInspectionResult(res.data, 'upload');
             } else {
+                document.getElementById('panelInspectUpload').classList.remove('hidden');
                 showInspectError(res.message || 'Gagal membaca arsip.');
             }
         })
         .catch(err => {
             loading.classList.add('hidden');
+            document.getElementById('panelInspectUpload').classList.remove('hidden');
             showInspectError('Gagal membaca berkas: ' + err.message);
         });
     }
@@ -1352,24 +1263,17 @@
         }
 
         const btnProceed = document.getElementById('btnProceedRestore');
-        if (source === 'server') {
-            btnProceed.onclick = function() {
-                closeInspectModal();
-                openRestoreModal(data.filename, data.type_label, data.file_size_human);
-            };
-        } else {
-            btnProceed.onclick = function() {
-                closeInspectModal();
-                openDirectRestoreModal();
-                if (currentInspectedFile) {
-                    const input = document.getElementById('directRestoreFileInput');
-                    const dataTransfer = new DataTransfer();
-                    dataTransfer.items.add(currentInspectedFile);
-                    input.files = dataTransfer.files;
-                    handleDirectRestoreFileChange(input);
-                }
-            };
-        }
+        btnProceed.onclick = function() {
+            closeInspectModal();
+            openDirectRestoreModal();
+            if (currentInspectedFile) {
+                const input = document.getElementById('directRestoreFileInput');
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(currentInspectedFile);
+                input.files = dataTransfer.files;
+                handleDirectRestoreFileChange(input);
+            }
+        };
 
         document.getElementById('inspectResult').classList.remove('hidden');
     }
