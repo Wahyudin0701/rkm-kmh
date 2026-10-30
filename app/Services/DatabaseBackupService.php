@@ -238,6 +238,105 @@ class DatabaseBackupService
     }
 
     /**
+     * Inspeksi dan baca metadata isi file arsip .kmh tanpa melakukan restore atau manipulasi database.
+     * Mengembalikan manifest, daftar tabel terarsip, metrik data, dan status integritas enkripsi.
+     *
+     * @return array<string, mixed>
+     */
+    public function inspectKmhFile(string $filePath): array
+    {
+        @set_time_limit(180);
+        @ini_set('memory_limit', '512M');
+
+        if (!File::exists($filePath)) {
+            throw new RuntimeException("Berkas file backup tidak ditemukan: {$filePath}");
+        }
+
+        $content = file_get_contents($filePath);
+        $headerLen = strlen(self::KMH_MAGIC_HEADER);
+
+        if (substr($content, 0, $headerLen) !== self::KMH_MAGIC_HEADER) {
+            throw new RuntimeException("Berkas bukan format arsip .kmh yang sah atau file rusak (Magic Header tidak cocok).");
+        }
+
+        // Dekripsi payload (verifikasi HMAC & kunci enkripsi)
+        $decryptedZip = $this->decryptFromKmh($content);
+
+        // Buka zip sementara untuk membaca manifest dan statistik file
+        $tempZip = tempnam(sys_get_temp_dir(), 'kmh_inspect_');
+        file_put_contents($tempZip, $decryptedZip);
+
+        try {
+            $zip = new ZipArchive();
+            if ($zip->open($tempZip) !== true) {
+                throw new RuntimeException("Gagal membuka struktur arsip ZIP internal di dalam berkas .kmh.");
+            }
+
+            $manifestJson = $zip->getFromName('manifest.json');
+            $manifest = $manifestJson ? json_decode($manifestJson, true) : [];
+
+            $filesCount = $zip->numFiles;
+            $mediaCount = 0;
+            $sqlSize = 0;
+            $mediaSamples = [];
+
+            for ($i = 0; $i < $filesCount; $i++) {
+                $stat = $zip->statIndex($i);
+                $name = $stat['name'] ?? '';
+                $size = $stat['size'] ?? 0;
+
+                if (str_starts_with($name, 'storage/')) {
+                    $mediaCount++;
+                    if (count($mediaSamples) < 5) {
+                        $mediaSamples[] = basename($name);
+                    }
+                } elseif (str_ends_with($name, '.sql') || $name === 'database.sql') {
+                    $sqlSize = $size;
+                }
+            }
+
+            $zip->close();
+
+            $tables = $manifest['tables'] ?? [];
+            $tableCount = count($tables);
+            $hasMedia = (bool) ($manifest['has_media'] ?? ($mediaCount > 0));
+            $createdAt = isset($manifest['created_at']) ? Carbon::parse($manifest['created_at']) : Carbon::createFromTimestamp(filemtime($filePath));
+
+            return [
+                'is_valid' => true,
+                'filename' => basename($filePath),
+                'file_size' => filesize($filePath),
+                'file_size_human' => $this->formatBytes(filesize($filePath)),
+                'format' => $manifest['format'] ?? 'KMH_ENCRYPTED_V1',
+                'system' => $manifest['system'] ?? 'PT Kerinci Merangin Hidro (RKM)',
+                'created_at' => $createdAt->toIso8601String(),
+                'created_at_human' => $createdAt->translatedFormat('d F Y, H:i:s') . ' WIB',
+                'created_at_diff' => $createdAt->diffForHumans(),
+                'type' => $manifest['type'] ?? ($hasMedia ? 'semua' : 'pilihan'),
+                'type_label' => ($manifest['type'] ?? '') === 'semua' || $hasMedia
+                    ? 'Backup Semua (Database + Media Foto)'
+                    : 'Pilih Backup (Tabel Tertentu)',
+                'database' => $manifest['database'] ?? config('database.connections.mysql.database', 'rkm_kmh'),
+                'table_count' => $tableCount,
+                'tables' => $tables,
+                'has_media' => $hasMedia,
+                'media_file_count' => $mediaCount,
+                'media_samples' => $mediaSamples,
+                'sql_size' => $sqlSize,
+                'sql_size_human' => $this->formatBytes($sqlSize),
+                'laravel_version' => $manifest['laravel_version'] ?? app()->version(),
+                'php_version' => $manifest['php_version'] ?? PHP_VERSION,
+                'encryption_cipher' => 'AES-256-CBC',
+                'hmac_verification' => 'SHA-256 Terverifikasi Sah',
+            ];
+        } finally {
+            if (is_file($tempZip)) {
+                @unlink($tempZip);
+            }
+        }
+    }
+
+    /**
      * Pulihkan (Restore) data dari file .kmh (atau .sql / .zip sebagai fallback).
      */
     public function restore(string $backupFilenameOrPath): void

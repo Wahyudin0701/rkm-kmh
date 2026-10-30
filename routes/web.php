@@ -218,7 +218,9 @@ Route::middleware('auth')->group(function () {
         // Backup & Restore Sistem (Database & Media)
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
+        Route::post('/backups/inspect-file', [BackupController::class, 'inspectUpload'])->name('backups.inspect_upload');
         Route::post('/backups/restore-file', [BackupController::class, 'restoreFromFile'])->name('backups.restore_file')->middleware('throttle:5,1');
+        Route::get('/backups/{filename}/inspect', [BackupController::class, 'inspect'])->name('backups.inspect');
         Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
         Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
         Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore')->middleware('throttle:5,1');

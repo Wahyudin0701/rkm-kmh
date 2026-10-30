@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\BackupLog;
 use App\Services\DatabaseBackupService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -379,6 +380,75 @@ class BackupController extends Controller
             return back()->with('success', "Sistem berhasil dipulihkan secara langsung dari file '{$originalName}'. Seluruh data tabel dan media telah disinkronkan kembali.");
         } catch (\Throwable $e) {
             return back()->with('error', 'Terjadi kesalahan saat memulihkan sistem: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Inspeksi dan baca metadata isi file .kmh yang sudah ada di penyimpanan server.
+     */
+    public function inspect(string $filename): JsonResponse
+    {
+        $filename = basename($filename);
+        $fullPath = $this->backupService->getBackupDirectory() . DIRECTORY_SEPARATOR . $filename;
+
+        if (!File::exists($fullPath)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Berkas backup '{$filename}' tidak ditemukan di penyimpanan server VPS.",
+            ], 404);
+        }
+
+        try {
+            $data = $this->backupService->inspectKmhFile($fullPath);
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Inspeksi dan baca metadata isi file .kmh yang diunggah dari komputer lokal.
+     * File sementara langsung dihapus otomatis setelah dibaca (Zero Storage Retention).
+     */
+    public function inspectUpload(Request $request): JsonResponse
+    {
+        $request->validate([
+            'backup_file' => ['required', 'file', 'max:512000'],
+        ], [
+            'backup_file.required' => 'Pilih atau letakkan berkas file .kmh yang ingin dibaca.',
+            'backup_file.file' => 'Berkas yang diunggah tidak valid.',
+            'backup_file.max' => 'Ukuran file melebihi batas maksimal upload 500 MB.',
+        ]);
+
+        $uploaded = $request->file('backup_file');
+        $tempPath = tempnam(sys_get_temp_dir(), 'kmh_upload_inspect_');
+
+        try {
+            $uploaded->move(dirname($tempPath), basename($tempPath));
+
+            $data = $this->backupService->inspectKmhFile($tempPath);
+            // Ganti nama file dengan nama asli dari komputer pengguna
+            $data['filename'] = $uploaded->getClientOriginalName();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        } finally {
+            if (is_file($tempPath)) {
+                @unlink($tempPath);
+            }
         }
     }
 
