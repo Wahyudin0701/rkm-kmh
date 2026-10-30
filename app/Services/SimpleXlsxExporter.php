@@ -16,7 +16,7 @@ class SimpleXlsxExporter
      * @param array $alignments Optional per-column alignment: 'center' or 'left'
      * @return string Raw zip content
      */
-    public static function create(string $title, array $metaLines, array $headers, array $rows, array $alignments = []): string
+    public static function create(string $title, array $metaLines, array $headers, array $rows, array $alignments = [], ?string $sheetName = null): string
     {
         $numCols = count($headers);
         $lastColLetter = self::colLetter($numCols);
@@ -143,10 +143,11 @@ class SimpleXlsxExporter
     </cellXfs>
 </styleSheet>';
 
+        $cleanSheetName = htmlspecialchars(mb_substr($sheetName ?: 'Data', 0, 31), ENT_XML1);
         $workbookXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <workbook xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
     <sheets>
-        <sheet name="Data SIMPER" sheetId="1" r:id="rId1" />
+        <sheet name="' . $cleanSheetName . '" sheetId="1" r:id="rId1" />
     </sheets>
 </workbook>';
 

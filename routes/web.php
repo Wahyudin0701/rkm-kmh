@@ -219,6 +219,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
         Route::post('/backups/restore-file', [BackupController::class, 'restoreFromFile'])->name('backups.restore_file')->middleware('throttle:5,1');
+        Route::post('/backups/converter/inspect', [BackupController::class, 'converterInspect'])->name('backups.converter.inspect');
+        Route::post('/backups/converter/execute', [BackupController::class, 'converterExecute'])->name('backups.converter.execute');
         Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
         Route::post('/backups/upload', [BackupController::class, 'upload'])->name('backups.upload');
         Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore')->middleware('throttle:5,1');

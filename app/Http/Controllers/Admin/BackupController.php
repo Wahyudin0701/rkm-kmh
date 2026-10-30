@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AdminActivityLog;
 use App\Models\BackupLog;
 use App\Services\DatabaseBackupService;
+use App\Services\KmhConverterService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -18,7 +20,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class BackupController extends Controller
 {
     public function __construct(
-        protected DatabaseBackupService $backupService
+        protected DatabaseBackupService $backupService,
+        protected KmhConverterService $converterService
     ) {}
 
     /**
@@ -408,5 +411,95 @@ class BackupController extends Controller
         }
 
         return back()->with('error', "File backup '{$filename}' tidak ditemukan di server atau sudah pernah dihapus.");
+    }
+
+    /**
+     * Periksa metadata & daftar tabel dari berkas .kmh yang diunggah dari komputer.
+     * Mengembalikan informasi file dan tabel dalam format JSON tanpa menyimpan data di server (0 Byte retained).
+     */
+    public function converterInspect(Request $request): JsonResponse
+    {
+        $request->validate([
+            'backup_file' => 'required|file',
+        ]);
+
+        $file = $request->file('backup_file');
+        $originalName = $file->getClientOriginalName();
+
+        if (!str_ends_with(strtolower($originalName), '.kmh')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+            ], 422);
+        }
+
+        try {
+            $metadata = $this->converterService->inspectUploadedFile($file);
+
+            return response()->json([
+                'success' => true,
+                'data' => $metadata,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Konversi berkas .kmh yang diunggah ke format pilihan (xlsx, csv, sql) untuk tabel-tabel yang dicentang.
+     * Mengalirkan file hasil langsung ke browser dan segera menghapus semua file sementara (Zero Disk Retention).
+     */
+    public function converterExecute(Request $request): BinaryFileResponse|JsonResponse
+    {
+        $request->validate([
+            'backup_file' => 'required|file',
+            'tables' => 'required|array|min:1',
+            'tables.*' => 'required|string',
+            'format' => 'required|in:xlsx,csv,sql',
+        ]);
+
+        $file = $request->file('backup_file');
+        $selectedTables = $request->input('tables');
+        $format = $request->input('format');
+        $originalName = $file->getClientOriginalName();
+
+        if (!str_ends_with(strtolower($originalName), '.kmh')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+            ], 422);
+        }
+
+        try {
+            $result = $this->converterService->convertUploadedFile($file, $selectedTables, $format);
+
+            AdminActivityLog::record(
+                actionType: 'export',
+                module: 'Backup & Restore',
+                description: "Mengonversi arsip .kmh '{$originalName}' ke format " . strtoupper($format) . " untuk " . count($selectedTables) . " tabel.",
+                targetType: 'BackupFile',
+                targetName: $originalName
+            );
+
+            $workDir = $result['work_dir'];
+            register_shutdown_function(function () use ($workDir) {
+                if (is_dir($workDir)) {
+                    File::deleteDirectory($workDir);
+                }
+            });
+
+            return response()->download($result['path'], $result['filename'], [
+                'Content-Type' => $result['mime'],
+                'Access-Control-Expose-Headers' => 'Content-Disposition',
+            ])->deleteFileAfterSend(true);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal melakukan konversi arsip: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 }

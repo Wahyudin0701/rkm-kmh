@@ -16,6 +16,11 @@
         </div>
         <div class="flex items-center gap-2.5 shrink-0 self-start md:self-auto">
             <button type="button" 
+                    onclick="openConverterModal()" 
+                    class="whitespace-nowrap px-4 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 text-xs font-semibold transition shadow-2xs inline-flex items-center gap-1.5">
+                Konversi Berkas .kmh
+            </button>
+            <button type="button" 
                     onclick="openDirectRestoreModal()" 
                     class="whitespace-nowrap px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold transition shadow-2xs inline-flex items-center gap-1.5">
                 Pulihkan dari File .kmh
@@ -632,6 +637,163 @@
     </div>
 </div>
 
+<!-- ========================================================================= -->
+<!-- MODAL: KONVERTER ARSIP BERKAS .KMH KE EXCEL / CSV / SQL -->
+<!-- ========================================================================= -->
+<div id="kmhConverterModal" data-backdrop="static" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl overflow-hidden animate-scale-in border border-slate-100 my-8">
+        <!-- Header Modal -->
+        <div class="px-6 py-4 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    KMH CONVERTER
+                </span>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Konversi Berkas .kmh ke Excel / CSV / SQL</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Unggah berkas .kmh dari komputer untuk dikonversi menjadi format siap olah tanpa menyentuh database aktif.</p>
+                </div>
+            </div>
+            <button type="button" onclick="closeConverterModal()" class="text-slate-400 hover:text-slate-600 text-xl p-1 leading-none">&times;</button>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <!-- Alert Zero Retention & Database Safety -->
+            <div class="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-xs text-emerald-950 flex items-start gap-2.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-600 mt-1 shrink-0"></span>
+                <div>
+                    <strong class="font-semibold text-emerald-900">Keamanan Total &amp; Bebas Kapasitas Server:</strong> 
+                    Proses konversi bersifat <em>read-only</em> dan <strong>sama sekali tidak menyentuh database aktif MySQL</strong>. Berkas yang diunggah hanya diproses sementara di memori dan langsung dihapus otomatis seketika setelah unduhan dimulai (0 Byte tertinggal di VPS).
+                </div>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="converterError" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium">
+                <span id="converterErrorMessage"></span>
+            </div>
+
+            <!-- Step 1: Area Dropzone Upload dari PC -->
+            <div id="panelConverterUpload" class="space-y-3">
+                <div id="converterDropzone" 
+                     class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-7 text-center bg-slate-50 hover:bg-emerald-50/20 transition cursor-pointer select-none"
+                     onclick="document.getElementById('converterFileInput').click()"
+                     ondragover="handleDropzoneDragOver(event, this)"
+                     ondragleave="handleDropzoneDragLeave(event, this)"
+                     ondrop="handleConverterFileDrop(event, this)">
+                    <p class="text-xs font-bold text-slate-800" id="converterDropzonePrompt">Tarik &amp; Letakkan berkas .kmh di sini</p>
+                    <p class="text-[11px] text-slate-400 mt-1">atau <span class="text-emerald-600 font-semibold underline">klik untuk memilih dari komputer Anda</span></p>
+                    <p class="text-[10px] text-slate-400 mt-2">Mendukung berkas arsip .kmh terenkripsi (Maks. 500 MB)</p>
+                    <input type="file" id="converterFileInput" accept=".kmh" class="hidden" onchange="handleConverterFileInput(this)">
+                </div>
+            </div>
+
+            <!-- Loading Spinner State -->
+            <div id="converterLoading" class="hidden py-8 text-center space-y-2">
+                <div class="inline-block w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs font-semibold text-slate-700" id="converterLoadingText">Mendekripsi &amp; memeriksa integritas berkas .kmh...</p>
+                <p class="text-[11px] text-slate-400">Verifikasi tanda tangan HMAC SHA-256 &amp; membaca daftar tabel</p>
+            </div>
+
+            <!-- Step 2: Konfigurasi Format & Pilihan Tabel (Muncul setelah inspect sukses) -->
+            <div id="panelConverterConfig" class="hidden space-y-5">
+                <!-- Metadata Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Nama Berkas</span>
+                        <span class="font-mono font-semibold text-slate-800 truncate block mt-0.5" id="convFilename">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Ukuran Arsip</span>
+                        <span class="font-semibold text-slate-800 block mt-0.5" id="convFileSize">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Tanggal Dibuat</span>
+                        <span class="font-semibold text-slate-800 block mt-0.5" id="convCreatedAt">-</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] uppercase font-bold text-slate-400 block">Database Asal</span>
+                        <span class="font-mono font-semibold text-slate-800 block mt-0.5" id="convDatabase">-</span>
+                    </div>
+                </div>
+
+                <!-- Pilihan Format Keluaran -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-800 block">Pilih Format Hasil Konversi:</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="convFormat" value="xlsx" checked class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-bold text-slate-900">Microsoft Excel (.xlsx)</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 pl-5">File spreadsheet siap buka di Excel dengan filter header.</span>
+                        </label>
+                        <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="convFormat" value="csv" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-bold text-slate-900">Kumpulan CSV (.zip)</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 pl-5">File .csv per tabel di dalam paket zip, sangat ringan.</span>
+                        </label>
+                        <label class="relative flex flex-col p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="convFormat" value="sql" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="text-xs font-bold text-slate-900">SQL Mentah (.sql)</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 pl-5">Dump DDL &amp; data bersih siap impor ke MySQL/HeidiSQL.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pemilihan Tabel (Checklist) -->
+                <div class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">
+                                Pilih Tabel yang Ingin Dikonversi:
+                            </span>
+                            <span class="text-[11px] text-slate-500">
+                                Terpilih: <strong id="convSelectedCount" class="text-emerald-700 font-bold">0</strong> dari <span id="convTotalTableCount">0</span> tabel
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="convTableFilterInput" oninput="filterConverterTables(this.value)" placeholder="Cari nama tabel..." class="text-[11px] px-2.5 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:border-emerald-500 w-full sm:w-44">
+                            <button type="button" onclick="toggleSelectAllConverterTables(true)" class="whitespace-nowrap px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition">
+                                Pilih Semua
+                            </button>
+                            <button type="button" onclick="toggleSelectAllConverterTables(false)" class="whitespace-nowrap px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-[11px] font-semibold transition">
+                                Bersihkan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Checklist Container -->
+                    <div id="convTableList" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1.5 bg-slate-50/70 rounded-xl border border-slate-100">
+                        <!-- Checkboxes generated via JS -->
+                    </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <button type="button" onclick="resetConverterToUpload()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
+                        Ganti Berkas .kmh
+                    </button>
+                    <button type="button" 
+                            id="btnExecuteConvert" 
+                            onclick="executeConverterDownload()" 
+                            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs transition shadow-xs inline-flex items-center gap-2">
+                        <span id="btnExecuteConvertText">Mulai Konversi &amp; Unduh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+            <button type="button" onclick="closeConverterModal()" class="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Auto-Download Script jika ada sesi auto_download -->
 @if(session('auto_download'))
 <script>
@@ -862,6 +1024,251 @@
     function closeDeleteBackupModal() {
         document.getElementById('deleteBackupModal').classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
+    }
+
+    /* ========================================================================= */
+    /* LOGIKA JAVASCRIPT: KONVERTER ARSIP .KMH (MURNI UPLOAD DARI PC)            */
+    /* ========================================================================= */
+    let currentConverterFile = null;
+    let currentConverterTables = [];
+
+    function openConverterModal() {
+        document.getElementById('kmhConverterModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+        resetConverterToUpload();
+    }
+
+    function closeConverterModal() {
+        document.getElementById('kmhConverterModal').classList.add('hidden');
+        document.documentElement.classList.remove('modal-open');
+    }
+
+    function resetConverterToUpload() {
+        document.getElementById('converterLoading').classList.add('hidden');
+        document.getElementById('converterError').classList.add('hidden');
+        document.getElementById('panelConverterConfig').classList.add('hidden');
+        document.getElementById('panelConverterUpload').classList.remove('hidden');
+        const fileInput = document.getElementById('converterFileInput');
+        if (fileInput) fileInput.value = '';
+        currentConverterFile = null;
+        currentConverterTables = [];
+    }
+
+    function showConverterError(msg) {
+        const errorDiv = document.getElementById('converterError');
+        document.getElementById('converterErrorMessage').textContent = msg;
+        errorDiv.classList.remove('hidden');
+    }
+
+    function handleConverterFileInput(input) {
+        if (input.files && input.files[0]) {
+            inspectConverterFile(input.files[0]);
+        }
+    }
+
+    function handleConverterFileDrop(e, dropzone) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('border-emerald-500', 'bg-emerald-50/20');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            inspectConverterFile(e.dataTransfer.files[0]);
+        }
+    }
+
+    function inspectConverterFile(file) {
+        if (!file.name.toLowerCase().endsWith('.kmh')) {
+            alert('File yang dipilih harus berekstensi .kmh!');
+            return;
+        }
+
+        document.getElementById('converterError').classList.add('hidden');
+        document.getElementById('panelConverterUpload').classList.add('hidden');
+        const loading = document.getElementById('converterLoading');
+        document.getElementById('converterLoadingText').textContent = `Mendekripsi & memeriksa "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`;
+        loading.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('backup_file', file);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch(`{{ route('admin.backups.converter.inspect') }}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(res => {
+            loading.classList.add('hidden');
+            if (res.success && res.data) {
+                currentConverterFile = file;
+                currentConverterTables = res.data.tables || [];
+
+                document.getElementById('convFilename').textContent = res.data.filename;
+                document.getElementById('convFileSize').textContent = res.data.size_human;
+                document.getElementById('convCreatedAt').textContent = res.data.created_at_human;
+                document.getElementById('convDatabase').textContent = res.data.database;
+
+                const filterInput = document.getElementById('convTableFilterInput');
+                if (filterInput) filterInput.value = '';
+
+                renderConverterTableChecklist('');
+                document.getElementById('panelConverterConfig').classList.remove('hidden');
+            } else {
+                document.getElementById('panelConverterUpload').classList.remove('hidden');
+                showConverterError(res.message || 'Gagal membaca berkas arsip .kmh.');
+            }
+        })
+        .catch(err => {
+            loading.classList.add('hidden');
+            document.getElementById('panelConverterUpload').classList.remove('hidden');
+            showConverterError('Terjadi kesalahan saat memeriksa berkas: ' + err.message);
+        });
+    }
+
+    function renderConverterTableChecklist(filter = '') {
+        const container = document.getElementById('convTableList');
+        container.innerHTML = '';
+
+        const filtered = filter 
+            ? currentConverterTables.filter(t => t.toLowerCase().includes(filter.toLowerCase()))
+            : currentConverterTables;
+
+        document.getElementById('convTotalTableCount').textContent = currentConverterTables.length;
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<span class="col-span-full text-xs text-slate-400 italic p-2">Tidak ada tabel yang cocok dengan pencarian.</span>';
+            updateConverterSelectedCount();
+            return;
+        }
+
+        filtered.forEach(tbl => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/20 transition cursor-pointer select-none';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'convSelectedTables';
+            checkbox.value = tbl;
+            checkbox.checked = true; // Terpilih secara default
+            checkbox.className = 'conv-table-checkbox rounded text-emerald-600 focus:ring-emerald-500 w-3.5 h-3.5';
+            checkbox.onchange = updateConverterSelectedCount;
+
+            const span = document.createElement('span');
+            span.className = 'text-xs font-mono font-medium text-slate-800 truncate';
+            span.textContent = tbl;
+            span.title = tbl;
+
+            label.appendChild(checkbox);
+            label.appendChild(span);
+            container.appendChild(label);
+        });
+
+        updateConverterSelectedCount();
+    }
+
+    function filterConverterTables(query) {
+        renderConverterTableChecklist(query);
+    }
+
+    function toggleSelectAllConverterTables(selectAll) {
+        const checkboxes = document.querySelectorAll('.conv-table-checkbox');
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll;
+        });
+        updateConverterSelectedCount();
+    }
+
+    function updateConverterSelectedCount() {
+        const allCheckboxes = document.querySelectorAll('.conv-table-checkbox');
+        let checkedCount = 0;
+        allCheckboxes.forEach(cb => {
+            if (cb.checked) checkedCount++;
+        });
+        document.getElementById('convSelectedCount').textContent = checkedCount;
+    }
+
+    function executeConverterDownload() {
+        if (!currentConverterFile) {
+            alert('Silakan pilih berkas .kmh terlebih dahulu.');
+            return;
+        }
+
+        const selectedTables = [];
+        document.querySelectorAll('.conv-table-checkbox:checked').forEach(cb => {
+            selectedTables.push(cb.value);
+        });
+
+        if (selectedTables.length === 0) {
+            alert('Silakan pilih minimal satu tabel untuk dikonversi.');
+            return;
+        }
+
+        const formatRadio = document.querySelector('input[name="convFormat"]:checked');
+        const format = formatRadio ? formatRadio.value : 'xlsx';
+
+        const btn = document.getElementById('btnExecuteConvert');
+        const btnText = document.getElementById('btnExecuteConvertText');
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+        btnText.textContent = 'Mengonversi & Menyiapkan Unduhan...';
+
+        const formData = new FormData();
+        formData.append('backup_file', currentConverterFile);
+        formData.append('format', format);
+        formData.append('_token', '{{ csrf_token() }}');
+        selectedTables.forEach(t => {
+            formData.append('tables[]', t);
+        });
+
+        fetch(`{{ route('admin.backups.converter.execute') }}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(async response => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.textContent = 'Mulai Konversi & Unduh';
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Terjadi kesalahan pada server saat mengonversi berkas.');
+            }
+
+            // Dapatkan nama file dari header Content-Disposition
+            let filename = `hasil_konversi_${format}.${format === 'csv' ? 'zip' : (format === 'sql' ? 'sql' : 'xlsx')}`;
+            const disposition = response.headers.get('Content-Disposition');
+            if (disposition && disposition.indexOf('filename=') !== -1) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const blobUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = blobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(blobUrl);
+            a.remove();
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            btnText.textContent = 'Mulai Konversi & Unduh';
+            showConverterError(err.message);
+        });
     }
 </script>
 @endsection
