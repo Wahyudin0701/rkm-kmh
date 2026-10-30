@@ -379,8 +379,22 @@ class BackupController extends Controller
                 targetName: $originalName
             );
 
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "Sistem berhasil dipulihkan secara langsung dari file '{$originalName}'. Seluruh data tabel dan media telah disinkronkan kembali.",
+                ]);
+            }
+
             return back()->with('success', "Sistem berhasil dipulihkan secara langsung dari file '{$originalName}'. Seluruh data tabel dan media telah disinkronkan kembali.");
         } catch (\Throwable $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat memulihkan sistem: ' . $e->getMessage(),
+                ], 422);
+            }
+
             return back()->with('error', 'Terjadi kesalahan saat memulihkan sistem: ' . $e->getMessage());
         }
     }
@@ -449,37 +463,56 @@ class BackupController extends Controller
     }
 
     /**
-     * Konversi berkas .kmh yang diunggah ke format pilihan (xlsx, csv, sql) untuk tabel-tabel yang dicentang.
+     * Konversi berkas .kmh yang diunggah ke format pilihan (xlsx, csv, sql, media).
+     * Mendukung eksekusi via token sesi (tanpa perlu upload ulang 2x) atau direct upload.
      * Mengalirkan file hasil langsung ke browser dan segera menghapus semua file sementara (Zero Disk Retention).
      */
     public function converterExecute(Request $request): BinaryFileResponse|JsonResponse
     {
         $request->validate([
-            'backup_file' => 'required|file',
-            'tables' => 'required|array|min:1',
-            'tables.*' => 'required|string',
-            'format' => 'required|in:xlsx,csv,sql',
+            'backup_file' => 'nullable|file',
+            'token' => 'nullable|string',
+            'tables' => 'nullable|array',
+            'tables.*' => 'string',
+            'format' => 'required|in:xlsx,csv,sql,media',
         ]);
 
-        $file = $request->file('backup_file');
-        $selectedTables = $request->input('tables');
+        $selectedTables = $request->input('tables', []);
         $format = $request->input('format');
-        $originalName = $file->getClientOriginalName();
+        $token = $request->input('token');
 
-        if (!str_ends_with(strtolower($originalName), '.kmh')) {
+        if ($format !== 'media' && empty($selectedTables)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+                'message' => 'Silakan pilih minimal 1 tabel untuk dikonversi.',
             ], 422);
         }
 
         try {
-            $result = $this->converterService->convertUploadedFile($file, $selectedTables, $format);
+            if ($token) {
+                $result = $this->converterService->convertByToken($token, $selectedTables, $format);
+                $originalName = 'arsip_kmh';
+            } elseif ($request->hasFile('backup_file')) {
+                $file = $request->file('backup_file');
+                $originalName = $file->getClientOriginalName();
+                if (!str_ends_with(strtolower($originalName), '.kmh')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+                    ], 422);
+                }
+                $result = $this->converterService->convertUploadedFile($file, $selectedTables, $format);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Berkas atau sesi konversi tidak ditemukan. Silakan pilih kembali berkas .kmh.',
+                ], 422);
+            }
 
             AdminActivityLog::record(
                 actionType: 'export',
                 module: 'Backup & Restore',
-                description: "Mengonversi arsip .kmh '{$originalName}' ke format " . strtoupper($format) . " untuk " . count($selectedTables) . " tabel.",
+                description: "Mengonversi arsip .kmh '{$originalName}' ke format " . strtoupper($format) . ($format === 'media' ? ' (Media Foto)' : ' untuk ' . count($selectedTables) . ' tabel.'),
                 targetType: 'BackupFile',
                 targetName: $originalName
             );

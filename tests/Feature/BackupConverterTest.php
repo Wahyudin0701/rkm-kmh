@@ -222,4 +222,33 @@ class BackupConverterTest extends TestCase
         // Pastikan jumlah user di database aktif tetap sama persis
         $this->assertEquals($initialUserCount, User::count());
     }
+
+    public function test_super_admin_can_convert_using_session_token_without_reuploading(): void
+    {
+        $uploadedFile = $this->createSampleKmhFile('test_conv_token.kmh');
+
+        // Step 1: Inspect and receive session token
+        $inspectResponse = $this->actingAs($this->superAdmin)
+            ->postJson(route('admin.backups.converter.inspect'), [
+                'backup_file' => $uploadedFile,
+            ]);
+
+        $inspectResponse->assertStatus(200);
+        $token = $inspectResponse->json('data.token');
+        $this->assertNotEmpty($token);
+
+        // Step 2: Execute conversion passing ONLY the token (zero re-upload)
+        $executeResponse = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.converter.execute'), [
+                'token' => $token,
+                'tables' => ['users'],
+                'format' => 'xlsx',
+            ]);
+
+        $executeResponse->assertStatus(200);
+        $executeResponse->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $disposition = $executeResponse->headers->get('Content-Disposition');
+        $this->assertStringContainsString('Tabel_users_', $disposition);
+        $this->assertStringEndsWith('.xlsx', $disposition);
+    }
 }

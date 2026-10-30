@@ -16,9 +16,10 @@ class KmhConverterService
 
     /**
      * Periksa metadata dan daftar tabel dari berkas .kmh yang diunggah dari PC.
-     * Mengembalikan informasi file dan tabel tanpa menyimpan data di server (Zero Storage Retention).
+     * Menyimpan berkas sementara dengan token aman agar saat klik konversi tidak perlu upload ulang 2x.
      *
      * @return array{
+     *     token: string,
      *     filename: string,
      *     size_human: string,
      *     created_at_human: string,
@@ -41,7 +42,7 @@ class KmhConverterService
             throw new RuntimeException("Gagal membaca berkas .kmh yang diunggah.");
         }
 
-        // Dekripsi arsip .kmh menggunakan kunci sistem
+        // Dekripsi arsip .kmh menggunakan kunci sistem untuk verifikasi & inspeksi
         $decryptedZipContent = $this->backupService->decryptFromKmh($kmhContent);
         unset($kmhContent);
 
@@ -76,7 +77,23 @@ class KmhConverterService
                 ? Carbon::parse($manifest['created_at']) 
                 : Carbon::createFromTimestamp($file->getMTime());
 
+            // Simpan cache berkas sementara dengan token aman untuk mencegah upload ulang ganda
+            $tempDir = storage_path('app/temp_converter');
+            File::ensureDirectoryExists($tempDir);
+
+            // Bersihkan file sementara yang lebih tua dari 30 menit
+            foreach (File::files($tempDir) as $f) {
+                if ((time() - $f->getMTime()) > 1800) {
+                    @unlink($f->getPathname());
+                }
+            }
+
+            $token = bin2hex(random_bytes(16));
+            $cachedKmhPath = $tempDir . '/' . $token . '.kmh';
+            copy($realPath, $cachedKmhPath);
+
             return [
+                'token' => $token,
                 'filename' => $file->getClientOriginalName(),
                 'size_human' => $this->backupService->formatBytes($file->getSize()),
                 'created_at_human' => $createdAt->translatedFormat('d F Y, H:i') . ' WIB',
@@ -95,17 +112,27 @@ class KmhConverterService
     }
 
     /**
-     * Konversi berkas .kmh yang diunggah ke format pilihan (xlsx, csv, sql) untuk tabel-tabel terpilih.
-     *
-     * @param UploadedFile $file
-     * @param array<string> $selectedTables
-     * @param string $format 'xlsx' | 'csv' | 'sql'
-     * @return array{
-     *     path: string,
-     *     filename: string,
-     *     mime: string,
-     *     work_dir: string
-     * }
+     * Konversi berkas .kmh menggunakan token sesi yang sudah diunggah sebelumnya.
+     */
+    public function convertByToken(string $token, array $selectedTables, string $format): array
+    {
+        $tempDir = storage_path('app/temp_converter');
+        $cleanToken = preg_replace('/[^a-zA-Z0-9]/', '', $token);
+        $cachedPath = $tempDir . '/' . $cleanToken . '.kmh';
+
+        if (!is_file($cachedPath)) {
+            throw new RuntimeException("Sesi berkas telah kadaluarsa atau tidak ditemukan di server. Silakan unggah kembali berkas .kmh Anda.");
+        }
+
+        try {
+            return $this->convertKmhFilePath($cachedPath, 'arsip.kmh', $selectedTables, $format);
+        } finally {
+            @unlink($cachedPath);
+        }
+    }
+
+    /**
+     * Konversi berkas .kmh langsung dari UploadedFile.
      */
     public function convertUploadedFile(UploadedFile $file, array $selectedTables, string $format): array
     {
@@ -114,13 +141,32 @@ class KmhConverterService
             throw new RuntimeException("Berkas unggahan tidak ditemukan.");
         }
 
-        if (empty($selectedTables)) {
-            throw new RuntimeException("Silakan pilih minimal 1 tabel untuk dikonversi.");
+        return $this->convertKmhFilePath($realPath, $file->getClientOriginalName(), $selectedTables, $format);
+    }
+
+    /**
+     * Method inti konversi dari file path .kmh ke format tujuan (xlsx, csv, sql, media).
+     *
+     * @param string $kmhFilePath
+     * @param string $originalFilename
+     * @param array<string> $selectedTables
+     * @param string $format 'xlsx' | 'csv' | 'sql' | 'media'
+     * @return array{
+     *     path: string,
+     *     filename: string,
+     *     mime: string,
+     *     work_dir: string
+     * }
+     */
+    public function convertKmhFilePath(string $kmhFilePath, string $originalFilename, array $selectedTables, string $format): array
+    {
+        $format = strtolower($format);
+        if (!in_array($format, ['xlsx', 'csv', 'sql', 'media'], true)) {
+            throw new RuntimeException("Format konversi tidak didukung: {$format}");
         }
 
-        $format = strtolower($format);
-        if (!in_array($format, ['xlsx', 'csv', 'sql'], true)) {
-            throw new RuntimeException("Format konversi tidak didukung: {$format}");
+        if ($format !== 'media' && empty($selectedTables)) {
+            throw new RuntimeException("Silakan pilih minimal 1 tabel untuk dikonversi.");
         }
 
         $workDir = storage_path('app/temp_kmh_conv_' . uniqid());
@@ -131,12 +177,61 @@ class KmhConverterService
 
         try {
             // 1. Dekripsi payload .kmh
-            $kmhContent = file_get_contents($realPath);
+            $kmhContent = file_get_contents($kmhFilePath);
+            if ($kmhContent === false) {
+                throw new RuntimeException("Gagal membaca berkas .kmh untuk konversi.");
+            }
+
             $decryptedZipContent = $this->backupService->decryptFromKmh($kmhContent);
             unset($kmhContent);
 
             file_put_contents($tempZipPath, $decryptedZipContent);
             unset($decryptedZipContent);
+
+            $timestamp = now()->format('Ymd_His');
+
+            // Format KHUSUS: Ekstraksi Folder Media/Foto Asli
+            if ($format === 'media') {
+                $outputFilename = 'Arsip_KMH_Media_Foto_' . $timestamp . '.zip';
+                $outputPath = $workDir . '/' . $outputFilename;
+
+                $zipIn = new ZipArchive();
+                if ($zipIn->open($tempZipPath) !== true) {
+                    throw new RuntimeException("Gagal membuka arsip kontainer untuk ekstraksi media.");
+                }
+
+                $zipOut = new ZipArchive();
+                if ($zipOut->open($outputPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
+                    $zipIn->close();
+                    throw new RuntimeException("Gagal membuat arsip ZIP untuk media.");
+                }
+
+                $mediaCount = 0;
+                for ($i = 0; $i < $zipIn->numFiles; $i++) {
+                    $stat = $zipIn->statIndex($i);
+                    $name = $stat['name'];
+                    if (str_starts_with($name, 'storage/') && !str_ends_with($name, '/')) {
+                        $content = $zipIn->getFromIndex($i);
+                        $relativeName = substr($name, 8); // buang prefix 'storage/'
+                        $zipOut->addFromString($relativeName, $content);
+                        $mediaCount++;
+                    }
+                }
+                $zipIn->close();
+                $zipOut->close();
+                @unlink($tempZipPath);
+
+                if ($mediaCount === 0) {
+                    throw new RuntimeException("Berkas arsip .kmh ini tidak memiliki lampiran media foto fisik.");
+                }
+
+                return [
+                    'path' => $outputPath,
+                    'filename' => $outputFilename,
+                    'mime' => 'application/zip',
+                    'work_dir' => $workDir,
+                ];
+            }
 
             // 2. Ekstrak database.sql saja
             $zip = new ZipArchive();
@@ -152,9 +247,7 @@ class KmhConverterService
                 throw new RuntimeException("Berkas database.sql tidak ditemukan di dalam arsip .kmh.");
             }
 
-            $timestamp = now()->format('Ymd_His');
-
-            // 3. Proses berdasarkan format
+            // 3. Proses berdasarkan format SQL
             if ($format === 'sql') {
                 $outputFilename = 'Arsip_KMH_SQL_' . $timestamp . '.sql';
                 $outputPath = $workDir . '/' . $outputFilename;
@@ -169,12 +262,13 @@ class KmhConverterService
                 ];
             }
 
-            // Ekstrak data tabel ke bentuk CSV sementara di disk
+            // Ekstrak data tabel ke bentuk CSV sementara di disk (Memory-Safe Streaming)
             $csvDir = $workDir . '/csv_tables';
             File::ensureDirectoryExists($csvDir);
             $extractedTables = $this->streamSqlToCsvFiles($sqlPath, $selectedTables, $csvDir);
             @unlink($sqlPath);
 
+            // Format CSV
             if ($format === 'csv') {
                 $outputFilename = 'Arsip_KMH_CSV_' . $timestamp . '.zip';
                 $outputPath = $workDir . '/' . $outputFilename;

@@ -433,8 +433,13 @@
                 <strong>Perhatian:</strong> Proses ini akan menggantikan dan menyinkronkan data sistem saat ini dengan arsip <code>.kmh</code> yang Anda pulihkan.
             </div>
 
+            <!-- Error Banner Direct Restore -->
+            <div id="directRestoreError" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 font-medium">
+                <span id="directRestoreErrorMessage"></span>
+            </div>
+
             <!-- Dropzone Area Interaktif dengan Drag & Drop -->
-            <div>
+            <div id="directRestoreDropzoneContainer">
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Pilih atau Drag &amp; Drop File .kmh</label>
                 <div id="directRestoreDropzone" 
                      class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-2xl p-6 text-center bg-slate-50 hover:bg-white transition cursor-pointer select-none"
@@ -471,6 +476,25 @@
                            required 
                            class="hidden" 
                            onchange="handleDirectRestoreFileChange(this)">
+                </div>
+            </div>
+
+            <!-- Real-time Upload Progress Bar untuk Direct Restore -->
+            <div id="directRestoreLoading" class="hidden py-4 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="directRestoreLoadingText">Mengunggah berkas backup ke server...</span>
+                    </span>
+                    <span id="directRestoreUploadPercentText" class="font-mono font-bold text-amber-700">0%</span>
+                </div>
+                <!-- Progress Bar Track -->
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                    <div id="directRestoreProgressBar" class="bg-gradient-to-r from-amber-500 to-orange-500 h-3 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span id="directRestoreUploadByteText">0 MB / 0 MB</span>
+                    <span id="directRestoreUploadSubText">Mohon tunggu, koneksi sedang mengirim data...</span>
                 </div>
             </div>
 
@@ -686,11 +710,23 @@
                 </div>
             </div>
 
-            <!-- Loading Spinner State -->
-            <div id="converterLoading" class="hidden py-8 text-center space-y-2">
-                <div class="inline-block w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-xs font-semibold text-slate-700" id="converterLoadingText">Mendekripsi &amp; memeriksa integritas berkas .kmh...</p>
-                <p class="text-[11px] text-slate-400">Verifikasi tanda tangan HMAC SHA-256 &amp; membaca daftar tabel</p>
+            <!-- Loading & Real-time Upload Progress Bar -->
+            <div id="converterLoading" class="hidden py-6 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="converterLoadingText">Mengunggah berkas .kmh ke server...</span>
+                    </span>
+                    <span id="converterUploadPercentText" class="font-mono font-bold text-emerald-600">0%</span>
+                </div>
+                <!-- Progress Bar Track -->
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                    <div id="converterProgressBar" class="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full transition-all duration-150 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span id="converterUploadByteText">0 MB / 0 MB</span>
+                    <span id="converterUploadSubText">Mohon tunggu, koneksi sedang mengirim data...</span>
+                </div>
             </div>
 
             <!-- Step 2: Konfigurasi Format & Pilihan Tabel (Muncul setelah inspect sukses) -->
@@ -739,6 +775,16 @@
                                 <span class="text-xs font-bold text-slate-900">SQL Mentah (.sql)</span>
                             </div>
                             <span class="text-[11px] text-slate-500 mt-1 pl-5">Dump DDL &amp; data bersih siap impor ke MySQL/HeidiSQL.</span>
+                        </label>
+                        <label id="convMediaFormatCard" class="hidden relative flex flex-col p-3 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30 col-span-full">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" name="convFormat" value="media" class="text-emerald-600 focus:ring-emerald-500">
+                                    <span class="text-xs font-bold text-emerald-950">Unduh Folder Media / Foto Fisik (.zip)</span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">Media Terdeteksi</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 mt-1 pl-5">Ekstrak seluruh berkas gambar foto asli (.jpg/.png) kendaraan, karyawan, dan gerbang ke dalam satu paket zip.</span>
                         </label>
                     </div>
                 </div>
@@ -937,13 +983,99 @@
             return false;
         }
 
+        const confInput = document.getElementById('directRestoreConfirmationInput');
+        if (!confInput.value.trim()) {
+            alert('Silakan ketik "PULIHKAN" atau masukkan password Super Admin Anda.');
+            confInput.focus();
+            return false;
+        }
+
+        // Tampilkan Progress Bar
+        const errorDiv = document.getElementById('directRestoreError');
+        if (errorDiv) errorDiv.classList.add('hidden');
+        document.getElementById('directRestoreDropzoneContainer').classList.add('hidden');
+        const loading = document.getElementById('directRestoreLoading');
+        loading.classList.remove('hidden');
+
         const btn = document.getElementById('directRestoreSubmitBtn');
         const text = document.getElementById('directRestoreBtnText');
         if (btn) {
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-not-allowed');
         }
-        if (text) text.textContent = 'Memvalidasi & Memulihkan Sistem...';
+        if (text) text.textContent = 'Mengunggah & Memulihkan...';
+
+        const file = fileInput.files[0];
+        const totalMb = (file.size / (1024 * 1024)).toFixed(1);
+
+        const formData = new FormData(form);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', form.action, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                const loadedMb = (e.loaded / (1024 * 1024)).toFixed(1);
+
+                document.getElementById('directRestoreProgressBar').style.width = percent + '%';
+                document.getElementById('directRestoreUploadPercentText').textContent = percent + '%';
+                document.getElementById('directRestoreUploadByteText').textContent = `${loadedMb} MB / ${totalMb} MB`;
+
+                if (percent >= 100) {
+                    document.getElementById('directRestoreLoadingText').textContent = 'Mengunggah Selesai! Memulihkan database & media di server...';
+                    document.getElementById('directRestoreUploadSubText').textContent = 'Sedang mengeksekusi DDL & menyinkronkan media. Mohon jangan menutup halaman ini...';
+                } else {
+                    document.getElementById('directRestoreLoadingText').textContent = `Mengunggah berkas backup: ${percent}%...`;
+                }
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.success) {
+                        window.location.reload();
+                        return;
+                    }
+                } catch (err) {}
+                window.location.reload();
+            } else {
+                loading.classList.add('hidden');
+                document.getElementById('directRestoreDropzoneContainer').classList.remove('hidden');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+                if (text) text.textContent = 'Mulai Pemulihan Sistem';
+
+                let errMsg = 'Terjadi kesalahan saat memulihkan sistem.';
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.message) errMsg = res.message;
+                } catch (e) {}
+
+                document.getElementById('directRestoreErrorMessage').textContent = errMsg;
+                document.getElementById('directRestoreError').classList.remove('hidden');
+            }
+        };
+
+        xhr.onerror = function() {
+            loading.classList.add('hidden');
+            document.getElementById('directRestoreDropzoneContainer').classList.remove('hidden');
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (text) text.textContent = 'Mulai Pemulihan Sistem';
+            document.getElementById('directRestoreErrorMessage').textContent = 'Koneksi jaringan terputus saat mengunggah berkas.';
+            document.getElementById('directRestoreError').classList.remove('hidden');
+        };
+
+        xhr.send(formData);
+        return false;
     }
 
     /* Drag and Drop Handlers (Universal) */
@@ -1030,6 +1162,7 @@
     /* LOGIKA JAVASCRIPT: KONVERTER ARSIP .KMH (MURNI UPLOAD DARI PC)            */
     /* ========================================================================= */
     let currentConverterFile = null;
+    let currentConverterToken = null;
     let currentConverterTables = [];
 
     function openConverterModal() {
@@ -1051,6 +1184,7 @@
         const fileInput = document.getElementById('converterFileInput');
         if (fileInput) fileInput.value = '';
         currentConverterFile = null;
+        currentConverterToken = null;
         currentConverterTables = [];
     }
 
@@ -1083,49 +1217,104 @@
 
         document.getElementById('converterError').classList.add('hidden');
         document.getElementById('panelConverterUpload').classList.add('hidden');
+
         const loading = document.getElementById('converterLoading');
-        document.getElementById('converterLoadingText').textContent = `Mendekripsi & memeriksa "${file.name}" (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`;
+        const progressBar = document.getElementById('converterProgressBar');
+        const percentText = document.getElementById('converterUploadPercentText');
+        const byteText = document.getElementById('converterUploadByteText');
+        const statusText = document.getElementById('converterLoadingText');
+        const subText = document.getElementById('converterUploadSubText');
+
+        progressBar.style.width = '0%';
+        percentText.textContent = '0%';
+        const totalMb = (file.size / (1024 * 1024)).toFixed(1);
+        byteText.textContent = `0 MB / ${totalMb} MB`;
+        statusText.textContent = `Mengunggah "${file.name}" ke server...`;
+        subText.textContent = 'Mohon tunggu, koneksi sedang mengirim data...';
         loading.classList.remove('hidden');
 
         const formData = new FormData();
         formData.append('backup_file', file);
         formData.append('_token', '{{ csrf_token() }}');
 
-        fetch(`{{ route('admin.backups.converter.inspect') }}`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `{{ route('admin.backups.converter.inspect') }}`, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Accept', 'application/json');
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                const loadedMb = (e.loaded / (1024 * 1024)).toFixed(1);
+
+                progressBar.style.width = percent + '%';
+                percentText.textContent = percent + '%';
+                byteText.textContent = `${loadedMb} MB / ${totalMb} MB`;
+
+                if (percent >= 100) {
+                    statusText.textContent = 'Mengunggah Selesai! Memeriksa integritas & manifest di server...';
+                    subText.textContent = 'Verifikasi tanda tangan HMAC SHA-256 & membaca daftar tabel';
+                } else {
+                    statusText.textContent = `Mengunggah "${file.name}": ${percent}%...`;
+                }
             }
-        })
-        .then(res => res.json())
-        .then(res => {
+        };
+
+        xhr.onload = function() {
             loading.classList.add('hidden');
-            if (res.success && res.data) {
-                currentConverterFile = file;
-                currentConverterTables = res.data.tables || [];
+            if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (res.success && res.data) {
+                        currentConverterFile = file;
+                        currentConverterToken = res.data.token || null;
+                        currentConverterTables = res.data.tables || [];
 
-                document.getElementById('convFilename').textContent = res.data.filename;
-                document.getElementById('convFileSize').textContent = res.data.size_human;
-                document.getElementById('convCreatedAt').textContent = res.data.created_at_human;
-                document.getElementById('convDatabase').textContent = res.data.database;
+                        document.getElementById('convFilename').textContent = res.data.filename;
+                        document.getElementById('convFileSize').textContent = res.data.size_human;
+                        document.getElementById('convCreatedAt').textContent = res.data.created_at_human;
+                        document.getElementById('convDatabase').textContent = res.data.database;
 
-                const filterInput = document.getElementById('convTableFilterInput');
-                if (filterInput) filterInput.value = '';
+                        // Tampilkan opsi unduh media jika berkas memiliki folder foto
+                        const mediaCard = document.getElementById('convMediaFormatCard');
+                        if (mediaCard) {
+                            if (res.data.has_media) {
+                                mediaCard.classList.remove('hidden');
+                            } else {
+                                mediaCard.classList.add('hidden');
+                            }
+                        }
 
-                renderConverterTableChecklist('');
-                document.getElementById('panelConverterConfig').classList.remove('hidden');
-            } else {
-                document.getElementById('panelConverterUpload').classList.remove('hidden');
-                showConverterError(res.message || 'Gagal membaca berkas arsip .kmh.');
+                        const filterInput = document.getElementById('convTableFilterInput');
+                        if (filterInput) filterInput.value = '';
+
+                        renderConverterTableChecklist('');
+                        document.getElementById('panelConverterConfig').classList.remove('hidden');
+                        return;
+                    } else {
+                        document.getElementById('panelConverterUpload').classList.remove('hidden');
+                        showConverterError(res.message || 'Gagal membaca berkas arsip .kmh.');
+                        return;
+                    }
+                } catch (e) {}
             }
-        })
-        .catch(err => {
+
+            document.getElementById('panelConverterUpload').classList.remove('hidden');
+            let errMsg = 'Gagal membaca berkas arsip .kmh.';
+            try {
+                const res = JSON.parse(xhr.responseText);
+                if (res.message) errMsg = res.message;
+            } catch (e) {}
+            showConverterError(errMsg);
+        };
+
+        xhr.onerror = function() {
             loading.classList.add('hidden');
             document.getElementById('panelConverterUpload').classList.remove('hidden');
-            showConverterError('Terjadi kesalahan saat memeriksa berkas: ' + err.message);
-        });
+            showConverterError('Koneksi terputus saat mengunggah berkas.');
+        };
+
+        xhr.send(formData);
     }
 
     function renderConverterTableChecklist(filter = '') {
@@ -1191,32 +1380,36 @@
     }
 
     function executeConverterDownload() {
-        if (!currentConverterFile) {
+        if (!currentConverterToken && !currentConverterFile) {
             alert('Silakan pilih berkas .kmh terlebih dahulu.');
-            return;
-        }
-
-        const selectedTables = [];
-        document.querySelectorAll('.conv-table-checkbox:checked').forEach(cb => {
-            selectedTables.push(cb.value);
-        });
-
-        if (selectedTables.length === 0) {
-            alert('Silakan pilih minimal satu tabel untuk dikonversi.');
             return;
         }
 
         const formatRadio = document.querySelector('input[name="convFormat"]:checked');
         const format = formatRadio ? formatRadio.value : 'xlsx';
 
+        const selectedTables = [];
+        document.querySelectorAll('.conv-table-checkbox:checked').forEach(cb => {
+            selectedTables.push(cb.value);
+        });
+
+        if (format !== 'media' && selectedTables.length === 0) {
+            alert('Silakan pilih minimal satu tabel untuk dikonversi.');
+            return;
+        }
+
         const btn = document.getElementById('btnExecuteConvert');
         const btnText = document.getElementById('btnExecuteConvertText');
         btn.disabled = true;
         btn.classList.add('opacity-75', 'cursor-not-allowed');
-        btnText.textContent = 'Mengonversi & Menyiapkan Unduhan...';
+        btnText.textContent = 'Menyiapkan Unduhan Langsung...';
 
         const formData = new FormData();
-        formData.append('backup_file', currentConverterFile);
+        if (currentConverterToken) {
+            formData.append('token', currentConverterToken);
+        } else if (currentConverterFile) {
+            formData.append('backup_file', currentConverterFile);
+        }
         formData.append('format', format);
         formData.append('_token', '{{ csrf_token() }}');
         selectedTables.forEach(t => {
@@ -1241,7 +1434,7 @@
             }
 
             // Dapatkan nama file dari header Content-Disposition
-            let filename = `hasil_konversi_${format}.${format === 'csv' ? 'zip' : (format === 'sql' ? 'sql' : 'xlsx')}`;
+            let filename = `hasil_konversi_${format}.${format === 'csv' || format === 'media' ? 'zip' : (format === 'sql' ? 'sql' : 'xlsx')}`;
             const disposition = response.headers.get('Content-Disposition');
             if (disposition && disposition.indexOf('filename=') !== -1) {
                 const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
