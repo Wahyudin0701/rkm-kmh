@@ -143,9 +143,18 @@ class UnitTransferController extends Controller
             ->map(fn($group) => $group->count())
             ->sortKeys();
 
-        // 2. Daftar unit kendaraan kita untuk armada pengangkut (Truk, Flatbed, Lowbed, Towing, LV, dsb.)
-        $transporterUnits = Vehicle::trackableUnits()
-            ->orderBy('category')
+        // 2. Daftar armada pengangkut khusus truk/alat angkut (Truk, Flatbed, Lowbed, Towing, dsb. - Eksklusif Non-LV)
+        $transporterUnits = Vehicle::where('category', '!=', 'light_vehicle')
+            ->where(function (Builder $q) {
+                $q->where('code', 'not like', 'LV %')
+                  ->where('code', 'not like', 'LV-%')
+                  ->where('code', 'not like', 'LV/%')
+                  ->where('code', 'not like', 'LV_%');
+            })
+            ->where(function (Builder $q) {
+                $q->whereNotNull('parent_id')
+                  ->orWhereDoesntHave('units');
+            })
             ->orderBy('code')
             ->get();
 

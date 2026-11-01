@@ -104,14 +104,15 @@ class SimperPdfExporter extends FPDF
         $this->SetFont('Arial', 'B', 7.5);
 
         $cols = [
-            ['NO', 10, 'C'],
-            ['NIK', 30, 'C'],
-            ['NAMA KARYAWAN', 62, 'L'],
-            ['JABATAN', 45, 'L'],
-            ['UNIT / DIVISI', 40, 'L'],
-            ['STATUS DRIVER', 26, 'C'],
-            ['MASA BERLAKU', 26, 'C'],
-            ['STATUS SIMPER', 28, 'C'],
+            ['NO', 8, 'C'],
+            ['NIK', 25, 'C'],
+            ['NAMA KARYAWAN', 52, 'L'],
+            ['JABATAN', 38, 'L'],
+            ['UNIT / DIVISI', 34, 'L'],
+            ['DRIVER', 22, 'C'],
+            ['JENIS SIMPER', 34, 'C'],
+            ['MASA BERLAKU', 25, 'C'],
+            ['STATUS', 29, 'C'],
         ];
 
         foreach ($cols as $col) {
@@ -180,32 +181,42 @@ class SimperPdfExporter extends FPDF
 
             // Kolom 1: No
             $pdf->SetFont('Arial', '', 7.5);
-            $pdf->Cell(10, 6.5, (string) ($idx + 1), 'B', 0, 'C', $fill);
+            $pdf->Cell(8, 6.5, (string) ($idx + 1), 'B', 0, 'C', $fill);
 
             // Kolom 2: NIK (Bold)
             $pdf->SetFont('Arial', 'B', 7.5);
-            $pdf->Cell(30, 6.5, $emp->nik, 'B', 0, 'C', $fill);
+            $pdf->Cell(25, 6.5, $emp->nik, 'B', 0, 'C', $fill);
 
-            // Kolom 3: Nama Lengkap (Bold, Truncate jika > 36 karakter)
-            $nama = mb_strimwidth($emp->name, 0, 36, '...');
-            $pdf->Cell(62, 6.5, ' ' . $nama, 'B', 0, 'L', $fill);
+            // Kolom 3: Nama Lengkap (Bold, Truncate jika > 30 karakter)
+            $nama = mb_strimwidth($emp->name, 0, 30, '...');
+            $pdf->Cell(52, 6.5, ' ' . $nama, 'B', 0, 'L', $fill);
 
             // Kolom 4: Jabatan
             $pdf->SetFont('Arial', '', 7.5);
-            $jabatan = mb_strimwidth($emp->position ?: '-', 0, 26, '...');
-            $pdf->Cell(45, 6.5, ' ' . $jabatan, 'B', 0, 'L', $fill);
+            $jabatan = mb_strimwidth($emp->position ?: '-', 0, 22, '...');
+            $pdf->Cell(38, 6.5, ' ' . $jabatan, 'B', 0, 'L', $fill);
 
             // Kolom 5: Unit / Divisi
-            $unit = mb_strimwidth($emp->unit_kerja ?: ($emp->division ?: '-'), 0, 24, '...');
-            $pdf->Cell(40, 6.5, ' ' . $unit, 'B', 0, 'L', $fill);
+            $unit = mb_strimwidth($emp->unit_kerja ?: ($emp->division ?: '-'), 0, 20, '...');
+            $pdf->Cell(34, 6.5, ' ' . $unit, 'B', 0, 'L', $fill);
 
             // Kolom 6: Status Driver
-            $pdf->Cell(26, 6.5, $isDriver ? 'Driver' : 'Non-Driver', 'B', 0, 'C', $fill);
+            $pdf->Cell(22, 6.5, $isDriver ? 'Driver' : 'Non-Driver', 'B', 0, 'C', $fill);
 
-            // Kolom 7: Masa Berlaku
-            $pdf->Cell(26, 6.5, $expDate, 'B', 0, 'C', $fill);
+            // Kolom 7: Rincian Jenis SIMPER
+            $simperList = $emp->simpers->map(function ($s) {
+                $code = $s->simperType?->code ?: 'SIMPER';
+                return str_replace('SIMPER-', '', $code);
+            })->filter()->unique()->values();
+            $simperTypesText = $simperList->isNotEmpty() ? $simperList->join(', ') : ($isDriver ? 'LV' : '-');
+            $pdf->SetFont('Arial', 'B', 7);
+            $pdf->Cell(34, 6.5, $simperTypesText, 'B', 0, 'C', $fill);
 
-            // Kolom 8: Status SIMPER (Berwarna)
+            // Kolom 8: Masa Berlaku
+            $pdf->SetFont('Arial', '', 7.5);
+            $pdf->Cell(25, 6.5, $expDate, 'B', 0, 'C', $fill);
+
+            // Kolom 9: Status SIMPER (Berwarna)
             if ($statusText === 'Masih Berlaku') {
                 $pdf->SetTextColor(4, 120, 87); // #047857 Green
             } elseif ($statusText === 'Segera Habis') {
@@ -216,7 +227,7 @@ class SimperPdfExporter extends FPDF
                 $pdf->SetTextColor(100, 116, 139); // #64748b Slate
             }
             $pdf->SetFont('Arial', 'B', 7.5);
-            $pdf->Cell(28, 6.5, $statusText, 'B', 0, 'C', $fill);
+            $pdf->Cell(29, 6.5, $statusText, 'B', 0, 'C', $fill);
 
             $pdf->Ln();
             $fill = ! $fill;

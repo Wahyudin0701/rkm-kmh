@@ -218,13 +218,13 @@
                                         </div>
 
                                         @if(in_array($item->question_type, ['choice', 'condition', 'Multiple choice: only one answer', 'Matrix']))
-                                            <!-- Opsi Jawaban Radio: Baik & Rusak -->
+                                            <!-- Opsi Jawaban Radio: Baik & Rusak (Kosongan secara Default, Wajib Dipilih Operator) -->
                                             <div class="flex items-center space-x-2 flex-shrink-0">
                                                 <label class="cursor-pointer">
                                                     <input type="radio" 
                                                            name="items[{{ $item->id }}][condition]" 
                                                            value="baik" 
-                                                           checked
+                                                           {{ old("items.{$item->id}.condition") === 'baik' ? 'checked' : '' }}
                                                            onchange="handleConditionChange({{ $item->id }}, 'baik')"
                                                            class="peer sr-only">
                                                     <span class="inline-flex items-center justify-center min-w-[62px] px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 text-slate-600 bg-white peer-checked:bg-[#1b5e20] peer-checked:text-white peer-checked:border-[#1b5e20] peer-checked:shadow-sm transition">
@@ -236,6 +236,7 @@
                                                     <input type="radio" 
                                                            name="items[{{ $item->id }}][condition]" 
                                                            value="rusak" 
+                                                           {{ old("items.{$item->id}.condition") === 'rusak' ? 'checked' : '' }}
                                                            onchange="handleConditionChange({{ $item->id }}, 'rusak')"
                                                            class="peer sr-only">
                                                     <span class="inline-flex items-center justify-center space-x-1.5 min-w-[68px] px-3.5 py-1.5 rounded-xl text-xs font-bold border border-slate-300 text-slate-600 bg-white peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 peer-checked:shadow-sm transition">
@@ -404,6 +405,25 @@
         const panel = document.getElementById('p2h-content-' + secKey);
         if (!panel) return true;
 
+        // 1. Validasi: Pastikan setiap butir pemeriksaan radio di bagian ini telah dipilih (Baik / Rusak)
+        const radioRows = panel.querySelectorAll('.p2h-item-card');
+        for (const row of radioRows) {
+            const radios = row.querySelectorAll('input[type="radio"]');
+            if (radios.length > 0) {
+                const isSelected = Array.from(radios).some(r => r.checked);
+                if (!isSelected) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50/50');
+                    setTimeout(() => {
+                        row.classList.remove('ring-2', 'ring-rose-500', 'bg-rose-50/50');
+                    }, 3500);
+                    alert('Harap periksa dan tentukan kondisi (Baik atau Rusak) untuk seluruh butir pemeriksaan pada bagian ini.');
+                    return false;
+                }
+            }
+        }
+
+        // 2. Validasi: Jika ada yang rusak, wajib diisi catatan penjelasannya
         const damagedRadios = panel.querySelectorAll('input[type="radio"][value="rusak"]:checked');
         for (const radio of damagedRadios) {
             const match = radio.name.match(/items\[(\d+)\]/);

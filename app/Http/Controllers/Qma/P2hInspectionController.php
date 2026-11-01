@@ -735,8 +735,11 @@ class P2hInspectionController extends Controller
         ]);
 
         // Jika unit dinyatakan aman dan sebelumnya breakdown karena review, status unit disetujui operasi
-        if (!$record->hasDefects() && $record->vehicle->status === 'Breakdown') {
-            $record->vehicle->update(['status' => 'Operation']);
+        if (!$record->hasDefects() && $record->vehicle && $record->vehicle->status === 'Breakdown') {
+            $record->vehicle->update([
+                'status' => 'Operation',
+                'location_note' => "Status dipulihkan ke Operation pasca persetujuan P2H {$record->transaction_no}",
+            ]);
         }
 
         return back()->with('success', "Inspeksi P2H [{$record->transaction_no}] untuk unit {$record->vehicle->code} berhasil DISETUJUI.");

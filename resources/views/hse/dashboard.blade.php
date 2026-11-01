@@ -197,6 +197,23 @@
                                         <span>Berlaku s.d. {{ $log->simper_expired_at->locale('id')->translatedFormat('d M Y') }} ({{ $log->simper_expired_at->locale('id')->diffForHumans() }})</span>
                                     </p>
                                 @endif
+
+                                <!-- Rincian Badge Multi-SIMPER Personil -->
+                                @if($log->simpers && $log->simpers->isNotEmpty())
+                                    <div class="flex items-center gap-1.5 flex-wrap mt-1.5 pt-1.5 border-t border-slate-100">
+                                        @foreach($log->simpers as $smp)
+                                            @php
+                                                $smpValid = $smp->isValid();
+                                                $smpCode = $smp->simperType?->code ?: 'SIMPER';
+                                                $shortCode = str_replace('SIMPER-', '', $smpCode);
+                                            @endphp
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold font-mono {{ $smpValid ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}" title="{{ $smp->simperType?->name }}: s/d {{ $smp->expired_at ? $smp->expired_at->format('d/m/Y') : '-' }}">
+                                                <i class="fa-solid {{ $smpValid ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-rose-600' }} mr-1 text-[8px]"></i>
+                                                <span>{{ $shortCode }}: {{ $smp->expired_at ? $smp->expired_at->format('d/m/y') : '-' }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Badge Kanan -->

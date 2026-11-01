@@ -74,8 +74,8 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:50', 'unique:users,username'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'username' => ['required', 'string', 'max:50', Rule::unique('users', 'username')->whereNull('deleted_at')],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->whereNull('deleted_at')],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'string', 'exists:roles,name'],
             'gate_id' => ['nullable', 'exists:gates,id'],
@@ -102,15 +102,38 @@ class UserController extends Controller
             $photoPath = ImageCompressionService::uploadAndCompress($request->file('photo'), 'employees', 500, 500, 80);
         }
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'username' => $validated['username'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'role' => $validated['role'], // Simpan ke kolom legacy untuk backwards-compat
-            'gate_id' => $validated['gate_id'] ?? null,
-            'photo_path' => $photoPath,
-        ]);
+        $user = User::withTrashed()
+            ->where('username', $validated['username'])
+            ->orWhere('email', $validated['email'])
+            ->first();
+
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+            $userData = [
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'],
+                'gate_id' => $validated['gate_id'] ?? null,
+            ];
+            if ($photoPath) {
+                $userData['photo_path'] = $photoPath;
+            }
+            $user->update($userData);
+        } else {
+            $user = User::create([
+                'name' => $validated['name'],
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'], // Simpan ke kolom legacy untuk backwards-compat
+                'gate_id' => $validated['gate_id'] ?? null,
+                'photo_path' => $photoPath,
+            ]);
+        }
 
         // Assign Spatie Role
         $user->assignRole($validated['role']);
@@ -141,7 +164,7 @@ class UserController extends Controller
             $defaultDivision = ($isGateOfficer || $isPgAdmin) ? 'Private Guard' : '-';
             $defaultPosition = $isGateOfficer ? 'Anggota' : ($isPgAdmin ? 'Admin PG' : ($isEmployeeRole ? 'Driver Operasional' : '-'));
 
-            $emp = Employee::where('user_id', $user->id)->orWhere('nik', $user->username)->first();
+            $emp = Employee::withTrashed()->where('user_id', $user->id)->orWhere('nik', $user->username)->first();
             $empData = [
                 'user_id' => $user->id,
                 'nik' => $user->username,
@@ -154,6 +177,9 @@ class UserController extends Controller
                 'photo_path' => $photoPath ?: $emp?->photo_path,
             ];
             if ($emp) {
+                if ($emp->trashed()) {
+                    $emp->restore();
+                }
                 $emp->update($empData);
             } else {
                 Employee::create($empData);

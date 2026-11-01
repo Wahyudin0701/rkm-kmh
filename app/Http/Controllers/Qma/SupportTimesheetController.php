@@ -144,8 +144,14 @@ class SupportTimesheetController extends Controller
         $activeUnitsCount = $statsItems->pluck('vehicle_id')->unique()->count();
         $breakdownCount = $statsItems->where('status', 'Breakdown')->count();
 
-        // Data Master untuk Form & Filter
+        // Data Master untuk Form & Filter (Alat Berat / Heavy Equipment - Bebas dari Unit LV)
         $unitSupports = Vehicle::unitSupports()
+            ->where('category', '!=', 'light_vehicle')
+            ->where(function (Builder $q) {
+                $q->where('code', 'not like', 'LV %')
+                  ->where('code', 'not like', 'LV-%')
+                  ->where('code', 'not like', 'LV_%');
+            })
             ->where(function (Builder $q) {
                 $q->whereNotNull('parent_id')
                   ->orWhereDoesntHave('units');
@@ -425,7 +431,12 @@ class SupportTimesheetController extends Controller
             ]);
         });
 
-        return back()->with('success', "Timesheet {$timesheetNo} untuk unit {$vehicle->code} berhasil disimpan.");
+        $successMsg = "Timesheet {$timesheetNo} untuk unit {$vehicle->code} berhasil disimpan.";
+        if ($operatingHours !== null && $operatingHours > 24) {
+            $successMsg .= " (Catatan: Total waktu operasi tercatat {$operatingHours} HM/Jam [> 24 jam]. Harap periksa apakah angka Start HM atau End HM sudah sesuai).";
+        }
+
+        return back()->with('success', $successMsg);
     }
 
     /**
@@ -527,7 +538,12 @@ class SupportTimesheetController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        return back()->with('success', "Timesheet {$timesheet->timesheet_no} berhasil diperbarui.");
+        $successMsg = "Timesheet {$timesheet->timesheet_no} berhasil diperbarui.";
+        if ($operatingHours !== null && $operatingHours > 24) {
+            $successMsg .= " (Catatan: Total waktu operasi tercatat {$operatingHours} HM/Jam [> 24 jam]. Harap periksa apakah angka Start HM atau End HM sudah sesuai).";
+        }
+
+        return back()->with('success', $successMsg);
     }
 
     /**

@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class EmployeeController extends Controller
@@ -42,9 +43,10 @@ class EmployeeController extends Controller
             ->take(5)
             ->get();
 
-        // 2. Monitoring Status & Masa Berlaku SIMPER (Prioritas Kedaluwarsa & Segera Habis)
+        // 2. Monitoring Status & Masa Berlaku SIMPER (Prioritas Kedaluwarsa & Segera Habis dengan Dukungan Multi-SIMPER)
         $today = now()->toDateString();
         $simperLogs = Employee::where('is_operator', true)
+            ->with(['simpers.simperType'])
             ->orderByRaw("CASE 
                 WHEN simper_expired_at IS NULL THEN 1 
                 WHEN simper_expired_at < ? THEN 0 
@@ -209,6 +211,7 @@ class EmployeeController extends Controller
             'Unit Kerja' => 20,
             'Divisi' => 20,
             'Status Driver' => 16,
+            'Jenis Izin SIMPER' => 24,
             'Masa Berlaku SIMPER' => 22,
             'Status SIMPER' => 24,
         ];
@@ -220,6 +223,13 @@ class EmployeeController extends Controller
         foreach ($employees as $idx => $emp) {
             $isDriver = $emp->is_operator;
             $expDate = $emp->simper_expired_at ? $emp->simper_expired_at->format('d/m/Y') : '-';
+
+            // Ambil rincian seluruh kode SIMPER yang dipegang
+            $simperList = $emp->simpers->map(function ($s) {
+                $code = $s->simperType?->code ?: 'SIMPER';
+                return str_replace('SIMPER-', '', $code);
+            })->filter()->unique()->values();
+            $simperTypesText = $simperList->isNotEmpty() ? $simperList->join(', ') : ($isDriver ? 'LV (Default)' : '-');
 
             if (! $isDriver) {
                 $statusText = 'Bukan Driver';
@@ -242,6 +252,7 @@ class EmployeeController extends Controller
                 $emp->unit_kerja ?: '-',
                 $emp->division ?: '-',
                 $isDriver ? 'Driver' : 'Bukan Driver',
+                $simperTypesText,
                 $expDate,
                 $statusText,
             ];
@@ -256,6 +267,7 @@ class EmployeeController extends Controller
             'left',   // Unit Kerja
             'left',   // Divisi
             'center', // Status Driver
+            'center', // Jenis Izin SIMPER
             'center', // Masa Berlaku
             'center', // Status SIMPER
         ];
@@ -580,7 +592,7 @@ class EmployeeController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nik' => ['required', 'string', 'max:50', 'unique:employees,nik'],
+            'nik' => ['required', 'string', 'max:50', Rule::unique('employees', 'nik')->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:100'],
             'unit_kerja' => ['required', 'string'],
             'division' => ['required', 'string'],
@@ -613,15 +625,24 @@ class EmployeeController extends Controller
             $employeeType = 'Karyawan';
         }
 
-        $user = User::firstOrCreate(
-            ['username' => $validated['nik']],
-            [
+        $user = User::withTrashed()->where('username', $validated['nik'])->first();
+        if ($user) {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+            $user->update([
+                'name' => $validated['name'],
+                'role' => $user->role ?: 'employee',
+            ]);
+        } else {
+            $user = User::create([
+                'username' => $validated['nik'],
                 'name' => $validated['name'],
                 'email' => strtolower(str_replace(['-', ' '], '', $validated['nik'])) . '@kmh.co.id',
                 'password' => Hash::make(config('auth.default_employee_password', '123456')),
                 'role' => 'employee',
-            ]
-        );
+            ]);
+        }
 
         if (!$user->hasRole('employee')) {
             $user->assignRole('employee');
@@ -633,18 +654,36 @@ class EmployeeController extends Controller
             $user->update(['photo_path' => $photoPath]);
         }
 
-        $employee = Employee::create([
-            'nik' => $validated['nik'],
-            'name' => $validated['name'],
-            'employee_type' => $employeeType,
-            'unit_kerja' => $validated['unit_kerja'],
-            'division' => $validated['division'],
-            'position' => $validated['position'],
-            'is_operator' => $isOperator,
-            'simper_expired_at' => $simperExpiredAt,
-            'photo_path' => $photoPath,
-            'user_id' => $user->id,
-        ]);
+        $employee = Employee::withTrashed()->where('nik', $validated['nik'])->first();
+        if ($employee) {
+            if ($employee->trashed()) {
+                $employee->restore();
+            }
+            $employee->update([
+                'name' => $validated['name'],
+                'employee_type' => $employeeType,
+                'unit_kerja' => $validated['unit_kerja'],
+                'division' => $validated['division'],
+                'position' => $validated['position'],
+                'is_operator' => $isOperator,
+                'simper_expired_at' => $simperExpiredAt,
+                'photo_path' => $photoPath ?? $employee->photo_path,
+                'user_id' => $user->id,
+            ]);
+        } else {
+            $employee = Employee::create([
+                'nik' => $validated['nik'],
+                'name' => $validated['name'],
+                'employee_type' => $employeeType,
+                'unit_kerja' => $validated['unit_kerja'],
+                'division' => $validated['division'],
+                'position' => $validated['position'],
+                'is_operator' => $isOperator,
+                'simper_expired_at' => $simperExpiredAt,
+                'photo_path' => $photoPath,
+                'user_id' => $user->id,
+            ]);
+        }
 
         // Sinkronisasi Multi-SIMPER Personil
         $this->syncEmployeeSimpers($employee, $request, $isOperator, $simperExpiredAt);
