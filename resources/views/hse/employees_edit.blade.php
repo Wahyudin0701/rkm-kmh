@@ -242,9 +242,11 @@
                                         </label>
                                         <input type="text" 
                                                name="simper_assignments[{{ $st->id }}][simper_number]" 
+                                               id="inputSimperNum_{{ $st->id }}"
                                                value="{{ $simperNum }}"
+                                               {{ $isChecked ? '' : 'disabled' }}
                                                placeholder="Contoh: SMP-LV-001" 
-                                               class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-emerald-600">
+                                               class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-emerald-600 disabled:opacity-50 disabled:bg-slate-100">
                                     </div>
                                     <div>
                                         <label class="block text-[11px] font-bold text-slate-600 mb-1">
@@ -252,8 +254,10 @@
                                         </label>
                                         <input type="date" 
                                                name="simper_assignments[{{ $st->id }}][expired_at]" 
+                                               id="inputSimperExp_{{ $st->id }}"
                                                value="{{ $simperExp }}"
-                                               class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-emerald-600">
+                                               {{ $isChecked ? '' : 'disabled' }}
+                                               class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-emerald-600 disabled:opacity-50 disabled:bg-slate-100">
                                     </div>
                                 </div>
                             </div>
@@ -359,11 +363,20 @@
     function toggleSimperRow(id) {
         const chk = document.getElementById(`chkSimper_${id}`);
         const fields = document.getElementById(`fieldsSimper_${id}`);
+        const numInp = document.getElementById(`inputSimperNum_${id}`);
+        const expInp = document.getElementById(`inputSimperExp_${id}`);
         if (chk && fields) {
             if (chk.checked) {
                 fields.classList.remove('hidden');
+                if (numInp) numInp.disabled = false;
+                if (expInp) expInp.disabled = false;
             } else {
                 fields.classList.add('hidden');
+                if (numInp) numInp.disabled = true;
+                if (expInp) {
+                    expInp.disabled = true;
+                    expInp.value = '';
+                }
             }
         }
     }

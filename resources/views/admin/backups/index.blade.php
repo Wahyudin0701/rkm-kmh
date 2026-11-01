@@ -1012,6 +1012,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', form.action, true);
+        xhr.timeout = 600000; // 10 Menit timeout untuk berkas backup besar
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
         xhr.upload.onprogress = function(e) {
@@ -1071,6 +1072,18 @@
             }
             if (text) text.textContent = 'Mulai Pemulihan Sistem';
             document.getElementById('directRestoreErrorMessage').textContent = 'Koneksi jaringan terputus saat mengunggah berkas.';
+            document.getElementById('directRestoreError').classList.remove('hidden');
+        };
+
+        xhr.ontimeout = function() {
+            loading.classList.add('hidden');
+            document.getElementById('directRestoreDropzoneContainer').classList.remove('hidden');
+            if (btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+            if (text) text.textContent = 'Mulai Pemulihan Sistem';
+            document.getElementById('directRestoreErrorMessage').textContent = 'Waktu pengunggahan habis (Timeout 10 Menit). Silakan periksa kestabilan jaringan internet Anda.';
             document.getElementById('directRestoreError').classList.remove('hidden');
         };
 
@@ -1239,6 +1252,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `{{ route('admin.backups.converter.inspect') }}`, true);
+        xhr.timeout = 600000; // 10 Menit timeout
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
 
@@ -1312,6 +1326,12 @@
             loading.classList.add('hidden');
             document.getElementById('panelConverterUpload').classList.remove('hidden');
             showConverterError('Koneksi terputus saat mengunggah berkas.');
+        };
+
+        xhr.ontimeout = function() {
+            loading.classList.add('hidden');
+            document.getElementById('panelConverterUpload').classList.remove('hidden');
+            showConverterError('Waktu pengunggahan habis (Timeout 10 Menit). Silakan periksa kestabilan jaringan internet Anda.');
         };
 
         xhr.send(formData);

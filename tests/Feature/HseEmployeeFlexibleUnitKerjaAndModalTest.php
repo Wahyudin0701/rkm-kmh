@@ -430,4 +430,245 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
             'position' => 'Anggota',
         ]);
     }
+
+    public function test_unchecking_and_readding_simper_does_not_trigger_500_unique_constraint_violation(): void
+    {
+        $simperLv = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-LV'],
+            ['name' => 'SIMPER Light Vehicle', 'category_scope' => 'light_vehicle', 'is_active' => true]
+        );
+
+        $simperDt = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-DT'],
+            ['name' => 'SIMPER Dump Truck', 'category_scope' => 'unit_support_mobile', 'is_active' => true]
+        );
+
+        $employee = Employee::create([
+            'nik' => 'KMH-MULTI-SIMPER',
+            'name' => 'Driver Multi Izin',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Umum',
+            'division' => 'Operasi',
+            'position' => 'Driver Tambang',
+            'is_operator' => true,
+            'simper_expired_at' => '2026-12-31',
+        ]);
+
+        // 1. Tambah 2 SIMPER awal
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperLv->id,
+            'simper_number' => 'SMP-001-LV',
+            'expired_at' => '2026-12-31',
+            'status' => 'active',
+        ]);
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'simper_number' => 'SMP-001-DT',
+            'expired_at' => '2026-12-31',
+            'status' => 'active',
+        ]);
+
+        // 2. Edit Karyawan: Hilangkan (uncheck) SIMPER-DT (hanya sisakan SIMPER-LV)
+        $responseUncheck = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.update', $employee->id), [
+                'name' => 'Driver Multi Izin',
+                'is_operator' => '1',
+                'simper_assignments' => [
+                    $simperLv->id => [
+                        'enabled' => '1',
+                        'simper_number' => 'SMP-001-LV',
+                        'expired_at' => '2026-12-31',
+                    ],
+                    $simperDt->id => [
+                        // Unchecked: enabled tidak dikirim
+                        'simper_number' => 'SMP-001-DT',
+                        'expired_at' => '',
+                    ],
+                ],
+            ]);
+
+        $responseUncheck->assertSessionHasNoErrors();
+        $responseUncheck->assertRedirect();
+
+        // SIMPER-DT harus terhapus
+        $this->assertDatabaseMissing('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'deleted_at' => null,
+        ]);
+
+        // 3. Edit Karyawan LAGI: Centang kembali (re-add) SIMPER-DT
+        // Ini adalah skenario yang sebelumnya memicu 500 Duplicate entry
+        $responseReadd = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.update', $employee->id), [
+                'name' => 'Driver Multi Izin',
+                'is_operator' => '1',
+                'simper_assignments' => [
+                    $simperLv->id => [
+                        'enabled' => '1',
+                        'simper_number' => 'SMP-001-LV',
+                        'expired_at' => '2026-12-31',
+                    ],
+                    $simperDt->id => [
+                        'enabled' => '1',
+                        'simper_number' => 'SMP-001-DT-RENEWED',
+                        'expired_at' => '2027-06-30',
+                    ],
+                ],
+            ]);
+
+        $responseReadd->assertSessionHasNoErrors();
+        $responseReadd->assertRedirect();
+
+        // Verifikasi bahwa SIMPER-DT berhasil aktif kembali tanpa error 500
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'simper_number' => 'SMP-001-DT-RENEWED',
+            'expired_at' => '2027-06-30 00:00:00',
+            'status' => 'active',
+            'deleted_at' => null,
+        ]);
+
+        $employee->refresh();
+        $this->assertEquals('2027-06-30', $employee->simper_expired_at->format('Y-m-d'));
+    }
+
+    public function test_hse_can_renew_specific_simper_with_dropdown_selection(): void
+    {
+        $simperLv = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-LV'],
+            ['name' => 'SIMPER Light Vehicle', 'category_scope' => 'light_vehicle', 'is_active' => true]
+        );
+
+        $simperDt = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-DT'],
+            ['name' => 'SIMPER Dump Truck', 'category_scope' => 'unit_support_mobile', 'is_active' => true]
+        );
+
+        $employee = Employee::create([
+            'nik' => 'KMH-RENEW-TEST',
+            'name' => 'Operator Perpanjang',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Operasi',
+            'division' => 'Operasi',
+            'position' => 'Driver',
+            'is_operator' => true,
+            'simper_expired_at' => '2026-10-01',
+        ]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperLv->id,
+            'simper_number' => 'SMP-LV-01',
+            'expired_at' => '2026-10-01',
+            'status' => 'active',
+        ]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'simper_number' => 'SMP-DT-01',
+            'expired_at' => '2026-09-01',
+            'status' => 'active',
+        ]);
+
+        // Perpanjang HANYA SIMPER-DT via modal dropdown (renew_simper_type_id = DT)
+        $response = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.update', $employee->id), [
+                'is_operator' => '1',
+                'renew_simper_type_id' => (string) $simperDt->id,
+                'simper_expired_at' => '2027-12-31',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        // SIMPER-DT harus diperpanjang ke 2027-12-31
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'expired_at' => '2027-12-31 00:00:00',
+        ]);
+
+        // SIMPER-LV harus tetap 2026-10-01 (tidak berubah)
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperLv->id,
+            'expired_at' => '2026-10-01 00:00:00',
+        ]);
+
+        // Max expired_at master employee harus ikut naik ke 2027-12-31
+        $employee->refresh();
+        $this->assertEquals('2027-12-31', $employee->simper_expired_at->format('Y-m-d'));
+    }
+
+    public function test_hse_can_renew_all_simpers_simultaneously(): void
+    {
+        $simperLv = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-LV'],
+            ['name' => 'SIMPER Light Vehicle', 'category_scope' => 'light_vehicle', 'is_active' => true]
+        );
+
+        $simperDt = \App\Models\SimperType::firstOrCreate(
+            ['code' => 'SIMPER-DT'],
+            ['name' => 'SIMPER Dump Truck', 'category_scope' => 'unit_support_mobile', 'is_active' => true]
+        );
+
+        $employee = Employee::create([
+            'nik' => 'KMH-RENEW-ALL',
+            'name' => 'Operator All Renew',
+            'employee_type' => 'Karyawan',
+            'unit_kerja' => 'Operasi',
+            'division' => 'Operasi',
+            'position' => 'Driver',
+            'is_operator' => true,
+            'simper_expired_at' => '2026-05-01',
+        ]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperLv->id,
+            'simper_number' => 'SMP-LV-02',
+            'expired_at' => '2026-05-01',
+            'status' => 'active',
+        ]);
+
+        \App\Models\EmployeeSimper::create([
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'simper_number' => 'SMP-DT-02',
+            'expired_at' => '2026-06-01',
+            'status' => 'active',
+        ]);
+
+        // Perpanjang SEMUA SIMPER sekaligus (renew_simper_type_id = all)
+        $response = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.update', $employee->id), [
+                'is_operator' => '1',
+                'renew_simper_type_id' => 'all',
+                'simper_expired_at' => '2028-01-01',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        // Keduanya harus naik ke 2028-01-01
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperLv->id,
+            'expired_at' => '2028-01-01 00:00:00',
+        ]);
+
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $simperDt->id,
+            'expired_at' => '2028-01-01 00:00:00',
+        ]);
+
+        $employee->refresh();
+        $this->assertEquals('2028-01-01', $employee->simper_expired_at->format('Y-m-d'));
+    }
 }

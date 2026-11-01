@@ -190,4 +190,95 @@ class GateInspectionTest extends TestCase
             'gate_id' => null,
         ]);
     }
+
+    public function test_guard_can_reject_vehicle_activity_with_rejection_note(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV-REJECT-01',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Mitsubishi Triton',
+            'current_km' => 2000,
+        ]);
+
+        $driver = Employee::create([
+            'name' => 'Driver Mau Lewat',
+            'nik' => 'KMH-REJ-01',
+        ]);
+
+        $activity = VehicleActivity::create([
+            'transaction_no' => 'TRX-REJ-001',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $this->gate1->id,
+            'direction' => 'out',
+            'previous_km' => 2000,
+            'current_km' => 2050,
+            'distance' => 50,
+            'purpose' => 'Ambil Material Proyek',
+            'validation_status' => 'pending',
+            'recorded_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->guardUser)
+            ->post(route('pg.gate.reject', $activity->id), [
+                'security_guard_id' => $this->guard->id,
+                'rejection_note' => 'Masa berlaku SIMPER pengemudi telah kedaluwarsa (Expired)',
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $activity->refresh();
+        $this->assertEquals('rejected', $activity->validation_status);
+        $this->assertEquals($this->guard->id, $activity->security_guard_id);
+        $this->assertEquals('Masa berlaku SIMPER pengemudi telah kedaluwarsa (Expired)', $activity->rejection_note);
+        $this->assertNotNull($activity->validated_at);
+
+        // Verifikasi tercatat di AdminActivityLog
+        $this->assertDatabaseHas('admin_activity_logs', [
+            'action_type' => 'reject',
+            'module' => 'pos_gerbang',
+            'target_type' => 'vehicle_activity',
+            'target_id' => $activity->id,
+        ]);
+    }
+
+    public function test_cannot_reject_vehicle_activity_without_rejection_note(): void
+    {
+        $vehicle = Vehicle::create([
+            'code' => 'LV-REJECT-02',
+            'category' => 'light_vehicle',
+            'brand_type' => 'Toyota Hilux',
+            'current_km' => 1500,
+        ]);
+
+        $driver = Employee::create([
+            'name' => 'Driver No Note',
+            'nik' => 'KMH-REJ-02',
+        ]);
+
+        $activity = VehicleActivity::create([
+            'transaction_no' => 'TRX-REJ-002',
+            'vehicle_id' => $vehicle->id,
+            'driver_id' => $driver->id,
+            'gate_id' => $this->gate1->id,
+            'direction' => 'in',
+            'previous_km' => 1500,
+            'current_km' => 1520,
+            'distance' => 20,
+            'purpose' => 'Patroli',
+            'validation_status' => 'pending',
+            'recorded_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->guardUser)
+            ->post(route('pg.gate.reject', $activity->id), [
+                'security_guard_id' => $this->guard->id,
+                'rejection_note' => '',
+            ]);
+
+        $response->assertSessionHasErrors('rejection_note');
+        $activity->refresh();
+        $this->assertEquals('pending', $activity->validation_status);
+    }
 }

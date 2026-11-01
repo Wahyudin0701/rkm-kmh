@@ -113,32 +113,41 @@
             </div>
         @endif
 
-        <!-- Baris 4: Tombol Verifikasi Langsung di Card (Tanpa Popup & Tanpa Fitur Tolak) -->
+        <!-- Baris 4: Tombol Aksi Verifikasi & Tolak Perjalanan -->
         <div class="mt-3.5 pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5">
             <span class="text-[11px] text-slate-400 font-medium hidden sm:inline flex items-center gap-1.5">
                 <i class="fa-solid fa-shield-check text-[#1b5e20]"></i>
-                <span>Cek fisik kendaraan lalu klik verifikasi untuk membuka portal</span>
+                <span>Cek fisik kendaraan lalu pilih verifikasi atau tolak</span>
             </span>
 
-            @can('gate.approve')
-            <form action="{{ route('pg.gate.approve', $act->id) }}" method="POST" class="w-full sm:w-auto m-0">
-                @csrf
-                @if($currentGuard)
-                    <input type="hidden" name="security_guard_id" value="{{ $currentGuard->id }}">
-                @elseif($guards->isNotEmpty())
-                    <input type="hidden" name="security_guard_id" value="{{ $guards->first()->id }}">
-                @endif
-
-                <button type="submit" 
-                        onclick="this.disabled=true; this.innerHTML='<i class=\'fa-solid fa-spinner fa-spin text-xs\'></i> Memverifikasi...'; this.form.submit();"
-                        class="w-full sm:w-auto px-6 py-2.5 bg-[#1b5e20] hover:bg-[#144919] active:bg-[#0f3613] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition flex items-center justify-center space-x-2 cursor-pointer">
-                    <i class="fa-solid fa-clipboard-check text-sm"></i>
-                    <span>Verifikasi</span>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                @can('gate.reject')
+                <button type="button" 
+                        onclick="openRejectModal({{ $act->id }}, '{{ addslashes($act->vehicle->code . ' (' . ($act->vehicle->license_plate ?? 'Tanpa Plat') . ')') }}', '{{ addslashes($act->driver->name ?? 'Pengemudi') }}', '{{ strtolower($act->direction) }}')"
+                        class="w-1/2 sm:w-auto px-4 py-2.5 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 text-rose-700 border border-rose-200 font-bold text-xs sm:text-sm rounded-xl transition flex items-center justify-center space-x-1.5 cursor-pointer shadow-2xs">
+                    <i class="fa-solid fa-ban text-xs"></i>
+                    <span>Tolak</span>
                 </button>
-            </form>
-            @else
-            <span class="text-xs text-slate-400 italic">Tidak memiliki izin verifikasi</span>
-            @endcan
+                @endcan
+
+                @can('gate.approve')
+                <form action="{{ route('pg.gate.approve', $act->id) }}" method="POST" class="w-1/2 sm:w-auto m-0">
+                    @csrf
+                    @if($currentGuard)
+                        <input type="hidden" name="security_guard_id" value="{{ $currentGuard->id }}">
+                    @elseif($guards->isNotEmpty())
+                        <input type="hidden" name="security_guard_id" value="{{ $guards->first()->id }}">
+                    @endif
+
+                    <button type="submit" 
+                            onclick="this.disabled=true; this.innerHTML='<i class=\'fa-solid fa-spinner fa-spin text-xs\'></i> Memverifikasi...'; this.form.submit();"
+                            class="w-full sm:w-auto px-6 py-2.5 bg-[#1b5e20] hover:bg-[#144919] active:bg-[#0f3613] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs hover:shadow transition flex items-center justify-center space-x-2 cursor-pointer">
+                        <i class="fa-solid fa-clipboard-check text-sm"></i>
+                        <span>Verifikasi</span>
+                    </button>
+                </form>
+                @endcan
+            </div>
         </div>
 
     </div>

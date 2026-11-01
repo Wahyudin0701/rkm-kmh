@@ -588,6 +588,10 @@ class EmployeeController extends Controller
             'is_operator' => ['required', 'in:1,0'],
             'simper_expired_at' => ['nullable', 'date'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'simper_assignments' => ['nullable', 'array'],
+            'simper_assignments.*.expired_at' => ['nullable', 'date'],
+            'simper_assignments.*.simper_number' => ['nullable', 'string', 'max:100'],
+            'renew_simper_type_id' => ['nullable', 'string'],
         ], [
             'nik.required' => 'NIK wajib diisi.',
             'nik.unique' => 'NIK sudah terdaftar dalam sistem.',
@@ -696,6 +700,10 @@ class EmployeeController extends Controller
             'is_operator' => ['required', 'in:1,0'],
             'simper_expired_at' => ['nullable', 'date'],
             'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:10240'],
+            'simper_assignments' => ['nullable', 'array'],
+            'simper_assignments.*.expired_at' => ['nullable', 'date'],
+            'simper_assignments.*.simper_number' => ['nullable', 'string', 'max:100'],
+            'renew_simper_type_id' => ['nullable', 'string'],
         ], [
             'nik.unique' => 'NIK sudah digunakan oleh karyawan lain.',
             'name.required' => 'Nama lengkap wajib diisi.',
@@ -810,7 +818,8 @@ class EmployeeController extends Controller
     private function syncEmployeeSimpers(Employee $employee, Request $request, bool $isOperator, ?string $fallbackDate): void
     {
         if (! $isOperator) {
-            $employee->simpers()->delete();
+            $employee->simpers()->forceDelete();
+            $employee->update(['simper_expired_at' => null]);
             return;
         }
 
@@ -821,19 +830,29 @@ class EmployeeController extends Controller
             $maxExpiredAt = null;
 
             foreach ($simperAssignments as $typeId => $data) {
-                $isEnabled = ! empty($data['enabled']) || (! isset($data['enabled']) && ! empty($data['expired_at']));
+                // Hanya aktif jika dicentang eksplisit, ATAU fallback jika form tidak menyertakan checkbox enabled namun memiliki tanggal
+                $isEnabled = ! empty($data['enabled']);
+                if (! $isEnabled && ! isset($data['enabled']) && ! empty($data['expired_at'])) {
+                    $isEnabled = true;
+                }
+
                 if ($isEnabled && ! empty($data['expired_at'])) {
                     $expDate = $data['expired_at'];
                     $simperNum = ! empty($data['simper_number']) ? trim($data['simper_number']) : ('SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT));
 
-                    EmployeeSimper::updateOrCreate(
-                        ['employee_id' => $employee->id, 'simper_type_id' => $typeId],
+                    $simper = EmployeeSimper::withTrashed()->updateOrCreate(
+                        ['employee_id' => $employee->id, 'simper_type_id' => (int) $typeId],
                         [
                             'simper_number' => $simperNum,
                             'expired_at' => $expDate,
                             'status' => 'active',
+                            'deleted_at' => null,
                         ]
                     );
+
+                    if ($simper->trashed()) {
+                        $simper->restore();
+                    }
 
                     $activeTypeIds[] = (int) $typeId;
 
@@ -843,26 +862,84 @@ class EmployeeController extends Controller
                 }
             }
 
-            // Hapus jenis SIMPER yang sudah tidak dicentang
+            // Hapus jenis SIMPER yang sudah tidak dicentang (Gunakan forceDelete agar tidak memicu benturan Unique Index)
             EmployeeSimper::where('employee_id', $employee->id)
                 ->whereNotIn('simper_type_id', $activeTypeIds)
-                ->delete();
+                ->forceDelete();
 
-            if ($maxExpiredAt && $employee->simper_expired_at != $maxExpiredAt) {
-                $employee->update(['simper_expired_at' => $maxExpiredAt]);
+            $employee->update(['simper_expired_at' => $maxExpiredAt]);
+        } elseif ($request->filled('renew_simper_type_id')) {
+            // Khusus alur Perpanjang SIMPER via Modal (#renewModal)
+            $renewTypeId = $request->input('renew_simper_type_id');
+            $newExpiry = $request->input('simper_expired_at');
+
+            if ($newExpiry) {
+                if ($renewTypeId === 'all') {
+                    // Perpanjang semua SIMPER yang aktif dimiliki oleh karyawan
+                    $existingSimpers = $employee->simpers;
+                    if ($existingSimpers->isNotEmpty()) {
+                        foreach ($existingSimpers as $s) {
+                            $s->update([
+                                'expired_at' => $newExpiry,
+                                'status' => 'active',
+                            ]);
+                        }
+                    } else {
+                        // Jika belum ada SIMPER sama sekali, buatkan SIMPER-LV default
+                        $lvTypeId = SimperType::where('code', 'SIMPER-LV')->value('id');
+                        if ($lvTypeId) {
+                            $simper = EmployeeSimper::withTrashed()->updateOrCreate(
+                                ['employee_id' => $employee->id, 'simper_type_id' => $lvTypeId],
+                                [
+                                    'simper_number' => 'SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT),
+                                    'expired_at' => $newExpiry,
+                                    'status' => 'active',
+                                    'deleted_at' => null,
+                                ]
+                            );
+                            if ($simper->trashed()) {
+                                $simper->restore();
+                            }
+                        }
+                    }
+                } else {
+                    // Perpanjang jenis SIMPER spesifik yang dipilih pada dropdown
+                    $targetTypeId = (int) $renewTypeId;
+                    $simper = EmployeeSimper::withTrashed()->updateOrCreate(
+                        ['employee_id' => $employee->id, 'simper_type_id' => $targetTypeId],
+                        [
+                            'simper_number' => 'SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT),
+                            'expired_at' => $newExpiry,
+                            'status' => 'active',
+                            'deleted_at' => null,
+                        ]
+                    );
+                    if ($simper->trashed()) {
+                        $simper->restore();
+                    }
+                }
+
+                // Sinkronkan simper_expired_at master karyawan dengan tanggal terlama di antara simper aktif
+                $latestMax = $employee->simpers()->max('expired_at');
+                $employee->update(['simper_expired_at' => $latestMax]);
             }
         } elseif ($fallbackDate) {
-            // Fallback untuk form sederhana / pengujian yang mengirimkan 1 tanggal simper_expired_at
+            // Fallback untuk pengujian sederhana yang mengirimkan 1 tanggal simper_expired_at
             $lvTypeId = SimperType::where('code', 'SIMPER-LV')->value('id');
             if ($lvTypeId) {
-                EmployeeSimper::updateOrCreate(
+                $simper = EmployeeSimper::withTrashed()->updateOrCreate(
                     ['employee_id' => $employee->id, 'simper_type_id' => $lvTypeId],
                     [
                         'simper_number' => 'SMP-' . str_pad($employee->id, 4, '0', STR_PAD_LEFT),
                         'expired_at' => $fallbackDate,
                         'status' => 'active',
+                        'deleted_at' => null,
                     ]
                 );
+                if ($simper->trashed()) {
+                    $simper->restore();
+                }
+                $employee->update(['simper_expired_at' => $fallbackDate]);
             }
         }
     }

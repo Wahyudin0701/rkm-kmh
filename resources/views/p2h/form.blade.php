@@ -165,8 +165,13 @@
                             onclick="switchP2hSection('{{ $secKey }}')"
                             id="p2h-tab-{{ $secKey }}"
                             data-section-key="{{ $secKey }}"
-                            class="p2h-section-tab group inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 {{ $isFirst ? 'bg-[#1b5e20] text-white shadow-xs border border-[#1b5e20]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300' }}">
+                            data-section-index="{{ $loop->index }}"
+                            class="p2h-section-tab group inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 {{ $isFirst ? 'bg-[#1b5e20] text-white shadow-xs border border-[#1b5e20]' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300' }}">
+                        <span class="step-num text-[10px] font-mono opacity-80">#{{ $loop->iteration }}</span>
                         <span>{{ $sectionName }}</span>
+                        <span id="tab-check-{{ $secKey }}" class="tab-check-icon hidden text-emerald-400 font-black">
+                            <i class="fa-solid fa-circle-check text-[11px]"></i>
+                        </span>
                     </button>
                 @endforeach
             </div>
@@ -289,15 +294,15 @@
                             @endforeach
                         </div>
 
-                        <!-- Navigasi Cepat Antar Section (Sebelumnya & Selanjutnya) -->
+                        <!-- Navigasi Wizard Bertahap Antar Section -->
                         @if(count($groupedItems) > 1)
                             <div class="px-4 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
                                 @if($prevKey)
                                     <button type="button" 
                                             onclick="switchP2hSection('{{ $prevKey }}')"
-                                            class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
+                                            class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-100 transition shadow-2xs cursor-pointer">
                                         <i class="fa-solid fa-chevron-left text-[10px]"></i>
-                                        <span>Bagian Sebelumnya</span>
+                                        <span>Kembali</span>
                                     </button>
                                 @else
                                     <div></div>
@@ -305,15 +310,18 @@
 
                                 @if($nextKey)
                                     <button type="button" 
-                                            onclick="switchP2hSection('{{ $nextKey }}')"
-                                            class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition shadow-2xs cursor-pointer">
-                                        <span>Bagian Selanjutnya</span>
+                                            onclick="completeAndNextSection('{{ $secKey }}', '{{ $nextKey }}')"
+                                            class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#1b5e20] hover:bg-[#144918] transition shadow-xs cursor-pointer">
+                                        <span>Selesaikan Bagian Ini & Lanjut</span>
                                         <i class="fa-solid fa-chevron-right text-[10px]"></i>
                                     </button>
                                 @else
-                                    <span class="text-[11px] font-semibold text-slate-400 flex items-center">
-                                        <i class="fa-solid fa-flag-checkered mr-1.5 text-emerald-600"></i> Bagian Terakhir
-                                    </span>
+                                    <button type="button" 
+                                            onclick="markLastSectionComplete('{{ $secKey }}')"
+                                            class="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 transition shadow-xs cursor-pointer">
+                                        <i class="fa-solid fa-circle-check text-xs"></i>
+                                        <span>Selesaikan Pemeriksaan Bagian Terakhir</span>
+                                    </button>
                                 @endif
                             </div>
                         @endif
@@ -330,18 +338,29 @@
             <textarea name="general_notes" id="general_notes" rows="3" placeholder="Tuliskan temuan atau catatan umum lainnya mengenai kondisi Heavy Equipment hari ini..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition resize-none">{{ old('general_notes') }}</textarea>
         </div>
 
-        <!-- Tombol Aksi Submit -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex items-center justify-between gap-3">
-            <a href="{{ route('p2h.index') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 px-4 rounded-xl transition text-xs">
-                Batal
-            </a>
+        <!-- Card Tombol Aksi Submit P2H (Aktif Setelah Seluruh Bagian Ditinjau) -->
+        <div id="p2hSubmitCard" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 transition-all">
+            <div id="p2hPendingNotice" class="{{ count($groupedItems) > 1 ? '' : 'hidden' }} flex items-center justify-between text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-600 text-sm"></i>
+                    <span>Harap selesaikan pemeriksaan pada seluruh bagian (section) di atas untuk memunculkan tombol pengiriman formulir P2H ke QMA.</span>
+                </div>
+            </div>
 
-            <button type="submit" 
-                    id="btnSubmitP2h" 
-                    class="bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-6 rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2 text-xs sm:text-sm cursor-pointer">
-                <i class="fa-solid fa-paper-plane text-xs"></i>
-                <span>Kirim Formulir P2H ke QMA</span>
-            </button>
+            <div class="flex items-center justify-between gap-3">
+                <a href="{{ route('p2h.index') }}" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 px-4 rounded-xl transition text-xs">
+                    Batal
+                </a>
+
+                <div id="p2hSubmitBtnContainer" class="{{ count($groupedItems) > 1 ? 'hidden' : '' }}">
+                    <button type="submit" 
+                            id="btnSubmitP2h" 
+                            class="bg-[#1b5e20] hover:bg-[#144918] active:scale-[0.99] text-white font-bold py-2.5 px-6 rounded-xl shadow-sm hover:shadow transition flex items-center space-x-2 text-xs sm:text-sm cursor-pointer">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span>Kirim Formulir P2H ke QMA</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </form>
 </div>
@@ -349,20 +368,26 @@
 
 @section('scripts')
 <script>
+    const allSectionKeys = @json($sectionKeys);
+    const completedSections = {};
+
     function switchP2hSection(secKey) {
         // 1. Update tab styling
         const allTabs = document.querySelectorAll('.p2h-section-tab');
         allTabs.forEach(tab => {
             const key = tab.dataset.sectionKey;
+            const isCompleted = !!completedSections[key];
             if (key === secKey) {
-                tab.className = 'p2h-section-tab group inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 bg-[#1b5e20] text-white shadow-xs border border-[#1b5e20]';
+                tab.className = 'p2h-section-tab group inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 bg-[#1b5e20] text-white shadow-xs border border-[#1b5e20]';
                 tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            } else if (isCompleted) {
+                tab.className = 'p2h-section-tab group inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100';
             } else {
-                tab.className = 'p2h-section-tab group inline-flex items-center px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300';
+                tab.className = 'p2h-section-tab group inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer shrink-0 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300';
             }
         });
 
-        // 2. Show active panel, hide others
+        // 2. Tampilkan panel aktif, sembunyikan lainnya
         const allPanels = document.querySelectorAll('.p2h-section-content');
         allPanels.forEach(panel => {
             if (panel.id === 'p2h-content-' + secKey) {
@@ -371,6 +396,83 @@
                 panel.classList.add('hidden');
             }
         });
+
+        checkAllSectionsCompleted();
+    }
+
+    function validateSectionNotes(secKey) {
+        const panel = document.getElementById('p2h-content-' + secKey);
+        if (!panel) return true;
+
+        const damagedRadios = panel.querySelectorAll('input[type="radio"][value="rusak"]:checked');
+        for (const radio of damagedRadios) {
+            const match = radio.name.match(/items\[(\d+)\]/);
+            if (match && match[1]) {
+                const notesInput = panel.querySelector(`input[name="items[${match[1]}][notes]"]`);
+                if (notesInput && !notesInput.value.trim()) {
+                    notesInput.focus();
+                    alert('Mohon isi catatan kerusakan pada butir yang Anda tandai "Rusak" sebelum melanjutkan.');
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function completeAndNextSection(currentKey, nextKey) {
+        if (!validateSectionNotes(currentKey)) {
+            return;
+        }
+
+        completedSections[currentKey] = true;
+        const checkIcon = document.getElementById('tab-check-' + currentKey);
+        if (checkIcon) checkIcon.classList.remove('hidden');
+
+        switchP2hSection(nextKey);
+    }
+
+    function markLastSectionComplete(lastSecKey) {
+        if (!validateSectionNotes(lastSecKey)) {
+            return;
+        }
+
+        completedSections[lastSecKey] = true;
+        const checkIcon = document.getElementById('tab-check-' + lastSecKey);
+        if (checkIcon) checkIcon.classList.remove('hidden');
+
+        checkAllSectionsCompleted();
+
+        // Gulir halus ke tombol kirim di bawah
+        const submitCard = document.getElementById('p2hSubmitCard');
+        if (submitCard) {
+            submitCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function checkAllSectionsCompleted() {
+        if (!allSectionKeys || allSectionKeys.length <= 1) {
+            showSubmitButton();
+            return;
+        }
+
+        let allDone = true;
+        for (const key of allSectionKeys) {
+            if (!completedSections[key]) {
+                allDone = false;
+                break;
+            }
+        }
+
+        if (allDone) {
+            showSubmitButton();
+        }
+    }
+
+    function showSubmitButton() {
+        const container = document.getElementById('p2hSubmitBtnContainer');
+        const notice = document.getElementById('p2hPendingNotice');
+        if (container) container.classList.remove('hidden');
+        if (notice) notice.classList.add('hidden');
     }
 
     function handleConditionChange(itemId, condition) {
@@ -396,5 +498,12 @@
             }
         });
     }
+
+    // Inisialisasi awal
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!allSectionKeys || allSectionKeys.length <= 1) {
+            showSubmitButton();
+        }
+    });
 </script>
 @endsection

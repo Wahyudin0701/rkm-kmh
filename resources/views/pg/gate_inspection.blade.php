@@ -471,6 +471,38 @@
         openGateSelectionModal(true);
     });
     @endif
+
+    // Modal Tolak Perjalanan Kendaraan di Pos Gerbang
+    function openRejectModal(id, unit, driver, direction) {
+        document.getElementById('rejectUnitDisplay').textContent = unit || '-';
+        document.getElementById('rejectDriverDisplay').textContent = driver || '-';
+        const dirEl = document.getElementById('rejectDirectionDisplay');
+        if (direction === 'in') {
+            dirEl.textContent = 'Masuk Gerbang (IN)';
+            dirEl.className = 'font-bold text-xs uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-800';
+        } else {
+            dirEl.textContent = 'Keluar Gerbang (OUT)';
+            dirEl.className = 'font-bold text-xs uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-800';
+        }
+
+        document.getElementById('rejectNoteInput').value = '';
+        document.getElementById('rejectForm').action = `/pg/gate-inspection/${id}/reject`;
+        const modal = document.getElementById('rejectModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeRejectModal() {
+        const modal = document.getElementById('rejectModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function setQuickReason(text) {
+        const input = document.getElementById('rejectNoteInput');
+        if (input) {
+            input.value = text;
+            input.focus();
+        }
+    }
 </script>
 
 <!-- MODAL LIGHTBOX PRATINJAU FOTO DRIVER & MOBIL LV -->
@@ -579,6 +611,113 @@
                 @endif
             </form>
         </div>
+    </div>
+</div>
+<!-- ========================================================================= -->
+<!-- MODAL POPUP: TOLAK PERJALANAN KENDARAAN (DENGAN DETAIL ALASAN)           -->
+<!-- ========================================================================= -->
+<div id="rejectModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in space-y-4">
+        <!-- Header Modal -->
+        <div class="flex items-start justify-between gap-3 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl flex-shrink-0 shadow-2xs">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+                <div>
+                    <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                        Tolak Perjalanan Kendaraan
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Berikan alasan penolakan secara jelas untuk catatan log audit & driver.
+                    </p>
+                </div>
+            </div>
+            <button type="button" onclick="closeRejectModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Identitas Kendaraan & Driver -->
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-bold">Kendaraan:</span>
+                <span id="rejectUnitDisplay" class="font-mono font-black text-slate-900"></span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-bold">Pengemudi:</span>
+                <span id="rejectDriverDisplay" class="font-bold text-slate-900"></span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-bold">Arah Perlintasan:</span>
+                <span id="rejectDirectionDisplay" class="font-bold text-xs uppercase px-2 py-0.5 rounded-md"></span>
+            </div>
+        </div>
+
+        <!-- Form Penolakan -->
+        <form id="rejectForm" method="POST" action="" class="space-y-4">
+            @csrf
+            @if($currentGuard)
+                <input type="hidden" name="security_guard_id" value="{{ $currentGuard->id }}">
+            @elseif($guards->isNotEmpty())
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Petugas Satpam Pemeriksa <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="security_guard_id" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-rose-600">
+                        @foreach($guards as $g)
+                            <option value="{{ $g->id }}">{{ $g->name }} (Reg: {{ $g->badge_id }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
+
+            <!-- Quick Reason Chips -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                    Pilih Cepat Alasan Penolakan:
+                </label>
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="setQuickReason('Masa berlaku SIMPER pengemudi telah kedaluwarsa (Expired)')" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition font-medium cursor-pointer">
+                        SIMPER Expired
+                    </button>
+                    <button type="button" onclick="setQuickReason('Kondisi fisik kendaraan tidak layak jalan (Rem blong / Lampu mati / Ban botak)')" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition font-medium cursor-pointer">
+                        Fisik Tidak Layak
+                    </button>
+                    <button type="button" onclick="setQuickReason('Tujuan atau keperluan perjalanan tidak jelas / Tanpa instruksi kerja')" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition font-medium cursor-pointer">
+                        Tujuan Tidak Jelas
+                    </button>
+                    <button type="button" onclick="setQuickReason('Surat jalan / BAST belum lengkap')" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition font-medium cursor-pointer">
+                        Surat Jalan Kurang
+                    </button>
+                    <button type="button" onclick="setQuickReason('Pengemudi bukan operator / driver yang terdaftar untuk unit ini')" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 hover:text-rose-700 transition font-medium cursor-pointer">
+                        Bukan Driver Resmi
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detail Alasan Wajib -->
+            <div>
+                <label for="rejectNoteInput" class="block text-xs font-bold text-slate-700 mb-1.5">
+                    Detail Catatan / Alasan Penolakan <span class="text-rose-500">*</span>
+                </label>
+                <textarea name="rejection_note" id="rejectNoteInput" rows="3" required 
+                          placeholder="Jelaskan alasan penolakan secara spesifik..."
+                          class="w-full text-xs p-3 rounded-xl border border-slate-300 bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-rose-600 focus:ring-2 focus:ring-rose-500/10 transition resize-none"></textarea>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button type="button" onclick="closeRejectModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" 
+                        onclick="if(!document.getElementById('rejectNoteInput').value.trim()){ alert('Alasan penolakan wajib diisi!'); return false; }"
+                        class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center space-x-1.5 cursor-pointer">
+                    <i class="fa-solid fa-ban text-xs"></i>
+                    <span>Konfirmasi Tolak Perjalanan</span>
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

@@ -173,99 +173,91 @@
         </form>
     </div>
 
-    <!-- Tabel Riwayat Transfer Unit dengan Header Biru Tua Navy (Pada Mobile: Format Kotak Tanpa Border Radius) -->
+    <!-- Tabel Riwayat Transfer Unit dengan Header Biru Tua Navy (Format Ramping & Nyaman) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-xs text-left border-collapse">
                 <!-- Header Tabel Navy Gelap Solid #06213f -->
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
-                        <th class="py-3.5 px-4 text-center w-12">NO</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">TANGGAL & NO TRANSFER</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">BERITA ACARA (BAST)</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[180px]">UNIT ALAT BERAT</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap min-w-[200px]">PERPINDAHAN LOKASI</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">ARMADA & SUPIR</th>
-                        <th class="py-3.5 px-4 whitespace-nowrap">PELAPOR</th>
-                        <th class="py-3.5 px-4 text-center whitespace-nowrap w-28">AKSI</th>
+                        <th class="py-3 px-3.5 text-center w-10">NO</th>
+                        <th class="py-3 px-3.5 whitespace-nowrap">DOKUMEN & TANGGAL</th>
+                        <th class="py-3 px-3.5 whitespace-nowrap">UNIT ALAT BERAT</th>
+                        <th class="py-3 px-3.5 whitespace-nowrap">RUTE PEMINDAHAN</th>
+                        <th class="py-3 px-3.5 whitespace-nowrap">PENGANGKUT & SUPIR</th>
+                        <th class="py-3 px-3.5 whitespace-nowrap">PELAPOR</th>
+                        <th class="py-3 px-3.5 text-center whitespace-nowrap w-24">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
                     @forelse($transfers as $index => $t)
                     <tr class="hover:bg-slate-50/80 transition">
                         <!-- 1. No -->
-                        <td class="py-3.5 px-3.5 text-center text-slate-400 font-medium">
+                        <td class="py-2.5 px-3.5 text-center text-slate-400 font-medium">
                             {{ $transfers->firstItem() + $index }}
                         </td>
 
-                        <!-- 2. Tanggal & No Transfer -->
-                        <td class="py-3.5 px-3.5 whitespace-nowrap">
-                            <div class="font-bold text-slate-900">
-                                {{ $t->transfer_date ? $t->transfer_date->translatedFormat('d M Y') : '-' }}
-                            </div>
-                            <span class="inline-block mt-0.5 font-mono text-[10px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                                {{ $t->transfer_no }}
-                            </span>
-                        </td>
-
-                        <!-- 3. Berita Acara -->
-                        <td class="py-3.5 px-3.5 min-w-[200px]">
-                            @if($t->document_number)
-                                <div class="font-bold text-slate-900 leading-tight font-mono text-xs">
-                                    {{ $t->document_number }}
-                                </div>
-                                <div class="text-[11px] text-slate-500 mt-0.5 line-clamp-1" title="{{ $t->document_title }}">
-                                    {{ $t->document_title }}
-                                </div>
-                                @if($t->document_file_path)
-                                <a href="{{ $t->document_file_url }}" target="_blank" class="inline-flex items-center space-x-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-900 mt-1">
-                                    <i class="fa-solid fa-paperclip"></i>
-                                    <span>Lihat Lampiran</span>
-                                </a>
-                                @endif
-                            @else
-                                <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200">
-                                    <span>Tanpa BAST (Internal Site)</span>
-                                </span>
-                            @endif
-                        </td>
-
-                        <!-- 4. Unit Alat Berat -->
-                        <td class="py-3.5 px-3.5 whitespace-nowrap">
-                            <div class="flex items-center space-x-2.5">
-                                @if($t->vehicle && $t->vehicle->photo_url)
-                                <img src="{{ $t->vehicle->photo_url }}" alt="{{ $t->vehicle->code }}" class="w-9 h-9 rounded-xl object-cover border border-slate-200 shrink-0">
+                        <!-- 2. Dokumen BAST & Tanggal Transfer -->
+                        <td class="py-2.5 px-3.5 whitespace-nowrap">
+                            <div class="flex items-center space-x-1.5">
+                                @if($t->document_number)
+                                    <span class="font-bold text-slate-900 font-mono text-xs">
+                                        {{ $t->document_number }}
+                                    </span>
+                                    @if($t->document_file_path)
+                                    <a href="{{ $t->document_file_url }}" target="_blank" class="text-emerald-700 hover:text-emerald-900 text-xs" title="Lihat Lampiran Berkas">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </a>
+                                    @endif
                                 @else
-                                <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200">
-                                    <i class="fa-solid fa-truck-monster text-sm"></i>
+                                    <span class="px-1.5 py-0.5 rounded text-[10px] font-bold text-slate-600 bg-slate-100 border border-slate-200">
+                                        Internal Site
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 font-medium">
+                                <span>{{ $t->transfer_date ? $t->transfer_date->translatedFormat('d M Y') : '-' }}</span>
+                                <span class="text-slate-300">&bull;</span>
+                                <span class="font-mono text-[10px] text-slate-400">{{ $t->transfer_no }}</span>
+                            </div>
+                        </td>
+
+                        <!-- 3. Unit Alat Berat -->
+                        <td class="py-2.5 px-3.5 whitespace-nowrap">
+                            <div class="flex items-center space-x-2">
+                                @if($t->vehicle && $t->vehicle->photo_url)
+                                <img src="{{ $t->vehicle->photo_url }}" alt="{{ $t->vehicle->code }}" class="w-8 h-8 rounded-lg object-cover border border-slate-200 shrink-0">
+                                @else
+                                <div class="w-8 h-8 rounded-lg bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200 text-xs">
+                                    <i class="fa-solid fa-truck-monster"></i>
                                 </div>
                                 @endif
                                 <div>
-                                    <div class="font-black text-slate-900 tracking-tight">
+                                    <div class="font-black text-slate-900 tracking-tight text-xs">
                                         {{ $t->vehicle?->code ?? '-' }}
                                     </div>
-                                    <div class="text-[11px] text-slate-500">
+                                    <div class="text-[10px] text-slate-500 max-w-[150px] truncate" title="{{ $t->vehicle?->brand_type ?? '-' }}">
                                         {{ $t->vehicle?->brand_type ?? '-' }}
                                     </div>
                                 </div>
                             </div>
                         </td>
 
-                        <!-- 5. Lokasi Asal -> Lokasi Tujuan -->
-                        <td class="py-3.5 px-3.5">
-                            <div class="flex items-center space-x-1.5 text-xs">
+                        <!-- 4. Rute Pemindahan -->
+                        <td class="py-2.5 px-3.5">
+                            <div class="flex items-center space-x-1.5 text-xs whitespace-nowrap">
                                 <span class="text-slate-600 font-medium">{{ $t->from_location }}</span>
-                                <i class="fa-solid fa-arrow-right text-[10px] text-emerald-600"></i>
-                                <span class="font-extrabold text-[#1b5e20]">{{ $t->to_location }}</span>
+                                <i class="fa-solid fa-arrow-right text-[10px] text-slate-400"></i>
+                                <span class="font-bold text-[#1b5e20]">{{ $t->to_location }}</span>
                             </div>
-                            <div class="mt-1">
+                            <div class="mt-0.5">
                                 @if($t->isToInsideSite())
-                                <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
                                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                     <span>Di Dalam Site</span>
                                 </span>
                                 @else
-                                <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700">
                                     <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                     <span>Di Luar Site</span>
                                 </span>
@@ -273,34 +265,33 @@
                             </div>
                         </td>
 
-                        <!-- 6. Armada & Supir Pengangkut -->
-                        <td class="py-3.5 px-3.5 whitespace-nowrap">
-                            <div class="font-semibold text-slate-800">
-                                <i class="fa-solid fa-truck-moving text-slate-400 mr-1 text-[11px]"></i>
-                                {{ $t->transporter_unit_name ?: ($t->transporterVehicle?->code ?? 'Tanpa Pengangkut') }}
+                        <!-- 5. Armada & Supir Pengangkut -->
+                        <td class="py-2.5 px-3.5 whitespace-nowrap">
+                            <div class="font-semibold text-slate-800 text-xs flex items-center gap-1">
+                                <i class="fa-solid fa-truck-moving text-slate-400 text-[10px]"></i>
+                                <span>{{ $t->transporter_unit_name ?: ($t->transporterVehicle?->code ?? 'Tanpa Pengangkut') }}</span>
                             </div>
                             <div class="text-[11px] text-slate-500 mt-0.5">
-                                <i class="fa-solid fa-id-badge text-slate-400 mr-1 text-[11px]"></i>
                                 {{ $t->transporter_driver_name ?: ($t->transporterDriver?->name ?? '-') }}
                             </div>
                         </td>
 
-                        <!-- 7. Pelapor -->
-                        <td class="py-3.5 px-3.5 whitespace-nowrap">
-                            <div class="font-bold text-slate-800">
+                        <!-- 6. Pelapor -->
+                        <td class="py-2.5 px-3.5 whitespace-nowrap">
+                            <div class="font-bold text-slate-800 text-xs">
                                 {{ $t->reported_by }}
                             </div>
                             <div class="text-[10px] text-slate-400">
-                                Petugas QMA
+                                QMA
                             </div>
                         </td>
 
-                        <!-- 8. Aksi -->
-                        <td class="py-3.5 px-3.5 text-center whitespace-nowrap">
-                            <div class="inline-flex items-center space-x-1.5">
+                        <!-- 7. Aksi -->
+                        <td class="py-2.5 px-3.5 text-center whitespace-nowrap">
+                            <div class="inline-flex items-center space-x-1">
                                 <!-- Tombol Lihat Detail BAST -->
                                 <a href="{{ route('qma.unit_transfers.show', $t->id) }}" 
-                                   class="p-2 rounded-xl text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition shadow-2xs" 
+                                   class="p-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 transition" 
                                    title="Lihat Berita Acara & Detail">
                                     <i class="fa-solid fa-file-invoice text-xs"></i>
                                 </a>
@@ -309,7 +300,7 @@
                                 @can('qma.vehicles.delete')
                                 <button type="button" 
                                         onclick="openDeleteModal('{{ $t->id }}', '{{ e($t->document_number) }}', '{{ e($t->vehicle?->code ?? 'Unit') }}')" 
-                                        class="p-2 rounded-xl text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition shadow-2xs cursor-pointer" 
+                                        class="p-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 transition cursor-pointer" 
                                         title="Hapus Data Transfer">
                                     <i class="fa-solid fa-trash text-xs"></i>
                                 </button>
@@ -319,12 +310,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="py-12 text-center text-slate-400">
-                            <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400 text-2xl">
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 text-slate-400 text-xl">
                                 <i class="fa-solid fa-truck-ramp-box"></i>
                             </div>
-                            <p class="text-sm font-bold text-slate-700">Belum Ada Data Pemindahan Unit</p>
-                            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                            <p class="text-xs font-bold text-slate-700">Belum Ada Data Pemindahan Unit</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5 max-w-sm mx-auto">
                                 Belum ada transaksi pemindahan alat berat yang tercatat. Silakan klik tombol "Buat Transfer Unit" untuk membuat Berita Acara baru.
                             </p>
                             @canany(['qma.vehicles.create', 'qma.vehicles.edit'])

@@ -281,7 +281,7 @@
                                         <i class="fa-solid fa-up-right-from-square text-[11px]"></i>
                                     </a>
                                     <span class="text-slate-200">|</span>
-                                    <button onclick="openRenewModal({{ $emp->id }}, '{{ addslashes($emp->name) }}', '{{ $emp->simper_expired_at ? $emp->simper_expired_at->format('Y-m-d') : '' }}', {{ $emp->is_operator ? '1' : '0' }})" 
+                                    <button onclick='openRenewModal(@json($emp))' 
                                             class="text-emerald-700 hover:text-emerald-900 font-bold underline text-[11px] px-1 cursor-pointer"
                                             title="Perpanjang Masa Berlaku SIMPER">
                                         Perpanjang
@@ -633,43 +633,81 @@
     </div>
 </div>
 
-<!-- Modal Dialog Perpanjang SIMPER (Clean White Card) -->
+<!-- Modal Dialog Perpanjang SIMPER (Clean White Card dengan Dukungan Multi-SIMPER) -->
 <div id="renewModal" data-backdrop="static" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-7 border border-slate-100 overflow-hidden">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-100 overflow-hidden animate-scale-in">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-            <h3 class="text-xl font-bold text-slate-900 tracking-tight">Perpanjang SIMPER</h3>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-id-card-clip text-emerald-700"></i>
+                    <span>Perpanjang Masa Berlaku SIMPER</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Pilih jenis SIMPER dan tentukan tanggal perpanjangan izin operasional.</p>
+            </div>
             <button type="button" onclick="closeRenewModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="renewForm" method="POST" action="" class="mt-5 space-y-4">
+        <form id="renewForm" method="POST" action="" class="mt-4 space-y-4">
             @csrf
-            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
-                <span class="text-xs text-slate-400 block font-medium">Pengemudi:</span>
-                <strong id="renewName" class="block text-base text-slate-900 font-bold mt-0.5"></strong>
+            <!-- Identitas Driver -->
+            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">Pengemudi / Operator:</span>
+                    <strong id="renewName" class="block text-sm text-slate-900 font-bold mt-0.5"></strong>
+                    <span id="renewNik" class="text-[11px] font-mono text-slate-500"></span>
+                </div>
+                <span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-[#1b5e20] border border-emerald-200/80">
+                    Driver Aktif
+                </span>
             </div>
+
+            <!-- Status Driver (Hidden input default 1) -->
+            <input type="hidden" name="is_operator" id="renewOperator" value="1">
+
+            <!-- Dropdown Pilihan Jenis SIMPER -->
             <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Status Driver</label>
-                <select name="is_operator" id="renewOperator" onchange="toggleSimperInput('renew')" 
-                        class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                    <option value="1">YA (Aktif Mengemudi)</option>
-                    <option value="0">TIDAK (Bukan Driver)</option>
+                <label for="renewSimperTypeSelect" class="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+                    <span>Jenis SIMPER yang Diperpanjang <span class="text-rose-500">*</span></span>
+                    <span id="renewSimperBadge" class="text-[10px] font-normal text-slate-400 font-mono"></span>
+                </label>
+                <select name="renew_simper_type_id" id="renewSimperTypeSelect" onchange="onRenewSimperTypeChange(this.value)" required 
+                        class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <!-- Dinamis via JavaScript -->
                 </select>
+                <p id="renewCurrentExpInfo" class="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1 font-medium"></p>
             </div>
+
+            <!-- Input Tanggal Kedaluwarsa Baru -->
             <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">Masa Berlaku Baru <span class="text-rose-500">*</span></label>
+                <label for="renewDate" class="block text-xs font-bold text-slate-800 mb-1.5">
+                    Masa Berlaku Baru <span class="text-rose-500">*</span>
+                </label>
                 <input type="date" name="simper_expired_at" id="renewDate" required 
-                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                       class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                
+                <!-- Quick Preset Buttons (+6 Bulan, +1 Tahun) -->
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Pintas:</span>
+                    <button type="button" onclick="setRenewDateOffset(6)" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold transition cursor-pointer">
+                        +6 Bulan
+                    </button>
+                    <button type="button" onclick="setRenewDateOffset(12)" class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold transition cursor-pointer">
+                        +1 Tahun
+                    </button>
+                </div>
             </div>
-            <div class="pt-6 border-t border-slate-100 flex items-center justify-end space-x-3 mt-6">
+
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-2.5 mt-5">
                 <button type="button" onclick="closeRenewModal()" 
-                        class="px-6 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition">
+                        class="px-4 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition">
                     Batal
                 </button>
                 <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-sm transition shadow-sm">
-                    Simpan Data
+                        class="px-5 py-2 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>Simpan Perpanjangan</span>
                 </button>
             </div>
         </form>
@@ -1152,13 +1190,20 @@
     function toggleEditSimperFields(id) {
         const check = document.getElementById(`editSimperCheck_${id}`);
         const fields = document.getElementById(`editSimperFields_${id}`);
+        const numInp = document.getElementById(`editSimperNum_${id}`);
+        const expInp = document.getElementById(`editSimperExp_${id}`);
         if (check && fields) {
             if (check.checked) {
                 fields.classList.remove('hidden');
+                if (numInp) numInp.disabled = false;
+                if (expInp) expInp.disabled = false;
             } else {
                 fields.classList.add('hidden');
-                const expInp = document.getElementById(`editSimperExp_${id}`);
-                if (expInp) expInp.value = '';
+                if (numInp) numInp.disabled = true;
+                if (expInp) {
+                    expInp.disabled = true;
+                    expInp.value = '';
+                }
             }
         }
         syncEditPrimarySimperDate();
@@ -1248,9 +1293,9 @@
             const fields = document.getElementById(`editSimperFields_${id}`);
             if (fields) fields.classList.add('hidden');
             const num = document.getElementById(`editSimperNum_${id}`);
-            if (num) num.value = '';
+            if (num) { num.value = ''; num.disabled = true; }
             const exp = document.getElementById(`editSimperExp_${id}`);
-            if (exp) exp.value = '';
+            if (exp) { exp.value = ''; exp.disabled = true; }
         });
 
         // Isi checklist SIMPER dari data emp.simpers
@@ -1263,8 +1308,8 @@
                 if (cb) {
                     cb.checked = true;
                     if (fields) fields.classList.remove('hidden');
-                    if (num) num.value = s.simper_number || '';
-                    if (exp && s.expired_at) exp.value = s.expired_at.substring(0, 10);
+                    if (num) { num.value = s.simper_number || ''; num.disabled = false; }
+                    if (exp && s.expired_at) { exp.value = s.expired_at.substring(0, 10); exp.disabled = false; }
                 }
             });
         } else if (emp.is_operator && expDate) {
@@ -1274,8 +1319,10 @@
                 const id = firstCb.id.replace('editSimperCheck_', '');
                 const fields = document.getElementById(`editSimperFields_${id}`);
                 if (fields) fields.classList.remove('hidden');
+                const num = document.getElementById(`editSimperNum_${id}`);
+                if (num) num.disabled = false;
                 const exp = document.getElementById(`editSimperExp_${id}`);
-                if (exp) exp.value = expDate;
+                if (exp) { exp.value = expDate; exp.disabled = false; }
             }
         }
         syncEditPrimarySimperDate();
@@ -1327,21 +1374,118 @@
         if (modal) modal.classList.add('hidden');
     }
 
-    function openRenewModal(id, name, expiredDate, isOperator) {
-        document.getElementById('renewName').textContent = name;
-        document.getElementById('renewOperator').value = isOperator ? '1' : '0';
-        document.getElementById('renewDate').value = expiredDate;
-        
-        // Cek status driver untuk mengunci/membuka input SIMPER
-        toggleSimperInput('renew');
+    let currentRenewEmployee = null;
 
-        document.getElementById('renewForm').action = `/hse/employees/${id}`;
+    function openRenewModal(empOrId, legacyName, legacyDate, legacyIsOp) {
+        let emp = null;
+        if (typeof empOrId === 'object' && empOrId !== null) {
+            emp = empOrId;
+        } else {
+            emp = {
+                id: empOrId,
+                name: legacyName || '',
+                nik: '',
+                is_operator: legacyIsOp ? 1 : 0,
+                simper_expired_at: legacyDate || '',
+                simpers: []
+            };
+        }
+        currentRenewEmployee = emp;
+
+        document.getElementById('renewName').textContent = emp.name || '-';
+        document.getElementById('renewNik').textContent = emp.nik ? `NIK: ${emp.nik}` : '';
+        document.getElementById('renewOperator').value = '1';
+
+        const select = document.getElementById('renewSimperTypeSelect');
+        const badge = document.getElementById('renewSimperBadge');
+        select.innerHTML = '';
+
+        const simpers = Array.isArray(emp.simpers) ? emp.simpers : [];
+        const simperCount = simpers.length;
+
+        if (simperCount > 1) {
+            badge.textContent = `${simperCount} Izin SIMPER`;
+            // Opsi Semua SIMPER Sekaligus
+            const allOpt = document.createElement('option');
+            allOpt.value = 'all';
+            allOpt.textContent = '★ Perpanjang Semua Jenis SIMPER Sekaligus';
+            select.appendChild(allOpt);
+
+            simpers.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.simper_type_id;
+                const typeName = s.simper_type ? s.simper_type.name : `SIMPER ID #${s.simper_type_id}`;
+                const expText = s.expired_at ? s.expired_at.substring(0, 10) : 'Belum diatur';
+                opt.textContent = `${typeName} (s/d ${expText})`;
+                opt.dataset.exp = s.expired_at ? s.expired_at.substring(0, 10) : '';
+                select.appendChild(opt);
+            });
+        } else if (simperCount === 1) {
+            badge.textContent = '1 Izin SIMPER';
+            const s = simpers[0];
+            const opt = document.createElement('option');
+            opt.value = s.simper_type_id;
+            const typeName = s.simper_type ? s.simper_type.name : 'SIMPER';
+            const expText = s.expired_at ? s.expired_at.substring(0, 10) : 'Belum diatur';
+            opt.textContent = `${typeName} (Masa berlaku saat ini: ${expText})`;
+            opt.dataset.exp = s.expired_at ? s.expired_at.substring(0, 10) : '';
+            select.appendChild(opt);
+        } else {
+            badge.textContent = 'Belum Ada SIMPER';
+            const opt = document.createElement('option');
+            opt.value = 'all';
+            opt.textContent = 'SIMPER Standar / Default (Semua)';
+            select.appendChild(opt);
+        }
+
+        // Sinkronisasi tanggal
+        onRenewSimperTypeChange(select.value);
+
+        document.getElementById('renewForm').action = `/hse/employees/${emp.id}`;
         document.getElementById('renewModal').classList.remove('hidden');
+    }
+
+    function onRenewSimperTypeChange(val) {
+        const select = document.getElementById('renewSimperTypeSelect');
+        const selectedOpt = select.options[select.selectedIndex];
+        const infoEl = document.getElementById('renewCurrentExpInfo');
+        const dateInput = document.getElementById('renewDate');
+
+        let currentExp = '';
+        if (selectedOpt && selectedOpt.dataset.exp) {
+            currentExp = selectedOpt.dataset.exp;
+        } else if (currentRenewEmployee && currentRenewEmployee.simper_expired_at) {
+            currentExp = currentRenewEmployee.simper_expired_at.substring(0, 10);
+        }
+
+        if (currentExp) {
+            infoEl.innerHTML = `<i class="fa-regular fa-clock text-slate-400"></i> Masa berlaku saat ini: <strong class="text-slate-700">${currentExp}</strong>`;
+            // Preset tanggal baru: 1 tahun dari masa berlaku sekarang (jika masa depan) atau 1 tahun dari hari ini
+            const currDateObj = new Date(currentExp);
+            const today = new Date();
+            const targetBase = (!isNaN(currDateObj) && currDateObj > today) ? currDateObj : today;
+            const newDate = new Date(targetBase);
+            newDate.setFullYear(newDate.getFullYear() + 1);
+            dateInput.value = newDate.toISOString().substring(0, 10);
+        } else {
+            infoEl.innerHTML = `<i class="fa-solid fa-circle-info text-amber-500"></i> Belum ada masa berlaku sebelumnya.`;
+            const now = new Date();
+            now.setFullYear(now.getFullYear() + 1);
+            dateInput.value = now.toISOString().substring(0, 10);
+        }
+    }
+
+    function setRenewDateOffset(months) {
+        const dateInput = document.getElementById('renewDate');
+        const now = new Date();
+        now.setMonth(now.getMonth() + months);
+        dateInput.value = now.toISOString().substring(0, 10);
     }
 
     function closeRenewModal() {
         const modal = document.getElementById('renewModal');
         if (modal) modal.classList.add('hidden');
+        currentRenewEmployee = null;
     }
 
     function openDeleteEmployeeModal(id, name, nik) {

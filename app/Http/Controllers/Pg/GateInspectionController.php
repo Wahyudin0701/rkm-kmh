@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pg;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminActivityLog;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\VehicleActivity;
@@ -268,6 +269,15 @@ class GateInspectionController extends Controller
             'validated_at' => Carbon::now(),
         ]);
 
-        return back()->with('success', "Aktivitas kendaraan {$activity->vehicle->code} telah ditolak.");
+        AdminActivityLog::record(
+            'reject',
+            'pos_gerbang',
+            "Penolakan perlintasan gerbang untuk kendaraan {$activity->vehicle?->code} (Driver: {$activity->driver?->name}). Alasan: {$activity->rejection_note}",
+            'vehicle_activity',
+            $activity->id,
+            $activity->transaction_no
+        );
+
+        return back()->with('success', "Aktivitas perlintasan kendaraan {$activity->vehicle->code} telah ditolak.");
     }
 }
