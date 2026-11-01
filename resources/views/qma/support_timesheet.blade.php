@@ -301,11 +301,23 @@
                                 </div>
                             </td>
 
-                            <!-- Odometer Awal -->
+                            <!-- Odometer Awal & Akhir -->
                             <td class="py-3.5 px-4 text-center font-mono whitespace-nowrap">
-                                <span class="text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                                    {{ number_format($ts->start_meter, 1, ',', '.') }} {{ $ts->meter_type }}
-                                </span>
+                                <div class="text-xs font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200 inline-block">
+                                    {{ number_format($ts->start_meter, 1, ',', '.') }} {{ $ts->meter_type }}@if($ts->effective_end_meter) <span class="text-slate-400 font-normal">s/d</span> <span class="text-emerald-700">{{ number_format($ts->effective_end_meter, 1, ',', '.') }} {{ $ts->meter_type }}</span>@endif
+                                </div>
+                                @if($ts->effective_operating_hours !== null && $ts->effective_operating_hours > 0)
+                                    <div class="text-[10px] text-emerald-700 font-semibold font-sans mt-0.5">
+                                        +{{ number_format($ts->effective_operating_hours, 1, ',', '.') }} Jam Operasi
+                                    </div>
+                                @elseif($ts->effective_end_meter)
+                                    <div class="text-[10px] text-slate-400 font-sans mt-0.5">0.0 Jam</div>
+                                @else
+                                    <div class="text-[10px] text-amber-600 font-sans mt-0.5 flex items-center justify-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                        <span>Berjalan (Finish Otomatis)</span>
+                                    </div>
+                                @endif
                             </td>
 
                             <!-- Lokasi & Aktivitas -->
@@ -361,9 +373,9 @@
                                                 'operator_type' => $ts->operator?->employee_type ?: 'Karyawan',
                                                 'operator_nik' => $ts->operator?->nik ?: '-',
                                                 'start_meter' => number_format($ts->start_meter, 1, ',', '.'),
-                                                'end_meter' => number_format($ts->end_meter, 1, ',', '.'),
+                                                'end_meter' => $ts->effective_end_meter !== null ? number_format($ts->effective_end_meter, 1, ',', '.') : '-',
                                                 'meter_type' => $ts->meter_type,
-                                                'operating_hours' => number_format($ts->operating_hours, 1, ',', '.'),
+                                                'operating_hours' => $ts->effective_operating_hours !== null ? number_format($ts->effective_operating_hours, 1, ',', '.') : '-',
                                                 'standby_hours' => number_format($ts->standby_hours, 1, ',', '.'),
                                                 'breakdown_hours' => number_format($ts->breakdown_hours, 1, ',', '.'),
                                                 'fuel_liters' => $ts->fuel_liters ? number_format($ts->fuel_liters, 0, ',', '.') : '-',
@@ -479,37 +491,37 @@
                 <!-- Baris 1: Lokasi Kerja & Heavy Equipment -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Lokasi Kerja <span class="text-rose-500">*</span>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
                             <span class="sr-only">Tentukan Lokasi Dulu</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / pilih</span>
                         </label>
-                        <select id="addLocationSelect" 
-                                required 
-                                onchange="onTimesheetLocationChanged(this.value, 'add')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
-                            <option value="ALL">[Semua Lokasi / Semua Unit]</option>
-                            @foreach($unitLocations as $locName => $count)
-                                <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
-                            @endforeach
-                            @if(isset($otherLocations) && count($otherLocations))
-                                <optgroup label="Lokasi Lainnya di Site">
-                                    @foreach($otherLocations as $otherLoc)
-                                        <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
-                                    @endforeach
-                                </optgroup>
-                            @endif
-                            <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
-                        </select>
-                        <div id="addCustomLocationWrapper" class="hidden mt-2">
+                        <div class="relative">
                             <input type="text" 
-                                   id="addCustomLocationInput" 
-                                   name="custom_location"
-                                   placeholder="Ketik nama lokasi kerja baru..." 
-                                   oninput="onCustomLocationTyped(this.value, 'add')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                                   id="addLocationInput" 
+                                   name="location" 
+                                   list="addLocationsDatalist"
+                                   required 
+                                   autocomplete="off"
+                                   placeholder="Pilih atau ketik lokasi kerja..." 
+                                   oninput="onTimesheetLocationTyped(this.value, 'add')"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <datalist id="addLocationsDatalist">
+                                <option value="[Semua Unit]">[Semua Lokasi / Tampilkan Semua Unit]</option>
+                                @foreach($unitLocations as $locName => $count)
+                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                                @endforeach
+                                @foreach($locationSuggestions as $suggLoc)
+                                    @if(!isset($unitLocations[$suggLoc]))
+                                        <option value="{{ $suggLoc }}">{{ $suggLoc }}</option>
+                                    @endif
+                                @endforeach
+                            </datalist>
                         </div>
-                        <input type="hidden" name="location" id="addFinalLocation" required>
+                        <input type="hidden" id="addFinalLocation" value="">
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            Pilih dari daftar atau ketik lokasi baru (otomatis tersimpan ke database).
+                        </p>
                     </div>
 
                     <div>
@@ -626,7 +638,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 4: Meter Awal & Satuan Meteran -->
+                <!-- Baris 4: Meter Awal & Meter Akhir (Finish HM) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
@@ -645,6 +657,28 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Meter Akhir (Finish HM/KM)</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Otomatis / Opsional</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="end_meter" 
+                                   id="addEndMeter" 
+                                   placeholder="Dihitung otomatis jika kosong"
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <span id="addEndMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            <i class="fa-solid fa-clock text-emerald-600 mr-0.5"></i> 1 HM = 1 Jam. Dihitung otomatis saat entri berikutnya diinput.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Baris 4b: Satuan Meteran & Status Akhir Unit -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
@@ -653,21 +687,21 @@
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Status Akhir Unit <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="status" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="Operation">Operation (Siap Jalan)</option>
+                            <option value="Standby">Standby (Tersedia / Siaga)</option>
+                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Baris 5: Status Akhir Unit (Shift diset otomatis) -->
                 <input type="hidden" name="shift" value="Shift Siang">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Status Akhir Unit <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="status" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                        <option value="Operation">Operation (Siap Jalan)</option>
-                        <option value="Standby">Standby (Tersedia / Siaga)</option>
-                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                    </select>
-                </div>
 
                 <!-- Baris 6: Rincian Tugas & Catatan -->
                 <div>
@@ -811,37 +845,37 @@
                 <!-- Baris 1: Lokasi Kerja & Heavy Equipment -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                            Lokasi Kerja <span class="text-rose-500">*</span>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Lokasi Kerja <span class="text-rose-500">*</span></span>
                             <span class="sr-only">Tentukan Lokasi Dulu</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / pilih</span>
                         </label>
-                        <select id="editLocationSelect" 
-                                required 
-                                onchange="onTimesheetLocationChanged(this.value, 'edit')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="" disabled selected>-- Pilih Lokasi Kerja --</option>
-                            <option value="ALL">[Semua Lokasi / Semua Unit]</option>
-                            @foreach($unitLocations as $locName => $count)
-                                <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
-                            @endforeach
-                            @if(isset($otherLocations) && count($otherLocations))
-                                <optgroup label="Lokasi Lainnya di Site">
-                                    @foreach($otherLocations as $otherLoc)
-                                        <option value="{{ $otherLoc }}">{{ $otherLoc }} (0 Unit)</option>
-                                    @endforeach
-                                </optgroup>
-                            @endif
-                            <option value="__CUSTOM__">+ Ketik Lokasi Baru...</option>
-                        </select>
-                        <div id="editCustomLocationWrapper" class="hidden mt-2">
+                        <div class="relative">
                             <input type="text" 
-                                   id="editCustomLocationInput" 
-                                   name="custom_location"
-                                   placeholder="Ketik nama lokasi kerja baru..." 
-                                   oninput="onCustomLocationTyped(this.value, 'edit')"
-                                   class="w-full text-xs px-3.5 py-2 rounded-xl border border-emerald-300 bg-emerald-50/40 text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                                   id="editLocationInput" 
+                                   name="location" 
+                                   list="editLocationsDatalist"
+                                   required 
+                                   autocomplete="off"
+                                   placeholder="Pilih atau ketik lokasi kerja..." 
+                                   oninput="onTimesheetLocationTyped(this.value, 'edit')"
+                                   class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <datalist id="editLocationsDatalist">
+                                <option value="[Semua Unit]">[Semua Lokasi / Tampilkan Semua Unit]</option>
+                                @foreach($unitLocations as $locName => $count)
+                                    <option value="{{ $locName }}">{{ $locName }} ({{ $count }} Unit Ready)</option>
+                                @endforeach
+                                @foreach($locationSuggestions as $suggLoc)
+                                    @if(!isset($unitLocations[$suggLoc]))
+                                        <option value="{{ $suggLoc }}">{{ $suggLoc }}</option>
+                                    @endif
+                                @endforeach
+                            </datalist>
                         </div>
-                        <input type="hidden" name="location" id="editFinalLocation" required>
+                        <input type="hidden" id="editFinalLocation" value="">
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            Pilih dari daftar atau ketik lokasi baru (otomatis tersimpan).
+                        </p>
                     </div>
 
                     <div>
@@ -956,7 +990,7 @@
                     </div>
                 </div>
 
-                <!-- Baris 4: Meter Awal & Satuan Meteran -->
+                <!-- Baris 4: Meter Awal & Meter Akhir (Finish HM) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
@@ -975,6 +1009,28 @@
                     </div>
 
                     <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Meter Akhir (Finish HM/KM)</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Otomatis / Opsional</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" 
+                                   step="0.01" 
+                                   name="end_meter" 
+                                   id="editEndMeter" 
+                                   placeholder="Dihitung otomatis jika kosong"
+                                   class="w-full text-xs pl-3.5 pr-14 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <span id="editEndMeterUnitLabel" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">HM</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">
+                            <i class="fa-solid fa-clock text-emerald-600 mr-0.5"></i> 1 HM = 1 Jam. Dihitung otomatis saat entri berikutnya diinput.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Baris 4b: Satuan Meteran & Status Akhir Unit -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">
                             Satuan Meteran <span class="text-rose-500">*</span>
                         </label>
@@ -983,21 +1039,22 @@
                             <option value="KM">KM (Odometer)</option>
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                            Status Akhir Unit <span class="text-rose-500">*</span>
+                        </label>
+                        <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                            <option value="Operation">Operation (Siap Jalan)</option>
+                            <option value="Standby">Standby (Tersedia / Siaga)</option>
+                            <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
+                            <option value="Maintenance">Maintenance (Servis Rutin)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Baris 5: Status Akhir Unit (Shift disimpan secara otomatis) -->
+                <!-- Baris 5: Shift (disimpan otomatis) -->
                 <input type="hidden" name="shift" id="editShift" value="Shift Siang">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Status Akhir Unit <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="status" id="editStatus" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                        <option value="Operation">Operation (Siap Jalan)</option>
-                        <option value="Standby">Standby (Tersedia / Siaga)</option>
-                        <option value="Breakdown">Breakdown (Kendala / Rusak)</option>
-                        <option value="Maintenance">Maintenance (Servis Rutin)</option>
-                    </select>
-                </div>
 
                 <!-- Baris 6: Deskripsi & Catatan -->
                 <div>
@@ -1318,23 +1375,15 @@
         const modal = document.getElementById('addTimesheetModal');
         if (modal) {
             // Reset form pilihan lokasi & unit
-            const addLocSelect = document.getElementById('addLocationSelect');
-            if (addLocSelect) addLocSelect.selectedIndex = 0;
-            const customWrap = document.getElementById('addCustomLocationWrapper');
-            if (customWrap) customWrap.classList.add('hidden');
-            const customInput = document.getElementById('addCustomLocationInput');
-            if (customInput) customInput.value = '';
+            const addLocInput = document.getElementById('addLocationInput');
+            if (addLocInput) addLocInput.value = '';
             const finalLoc = document.getElementById('addFinalLocation');
             if (finalLoc) finalLoc.value = '';
 
-            const vehSelect = document.getElementById('addVehicleSelect');
-            if (vehSelect) {
-                vehSelect.innerHTML = '<option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>';
-            }
-            const counter = document.getElementById('addUnitCounterBadge');
-            if (counter) counter.classList.add('hidden');
-            const preview = document.getElementById('addVehiclePreview');
-            if (preview) preview.classList.add('hidden');
+            const endMeter = document.getElementById('addEndMeter');
+            if (endMeter) endMeter.value = '';
+
+            onTimesheetLocationTyped('', 'add');
 
             const startMeter = document.getElementById('addStartMeter');
             if (startMeter) startMeter.value = '';
@@ -1424,37 +1473,14 @@
         document.getElementById('editTimesheetSubtitle').textContent = `No: ${ts.timesheet_no} (${unitCode || '-'})`;
 
         // 1. Sinkronisasi Lokasi Kerja
-        const locSelect = document.getElementById('editLocationSelect');
+        const locInput = document.getElementById('editLocationInput');
         const finalLoc = document.getElementById('editFinalLocation');
-        const customWrap = document.getElementById('editCustomLocationWrapper');
         const targetLoc = ts.location || '';
-
-        finalLoc.value = targetLoc;
-
-        let matched = false;
-        if (locSelect) {
-            for (let i = 0; i < locSelect.options.length; i++) {
-                if (locSelect.options[i].value.toLowerCase() === targetLoc.toLowerCase()) {
-                    locSelect.selectedIndex = i;
-                    matched = true;
-                    break;
-                }
-            }
-
-            if (!matched && targetLoc) {
-                // Tambahkan option lokasi baru jika belum terdaftar
-                const newOpt = document.createElement('option');
-                newOpt.value = targetLoc;
-                newOpt.textContent = `${targetLoc} (Lokasi Riwayat)`;
-                locSelect.appendChild(newOpt);
-                locSelect.value = targetLoc;
-            }
-        }
-
-        if (customWrap) customWrap.classList.add('hidden');
+        if (locInput) locInput.value = targetLoc;
+        if (finalLoc) finalLoc.value = targetLoc;
 
         // Filter unit pada lokasi ini dengan memilih ts.vehicle_id
-        onTimesheetLocationChanged(locSelect ? locSelect.value : targetLoc, 'edit', ts.vehicle_id);
+        onTimesheetLocationTyped(targetLoc, 'edit', ts.vehicle_id);
 
         // Cari jenis operator yang sedang diedit untuk mengaktifkan filter yang sesuai
         let selectedOpType = 'all';
@@ -1487,6 +1513,10 @@
         document.getElementById('editMeterType').value = ts.meter_type || 'HM';
 
         document.getElementById('editStartMeter').value = ts.start_meter;
+        const editEndMeter = document.getElementById('editEndMeter');
+        if (editEndMeter) {
+            editEndMeter.value = (ts.end_meter && ts.end_meter !== '-') ? ts.end_meter.replace('.', '').replace(',', '.') : '';
+        }
 
         document.getElementById('editActivityType').value = ts.activity_type;
         document.getElementById('editStatus').value = ts.status || 'Operation';
@@ -1520,10 +1550,17 @@
         modal.style.display = 'none';
     }
 
-    // 5. Handler saat Lokasi Kerja Dipilih (Filter Heavy Equipment yang Ready di Lokasi tersebut)
+    // 5. Handler saat Lokasi Kerja Diketik / Dipilih via Datalist Input
+    function onTimesheetLocationTyped(val, prefix, preselectVehicleId = null) {
+        const trimmed = (val || '').trim();
+        const finalLoc = document.getElementById(`${prefix}FinalLocation`);
+        if (finalLoc) {
+            finalLoc.value = (trimmed === '[Semua Unit]' || trimmed === 'ALL') ? '' : trimmed;
+        }
+        onTimesheetLocationChanged(trimmed, prefix, preselectVehicleId);
+    }
+
     function onTimesheetLocationChanged(selectedLoc, prefix, preselectVehicleId = null) {
-        const customWrapper = document.getElementById(`${prefix}CustomLocationWrapper`);
-        const customInput = document.getElementById(`${prefix}CustomLocationInput`);
         const finalLocation = document.getElementById(`${prefix}FinalLocation`);
         const vehicleSelect = document.getElementById(`${prefix}VehicleSelect`);
         const counterBadge = document.getElementById(`${prefix}UnitCounterBadge`);
@@ -1531,56 +1568,40 @@
 
         if (!vehicleSelect) return;
 
-        // Tangani pilihan custom atau ALL
-        if (selectedLoc === '__CUSTOM__') {
-            if (customWrapper) customWrapper.classList.remove('hidden');
-            if (customInput) {
-                customInput.focus();
-                if (finalLocation) finalLocation.value = customInput.value.trim();
-            }
-        } else {
-            if (customWrapper) customWrapper.classList.add('hidden');
-            if (finalLocation) {
-                finalLocation.value = (selectedLoc === 'ALL' || !selectedLoc) ? '' : selectedLoc;
-            }
+        if (finalLocation) {
+            finalLocation.value = (selectedLoc === 'ALL' || selectedLoc === '[Semua Unit]' || !selectedLoc) ? '' : selectedLoc;
         }
 
         const allUnits = window.unitSupportsData || [];
         let filteredUnits = [];
 
-        if (!selectedLoc) {
-            vehicleSelect.innerHTML = '<option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>';
-            if (counterBadge) counterBadge.classList.add('hidden');
-            if (previewEl) previewEl.classList.add('hidden');
-            filterOperatorSelect('all', prefix);
-            return;
-        } else if (selectedLoc === 'ALL' || selectedLoc === '__CUSTOM__') {
+        if (!selectedLoc || selectedLoc === 'ALL' || selectedLoc === '[Semua Unit]') {
             filteredUnits = allUnits;
         } else {
             const norm = selectedLoc.trim().toLowerCase();
             filteredUnits = allUnits.filter(u => {
                 const uLoc = (u.location || 'Site Kerinci').trim().toLowerCase();
-                return uLoc === norm;
+                return uLoc === norm || uLoc.includes(norm);
             });
+            // Jika lokasi yang diketik adalah lokasi baru, tetap tampilkan semua unit agar bisa dipilih
+            if (filteredUnits.length === 0) {
+                filteredUnits = allUnits;
+            }
+        }
 
-            // Jika dalam mode edit dan preselectVehicleId tidak ditemukan di lokasi ini (misal unit berpindah setelah ts dicatat), sertakan unit tersebut
-            if (preselectVehicleId) {
-                const foundInFiltered = filteredUnits.some(u => String(u.id) === String(preselectVehicleId));
-                if (!foundInFiltered) {
-                    const extra = allUnits.find(u => String(u.id) === String(preselectVehicleId));
-                    if (extra) filteredUnits.unshift(extra);
-                }
+        // Jika dalam mode edit dan preselectVehicleId tidak ditemukan di lokasi ini, sertakan unit tersebut
+        if (preselectVehicleId) {
+            const foundInFiltered = filteredUnits.some(u => String(u.id) === String(preselectVehicleId));
+            if (!foundInFiltered) {
+                const extra = allUnits.find(u => String(u.id) === String(preselectVehicleId));
+                if (extra) filteredUnits.unshift(extra);
             }
         }
 
         // Update badge counter
         if (counterBadge) {
             counterBadge.classList.remove('hidden');
-            if (selectedLoc === 'ALL' || selectedLoc === '__CUSTOM__') {
-                counterBadge.textContent = `${filteredUnits.length} Total Unit`;
-            } else {
-                counterBadge.textContent = `${filteredUnits.length} Unit Ready`;
-            }
+            counterBadge.textContent = `${filteredUnits.length} Unit Ready`;
         }
 
         // Render option heavy equipment
@@ -1590,7 +1611,7 @@
         defaultPrompt.disabled = true;
         defaultPrompt.textContent = filteredUnits.length > 0 
             ? `-- Pilih Heavy Equipment (${filteredUnits.length} Unit Ready) --` 
-            : `-- Tidak ada unit di lokasi ini (Pilih 'Semua Unit') --`;
+            : `-- Tidak ada unit (${allUnits.length} Unit Total) --`;
         vehicleSelect.appendChild(defaultPrompt);
 
         let hasSelected = false;
@@ -1670,10 +1691,13 @@
             updateMeterUnitLabels(prefix);
         }
 
-        // Jika lokasi kerja dipilih 'ALL', sinkronkan finalLocation ke lokasi unit
-        const locSelect = document.getElementById(`${prefix}LocationSelect`);
+        // Jika lokasi kerja dipilih 'ALL' atau kosong, sinkronkan ke lokasi unit
+        const locInput = document.getElementById(`${prefix}LocationInput`);
         const finalLoc = document.getElementById(`${prefix}FinalLocation`);
-        if (locSelect && locSelect.value === 'ALL' && finalLoc && !finalLoc.value) {
+        if (locInput && (!locInput.value || locInput.value === 'ALL' || locInput.value === '[Semua Unit]')) {
+            locInput.value = unitLocation;
+        }
+        if (finalLoc && (!finalLoc.value || finalLoc.value === 'ALL' || finalLoc.value === '[Semua Unit]')) {
             finalLoc.value = unitLocation;
         }
 
@@ -1689,6 +1713,10 @@
         const label = document.getElementById(`${prefix}MeterUnitLabel`);
         if (label) {
             label.textContent = unit;
+        }
+        const endLabel = document.getElementById(`${prefix}EndMeterUnitLabel`);
+        if (endLabel) {
+            endLabel.textContent = unit;
         }
     }
 

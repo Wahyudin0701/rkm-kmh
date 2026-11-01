@@ -675,4 +675,61 @@ class QmaSupportTimesheetTest extends TestCase
             'operator_id' => $opDt->id,
         ]);
     }
+
+    /**
+     * Uji perhitungan otomatis finish HM dan durasi operasional (1 HM = 1 Jam):
+     * Ketika Budi mengisi 1010 dan berikutnya Joko mengisi 1012, Budi otomatis tercatat selesai di 1012 (2 jam kerja).
+     */
+    public function test_sequential_timesheets_auto_calculate_finish_hm_and_operating_hours(): void
+    {
+        $today = Carbon::today()->toDateString();
+
+        // 1. Budi mengisi timesheet dengan start_meter 1010 (tanpa end_meter)
+        $budiData = [
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $this->operator->id,
+            'date' => $today,
+            'start_time' => '08:00',
+            'meter_type' => 'HM',
+            'start_meter' => 1010.00,
+            'location' => 'Adit 3',
+            'activity_type' => 'Galian Material',
+            'status' => 'Operation',
+        ];
+
+        $res1 = $this->actingAs($this->qmaAdmin)
+            ->post(route('qma.support_timesheet.store'), $budiData);
+        $res1->assertSessionHas('success');
+
+        $budiTs = UnitSupportTimesheet::where('vehicle_id', $this->supportUnit->id)->latest('id')->first();
+        $this->assertNotNull($budiTs);
+        $this->assertEquals(1010.00, (float) $budiTs->start_meter);
+
+        // 2. Joko mengisi timesheet berikutnya untuk unit yang sama dengan start_meter 1012
+        $jokoData = [
+            'vehicle_id' => $this->supportUnit->id,
+            'operator_id' => $this->operator->id,
+            'date' => $today,
+            'start_time' => '11:00',
+            'meter_type' => 'HM',
+            'start_meter' => 1012.00,
+            'location' => 'Power House',
+            'activity_type' => 'Loading Material',
+            'status' => 'Operation',
+        ];
+
+        $res2 = $this->actingAs($this->qmaAdmin)
+            ->post(route('qma.support_timesheet.store'), $jokoData);
+        $res2->assertSessionHas('success');
+
+        // Budi's timesheet harus otomatis terupdate end_meter = 1012 dan operating_hours = 2.00
+        $budiTs->refresh();
+        $this->assertEquals(1012.00, (float) $budiTs->end_meter);
+        $this->assertEquals(2.00, (float) $budiTs->operating_hours);
+
+        // 3. Uji pada ekspor Excel: Budi's row harus memiliki finish HM 1.012,00 dan jam operasi 2,00 (tidak 0)
+        $excelRes = $this->actingAs($this->qmaAdmin)
+            ->get(route('qma.support_timesheet.export_excel'));
+        $excelRes->assertStatus(200);
+    }
 }

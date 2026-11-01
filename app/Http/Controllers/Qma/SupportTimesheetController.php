@@ -134,12 +134,15 @@ class SupportTimesheetController extends Controller
         $timesheets = $query->paginate($perPage)->withQueryString();
 
         // KPI Ringkasan Data Terfilter
-        $statsQuery = clone $this->getFilteredQuery($request);
-        $totalEntries = (clone $statsQuery)->count();
-        $totalOperatingHours = (clone $statsQuery)->sum('operating_hours');
-        $totalFuelLiters = (clone $statsQuery)->sum('fuel_liters');
-        $activeUnitsCount = (clone $statsQuery)->distinct('vehicle_id')->count('vehicle_id');
-        $breakdownCount = (clone $statsQuery)->where('status', 'Breakdown')->count();
+        $statsItems = (clone $this->getFilteredQuery($request))->get();
+        $totalEntries = $statsItems->count();
+        $totalOperatingHours = 0.0;
+        foreach ($statsItems as $item) {
+            $totalOperatingHours += (float) ($item->effective_operating_hours ?? 0);
+        }
+        $totalFuelLiters = $statsItems->sum('fuel_liters');
+        $activeUnitsCount = $statsItems->pluck('vehicle_id')->unique()->count();
+        $breakdownCount = $statsItems->where('status', 'Breakdown')->count();
 
         // Data Master untuk Form & Filter
         $unitSupports = Vehicle::unitSupports()
@@ -168,8 +171,37 @@ class SupportTimesheetController extends Controller
         }
 
         $shifts = self::SHIFTS;
-        $activityTypes = self::PRESET_ACTIVITIES;
-        $locationSuggestions = UnitManagementController::getAllLocationSuggestions();
+
+        // Ambil preset + aktivitas yang pernah diisi secara dinamis di database
+        $dbActivities = UnitSupportTimesheet::whereNotNull('activity_type')
+            ->where('activity_type', '!=', '')
+            ->distinct()
+            ->pluck('activity_type')
+            ->all();
+
+        $activityTypes = collect(self::PRESET_ACTIVITIES)
+            ->merge($dbActivities)
+            ->map(fn($a) => trim($a))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // Ambil seluruh saran lokasi dari gerbang, kendaraan, riwayat, dan timesheet
+        $dbTimesheetLocs = UnitSupportTimesheet::whereNotNull('location')
+            ->where('location', '!=', '')
+            ->distinct()
+            ->pluck('location')
+            ->all();
+
+        $locationSuggestions = collect(UnitManagementController::getAllLocationSuggestions())
+            ->merge($dbTimesheetLocs)
+            ->map(fn($l) => trim($l))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         $unitLocations = $unitSupports->groupBy(function ($u) {
             return trim($u->location) ?: 'Site Kerinci';
@@ -282,7 +314,26 @@ class SupportTimesheetController extends Controller
         $endMeter = isset($validated['end_meter']) && $validated['end_meter'] !== '' && $validated['end_meter'] !== null
             ? (float) $validated['end_meter']
             : null;
-        $operatingHours = $endMeter !== null ? max(0, $endMeter - $startMeter) : null;
+
+        if ($endMeter === null) {
+            $nextEntry = UnitSupportTimesheet::where('vehicle_id', $vehicle->id)
+                ->where(function ($q) use ($validated, $startMeter) {
+                    $q->where('date', '>', $validated['date'])
+                      ->orWhere(function ($sq) use ($validated, $startMeter) {
+                          $sq->where('date', $validated['date'])
+                             ->where('start_meter', '>=', $startMeter);
+                      });
+                })
+                ->orderBy('date', 'asc')
+                ->orderBy('id', 'asc')
+                ->first();
+
+            if ($nextEntry && (float) $nextEntry->start_meter >= $startMeter) {
+                $endMeter = (float) $nextEntry->start_meter;
+            }
+        }
+
+        $operatingHours = $endMeter !== null ? max(0.0, $endMeter - $startMeter) : null;
         $shift = $validated['shift'] ?: 'Shift Siang';
         $updaterName = auth()->user()?->name ?? 'Admin QMA';
         $timesheetNo = null;
@@ -324,6 +375,25 @@ class SupportTimesheetController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'created_by_user_id' => auth()->id(),
             ]);
+
+            // 1b. Perbarui entri sebelumnya yang belum memiliki end_meter untuk unit yang sama (1 HM = 1 Jam)
+            $prevTimesheet = UnitSupportTimesheet::where('vehicle_id', $vehicle->id)
+                ->where('id', '<', $timesheet->id)
+                ->whereDate('date', '<=', $validated['date'])
+                ->where(function ($q) {
+                    $q->whereNull('end_meter')
+                      ->orWhere('end_meter', '<=', 0);
+                })
+                ->orderByDesc('id')
+                ->first();
+
+            if ($prevTimesheet && (float) $startMeter >= (float) $prevTimesheet->start_meter) {
+                $prevDiff = (float) $startMeter - (float) $prevTimesheet->start_meter;
+                $prevTimesheet->update([
+                    'end_meter' => $startMeter,
+                    'operating_hours' => $prevDiff,
+                ]);
+            }
 
             // 2. Sinkronisasi Master Kendaraan (Odometer & Posisi di Manajemen Unit)
             $updateData = [
@@ -511,6 +581,9 @@ class SupportTimesheetController extends Controller
 
         $rows = [];
         foreach ($timesheets as $idx => $ts) {
+            $endMeter = $ts->effective_end_meter;
+            $opHours = $ts->effective_operating_hours;
+
             $rows[] = [
                 $idx + 1,
                 $ts->timesheet_no,
@@ -523,8 +596,8 @@ class SupportTimesheetController extends Controller
                 $ts->operator?->nik ?: '-',
                 $ts->meter_type,
                 number_format($ts->start_meter, 2, ',', '.'),
-                number_format($ts->end_meter, 2, ',', '.'),
-                number_format($ts->operating_hours, 2, ',', '.'),
+                $endMeter !== null ? number_format($endMeter, 2, ',', '.') : '-',
+                $opHours !== null ? number_format($opHours, 2, ',', '.') : '-',
                 number_format($ts->standby_hours, 2, ',', '.'),
                 number_format($ts->breakdown_hours, 2, ',', '.'),
                 $ts->location,
@@ -606,6 +679,9 @@ class SupportTimesheetController extends Controller
 
         $rows = [];
         foreach ($timesheets as $idx => $ts) {
+            $endMeter = $ts->effective_end_meter;
+            $opHours = $ts->effective_operating_hours;
+
             $rows[] = [
                 $idx + 1,
                 $ts->date ? $ts->date->format('d/m/Y') : '-',
@@ -614,8 +690,8 @@ class SupportTimesheetController extends Controller
                 $ts->operator?->name ? ($ts->operator->name . ' (' . ($ts->operator->employee_type ?: 'Karyawan') . ')') : '-',
                 $ts->shift,
                 number_format($ts->start_meter, 1, ',', '.'),
-                number_format($ts->end_meter, 1, ',', '.'),
-                number_format($ts->operating_hours, 1, ',', '.') . ' ' . $ts->meter_type,
+                $endMeter !== null ? number_format($endMeter, 1, ',', '.') : '-',
+                ($opHours !== null ? number_format($opHours, 1, ',', '.') : '-') . ' ' . $ts->meter_type,
                 $ts->location,
                 $ts->status,
             ];

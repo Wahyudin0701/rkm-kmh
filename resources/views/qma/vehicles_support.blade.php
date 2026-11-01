@@ -61,8 +61,46 @@
     </div>
 
 
-    <!-- Kotak Pencarian & Filter Kategori Alat Berat -->
+    <!-- Top Banner jika sedang melihat unit dalam tipe tertentu -->
+    @if(isset($selectedType) && $selectedType)
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl shadow-2xs">
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('qma.vehicles.support') }}" class="px-3.5 py-2 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100/60 text-[#1b5e20] text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                <span>Semua Tipe Alat</span>
+            </a>
+            <div>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
+                    <span>Tipe: {{ $selectedType }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">{{ $totalUnitsOfType ?? $typeUnits->total() }} Unit Fisik</span>
+                </h3>
+                <p class="text-[11px] text-emerald-800 font-medium mt-0.5">
+                    Daftar unit alat berat spesifik di bawah tipe {{ $selectedType }}.
+                </p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                {{ $opCount ?? 0 }} Operation
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                {{ $stCount ?? 0 }} Standby
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                {{ $bdCount ?? 0 }} Breakdown
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                {{ $insideCount ?? 0 }} Site / {{ $outsideCount ?? 0 }} Luar
+            </span>
+        </div>
+    </div>
+    @endif
+
+    <!-- Kotak Pencarian & Filter Alat Berat -->
     <form method="GET" action="{{ route('qma.vehicles.support') }}" id="supportFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        @if(isset($selectedType) && $selectedType)
+            <input type="hidden" name="type" value="{{ $selectedType }}">
+        @endif
         <div class="relative w-full max-w-sm sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -71,18 +109,33 @@
                    id="supportSearchInput"
                    name="search"
                    value="{{ request('search') }}"
-                   placeholder="Cari kode unit, model, tipe, lokasi, dokumen..." 
+                   placeholder="{{ isset($selectedType) && $selectedType ? 'Cari kode unit, seri, model, lokasi di ' . $selectedType . '...' : 'Cari tipe alat berat (Boomlift, Excavator, Dump Truck)...' }}" 
                    class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-sm transition">
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
+            @if(!isset($selectedType) || !$selectedType)
             <!-- Filter Kategori Alat Berat -->
             <select name="unit_category" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
-                <option value="">Semua Kategori Alat</option>
+                <option value="">Semua Kategori (Handling, Support, Hauling...)</option>
                 @foreach($availableCategories as $cat)
                     <option value="{{ $cat }}" {{ request('unit_category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                 @endforeach
             </select>
+            @else
+            <!-- Filter Status Operasional untuk Drilldown Unit -->
+            <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                <option value="">Semua Status Operasi</option>
+                <option value="Operation" {{ request('status') === 'Operation' ? 'selected' : '' }}>Operation</option>
+                <option value="Standby" {{ request('status') === 'Standby' ? 'selected' : '' }}>Standby</option>
+                <option value="Breakdown" {{ request('status') === 'Breakdown' ? 'selected' : '' }}>Breakdown</option>
+            </select>
+            <select name="site_status" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                <option value="">Semua Area</option>
+                <option value="inside_site" {{ request('site_status') === 'inside_site' ? 'selected' : '' }}>Di Dalam Site</option>
+                <option value="outside_site" {{ request('site_status') === 'outside_site' ? 'selected' : '' }}>Di Luar Site</option>
+            </select>
+            @endif
 
             <!-- Filter Jumlah Per Halaman -->
             <select name="per_page" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
@@ -96,8 +149,8 @@
             </button>
 
             <div id="supportResetWrapper" class="flex items-center">
-                @if(request()->anyFilled(['search', 'unit_category', 'per_page']))
-                    <a id="supportResetBtn" href="{{ route('qma.vehicles.support') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1">
+                @if(request()->anyFilled(['search', 'unit_category', 'status', 'site_status', 'per_page']))
+                    <a id="supportResetBtn" href="{{ isset($selectedType) && $selectedType ? route('qma.vehicles.support', ['type' => $selectedType]) : route('qma.vehicles.support') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>Reset</span>
                     </a>
@@ -106,19 +159,125 @@
         </div>
     </form>
 
-    <!-- Tabel Data Kategori Heavy Equipment (Header Navy Solid #06213f) -->
+    <!-- Tabel Data Heavy Equipment (Header Navy Solid #06213f) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
+            @if(isset($selectedType) && $selectedType)
+            <!-- TABEL 1: DAFTAR UNIT FISIK SPESIFIK TIPE INI -->
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
-                        <th class="py-3.5 px-4">KODE KATEGORI</th>
-                        <th class="py-3.5 px-4">KATEGORI ALAT</th>
-                        <th class="py-3.5 px-4 text-center">JUMLAH (QTY)</th>
+                        <th class="py-3.5 px-4">KODE UNIT</th>
                         <th class="py-3.5 px-4">MEREK & MODEL</th>
-                        <th class="py-3.5 px-4">SPESIFIKASI</th>
-                        <th class="py-3.5 px-4">DIVISI & KEPEMILIKAN</th>
+                        <th class="py-3.5 px-4">NO. SERI / RANGKA</th>
+                        <th class="py-3.5 px-4 text-center">TAHUN</th>
+                        <th class="py-3.5 px-4">LOKASI SAAT INI</th>
+                        <th class="py-3.5 px-4 text-center">AREA</th>
+                        <th class="py-3.5 px-4 text-center">STATUS</th>
+                        <th class="py-3.5 px-4 text-center">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    @forelse($typeUnits as $index => $u)
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3.5 px-4 text-center font-medium text-slate-400">
+                                {{ $typeUnits->firstItem() + $index }}
+                            </td>
+                            <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs whitespace-nowrap">
+                                <span class="bg-blue-50 text-blue-800 px-2.5 py-1 rounded border border-blue-200">
+                                    {{ $u->code }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <div class="font-bold text-slate-900">{{ $u->brand_type ?: ($u->brand ?: '-') }}</div>
+                                @if($u->model_number)
+                                    <div class="text-[10px] text-slate-400 font-mono mt-0.5">Model: {{ $u->model_number }}</div>
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-4 font-mono text-slate-600">
+                                {{ $u->serial_number ?: '-' }}
+                            </td>
+                            <td class="py-3.5 px-4 text-center text-slate-600">
+                                {{ $u->production_year ?: '-' }}
+                            </td>
+                            <td class="py-3.5 px-4 font-semibold text-slate-800">
+                                <div class="flex items-center space-x-1">
+                                    <i class="fa-solid fa-location-dot text-emerald-600 text-[10px]"></i>
+                                    <span>{{ $u->location ?: 'Site Kerinci' }}</span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $u->isOutsideSite() ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200' }}">
+                                    {{ $u->site_status_label }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                @if($u->status === 'Operation')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        Operation
+                                    </span>
+                                @elseif($u->status === 'Standby')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        Standby
+                                    </span>
+                                @elseif($u->status === 'Breakdown')
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        Breakdown
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">
+                                        {{ $u->status }}
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center space-x-1.5">
+                                    <button onclick='openDetailModal(@json($u))' 
+                                            class="inline-flex items-center space-x-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-lg transition"
+                                            title="Lihat Detail Unit">
+                                        <i class="fa-regular fa-eye text-sm"></i>
+                                    </button>
+                                    @can('qma.vehicles.edit')
+                                    <button onclick='openEditModal(@json($u))' 
+                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
+                                            title="Edit Data Unit">
+                                        <i class="fa-regular fa-pen-to-square text-sm"></i>
+                                    </button>
+                                    @endcan
+                                    @can('qma.vehicles.delete')
+                                    <button type="button" 
+                                            onclick="openDeleteModal('{{ $u->id }}', '{{ $u->code }}', '{{ addslashes($u->brand_type ?? '') }}')"
+                                            class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded-lg transition"
+                                            title="Hapus Unit">
+                                        <i class="fa-regular fa-trash-can text-sm"></i>
+                                    </button>
+                                    @endcan
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="py-12 text-center text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                                <p class="text-sm font-semibold text-slate-700">Tidak ada unit fisik untuk tipe {{ $selectedType }}</p>
+                                <p class="text-xs text-slate-400 mt-1">Belum ada unit terdaftar atau sesuai kriteria filter.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+            @else
+            <!-- TABEL 2: PENGELOMPOKAN BERDASARKAN TIPE HEAVY EQUIPMENT -->
+            <table class="min-w-full text-xs text-left border-collapse">
+                <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-12">NO</th>
+                        <th class="py-3.5 px-4">TIPE ALAT BERAT</th>
+                        <th class="py-3.5 px-4">KATEGORI</th>
+                        <th class="py-3.5 px-4 text-center">JUMLAH (QTY)</th>
+                        <th class="py-3.5 px-4">STATUS OPERASIONAL</th>
+                        <th class="py-3.5 px-4">DISTRIBUSI AREA</th>
                         <th class="py-3.5 px-4 text-center">AKSI</th>
                     </tr>
                 </thead>
@@ -129,84 +288,66 @@
                                 {{ $vehicles->firstItem() + $index }}
                             </td>
 
-                            <td class="py-3.5 px-4 font-bold text-slate-900 font-mono text-xs whitespace-nowrap">
-                                <span class="bg-blue-50 text-blue-800 px-2.5 py-1 rounded border border-blue-200">
-                                    {{ $v->code }}
-                                </span>
+                            <td class="py-3.5 px-4 font-bold text-slate-900 text-xs whitespace-nowrap">
+                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" class="hover:text-[#1b5e20] transition flex items-center space-x-2.5">
+                                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa-solid fa-truck-monster text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-extrabold text-slate-900 block text-xs">{{ $v->unit_type }}</span>
+                                        @if(isset($v->sample_brand_type) && $v->sample_brand_type)
+                                            <span class="text-[10px] text-slate-400 font-normal block">{{ $v->sample_brand_type }}</span>
+                                        @endif
+                                    </div>
+                                </a>
                             </td>
 
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                <div class="flex items-center space-x-3">
-                                    @if($v->photo_path)
-                                        <img src="{{ $v->photo_url }}" alt="{{ $v->code }}" class="w-9 h-9 rounded-lg object-cover border border-slate-200 shadow-2xs flex-shrink-0 cursor-pointer" onclick='openDetailModal(@json($v))'>
-                                    @else
-                                        <div class="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 flex-shrink-0">
-                                            <i class="fa-solid fa-truck-monster text-xs"></i>
-                                        </div>
-                                    @endif
-                                    <div>
-                                        <span class="font-bold text-slate-900 block text-xs">{{ $v->unit_category ?? 'Alat Berat' }}</span>
-                                    </div>
-                                </div>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 uppercase tracking-wider">
+                                    {{ $v->unit_category ?? 'SUPPORT' }}
+                                </span>
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <a href="{{ route('qma.vehicles.support.units', $v->id) }}" 
-                                   class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#e8f8f0] text-[#00897b] border border-[#a7f3d0] hover:bg-[#d1fae5] transition shadow-2xs group cursor-pointer"
-                                   title="Buka daftar {{ $v->units_count ?? 0 }} unit fisik">
+                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" 
+                                   class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#e8f8f0] text-[#00897b] border border-[#a7f3d0] hover:bg-[#d1fae5] transition shadow-2xs group cursor-pointer"
+                                   title="Buka daftar {{ $v->units_count ?? 0 }} unit fisik tipe {{ $v->unit_type }}">
                                     <span>{{ $v->units_count ?? 0 }} Unit</span>
                                     <i class="fa-solid fa-chevron-right text-[10px] ml-1 transition group-hover:translate-x-0.5"></i>
                                 </a>
                             </td>
 
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-slate-900">{{ $v->brand_type }}</div>
-                                @if($v->model_number)
-                                    <div class="text-[10px] text-slate-500 font-mono mt-0.5">Model: {{ $v->model_number }}</div>
-                                @endif
+                                <div class="flex items-center space-x-2 text-[10px] font-bold">
+                                    <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                        {{ $v->total_operation ?? 0 }} Operasi
+                                    </span>
+                                    <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                        {{ $v->total_standby ?? 0 }} Standby
+                                    </span>
+                                    <span class="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                        {{ $v->total_breakdown ?? 0 }} Breakdown
+                                    </span>
+                                </div>
                             </td>
 
-                            <td class="py-3.5 px-4 text-slate-700">
-                                @if($v->unit_type)
-                                    <span class="font-medium text-xs">{{ $v->unit_type }}</span>
-                                @else
-                                    <span class="text-slate-300">-</span>
-                                @endif
-                            </td>
-
-                            <td class="py-3.5 px-4 text-slate-600">
-                                <div class="font-medium text-slate-800">{{ $v->division ?? '-' }}</div>
-                                <span class="text-[10px] text-slate-400 block">{{ $v->ownership ?? 'PT Kerinci Merangin Hidro' }}</span>
+                            <td class="py-3.5 px-4 text-slate-600 text-[11px]">
+                                <span class="font-medium text-emerald-800">{{ $v->inside_site_count ?? 0 }} Di Dalam Site</span>
+                                <span class="text-slate-300 mx-1">&bull;</span>
+                                <span class="text-slate-500">{{ $v->outside_site_count ?? 0 }} Di Luar Site</span>
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <div class="flex items-center justify-center space-x-1.5">
-                                    <button onclick='openDetailModal(@json($v))' 
-                                            class="inline-flex items-center space-x-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-lg transition"
-                                            title="Lihat Spesifikasi Kategori">
-                                        <i class="fa-regular fa-eye text-sm"></i>
-                                    </button>
-                                    @can('qma.vehicles.edit')
-                                    <button onclick='openEditModal(@json($v))' 
-                                            class="inline-flex items-center space-x-1 text-amber-600 hover:text-amber-800 hover:bg-amber-50 px-2 py-1 rounded-lg transition"
-                                            title="Edit Data Kategori">
-                                        <i class="fa-regular fa-pen-to-square text-sm"></i>
-                                    </button>
-                                    @endcan
-                                    @can('qma.vehicles.delete')
-                                    <button type="button" 
-                                            onclick="openDeleteModal('{{ $v->id }}', '{{ $v->code }}', '{{ addslashes($v->brand_type ?? '') }}')"
-                                            class="inline-flex items-center space-x-1 text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded-lg transition"
-                                            title="Hapus Kategori / Unit">
-                                        <i class="fa-regular fa-trash-can text-sm"></i>
-                                    </button>
-                                    @endcan
-                                </div>
+                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" 
+                                   class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#1b5e20] hover:bg-[#144919] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                                    <i class="fa-regular fa-folder-open text-xs"></i>
+                                    <span>Buka Unit</span>
+                                </a>
                             </td>
                         </tr>
                     @empty
                         <tr id="serverSupportEmptyRow">
-                            <td colspan="8" class="py-12 text-center text-slate-400">
+                            <td colspan="7" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
                                 @if(request('search'))
                                     <p class="text-sm font-semibold text-slate-700">
@@ -222,18 +363,23 @@
                                         </a>
                                     </div>
                                 @else
-                                    <p class="text-sm font-semibold text-slate-700">Belum ada unit alat berat</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Belum ada unit alat berat yang sesuai dengan filter.</p>
+                                    <p class="text-sm font-semibold text-slate-700">Belum ada tipe alat berat</p>
+                                    <p class="text-xs text-slate-400 mt-0.5">Belum ada tipe alat berat yang sesuai dengan filter.</p>
                                 @endif
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
+            @endif
         </div>
 
         <div id="supportPaginationContainer" class="p-4 bg-slate-50 border-t border-slate-200">
-            {{ $vehicles->links() }}
+            @if(isset($selectedType) && $selectedType)
+                {{ $typeUnits->links() }}
+            @else
+                {{ $vehicles->links() }}
+            @endif
         </div>
     </div>
 </div>

@@ -45,6 +45,11 @@ class UnitSupportTimesheet extends Model
         'fuel_liters' => 'decimal:2',
     ];
 
+    protected $appends = [
+        'effective_end_meter',
+        'effective_operating_hours',
+    ];
+
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
@@ -58,6 +63,53 @@ class UnitSupportTimesheet extends Model
     public function createdByUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    /**
+     * Dapatkan meter akhir efektif.
+     * Jika end_meter sudah diisi, gunakan nilainya.
+     * Jika belum, cari dari start_meter entri berikutnya untuk unit yang sama.
+     */
+    public function getEffectiveEndMeterAttribute(): ?float
+    {
+        if ($this->end_meter !== null && (float) $this->end_meter > 0) {
+            return (float) $this->end_meter;
+        }
+
+        $next = static::where('vehicle_id', $this->vehicle_id)
+            ->where(function ($q) {
+                $q->where('date', '>', $this->date)
+                  ->orWhere(function ($sq) {
+                      $sq->where('date', $this->date)
+                         ->where('id', '>', $this->id);
+                  });
+            })
+            ->orderBy('date', 'asc')
+            ->orderBy('id', 'asc')
+            ->first();
+
+        if ($next && $next->start_meter !== null && (float) $next->start_meter >= (float) $this->start_meter) {
+            return (float) $next->start_meter;
+        }
+
+        return null;
+    }
+
+    /**
+     * Dapatkan jam kerja operasional efektif (1 HM = 1 Jam).
+     */
+    public function getEffectiveOperatingHoursAttribute(): ?float
+    {
+        if ($this->operating_hours !== null && (float) $this->operating_hours > 0) {
+            return (float) $this->operating_hours;
+        }
+
+        $end = $this->effective_end_meter;
+        if ($end !== null && $this->start_meter !== null) {
+            return max(0.0, (float) $end - (float) $this->start_meter);
+        }
+
+        return null;
     }
 
     /**

@@ -233,62 +233,34 @@
             Demikian Berita Acara ini dibuat dengan sebenarnya dalam rangkap yang sah untuk dipergunakan sebagaimana mestinya dalam tertib administrasi aset dan operasional alat berat proyek Kerinci Merangin Hidro.
         </p>
 
-        <!-- KOLOM TANDA TANGAN (4 PIHAK) -->
+        <!-- KOLOM TANDA TANGAN (2 PIHAK) -->
         <div class="pt-6">
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs">
-                <!-- 1. Yang Menyerahkan (Driver / Pengangkut) -->
-                <div class="flex flex-col justify-between min-h-[140px] p-2 border border-slate-200 rounded-xl bg-slate-50/40">
-                    <p class="font-bold text-slate-600 text-[11px]">Yang Menyerahkan / Pengangkut,</p>
-                    <div class="py-6">
-                        <span class="text-[10px] text-slate-300 italic">(Tanda Tangan)</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-center text-xs max-w-2xl mx-auto">
+                <!-- 1. Yang Melakukan / Mencatat Pemindahan -->
+                <div class="flex flex-col justify-between min-h-[150px] p-4 border border-slate-200 rounded-xl bg-slate-50/40 shadow-sm">
+                    <p class="font-bold text-slate-700 text-xs uppercase tracking-wider">Yang Mencatat Pemindahan,</p>
+                    <div class="py-8">
+                        <span class="text-[11px] text-slate-400 italic">( Tanda Tangan )</span>
                     </div>
                     <div>
-                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-1">
-                            {{ $transfer->transporter_driver_name ?: 'Driver Pengangkut' }}
+                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-2 text-sm">
+                            {{ $transfer->user?->name ?? $transfer->reported_by }}
                         </p>
-                        <p class="text-[10px] text-slate-400">Pengemudi / Operator</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Petugas Pemindahan / Pelapor</p>
                     </div>
                 </div>
 
-                <!-- 2. Yang Melaporkan (Petugas QMA) -->
-                <div class="flex flex-col justify-between min-h-[140px] p-2 border border-slate-200 rounded-xl bg-slate-50/40">
-                    <p class="font-bold text-slate-600 text-[11px]">Yang Melaporkan,</p>
-                    <div class="py-6">
-                        <span class="text-[10px] text-slate-300 italic">(Tanda Tangan)</span>
+                <!-- 2. Admin QMA (Mengetahui / Menyetujui) -->
+                <div class="flex flex-col justify-between min-h-[150px] p-4 border border-slate-200 rounded-xl bg-slate-50/40 shadow-sm">
+                    <p class="font-bold text-slate-700 text-xs uppercase tracking-wider">Mengetahui / Menyetujui,</p>
+                    <div class="py-8">
+                        <span class="text-[11px] text-slate-400 italic">( Tanda Tangan )</span>
                     </div>
                     <div>
-                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-1">
-                            {{ $transfer->reported_by }}
-                        </p>
-                        <p class="text-[10px] text-slate-400">Petugas QMA Field</p>
-                    </div>
-                </div>
-
-                <!-- 3. Yang Menerima (Penanggung Jawab Lokasi Baru) -->
-                <div class="flex flex-col justify-between min-h-[140px] p-2 border border-slate-200 rounded-xl bg-slate-50/40">
-                    <p class="font-bold text-slate-600 text-[11px]">Yang Menerima,</p>
-                    <div class="py-6">
-                        <span class="text-[10px] text-slate-300 italic">(Tanda Tangan)</span>
-                    </div>
-                    <div>
-                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-1">
+                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-2 text-sm">
                             ( .................................... )
                         </p>
-                        <p class="text-[10px] text-slate-400">PIC {{ $transfer->to_location }}</p>
-                    </div>
-                </div>
-
-                <!-- 4. Mengetahui (Superintendent / Site Manager) -->
-                <div class="flex flex-col justify-between min-h-[140px] p-2 border border-slate-200 rounded-xl bg-slate-50/40">
-                    <p class="font-bold text-slate-600 text-[11px]">Mengetahui,</p>
-                    <div class="py-6">
-                        <span class="text-[10px] text-slate-300 italic">(Tanda Tangan)</span>
-                    </div>
-                    <div>
-                        <p class="font-bold text-slate-900 border-t border-slate-300 pt-1">
-                            ( .................................... )
-                        </p>
-                        <p class="text-[10px] text-slate-400">Superintendent QMA</p>
+                        <p class="text-[11px] text-slate-500 font-medium">Admin QMA</p>
                     </div>
                 </div>
             </div>
