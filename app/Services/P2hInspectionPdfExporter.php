@@ -306,51 +306,53 @@ class P2hInspectionPdfExporter extends FPDF
         }
 
         // -------------------------------------------------------------
-        // BLOK PENGESAHAN & TANDA TANGAN (3 Kolom)
+        // BLOK PENGESAHAN & TANDA TANGAN (2 Pihak: Operator & Admin QMA)
         // -------------------------------------------------------------
-        if ($pdf->GetY() > 240) {
+        if ($pdf->GetY() > 235) {
             $pdf->AddPage();
         }
 
         $pdf->Ln(6);
         $sigY = $pdf->GetY();
-        $pdf->SetFont('Arial', 'B', 7.5);
-        $pdf->SetTextColor(15, 23, 42);
+        $colWidth = 75;
+        $x1 = 20;
+        $x2 = 115;
 
         // Kolom 1: Operator Lapangan
-        $pdf->SetXY(15, $sigY);
-        $pdf->Cell(56, 4, 'Diperiksa Oleh (Operator):', 0, 1, 'C');
-        $pdf->SetXY(15, $sigY + 16);
+        $pdf->SetXY($x1, $sigY);
         $pdf->SetFont('Arial', 'B', 8);
-        $pdf->Cell(56, 4, '( ' . ($record->employee->name ?? '..................................') . ' )', 0, 1, 'C');
-        $pdf->SetFont('Arial', '', 7);
-        $pdf->SetTextColor(100, 116, 139);
-        $pdf->Cell(56, 3.5, 'NIK: ' . ($record->employee->nik ?? '-'), 0, 1, 'C');
-
-        // Kolom 2: Verifikator QMA
-        $pdf->SetXY(77, $sigY);
-        $pdf->SetFont('Arial', 'B', 7.5);
         $pdf->SetTextColor(15, 23, 42);
-        $pdf->Cell(56, 4, 'Diverifikasi Oleh (Admin QMA):', 0, 1, 'C');
-        $pdf->SetXY(77, $sigY + 16);
+        $pdf->Cell($colWidth, 4, 'Diperiksa Oleh (Operator):', 0, 1, 'C');
+
+        $pdf->SetXY($x1, $sigY + 18);
+        $pdf->SetFont('Arial', 'B', 8.5);
+        $empName = $record->employee->name ?? '..............................................';
+        $pdf->Cell($colWidth, 4, '( ' . $empName . ' )', 0, 1, 'C');
+
+        $pdf->SetXY($x1, $sigY + 22.5);
+        $pdf->SetFont('Arial', '', 7.5);
+        $pdf->SetTextColor(100, 116, 139);
+        $empNik = $record->employee->nik ?? '-';
+        $empUnit = $record->employee->unit_kerja ?? '';
+        $empSub = $empUnit ? "NIK: {$empNik} | {$empUnit}" : "NIK: {$empNik}";
+        $pdf->Cell($colWidth, 3.5, $empSub, 0, 1, 'C');
+
+        // Kolom 2: Verifikator Admin QMA
+        $pdf->SetXY($x2, $sigY);
         $pdf->SetFont('Arial', 'B', 8);
+        $pdf->SetTextColor(15, 23, 42);
+        $pdf->Cell($colWidth, 4, 'Diverifikasi Oleh (Admin QMA):', 0, 1, 'C');
+
+        $pdf->SetXY($x2, $sigY + 18);
+        $pdf->SetFont('Arial', 'B', 8.5);
         $valName = $record->validator->name ?? 'Admin QMA';
-        $pdf->Cell(56, 4, '( ' . $valName . ' )', 0, 1, 'C');
-        $pdf->SetFont('Arial', '', 7);
-        $pdf->SetTextColor(100, 116, 139);
-        $pdf->Cell(56, 3.5, 'Quality & Maintenance Assets', 0, 1, 'C');
+        $pdf->Cell($colWidth, 4, '( ' . $valName . ' )', 0, 1, 'C');
 
-        // Kolom 3: Pengawas K3 / HSE
-        $pdf->SetXY(139, $sigY);
-        $pdf->SetFont('Arial', 'B', 7.5);
-        $pdf->SetTextColor(15, 23, 42);
-        $pdf->Cell(56, 4, 'Mengetahui (Pengawas K3/HSE):', 0, 1, 'C');
-        $pdf->SetXY(139, $sigY + 16);
-        $pdf->SetFont('Arial', 'B', 8);
-        $pdf->Cell(56, 4, '( .............................................. )', 0, 1, 'C');
-        $pdf->SetFont('Arial', '', 7);
+        $pdf->SetXY($x2, $sigY + 22.5);
+        $pdf->SetFont('Arial', '', 7.5);
         $pdf->SetTextColor(100, 116, 139);
-        $pdf->Cell(56, 3.5, 'Safety / HSE Officer', 0, 1, 'C');
+        $valTime = $record->validated_at ? 'Diverifikasi: ' . $record->validated_at->format('d/m/Y H:i') . ' WIB' : 'Quality & Maintenance Assets (QMA)';
+        $pdf->Cell($colWidth, 3.5, $valTime, 0, 1, 'C');
 
         return $pdf->Output('S');
     }
