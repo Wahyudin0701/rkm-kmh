@@ -1409,11 +1409,17 @@
         
         document.getElementById('editForm').action = `/hse/employees/${emp.id}`;
         document.getElementById('editModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
     }
 
     function closeEditModal() {
         const modal = document.getElementById('editModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
     }
 
     const allMasterSimperTypes = @json($availableSimperTypes ?? []);
@@ -1602,6 +1608,8 @@
 
         document.getElementById('renewForm').action = `/hse/employees/${emp.id}`;
         document.getElementById('renewModal').classList.remove('hidden');
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
     }
 
     function onRenewSimperTypeChange(val) {
@@ -1699,11 +1707,11 @@
 
     function closeRenewModal() {
         const modal = document.getElementById('renewModal');
-        if (modal) modal.classList.add('hidden');
-        currentRenewEmployee = null;
-    }
-        const modal = document.getElementById('renewModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
         currentRenewEmployee = null;
     }
 
@@ -1712,12 +1720,20 @@
         document.getElementById('deleteEmployeeNik').textContent = nik;
         document.getElementById('deleteEmployeeForm').action = `/hse/employees/${id}`;
         const modal = document.getElementById('deleteEmployeeModal');
-        if (modal) modal.classList.remove('hidden');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
     }
 
     function closeDeleteEmployeeModal() {
         const modal = document.getElementById('deleteEmployeeModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
     }
 
     // Pencarian Server-side Otomatis (Global ke seluruh database)
@@ -1805,11 +1821,19 @@
         });
         const addSimperDateInp = document.getElementById('addSimperDateInput');
         if (addSimperDateInp) addSimperDateInp.value = '';
-        if (modal) modal.classList.remove('hidden');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
     }
     function closeAddKaryawanModal() {
         const modal = document.getElementById('addKaryawanModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
     }
     function toggleAddSimperDate(val) {
         const wrapper = document.getElementById('addSimperDateWrapper');
@@ -1835,11 +1859,19 @@
     // Modal Impor Karyawan via Excel
     function openImportKaryawanModal() {
         const modal = document.getElementById('importKaryawanModal');
-        if (modal) modal.classList.remove('hidden');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        }
     }
     function closeImportKaryawanModal() {
         const modal = document.getElementById('importKaryawanModal');
-        if (modal) modal.classList.add('hidden');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
     }
     function handleImportFileChange(input) {
         const display = document.getElementById('importFileName');
