@@ -519,10 +519,40 @@
         });
     }
 
-    // Inisialisasi awal
+    // Inisialisasi awal & proteksi submit form
     document.addEventListener('DOMContentLoaded', function() {
         if (!allSectionKeys || allSectionKeys.length <= 1) {
             showSubmitButton();
+        }
+
+        const form = document.getElementById('p2hForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const unselectedCards = [];
+                document.querySelectorAll('.p2h-item-card').forEach(row => {
+                    const radios = row.querySelectorAll('input[type="radio"]');
+                    if (radios.length > 0 && !Array.from(radios).some(r => r.checked)) {
+                        unselectedCards.push(row);
+                    }
+                });
+
+                if (unselectedCards.length > 0) {
+                    e.preventDefault();
+                    const firstUnselected = unselectedCards[0];
+                    const panel = firstUnselected.closest('.p2h-section-content');
+                    if (panel) {
+                        const secKey = panel.id.replace('p2h-content-', '');
+                        switchP2hSection(secKey);
+                    }
+                    firstUnselected.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstUnselected.classList.add('ring-2', 'ring-rose-500', 'bg-rose-50/50');
+                    setTimeout(() => {
+                        firstUnselected.classList.remove('ring-2', 'ring-rose-500', 'bg-rose-50/50');
+                    }, 3500);
+                    alert(`Terdapat ${unselectedCards.length} butir pemeriksaan yang belum dipilih. Harap tentukan kondisi (Baik / Rusak) untuk seluruh butir sebelum mengirim formulir.`);
+                    return false;
+                }
+            });
         }
     });
 </script>
