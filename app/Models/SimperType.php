@@ -98,6 +98,7 @@ class SimperType extends Model
     protected $appends = [
         'scopes',
         'category_scope_display',
+        'short_scope_display',
     ];
 
     /**
@@ -180,6 +181,34 @@ class SimperType extends Model
             if ($s === self::SCOPE_ALL) return 'Universal';
             return str_replace('_', ' ', $s);
         }, $scopes);
+
+        return implode(', ', $formatted);
+    }
+
+    /**
+     * Teks ringkas pendek untuk badge di UI (maksimal 2 kategori + counter jika panjang).
+     */
+    public function getShortScopeDisplayAttribute(): string
+    {
+        $scopes = $this->scopes;
+
+        if (empty($scopes) || in_array(self::SCOPE_ALL, $scopes, true)) {
+            return 'UNIVERSAL';
+        }
+
+        if (count($scopes) === 1 && $scopes[0] === self::SCOPE_LIGHT_VEHICLE) {
+            return 'LV';
+        }
+
+        $formatted = array_map(function ($s) {
+            if ($s === self::SCOPE_LIGHT_VEHICLE) return 'LV';
+            if ($s === self::SCOPE_ALL) return 'Universal';
+            return strtoupper(str_replace('_', ' ', $s));
+        }, $scopes);
+
+        if (count($formatted) > 2) {
+            return $formatted[0] . ', ' . $formatted[1] . ' (+' . (count($formatted) - 2) . ')';
+        }
 
         return implode(', ', $formatted);
     }

@@ -422,6 +422,11 @@ class TrashService
             }
 
             if ($item instanceof Employee) {
+                // Cegah hapus permanen jika karyawan memiliki riwayat operasional (menjaga integritas data)
+                if ($item->activities()->exists() || $item->p2hRecords()->exists() || $item->supportTimesheets()->exists()) {
+                    throw new \RuntimeException("Karyawan '{$item->name}' ({$item->nik}) memiliki riwayat transaksi aktif dan tidak dapat dihapus permanen untuk menjaga integritas data.");
+                }
+
                 EmployeeSimper::withTrashed()
                     ->where('employee_id', $item->id)
                     ->forceDelete();

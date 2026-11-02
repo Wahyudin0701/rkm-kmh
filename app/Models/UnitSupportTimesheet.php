@@ -57,7 +57,7 @@ class UnitSupportTimesheet extends Model
 
     public function operator(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'operator_id');
+        return $this->belongsTo(Employee::class, 'operator_id')->withTrashed();
     }
 
     public function createdByUser(): BelongsTo

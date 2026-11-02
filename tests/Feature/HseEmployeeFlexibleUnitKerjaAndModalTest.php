@@ -256,7 +256,7 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
         $this->assertSoftDeleted('users', ['id' => $linkedUser->id]);
     }
 
-    public function test_cannot_delete_employee_with_operational_records(): void
+    public function test_can_delete_employee_with_operational_records_and_preserves_history(): void
     {
         $superAdmin = User::factory()->create([
             'username' => 'superadmin_check',
@@ -290,7 +290,7 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
             'current_km' => 1000,
         ]);
 
-        \App\Models\VehicleActivity::create([
+        $activity = \App\Models\VehicleActivity::create([
             'transaction_no' => 'TRX-TEST-001',
             'vehicle_id' => $vehicle->id,
             'driver_id' => $employee->id,
@@ -309,8 +309,13 @@ class HseEmployeeFlexibleUnitKerjaAndModalTest extends TestCase
             ->from(route('hse.employees.index'))
             ->delete(route('hse.employees.destroy', $employee->id));
 
-        $response->assertSessionHas('error');
-        $this->assertDatabaseHas('employees', ['id' => $employee->id]);
+        $response->assertSessionHas('success');
+        $this->assertSoftDeleted('employees', ['id' => $employee->id]);
+
+        // Pastikan riwayat operasional tetap terhubung via withTrashed()
+        $activityFresh = \App\Models\VehicleActivity::find($activity->id);
+        $this->assertNotNull($activityFresh->driver);
+        $this->assertEquals($employee->name, $activityFresh->driver->name);
     }
 
     public function test_hse_edit_modal_and_edit_page_render_division_and_position_inputs(): void

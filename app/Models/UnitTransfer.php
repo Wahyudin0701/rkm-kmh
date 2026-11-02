@@ -68,7 +68,7 @@ class UnitTransfer extends Model
      */
     public function transporterDriver(): BelongsTo
     {
-        return $this->belongsTo(Employee::class, 'transporter_driver_id');
+        return $this->belongsTo(Employee::class, 'transporter_driver_id')->withTrashed();
     }
 
     /**

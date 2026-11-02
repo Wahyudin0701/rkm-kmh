@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Hse;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Employee;
 use App\Models\EmployeeSimper;
 use App\Models\SimperType;
@@ -617,6 +618,23 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? null) : null;
 
+        // Validasi kustom penugasan SIMPER ketika driver aktif
+        if ($isOperator && is_array($request->input('simper_assignments'))) {
+            $today = Carbon::today()->toDateString();
+            foreach ($request->input('simper_assignments') as $typeId => $data) {
+                if (!empty($data['enabled'])) {
+                    $st = SimperType::find($typeId);
+                    $typeName = $st ? $st->name : "Tipe #{$typeId}";
+                    if (empty($data['expired_at'])) {
+                        return back()->withInput()->with('error', "Masa berlaku untuk jenis SIMPER '{$typeName}' wajib diisi ketika dicentang.");
+                    }
+                    if ($data['expired_at'] < $today) {
+                        return back()->withInput()->with('error', "Masa berlaku untuk jenis SIMPER '{$typeName}' tidak boleh tanggal lampau (minimal hari ini).");
+                    }
+                }
+            }
+        }
+
         $employeeType = $request->input('employee_type');
         if ($employeeType === '__CUSTOM__' && $request->filled('custom_employee_type')) {
             $employeeType = trim($request->input('custom_employee_type'));
@@ -752,6 +770,28 @@ class EmployeeController extends Controller
         $isOperator = (bool) $validated['is_operator'];
         $simperExpiredAt = $isOperator ? ($validated['simper_expired_at'] ?? $employee->simper_expired_at) : null;
 
+        // Validasi kustom penugasan SIMPER ketika driver aktif
+        if ($isOperator && is_array($request->input('simper_assignments'))) {
+            $today = Carbon::today()->toDateString();
+            foreach ($request->input('simper_assignments') as $typeId => $data) {
+                if (!empty($data['enabled'])) {
+                    $st = SimperType::find($typeId);
+                    $typeName = $st ? $st->name : "Tipe #{$typeId}";
+                    if (empty($data['expired_at'])) {
+                        return back()->withInput()->with('error', "Masa berlaku untuk jenis SIMPER '{$typeName}' wajib diisi ketika dicentang.");
+                    }
+                    if ($data['expired_at'] < $today) {
+                        // Cek apakah tanggal ini memang tanggal lama yang belum diubah oleh admin
+                        $existingSimper = $employee->simpers->firstWhere('simper_type_id', (int) $typeId);
+                        $isOldUnchanged = $existingSimper && $existingSimper->expired_at?->format('Y-m-d') === $data['expired_at'];
+                        if (!$isOldUnchanged) {
+                            return back()->withInput()->with('error', "Masa berlaku untuk jenis SIMPER '{$typeName}' tidak boleh tanggal lampau (minimal hari ini: {$today}).");
+                        }
+                    }
+                }
+            }
+        }
+
         $employeeType = $request->input('employee_type');
         if ($employeeType === '__CUSTOM__' && $request->filled('custom_employee_type')) {
             $employeeType = trim($request->input('custom_employee_type'));
@@ -802,26 +842,12 @@ class EmployeeController extends Controller
     }
 
     /**
-     * Hapus data personil / karyawan beserta izin SIMPER dan akun login terkait.
+     * Hapus data personil / karyawan (Soft Delete masuk ke Tong Sampah).
+     * Seluruh riwayat transaksi (Timesheet, Gate, P2H) tetap aman dan terhubung.
      */
     public function destroy(int $id): RedirectResponse
     {
-        $employee = Employee::with(['user', 'activities', 'p2hRecords', 'supportTimesheets'])->findOrFail($id);
-
-        // 1. Proteksi integritas relasi: pastikan tidak ada logbook perjalanan kendaraan
-        if ($employee->activities()->exists()) {
-            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah tercatat dalam riwayat logbook operasional kendaraan.");
-        }
-
-        // 2. Proteksi integritas relasi: pastikan tidak ada data inspeksi P2H
-        if ($employee->p2hRecords()->exists()) {
-            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah memiliki formulir riwayat inspeksi P2H.");
-        }
-
-        // 3. Proteksi integritas relasi: pastikan tidak ada data timesheet unit support
-        if ($employee->supportTimesheets()->exists()) {
-            return back()->with('error', "Aksi Ditolak: Karyawan '{$employee->name}' ({$employee->nik}) tidak dapat dihapus karena telah tercatat dalam riwayat timesheet unit support.");
-        }
+        $employee = Employee::with(['user'])->findOrFail($id);
 
         $empName = $employee->name;
         $empNik = $employee->nik;
@@ -833,22 +859,24 @@ class EmployeeController extends Controller
             // Berkas foto tidak dihapus saat soft delete agar foto tetap ada jika dipulihkan dari tong sampah.
             // Berkas baru dihapus permanen ketika dilakukan 'Hapus Permanen' (force delete) di TrashService.
 
-            // Hapus data karyawan (relasi employee_simpers otomatis cascade terhapus)
+            // Hapus data karyawan (soft delete - dipindahkan ke Tong Sampah)
             $employee->delete();
 
-            // Hapus akun login User terkait jika perannya murni hanya karyawan (bukan admin)
+            // Nonaktifkan / soft delete akun login User terkait jika perannya murni hanya karyawan (bukan admin)
             if ($user && $user->role === 'employee' && ! $user->hasAnyRole(['super_admin', 'hse_admin', 'qma_admin', 'pg_admin', 'gate_officer'])) {
                 $user->syncRoles([]);
                 $user->delete();
             }
         });
 
+        $message = "Data personil '{$empName}' ({$empNik}) berhasil dihapus dan dipindahkan ke Tong Sampah. Seluruh riwayat operasional masa lalu tetap tersimpan utuh.";
+
         // Jika request berasal dari halaman edit terpisah, arahkan kembali ke index
         if (url()->previous() === route('hse.employees.edit', $id)) {
-            return redirect()->route('hse.employees.index')->with('success', "Data karyawan '{$empName}' ({$empNik}) berhasil dihapus dari sistem.");
+            return redirect()->route('hse.employees.index')->with('success', $message);
         }
 
-        return back()->with('success', "Data karyawan '{$empName}' ({$empNik}) berhasil dihapus dari sistem.");
+        return back()->with('success', $message);
     }
 
     /**

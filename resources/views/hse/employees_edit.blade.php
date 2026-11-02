@@ -204,32 +204,32 @@
                             @endphp
 
                             <div class="p-4 rounded-xl border {{ $isChecked ? 'border-emerald-200 bg-emerald-50/20' : 'border-slate-200 bg-slate-50/50' }} hover:border-slate-300 transition">
-                                <div class="flex items-center justify-between">
-                                    <label class="flex items-center space-x-3 text-xs font-bold text-slate-900 cursor-pointer">
+                                <div class="flex items-start sm:items-center justify-between gap-2.5">
+                                    <label class="flex items-start sm:items-center space-x-3 text-xs font-bold text-slate-900 cursor-pointer flex-1 min-w-0">
                                         <input type="checkbox" 
                                                name="simper_assignments[{{ $st->id }}][enabled]" 
                                                value="1" 
                                                id="chkSimper_{{ $st->id }}"
                                                {{ $isChecked ? 'checked' : '' }}
                                                onchange="toggleSimperRow({{ $st->id }})"
-                                               class="w-4 h-4 rounded text-[#1b5e20] border-slate-300 focus:ring-emerald-500 cursor-pointer">
-                                        <div>
-                                            <span class="font-extrabold text-slate-900 text-xs">{{ $st->name }}</span>
-                                            <span class="text-slate-400 font-mono text-[11px] ml-1">({{ $st->code }})</span>
+                                               class="w-4 h-4 mt-0.5 sm:mt-0 rounded text-[#1b5e20] border-slate-300 focus:ring-emerald-500 flex-shrink-0 cursor-pointer">
+                                        <div class="min-w-0">
+                                            <span class="block truncate font-extrabold text-slate-900 text-xs">{{ $st->name }}</span>
+                                            <span class="block text-slate-400 font-mono text-[10px] font-semibold">{{ $st->code }}</span>
                                         </div>
                                     </label>
                                     
                                     @if($st->coversScope('all'))
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-50 text-purple-700 font-bold border border-purple-200">
+                                        <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 font-bold border border-purple-200 flex-shrink-0">
                                             SEMUA ARMADA
                                         </span>
                                     @elseif($st->scopes === ['light_vehicle'])
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold border border-blue-200">
+                                        <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-bold border border-blue-200 flex-shrink-0">
                                             LV
                                         </span>
                                     @else
-                                        <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-bold border border-amber-200 max-w-[200px] truncate" title="{{ $st->category_scope_display }}">
-                                            {{ strtoupper($st->category_scope_display) }}
+                                        <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 font-bold border border-amber-200 max-w-[140px] sm:max-w-[200px] truncate flex-shrink-0" title="{{ $st->category_scope_display }}">
+                                            {{ $st->short_scope_display ?? strtoupper($st->category_scope_display) }}
                                         </span>
                                     @endif
                                 </div>
@@ -250,13 +250,14 @@
                                     </div>
                                     <div>
                                         <label class="block text-[11px] font-bold text-slate-600 mb-1">
-                                            Masa Berlaku SIMPER
+                                            Masa Berlaku SIMPER <span class="text-rose-500">*</span>
                                         </label>
                                         <input type="date" 
                                                name="simper_assignments[{{ $st->id }}][expired_at]" 
                                                id="inputSimperExp_{{ $st->id }}"
                                                value="{{ $simperExp }}"
-                                               {{ $isChecked ? '' : 'disabled' }}
+                                               min="{{ date('Y-m-d') }}"
+                                               {{ $isChecked ? 'required' : 'disabled' }}
                                                class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-emerald-600 disabled:opacity-50 disabled:bg-slate-100">
                                     </div>
                                 </div>
@@ -365,16 +366,28 @@
         const fields = document.getElementById(`fieldsSimper_${id}`);
         const numInp = document.getElementById(`inputSimperNum_${id}`);
         const expInp = document.getElementById(`inputSimperExp_${id}`);
+        const todayStr = new Date().toISOString().split('T')[0];
+
         if (chk && fields) {
             if (chk.checked) {
                 fields.classList.remove('hidden');
                 if (numInp) numInp.disabled = false;
-                if (expInp) expInp.disabled = false;
+                if (expInp) {
+                    expInp.disabled = false;
+                    expInp.required = true;
+                    expInp.min = todayStr;
+                    if (!expInp.value) {
+                        const d = new Date();
+                        d.setFullYear(d.getFullYear() + 1);
+                        expInp.value = d.toISOString().split('T')[0];
+                    }
+                }
             } else {
                 fields.classList.add('hidden');
                 if (numInp) numInp.disabled = true;
                 if (expInp) {
                     expInp.disabled = true;
+                    expInp.required = false;
                     expInp.value = '';
                 }
             }

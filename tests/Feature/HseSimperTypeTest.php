@@ -425,4 +425,131 @@ class HseSimperTypeTest extends TestCase
         $this->assertSoftDeleted('simper_types', ['id' => $simperType->id]);
         $this->assertSoftDeleted('employee_simpers', ['id' => $empSimper->id]);
     }
+
+    /**
+     * Mencentang SIMPER tanpa memasukkan tanggal masa berlaku ditolak dengan pesan error.
+     */
+    public function test_checking_simper_without_expiry_date_fails_validation(): void
+    {
+        $type = SimperType::create([
+            'code' => 'SIMPER-DT-TEST',
+            'name' => 'SIMPER Dump Truck',
+            'category_scope' => 'all',
+            'is_active' => true,
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'EMP-EXP-VALIDATE-01',
+            'name' => 'Operator Test',
+            'is_operator' => true,
+            'unit_kerja' => 'Pembangkit',
+            'division' => 'Operasi',
+            'position' => 'Operator',
+        ]);
+
+        $response = $this->actingAs($this->adminHse)
+            ->post(route('hse.employees.update', $employee->id), [
+                'nik' => $employee->nik,
+                'name' => $employee->name,
+                'is_operator' => 1,
+                'unit_kerja' => 'Pembangkit',
+                'division' => 'Operasi',
+                'position' => 'Operator',
+                'simper_assignments' => [
+                    $type->id => [
+                        'enabled' => 1,
+                        'expired_at' => '',
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHas('error');
+    }
+
+    /**
+     * Mencentang SIMPER dengan tanggal masa berlaku di masa lampau ditolak.
+     */
+    public function test_checking_simper_with_past_expiry_date_fails_validation(): void
+    {
+        $type = SimperType::create([
+            'code' => 'SIMPER-DT-PAST',
+            'name' => 'SIMPER Dump Truck',
+            'category_scope' => 'all',
+            'is_active' => true,
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'EMP-EXP-VALIDATE-02',
+            'name' => 'Operator Test Past',
+            'is_operator' => true,
+            'unit_kerja' => 'Pembangkit',
+            'division' => 'Operasi',
+            'position' => 'Operator',
+        ]);
+
+        $response = $this->actingAs($this->adminHse)
+            ->post(route('hse.employees.update', $employee->id), [
+                'nik' => $employee->nik,
+                'name' => $employee->name,
+                'is_operator' => 1,
+                'unit_kerja' => 'Pembangkit',
+                'division' => 'Operasi',
+                'position' => 'Operator',
+                'simper_assignments' => [
+                    $type->id => [
+                        'enabled' => 1,
+                        'expired_at' => Carbon::yesterday()->toDateString(),
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHas('error');
+    }
+
+    /**
+     * Mencentang SIMPER dengan tanggal masa depan berhasil disimpan.
+     */
+    public function test_checking_simper_with_future_expiry_date_succeeds(): void
+    {
+        $type = SimperType::create([
+            'code' => 'SIMPER-DT-OK',
+            'name' => 'SIMPER Dump Truck OK',
+            'category_scope' => 'all',
+            'is_active' => true,
+        ]);
+
+        $employee = Employee::create([
+            'nik' => 'EMP-EXP-VALIDATE-03',
+            'name' => 'Operator Test Future',
+            'is_operator' => true,
+            'unit_kerja' => 'Pembangkit',
+            'division' => 'Operasi',
+            'position' => 'Operator',
+        ]);
+
+        $futureDate = Carbon::now()->addMonths(6)->toDateString();
+
+        $response = $this->actingAs($this->adminHse)
+            ->post(route('hse.employees.update', $employee->id), [
+                'nik' => $employee->nik,
+                'name' => $employee->name,
+                'is_operator' => 1,
+                'unit_kerja' => 'Pembangkit',
+                'division' => 'Operasi',
+                'position' => 'Operator',
+                'simper_assignments' => [
+                    $type->id => [
+                        'enabled' => 1,
+                        'expired_at' => $futureDate,
+                    ],
+                ],
+            ]);
+
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('employee_simpers', [
+            'employee_id' => $employee->id,
+            'simper_type_id' => $type->id,
+            'expired_at' => $futureDate . ' 00:00:00',
+        ]);
+    }
 }

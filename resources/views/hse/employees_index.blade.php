@@ -483,18 +483,21 @@
                                 <div class="space-y-2 max-h-[48vh] overflow-y-auto pr-1">
                                     @foreach($availableSimperTypes as $st)
                                     <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
+                                        <div class="flex items-start sm:items-center justify-between gap-2.5">
+                                            <label class="flex items-start sm:items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
                                                 <input type="checkbox" 
                                                        name="simper_assignments[{{ $st->id }}][enabled]" 
                                                        value="1" 
                                                        id="addSimperCheck_{{ $st->id }}"
                                                        onchange="toggleAddSimperFields({{ $st->id }})"
-                                                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
-                                                <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
+                                                       class="w-4 h-4 mt-0.5 sm:mt-0 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0 cursor-pointer">
+                                                <div class="min-w-0">
+                                                    <span class="block truncate font-extrabold text-slate-900 text-xs">{{ $st->name }}</span>
+                                                    <span class="block text-[10px] font-mono text-slate-400 font-semibold">{{ $st->code }}</span>
+                                                </div>
                                             </label>
-                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0" title="{{ $st->category_scope_display }}">
-                                                {{ $st->category_scope_display }}
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase max-w-[140px] sm:max-w-[200px] truncate flex-shrink-0" title="{{ $st->category_scope_display }}">
+                                                {{ $st->short_scope_display ?? $st->category_scope_display }}
                                             </span>
                                         </div>
                                         <div id="addSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
@@ -919,18 +922,21 @@
                                 <div class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
                                     @foreach($availableSimperTypes as $st)
                                     <div class="p-3 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-slate-50 transition">
-                                        <div class="flex items-center justify-between gap-2">
-                                            <label class="flex items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
+                                        <div class="flex items-start sm:items-center justify-between gap-2.5">
+                                            <label class="flex items-start sm:items-center space-x-2.5 text-xs font-bold text-slate-800 cursor-pointer flex-1 min-w-0">
                                                 <input type="checkbox" 
                                                        name="simper_assignments[{{ $st->id }}][enabled]" 
                                                        value="1" 
                                                        id="editSimperCheck_{{ $st->id }}"
                                                        onchange="toggleEditSimperFields({{ $st->id }})"
-                                                       class="w-4 h-4 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0">
-                                                <span class="truncate">{{ $st->name }} ({{ $st->code }})</span>
+                                                       class="w-4 h-4 mt-0.5 sm:mt-0 rounded text-emerald-700 border-slate-300 focus:ring-emerald-500 flex-shrink-0 cursor-pointer">
+                                                <div class="min-w-0">
+                                                    <span class="block truncate font-extrabold text-slate-900 text-xs">{{ $st->name }}</span>
+                                                    <span class="block text-[10px] font-mono text-slate-400 font-semibold">{{ $st->code }}</span>
+                                                </div>
                                             </label>
-                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase flex-shrink-0" title="{{ $st->category_scope_display }}">
-                                                {{ $st->category_scope_display }}
+                                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-bold uppercase max-w-[140px] sm:max-w-[200px] truncate flex-shrink-0" title="{{ $st->category_scope_display }}">
+                                                {{ $st->short_scope_display ?? $st->category_scope_display }}
                                             </span>
                                         </div>
                                         <div id="editSimperFields_{{ $st->id }}" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-200/60">
@@ -1200,13 +1206,32 @@
     function toggleAddSimperFields(id) {
         const check = document.getElementById(`addSimperCheck_${id}`);
         const fields = document.getElementById(`addSimperFields_${id}`);
+        const numInp = document.getElementById(`addSimperNum_${id}`);
+        const expInp = document.getElementById(`addSimperExp_${id}`);
+        const todayStr = new Date().toISOString().split('T')[0];
+
         if (check && fields) {
             if (check.checked) {
                 fields.classList.remove('hidden');
+                if (numInp) numInp.disabled = false;
+                if (expInp) {
+                    expInp.disabled = false;
+                    expInp.required = true;
+                    expInp.min = todayStr;
+                    if (!expInp.value) {
+                        const d = new Date();
+                        d.setFullYear(d.getFullYear() + 1);
+                        expInp.value = d.toISOString().split('T')[0];
+                    }
+                }
             } else {
                 fields.classList.add('hidden');
-                const expInp = document.getElementById(`addSimperExp_${id}`);
-                if (expInp) expInp.value = '';
+                if (numInp) numInp.disabled = true;
+                if (expInp) {
+                    expInp.disabled = true;
+                    expInp.required = false;
+                    expInp.value = '';
+                }
             }
         }
         syncAddPrimarySimperDate();
@@ -1234,16 +1259,28 @@
         const fields = document.getElementById(`editSimperFields_${id}`);
         const numInp = document.getElementById(`editSimperNum_${id}`);
         const expInp = document.getElementById(`editSimperExp_${id}`);
+        const todayStr = new Date().toISOString().split('T')[0];
+
         if (check && fields) {
             if (check.checked) {
                 fields.classList.remove('hidden');
                 if (numInp) numInp.disabled = false;
-                if (expInp) expInp.disabled = false;
+                if (expInp) {
+                    expInp.disabled = false;
+                    expInp.required = true;
+                    expInp.min = todayStr;
+                    if (!expInp.value) {
+                        const d = new Date();
+                        d.setFullYear(d.getFullYear() + 1);
+                        expInp.value = d.toISOString().split('T')[0];
+                    }
+                }
             } else {
                 fields.classList.add('hidden');
                 if (numInp) numInp.disabled = true;
                 if (expInp) {
                     expInp.disabled = true;
+                    expInp.required = false;
                     expInp.value = '';
                 }
             }
