@@ -184,4 +184,31 @@ class QmaHeavyEquipmentThreeLevelNavigationTest extends TestCase
         $response->assertSee('EX-01');
         $response->assertSee('Power House');
     }
+
+    /**
+     * Admin QMA dapat mengedit data unit alat berat termasuk divisi penanggung jawab tanpa mereset atau menambah unit baru.
+     */
+    public function test_qma_admin_can_update_unit_support_division_and_details(): void
+    {
+        $unit = Vehicle::where('code', 'DT-01')->firstOrFail();
+
+        $response = $this->actingAs($this->qmaAdmin)->post("/qma/vehicles/{$unit->id}", [
+            'code' => 'DT-01',
+            'category' => 'unit_support',
+            'operational_group' => 'HAULING',
+            'unit_type' => 'DUMP TRUCK',
+            'division' => 'Civil & Dam Construction',
+            'status' => 'Operation',
+            'location' => 'Main Dam',
+            'site_status' => 'inside_site',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $unit->refresh();
+        $this->assertEquals('Civil & Dam Construction', $unit->division);
+        $this->assertEquals('HAULING', $unit->operational_group);
+        $this->assertEquals('DUMP TRUCK', $unit->unit_type);
+    }
 }

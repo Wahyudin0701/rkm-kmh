@@ -654,6 +654,12 @@
     @endforeach
 </datalist>
 
+<datalist id="divisionsDatalist">
+    @foreach($availableDivisions ?? [] as $div)
+        <option value="{{ $div }}">{{ $div }}</option>
+    @endforeach
+</datalist>
+
 <!-- ========================================================================= -->
 <!-- MODAL: TAMBAH UNIT ALAT BERAT (HEAVY EQUIPMENT)                           -->
 <!-- ========================================================================= -->
@@ -826,14 +832,21 @@
             <!-- Baris 7: Divisi & Kepemilikan Aset -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Divisi Penanggung Jawab</label>
-                    <select name="division" 
-                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
-                        <option value="">-- Pilih Divisi Penanggung Jawab --</option>
-                        @foreach($availableDivisions as $div)
-                            <option value="{{ $div }}" {{ old('division') === $div ? 'selected' : '' }}>{{ $div }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                        <span>Divisi Penanggung Jawab</span>
+                        <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / filter</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" 
+                               name="division" 
+                               id="addDivision" 
+                               list="divisionsDatalist" 
+                               value="{{ old('division') }}"
+                               placeholder="Ketik atau pilih divisi..." 
+                               autocomplete="off"
+                               class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1">Kepemilikan Aset (Owner)</label>
@@ -894,6 +907,7 @@
         <form id="editVehicleForm" action="" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="hidden" name="category" value="unit_support">
+            <input type="hidden" name="brand_type" id="editBrandType" value="">
 
             <!-- Foto Unit -->
             <div>
@@ -1029,14 +1043,20 @@
             <!-- Baris 7: Divisi & Kepemilikan -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Divisi Penanggung Jawab</label>
-                    <select name="division" id="editDivision" 
-                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
-                        <option value="">-- Pilih Divisi Penanggung Jawab --</option>
-                        @foreach($availableDivisions as $div)
-                            <option value="{{ $div }}">{{ $div }}</option>
-                        @endforeach
-                    </select>
+                    <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                        <span>Divisi Penanggung Jawab</span>
+                        <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / filter</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fa-solid fa-building absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" 
+                               name="division" 
+                               id="editDivision" 
+                               list="divisionsDatalist" 
+                               placeholder="Ketik atau pilih divisi..." 
+                               autocomplete="off"
+                               class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1">Kepemilikan Aset (Owner)</label>
@@ -1561,8 +1581,11 @@
 
     function openEditModal(v) {
         document.getElementById('editVehicleModal').classList.remove('hidden');
-        document.getElementById('editVehicleForm').action = `/qma/vehicles/${v.id}`;
+        document.getElementById('editVehicleForm').action = "{{ url('qma/vehicles') }}/" + v.id;
         document.getElementById('editCode').value = v.code || '';
+        if (document.getElementById('editBrandType')) {
+            document.getElementById('editBrandType').value = v.brand_type || '';
+        }
         currentEditVehicleCode = (v.code || '').trim().toUpperCase();
         hideEditCodeError();
 
@@ -1606,26 +1629,9 @@
             document.getElementById('editFuelConsumption').value = v.fuel_consumption || '';
         }
 
-        const divSelect = document.getElementById('editDivision');
-        if (divSelect) {
-            if (v.division) {
-                let found = false;
-                for (let i = 0; i < divSelect.options.length; i++) {
-                    if (divSelect.options[i].value === v.division) {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found) {
-                    const newOpt = document.createElement('option');
-                    newOpt.value = v.division;
-                    newOpt.textContent = v.division;
-                    divSelect.appendChild(newOpt);
-                }
-                divSelect.value = v.division;
-            } else {
-                divSelect.value = '';
-            }
+        const divInput = document.getElementById('editDivision');
+        if (divInput) {
+            divInput.value = v.division || '';
         }
 
         const editPhotoPreview = document.getElementById('editPhotoPreview');

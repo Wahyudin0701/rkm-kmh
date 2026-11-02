@@ -645,6 +645,19 @@
                         </div>
                     </div>
 
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Divisi Penanggung Jawab</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / filter</span>
+                        </label>
+                        <input type="text" name="division" id="edit_division" list="divisionsDatalistSupportUnits" placeholder="Ketik atau pilih divisi..." class="w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:border-emerald-600">
+                        <datalist id="divisionsDatalistSupportUnits">
+                            @foreach($availableDivisions ?? [] as $div)
+                                <option value="{{ $div }}">{{ $div }}</option>
+                            @endforeach
+                        </datalist>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Dokumen SILO</label>
@@ -1161,6 +1174,9 @@
         }
         document.getElementById('edit_silo').value = unit.silo_document || '';
         document.getElementById('edit_kir').value = unit.kir_document || '';
+        if (document.getElementById('edit_division')) {
+            document.getElementById('edit_division').value = unit.division || '';
+        }
 
         const editPhotoPreview = document.getElementById('editPhotoPreview');
         const editPhotoPlaceholder = document.getElementById('editPhotoPlaceholder');

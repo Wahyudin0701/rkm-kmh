@@ -1471,18 +1471,30 @@ class VehicleController extends Controller
     {
         $vehicle = Vehicle::findOrFail($id);
         $oldCode = $vehicle->code;
-        $newCode = strtoupper(trim($request->input('code')));
+        $newCode = strtoupper(trim($request->input('code', $vehicle->code)));
+
+        // Pra-proses untuk unit support: auto-sintesis brand_type dan default current_km
+        if ($vehicle->isUnitSupport() || $request->input('category') === 'unit_support') {
+            if (!$request->filled('brand_type')) {
+                $brandPart = trim(($request->input('brand') ?? '') . ' ' . ($request->input('model_number') ?? ''));
+                $synthesizedBrand = $brandPart ?: ($vehicle->brand_type ?: ($request->input('unit_type') ?: $vehicle->code));
+                $request->merge(['brand_type' => $synthesizedBrand]);
+            }
+            if (!$request->filled('current_km')) {
+                $request->merge(['current_km' => $vehicle->current_km ?? 0]);
+            }
+        }
 
         $rules = [
             'code' => ['required', 'string', 'max:50', Rule::unique('vehicles', 'code')->ignore($vehicle->id)],
             'category' => ['required', 'in:light_vehicle,unit_support'],
-            'brand_type' => [$vehicle->isSupportCategory() ? 'nullable' : 'required', 'string', 'max:150'],
+            'brand_type' => ['nullable', 'string', 'max:150'],
             'license_plate' => ['nullable', 'string', 'max:30'],
             'serial_number' => ['nullable', 'string', 'max:100'],
             'ownership' => ['nullable', 'string', 'max:150'],
             'division' => ['nullable', 'string', 'max:100'],
             'status' => ['required', 'string', 'in:Operation,Standby,Breakdown,Maintenance'],
-            'current_km' => [$vehicle->isSupportCategory() ? 'nullable' : 'required', 'numeric', 'min:0'],
+            'current_km' => ['nullable', 'numeric', 'min:0'],
             'operational_group' => ['nullable', 'string', 'max:50'],
             'unit_category' => ['nullable', 'string', 'max:100'],
             'unit_type' => ['nullable', 'string', 'max:100'],
@@ -1504,11 +1516,9 @@ class VehicleController extends Controller
         $validated = $request->validate($rules, [
             'code.required' => 'Kode kendaraan wajib diisi.',
             'code.unique' => 'Kode sudah ada, silakan gunakan kode lain.',
-            'brand_type.required' => 'Merek dan tipe wajib diisi.',
-            'current_km.required' => 'Nilai KM / HM wajib diisi.',
         ]);
 
-        if ($vehicle->isSupportCategory()) {
+        if ($vehicle->isUnitSupport() || ($validated['category'] ?? '') === 'unit_support') {
             $validated['code'] = strtoupper(trim($validated['code']));
             if (!empty($validated['operational_group'])) {
                 $validated['operational_group'] = strtoupper(trim($validated['operational_group']));

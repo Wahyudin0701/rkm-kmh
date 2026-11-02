@@ -657,20 +657,14 @@
         <!-- Form Penolakan -->
         <form id="rejectForm" method="POST" action="" class="space-y-4">
             @csrf
-            @if($currentGuard)
-                <input type="hidden" name="security_guard_id" value="{{ $currentGuard->id }}">
-            @elseif($guards->isNotEmpty())
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">
-                        Petugas Satpam Pemeriksa <span class="text-rose-500">*</span>
-                    </label>
-                    <select name="security_guard_id" required class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-rose-600">
-                        @foreach($guards as $g)
-                            <option value="{{ $g->id }}">{{ $g->name }} (Reg: {{ $g->badge_id }})</option>
-                        @endforeach
-                    </select>
-                </div>
-            @endif
+            <!-- Petugas yang Menolak (Otomatis Akun Login) -->
+            <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-medium">Petugas Pemeriksa:</span>
+                <span class="font-bold text-slate-800 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-user-shield text-[#1b5e20]"></i>
+                    <span>{{ auth()->user()?->name ?? 'Petugas Pos Gerbang' }}</span>
+                </span>
+            </div>
 
             <!-- Quick Reason Chips -->
             <div>

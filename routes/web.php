@@ -88,7 +88,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/vehicles/unit-support/{id}/units', [VehicleController::class, 'storeSupportUnit'])->name('vehicles.support.units.store')->middleware('permission:qma.vehicles.create');
         
         Route::post('/vehicles', [VehicleController::class, 'store'])->name('vehicles.store')->middleware('permission:qma.vehicles.create');
-        Route::post('/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update')->middleware('permission:qma.vehicles.edit');
+        Route::match(['PUT', 'POST'], '/vehicles/{id}', [VehicleController::class, 'update'])->name('vehicles.update')->middleware('permission:qma.vehicles.edit');
         Route::delete('/vehicles/{id}', [VehicleController::class, 'destroy'])->name('vehicles.destroy')->middleware('permission:qma.vehicles.delete');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity.log')->middleware('permission:qma.logs.view');
         Route::get('/activity-log/support-timesheet', [SupportTimesheetController::class, 'index'])->name('activity.support_timesheet')->middleware('permission:qma.logs.view');

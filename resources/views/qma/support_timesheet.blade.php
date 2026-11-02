@@ -529,13 +529,27 @@
                             <span>Heavy Equipment <span class="text-rose-500">*</span></span>
                             <span id="addUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
-                        <select name="vehicle_id" 
-                                id="addVehicleSelect" 
-                                required 
-                                onchange="onVehicleSelectChanged(this, 'add')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
-                        </select>
+                        <div class="space-y-1.5">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text" 
+                                       id="addVehicleSearch" 
+                                       placeholder="Ketik untuk filter unit (kode / merek)..." 
+                                       oninput="filterTimesheetVehicleOptions(this.value, 'add')"
+                                       autocomplete="off"
+                                       class="w-full pl-8 pr-7 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition font-medium">
+                                <button type="button" onclick="clearTimesheetVehicleFilter('add')" id="clearAddVehicleSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                            <select name="vehicle_id" 
+                                    id="addVehicleSelect" 
+                                    required 
+                                    onchange="onVehicleSelectChanged(this, 'add')"
+                                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                            </select>
+                        </div>
                         <div id="addVehiclePreview" class="hidden mt-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="addVehiclePreviewText" class="font-bold"></span>
                             <span id="addVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
@@ -883,13 +897,27 @@
                             <span>Heavy Equipment <span class="text-rose-500">*</span></span>
                             <span id="editUnitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                         </label>
-                        <select name="vehicle_id" 
-                                id="editVehicleSelect" 
-                                required 
-                                onchange="onVehicleSelectChanged(this, 'edit')"
-                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
-                            <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
-                        </select>
+                        <div class="space-y-1.5">
+                            <div class="relative">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                <input type="text" 
+                                       id="editVehicleSearch" 
+                                       placeholder="Ketik untuk filter unit (kode / merek)..." 
+                                       oninput="filterTimesheetVehicleOptions(this.value, 'edit')"
+                                       autocomplete="off"
+                                       class="w-full pl-8 pr-7 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition font-medium">
+                                <button type="button" onclick="clearTimesheetVehicleFilter('edit')" id="clearEditVehicleSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                    <i class="fa-solid fa-xmark text-xs"></i>
+                                </button>
+                            </div>
+                            <select name="vehicle_id" 
+                                    id="editVehicleSelect" 
+                                    required 
+                                    onchange="onVehicleSelectChanged(this, 'edit')"
+                                    class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition">
+                                <option value="" disabled selected>-- Pilih Lokasi Kerja Terlebih Dahulu --</option>
+                            </select>
+                        </div>
                         <div id="editVehiclePreview" class="hidden mt-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200/80 text-[11px] text-emerald-900 flex items-center justify-between">
                             <span id="editVehiclePreviewText" class="font-bold"></span>
                             <span id="editVehicleLastKmText" class="text-emerald-700 font-mono text-[10px]"></span>
@@ -1604,6 +1632,12 @@
             counterBadge.textContent = `${filteredUnits.length} Unit Ready`;
         }
 
+        // Reset input filter unit realtime
+        const vSearch = document.getElementById(`${prefix}VehicleSearch`);
+        if (vSearch) vSearch.value = '';
+        const vClear = document.getElementById(`clear${prefix === 'add' ? 'Add' : 'Edit'}VehicleSearchBtn`);
+        if (vClear) vClear.classList.add('hidden');
+
         // Render option heavy equipment
         vehicleSelect.innerHTML = '';
         const defaultPrompt = document.createElement('option');
@@ -1652,6 +1686,58 @@
         if (finalLocation) {
             finalLocation.value = val.trim();
         }
+    }
+
+    /**
+     * Filter Realtime Dropdown Heavy Equipment pada Timesheet berdasarkan Ketikan
+     */
+    function filterTimesheetVehicleOptions(query, prefix) {
+        const select = document.getElementById(`${prefix}VehicleSelect`);
+        const clearBtn = document.getElementById(`clear${prefix === 'add' ? 'Add' : 'Edit'}VehicleSearchBtn`);
+        const badge = document.getElementById(`${prefix}UnitCounterBadge`);
+        if (!select) return;
+
+        const q = (query || '').trim().toLowerCase();
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !q);
+        }
+
+        let visibleCount = 0;
+        let firstMatch = null;
+
+        Array.from(select.options).forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                return;
+            }
+            const code = (opt.getAttribute('data-code') || '').toLowerCase();
+            const brand = (opt.getAttribute('data-brand') || '').toLowerCase();
+            const loc = (opt.getAttribute('data-location') || '').toLowerCase();
+            const text = opt.textContent.toLowerCase();
+
+            const match = text.includes(q) || code.includes(q) || brand.includes(q) || loc.includes(q);
+            opt.hidden = !match;
+            if (match) {
+                visibleCount++;
+                if (!firstMatch) firstMatch = opt;
+            }
+        });
+
+        if (badge) {
+            badge.classList.remove('hidden');
+            badge.textContent = q ? `${visibleCount} Unit Cocok` : `${visibleCount} Unit Ready`;
+        }
+
+        if (q && visibleCount === 1 && firstMatch) {
+            select.value = firstMatch.value;
+            onVehicleSelectChanged(select, prefix);
+        }
+    }
+
+    function clearTimesheetVehicleFilter(prefix) {
+        const input = document.getElementById(`${prefix}VehicleSearch`);
+        if (input) input.value = '';
+        filterTimesheetVehicleOptions('', prefix);
     }
 
     // 7. Handler saat Heavy Equipment Dipilih

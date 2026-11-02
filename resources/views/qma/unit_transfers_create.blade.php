@@ -68,29 +68,43 @@
                 <div>
                     <label for="origin_location" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
                         <span>Lokasi Awal (Asal Unit) <span class="text-rose-500">*</span></span>
-                        <span class="text-[10px] text-emerald-700 font-semibold">Filter Berdasarkan Posisi</span>
+                        <span class="text-[10px] text-emerald-700 font-semibold">Bisa ketik / filter</span>
                     </label>
-                    <div class="relative">
-                        <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <select name="from_location" 
-                                id="origin_location" 
-                                required
-                                onchange="onOriginLocationChanged(this.value)"
-                                class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-bold">
-                            <option value="" disabled {{ empty($selectedOriginLocation) && !old('from_location') ? 'selected' : '' }}>
-                                -- Pilih Lokasi Awal Alat Berat --
-                            </option>
-                            <option value="ALL" {{ old('from_location', $selectedOriginLocation) === 'ALL' ? 'selected' : '' }}>
-                                [Tampilkan Semua Lokasi / Semua Alat Berat]
-                            </option>
-                            @foreach($originLocations as $locName => $count)
-                                <option value="{{ $locName }}" {{ old('from_location', $selectedOriginLocation) === $locName ? 'selected' : '' }}>
-                                    {{ $locName }} ({{ $count }} Unit Tersedia)
+                    <div class="space-y-1.5">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   id="originLocationSearch" 
+                                   placeholder="Ketik untuk memfilter pilihan lokasi asal..." 
+                                   oninput="filterOriginLocationSelect(this.value)"
+                                   autocomplete="off"
+                                   class="w-full pl-9 pr-7 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition font-medium">
+                            <button type="button" onclick="clearOriginLocationFilter()" id="clearOriginLocationFilterBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <select name="from_location" 
+                                    id="origin_location" 
+                                    required
+                                    onchange="onOriginLocationChanged(this.value)"
+                                    class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-bold">
+                                <option value="" disabled {{ empty($selectedOriginLocation) && !old('from_location') ? 'selected' : '' }}>
+                                    -- Pilih Lokasi Awal Alat Berat --
                                 </option>
-                            @endforeach
-                        </select>
+                                <option value="ALL" {{ old('from_location', $selectedOriginLocation) === 'ALL' ? 'selected' : '' }}>
+                                    [Tampilkan Semua Lokasi / Semua Alat Berat]
+                                </option>
+                                @foreach($originLocations as $locName => $count)
+                                    <option value="{{ $locName }}" {{ old('from_location', $selectedOriginLocation) === $locName ? 'selected' : '' }}>
+                                        {{ $locName }} ({{ $count }} Unit Tersedia)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">Memilih lokasi awal akan memfilter unit alat berat yang berada di titik tersebut.</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Ketik nama lokasi atau pilih dari daftar untuk memfilter unit.</p>
                 </div>
 
                 <!-- PILIH ALAT BERAT YANG AKAN DIPINDAHKAN -->
@@ -99,27 +113,41 @@
                         <span>Unit Alat Berat yang Dipindahkan <span class="text-rose-500">*</span></span>
                         <span id="unitCounterBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hidden"></span>
                     </label>
-                    <select name="vehicle_id" 
-                            id="vehicle_id" 
-                            required 
-                            onchange="onHeavyUnitSelected(this)"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-semibold">
-                        <option value="" disabled {{ empty($selectedVehicleId) && !old('vehicle_id') ? 'selected' : '' }}>
-                            -- Pilih Lokasi Awal Terlebih Dahulu --
-                        </option>
-                        @foreach($heavyUnits as $unit)
-                            <option value="{{ $unit->id }}" 
-                                    data-code="{{ $unit->code }}"
-                                    data-brand="{{ $unit->brand_type }}"
-                                    data-category="{{ $unit->unit_category ?? ($unit->parent?->brand_type ?? 'Heavy Equipment') }}"
-                                    data-location="{{ $unit->location ?: 'Site Kerinci' }}"
-                                    data-site-status="{{ $unit->site_status ?? 'inside_site' }}"
-                                    data-photo="{{ $unit->photo_url }}"
-                                    {{ old('vehicle_id', $selectedVehicleId) == $unit->id ? 'selected' : '' }}>
-                                {{ $unit->code }} - {{ $unit->brand_type }} [Posisi: {{ $unit->location ?: 'Site Kerinci' }}]
+                    <div class="space-y-1.5">
+                        <div class="relative">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   id="heavyUnitSearch" 
+                                   placeholder="Ketik kode / merek untuk filter unit..." 
+                                   oninput="filterHeavyUnitOptions(this.value)"
+                                   autocomplete="off"
+                                   class="w-full pl-9 pr-7 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-[#1b5e20] focus:ring-1 focus:ring-[#1b5e20] transition font-medium">
+                            <button type="button" onclick="clearHeavyUnitFilter()" id="clearHeavyUnitFilterBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                        </div>
+                        <select name="vehicle_id" 
+                                id="vehicle_id" 
+                                required 
+                                onchange="onHeavyUnitSelected(this)"
+                                class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-semibold">
+                            <option value="" disabled {{ empty($selectedVehicleId) && !old('vehicle_id') ? 'selected' : '' }}>
+                                -- Pilih Lokasi Awal Terlebih Dahulu --
                             </option>
-                        @endforeach
-                    </select>
+                            @foreach($heavyUnits as $unit)
+                                <option value="{{ $unit->id }}" 
+                                        data-code="{{ $unit->code }}"
+                                        data-brand="{{ $unit->brand_type }}"
+                                        data-category="{{ $unit->unit_category ?? ($unit->parent?->brand_type ?? 'Heavy Equipment') }}"
+                                        data-location="{{ $unit->location ?: 'Site Kerinci' }}"
+                                        data-site-status="{{ $unit->site_status ?? 'inside_site' }}"
+                                        data-photo="{{ $unit->photo_url }}"
+                                        {{ old('vehicle_id', $selectedVehicleId) == $unit->id ? 'selected' : '' }}>
+                                    {{ $unit->code }} - {{ $unit->brand_type }} [Posisi: {{ $unit->location ?: 'Site Kerinci' }}]
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     @error('vehicle_id')
                     <p class="text-rose-500 text-[11px] font-semibold mt-1">{{ $message }}</p>
                     @enderror
@@ -873,6 +901,11 @@
         // Kosongkan options
         unitSelect.innerHTML = '';
 
+        const searchInput = document.getElementById('heavyUnitSearch');
+        if (searchInput) searchInput.value = '';
+        const searchClear = document.getElementById('clearHeavyUnitFilterBtn');
+        if (searchClear) searchClear.classList.add('hidden');
+
         if (!selectedLocation) {
             const defaultOpt = document.createElement('option');
             defaultOpt.value = '';
@@ -1019,6 +1052,104 @@
             banner.classList.remove('hidden');
             text.innerHTML = `Armada luar (<strong>${displayName}</strong>) diberangkatkan dari <strong>${displayOrigin}</strong> &rarr; Menjemput alat berat di <strong>${originLoc}</strong> &rarr; Mengantarkannya ke tujuan <strong>${destLoc}</strong>.`;
         }
+    }
+
+    /**
+     * Filter Realtime Dropdown Lokasi Awal berdasarkan Ketikan
+     */
+    function filterOriginLocationSelect(query) {
+        const select = document.getElementById('origin_location');
+        const clearBtn = document.getElementById('clearOriginLocationFilterBtn');
+        if (!select) return;
+
+        const q = (query || '').trim().toLowerCase();
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !q);
+        }
+
+        let visibleCount = 0;
+        let firstMatch = null;
+
+        Array.from(select.options).forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                return;
+            }
+            if (opt.value === 'ALL') {
+                opt.hidden = q.length > 0 && !opt.textContent.toLowerCase().includes(q);
+                if (!opt.hidden && !firstMatch) firstMatch = opt;
+                return;
+            }
+            const match = opt.textContent.toLowerCase().includes(q) || opt.value.toLowerCase().includes(q);
+            opt.hidden = !match;
+            if (match) {
+                visibleCount++;
+                if (!firstMatch) firstMatch = opt;
+            }
+        });
+
+        if (q && visibleCount === 1 && firstMatch) {
+            select.value = firstMatch.value;
+            onOriginLocationChanged(firstMatch.value);
+        }
+    }
+
+    function clearOriginLocationFilter() {
+        const input = document.getElementById('originLocationSearch');
+        if (input) input.value = '';
+        filterOriginLocationSelect('');
+    }
+
+    /**
+     * Filter Realtime Dropdown Unit Alat Berat berdasarkan Ketikan Kode / Merek
+     */
+    function filterHeavyUnitOptions(query) {
+        const select = document.getElementById('vehicle_id');
+        const clearBtn = document.getElementById('clearHeavyUnitFilterBtn');
+        const badge = document.getElementById('unitCounterBadge');
+        if (!select) return;
+
+        const q = (query || '').trim().toLowerCase();
+        if (clearBtn) {
+            clearBtn.classList.toggle('hidden', !q);
+        }
+
+        let visibleCount = 0;
+        let firstMatch = null;
+
+        Array.from(select.options).forEach(opt => {
+            if (!opt.value) {
+                opt.hidden = false;
+                return;
+            }
+            const code = (opt.getAttribute('data-code') || '').toLowerCase();
+            const brand = (opt.getAttribute('data-brand') || '').toLowerCase();
+            const cat = (opt.getAttribute('data-category') || '').toLowerCase();
+            const text = opt.textContent.toLowerCase();
+
+            const match = text.includes(q) || code.includes(q) || brand.includes(q) || cat.includes(q);
+            opt.hidden = !match;
+            if (match) {
+                visibleCount++;
+                if (!firstMatch) firstMatch = opt;
+            }
+        });
+
+        if (badge) {
+            badge.classList.remove('hidden');
+            badge.textContent = q ? `${visibleCount} Unit Cocok` : `${visibleCount} Unit Tersedia`;
+        }
+
+        if (q && visibleCount === 1 && firstMatch) {
+            select.value = firstMatch.value;
+            onHeavyUnitSelected(select);
+        }
+    }
+
+    function clearHeavyUnitFilter() {
+        const input = document.getElementById('heavyUnitSearch');
+        if (input) input.value = '';
+        filterHeavyUnitOptions('');
     }
 </script>
 @endsection

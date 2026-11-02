@@ -160,18 +160,22 @@ class GateInspectionController extends Controller
     public function approve(Request $request, int $id): RedirectResponse
     {
         $user = $request->user();
-        $currentGuard = $user ? $user->securityGuard : null;
-        $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
+        $guard = $user ? ($user->securityGuard ?: SecurityGuard::where('user_id', $user->id)->first() ?: SecurityGuard::where('name', $user->name)->first() ?: SecurityGuard::where('badge_id', $user->username)->first()) : null;
 
-        if (!$guardId) {
-            $request->validate([
-                'security_guard_id' => ['required', 'exists:security_guards,id'],
-            ], [
-                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam yang melakukan pemeriksaan fisik.',
-                'security_guard_id.exists' => 'Petugas Satpam yang dipilih tidak valid dalam sistem.',
-            ]);
-            $guardId = $request->input('security_guard_id');
+        if (!$guard && $user) {
+            $guard = SecurityGuard::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'badge_id' => $user->username ?: ('PG-' . str_pad($user->id, 3, '0', STR_PAD_LEFT)),
+                    'name' => $user->name,
+                    'team' => 1,
+                    'gate_id' => session('active_gate_id') ?: Gate::first()?->id,
+                    'is_active' => true,
+                ]
+            );
         }
+
+        $guardId = $guard?->id ?: ($request->input('security_guard_id') ?: SecurityGuard::value('id'));
 
         $activity = VehicleActivity::with(['vehicle', 'gate'])->findOrFail($id);
 
@@ -238,17 +242,22 @@ class GateInspectionController extends Controller
     public function reject(Request $request, int $id): RedirectResponse
     {
         $user = $request->user();
-        $currentGuard = $user ? $user->securityGuard : null;
-        $guardId = $request->input('security_guard_id') ?? ($currentGuard ? $currentGuard->id : null);
+        $guard = $user ? ($user->securityGuard ?: SecurityGuard::where('user_id', $user->id)->first() ?: SecurityGuard::where('name', $user->name)->first() ?: SecurityGuard::where('badge_id', $user->username)->first()) : null;
 
-        if (!$guardId) {
-            $request->validate([
-                'security_guard_id' => ['required', 'exists:security_guards,id'],
-            ], [
-                'security_guard_id.required' => 'Silakan pilih nama petugas Satpam.',
-            ]);
-            $guardId = $request->input('security_guard_id');
+        if (!$guard && $user) {
+            $guard = SecurityGuard::firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'badge_id' => $user->username ?: ('PG-' . str_pad($user->id, 3, '0', STR_PAD_LEFT)),
+                    'name' => $user->name,
+                    'team' => 1,
+                    'gate_id' => session('active_gate_id') ?: Gate::first()?->id,
+                    'is_active' => true,
+                ]
+            );
         }
+
+        $guardId = $guard?->id ?: ($request->input('security_guard_id') ?: SecurityGuard::value('id'));
 
         $request->validate([
             'rejection_note' => ['required', 'string', 'max:500'],
