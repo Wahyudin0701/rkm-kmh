@@ -31,19 +31,25 @@ class SyncExcelVehicleDataCommand extends Command
     public function handle(): int
     {
         $filePath = base_path($this->option('file'));
-        if (!file_exists($filePath)) {
-            $this->error("Berkas Excel tidak ditemukan di: {$filePath}");
-            return self::FAILURE;
+        $rows = [];
+        $hasExcel = false;
+
+        if (file_exists($filePath)) {
+            $this->info("Membaca berkas: {$filePath} ...");
+            try {
+                $rows = SimpleXlsxImporter::parse($filePath);
+                $hasExcel = true;
+            } catch (\Throwable $e) {
+                $this->warn("Gagal membaca berkas Excel: " . $e->getMessage());
+            }
+        } else {
+            $this->warn("Berkas Excel tidak ditemukan di: {$filePath}");
+            $this->warn("Akan melanjutkan pembaruan kelompok operasional unit berdasarkan data master & pemetaan tipe...");
         }
 
-        $this->info("Membaca berkas: {$filePath} ...");
-        $rows = SimpleXlsxImporter::parse($filePath);
         $totalRows = count($rows);
-        $this->info("Total baris terbaca: {$totalRows}");
-
-        if ($totalRows < 2) {
-            $this->warn('Berkas Excel kosong atau tidak memiliki baris data.');
-            return self::SUCCESS;
+        if ($hasExcel) {
+            $this->info("Total baris terbaca: {$totalRows}");
         }
 
         $updatedCount = 0;
@@ -51,12 +57,13 @@ class SyncExcelVehicleDataCommand extends Command
 
         DB::beginTransaction();
         try {
-            for ($i = 1; $i < $totalRows; $i++) {
-                $r = $rows[$i];
-                $code1 = trim($r[4] ?? '');
-                if (!$code1) {
-                    continue;
-                }
+            if ($hasExcel && $totalRows >= 2) {
+                for ($i = 1; $i < $totalRows; $i++) {
+                    $r = $rows[$i];
+                    $code1 = trim($r[4] ?? '');
+                    if (!$code1) {
+                        continue;
+                    }
 
                 $cat = trim($r[2] ?? '') ?: 'SUPPORT';
                 $type = trim($r[3] ?? '') ?: 'HEAVY EQUIPMENT';
@@ -205,8 +212,9 @@ class SyncExcelVehicleDataCommand extends Command
                     'recorded_at' => Carbon::now(),
                 ]);
             }
+        }
 
-            // Fallback untuk unit support yang belum memiliki operational_group
+        // Fallback untuk unit support yang belum memiliki operational_group
             $typeFallback = [
                 'DUMP TRUCK' => 'HAULING',
                 'DUMP TRUCK FFT' => 'HAULING',

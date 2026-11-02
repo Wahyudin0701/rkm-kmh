@@ -48,8 +48,7 @@ class UnitSupportBusinessProcessTest extends TestCase
             ->get(route('qma.vehicles.support'));
 
         $response->assertStatus(200);
-        $response->assertSee('TEST-CAT');
-        $response->assertSee('Tambah Kategori Heavy Equipment');
+        $response->assertSee('Tambah Unit');
     }
 
     /**

@@ -21,4 +21,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/Berkas/
+/Berkas/*
+!/Berkas/DATA LOKASI TERBARU RKM KMH.xlsx
