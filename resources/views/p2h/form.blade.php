@@ -333,8 +333,9 @@
 
         <!-- Card Catatan Umum Operator -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
-            <label for="general_notes" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                Catatan Umum / Keterangan Tambahan Operator
+            <label for="general_notes" class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
+                <span>Catatan Umum / Keterangan Tambahan Operator</span>
+                <span class="text-[10px] font-medium text-slate-400 normal-case italic">(opsional / boleh dikosongkan)</span>
             </label>
             <textarea name="general_notes" id="general_notes" rows="3" placeholder="Tuliskan temuan atau catatan umum lainnya mengenai kondisi Heavy Equipment hari ini..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition resize-none">{{ old('general_notes') }}</textarea>
         </div>
