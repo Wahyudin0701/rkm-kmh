@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Employee;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\User;
@@ -86,6 +87,20 @@ class SecurityGuardSeeder extends Seeder
             } else {
                 $updatedGuards++;
             }
+
+            // 3. Sinkronisasi Profil Master Personil / Karyawan (Data SIMPER)
+            Employee::updateOrCreate(
+                ['nik' => $username],
+                [
+                    'user_id' => $user->id,
+                    'name' => $p['name'],
+                    'employee_type' => 'Karyawan',
+                    'unit_kerja' => 'Private Guard',
+                    'division' => 'Private Guard',
+                    'position' => 'Anggota',
+                    'is_operator' => false,
+                ]
+            );
         }
 
         $this->command?->info("Selesai! {$insertedGuards} satpam baru, {$updatedGuards} satpam diperbarui, {$usersCreated} akun login user dibuat (password default: 123456).");
