@@ -379,4 +379,37 @@ class QmaUnitTransferTest extends TestCase
         $this->assertEquals('Adit 2 Intake', $transporterHistory->location);
         $this->assertStringContainsString('Mengantar EXCA-01', $transporterHistory->note);
     }
+
+    /**
+     * Test transfer unit dengan armada pengangkut eksternal (rental/luar)
+     * dengan asal kendaraan manual dan nama unit manual.
+     */
+    public function test_store_transfer_with_external_transporter(): void
+    {
+        Storage::fake('public');
+
+        $payload = [
+            'vehicle_id' => $this->heavyEquipment->id,
+            'from_location' => 'Main Dam',
+            'transfer_date' => Carbon::now()->format('Y-m-d'),
+            'to_location' => 'Adit 2 Intake',
+            'to_site_status' => 'inside_site',
+            'reported_by' => 'Staff QMA Logistik',
+            'transporter_type' => 'external',
+            'transporter_origin_location' => 'Pool Jambi',
+            'transporter_unit_name' => 'Truk Tronton BA 1234 XY (Vendor Subkon)',
+            'transporter_driver_name' => 'Budi Supir Rental',
+            'transporter_description' => 'Lashing rantai 4 titik aman',
+        ];
+
+        $response = $this->actingAs($this->qmaAdmin)->post(route('qma.unit_transfers.store'), $payload);
+        $response->assertSessionHas('success');
+
+        $transfer = UnitTransfer::latest('id')->first();
+        $this->assertEquals('external', $transfer->transporter_type);
+        $this->assertNull($transfer->transporter_vehicle_id);
+        $this->assertEquals('Pool Jambi', $transfer->transporter_origin_location);
+        $this->assertEquals('Truk Tronton BA 1234 XY (Vendor Subkon)', $transfer->transporter_unit_name);
+        $this->assertEquals('Budi Supir Rental', $transfer->transporter_driver_name);
+    }
 }

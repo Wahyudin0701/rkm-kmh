@@ -29,6 +29,7 @@ class Vehicle extends Model
         'photo_path',
         'unit_category',
         'unit_type',
+        'operational_group',
         'brand',
         'model_number',
         'production_year',

@@ -282,11 +282,55 @@
                 </div>
                 <div>
                     <h3 class="text-base font-extrabold text-slate-900">2. Armada & Supir Pengangkut (Transporter)</h3>
-                    <p class="text-xs text-slate-500">Truk pengangkut dapat dipilih dari lokasi yang sama atau dimobilisasi dari pool/workshop lain.</p>
+                    <p class="text-xs text-slate-500">Pilih kendaraan pengangkut dari armada internal proyek KMH atau input armada dari vendor/rekanan luar.</p>
                 </div>
             </div>
 
-            <!-- Banner Info Logistik Rute (Muncul saat Truk dipilih) -->
+            <!-- Pilihan Jenis Pengangkut: Dari Dalam KMH (Internal) vs Dari Luar KMH (Eksternal) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-2">
+                    Asal Armada Pengangkut <span class="text-rose-500">*</span>
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
+                    <!-- Opsi 1: Dari Dalam KMH -->
+                    <label id="card_transporter_internal" class="flex items-center space-x-3 p-3 rounded-xl border-2 border-blue-600 bg-blue-50/50 text-blue-950 transition cursor-pointer shadow-xs">
+                        <input type="radio" 
+                               name="transporter_type" 
+                               value="internal" 
+                               id="radio_transporter_internal" 
+                               {{ old('transporter_type', 'internal') === 'internal' ? 'checked' : '' }}
+                               onchange="onTransporterTypeChanged(this.value)"
+                               class="text-blue-600 focus:ring-blue-500">
+                        <div class="text-left">
+                            <span class="block text-xs font-bold flex items-center space-x-1.5">
+                                <i class="fa-solid fa-building-shield text-blue-600"></i>
+                                <span>Dari Dalam KMH (Armada Internal)</span>
+                            </span>
+                            <span class="text-[10px] text-slate-500 block mt-0.5">Pilih lokasi asal armada & unit pengangkut proyek</span>
+                        </div>
+                    </label>
+
+                    <!-- Opsi 2: Dari Luar KMH -->
+                    <label id="card_transporter_external" class="flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 transition cursor-pointer">
+                        <input type="radio" 
+                               name="transporter_type" 
+                               value="external" 
+                               id="radio_transporter_external" 
+                               {{ old('transporter_type') === 'external' ? 'checked' : '' }}
+                               onchange="onTransporterTypeChanged(this.value)"
+                               class="text-blue-600 focus:ring-blue-500">
+                        <div class="text-left">
+                            <span class="block text-xs font-bold flex items-center space-x-1.5">
+                                <i class="fa-solid fa-truck-ramp-box text-slate-500"></i>
+                                <span>Dari Luar KMH (Rental / Vendor)</span>
+                            </span>
+                            <span class="text-[10px] text-slate-500 block mt-0.5">Input manual lokasi asal & nama unit rekanan luar</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Banner Info Logistik Rute (Muncul saat Truk dipilih / terisi) -->
             <div id="routeLogisticsBanner" class="hidden p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 text-xs text-blue-900 flex items-start space-x-3">
                 <i class="fa-solid fa-route text-blue-700 text-sm mt-0.5"></i>
                 <div class="flex-1">
@@ -295,64 +339,128 @@
                 </div>
             </div>
 
-            <!-- Grid 2 Kolom: Pilih Mobil Pengangkut & Nama Pengangkut -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- Pilih Mobil dari Unit Kita -->
-                <div>
-                    <label for="transporter_vehicle_id" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                        <span>Pilih Kendaraan Pengangkut (Armada Kita)</span>
-                        <span id="transporterLocationHint" class="text-[10px] text-slate-400 font-normal">Truk / Lowbed / Towing</span>
-                    </label>
-                    <select name="transporter_vehicle_id" 
-                            id="transporter_vehicle_id" 
-                            onchange="onTransporterSelected(this)"
-                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800">
-                        <option value="">-- Tanpa Truk Pengangkut / Rental Luar / Mobilisasi Mandiri --</option>
-                        @foreach($transporterUnits as $tu)
-                            <option value="{{ $tu->id }}" 
-                                    data-code="{{ $tu->code }}"
-                                    data-name="{{ $tu->code }} - {{ $tu->brand_type }}{{ $tu->license_plate ? ' (' . $tu->license_plate . ')' : '' }}"
-                                    data-location="{{ $tu->location ?: 'Pool Workshop GA' }}"
-                                    {{ old('transporter_vehicle_id') == $tu->id ? 'selected' : '' }}>
-                                {{ $tu->code }} - {{ $tu->brand_type }} [Posisi: {{ $tu->location ?: 'Pool Workshop' }}]
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Input / Snapshot Nama Armada Pengangkut -->
-                <div>
-                    <label for="transporter_unit_name" class="block text-xs font-bold text-slate-700 mb-1.5">
-                        Identitas / Keterangan Kendaraan Pengangkut
-                    </label>
-                    <div class="relative">
-                        <i class="fa-solid fa-truck absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                        <input type="text" 
-                               name="transporter_unit_name" 
-                               id="transporter_unit_name" 
-                               value="{{ old('transporter_unit_name') }}" 
-                               placeholder="Contoh: DT-05 Hino 500 / Truk Towing Rekanan Luar" 
-                               class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1b5e20]/20 focus:border-[#1b5e20] transition bg-white text-slate-800 font-semibold">
+            <!-- ============================================== -->
+            <!-- KONTAINER 1: PENGANGKUT DARI DALAM KMH -->
+            <!-- ============================================== -->
+            <div id="transporterInternalContainer" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- KIRI: PILIH LOKASI ASAL PENGANGKUT (INTERNAL) -->
+                    <div>
+                        <label for="transporter_origin_location_select" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Lokasi Asal Kendaraan Pengangkut</span>
+                            <span class="text-[10px] text-blue-700 font-semibold">Filter Berdasarkan Posisi</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-pin absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <select id="transporter_origin_location_select" 
+                                    onchange="onTransporterOriginChanged(this.value)"
+                                    class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition bg-white text-slate-800 font-bold">
+                                <option value="" selected>-- Pilih Lokasi Asal Kendaraan Pengangkut --</option>
+                                <option value="ALL">[Tampilkan Semua Lokasi / Semua Armada]</option>
+                                @foreach($transporterLocations as $tLoc => $tCount)
+                                    <option value="{{ $tLoc }}" {{ old('transporter_origin_location') === $tLoc ? 'selected' : '' }}>
+                                        {{ $tLoc }} ({{ $tCount }} Unit Tersedia)
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Pilih lokasi asal untuk memfilter unit pengangkut yang standby di titik tersebut.</p>
                     </div>
-                    <p class="text-[10px] text-slate-400 mt-1">Otomatis terisi jika memilih armada internal, atau ketik nama vendor/unit rekanan luar.</p>
+
+                    <!-- KANAN: PILIH KENDARAAN PENGANGKUT (INPUT KETIKAN TERFILTER) -->
+                    <div>
+                        <label for="internal_transporter_search" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Kendaraan Pengangkut (Armada Kita)</span>
+                            <span id="transporterCounterBadge" class="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 hidden"></span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-truck-moving absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   id="internal_transporter_search" 
+                                   list="internalTransporterSuggestionList" 
+                                   placeholder="Ketik kode/tipe truk (cth: LB 01, DT 05, Lowbed...)" 
+                                   oninput="onInternalTransporterInput(this.value)"
+                                   autocomplete="off"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition bg-white text-slate-800 font-semibold">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Ketik atau pilih dari rekomendasi truk pengangkut internal (Lowbed, Flatbed, Dump Truck, Trailer, dll.).</p>
+
+                        <!-- Datalist Autocomplete Khusus Truk Pengangkut Internal -->
+                        <datalist id="internalTransporterSuggestionList">
+                            @foreach($transporterUnits as $tu)
+                                <option value="{{ $tu->code }} - {{ $tu->brand_type }}{{ $tu->license_plate ? ' (' . $tu->license_plate . ')' : '' }} [Posisi: {{ $tu->location ?: 'Site Kerinci' }}]" data-id="{{ $tu->id }}">
+                            @endforeach
+                        </datalist>
+
+                        <!-- Hidden ID untuk backend -->
+                        <input type="hidden" name="transporter_vehicle_id" id="transporter_vehicle_id" value="{{ old('transporter_vehicle_id') }}">
+                    </div>
+                </div>
+
+                <!-- Opsi Sinkronisasi Lokasi Truk Pengangkut Internal -->
+                <div id="transporterUpdateCheckboxWrapper" class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center space-x-3">
+                    <input type="checkbox" 
+                           name="update_transporter_location" 
+                           id="update_transporter_location" 
+                           value="1" 
+                           checked 
+                           class="w-4 h-4 rounded text-[#1b5e20] focus:ring-[#1b5e20] border-slate-300 cursor-pointer">
+                    <label for="update_transporter_location" class="text-xs text-slate-700 font-semibold cursor-pointer select-none">
+                        Perbarui juga posisi terkini truk pengangkut ke lokasi tujuan setelah proses pemindahan selesai
+                    </label>
                 </div>
             </div>
 
-            <!-- Opsi Sinkronisasi Lokasi Truk Pengangkut -->
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center space-x-3">
-                <input type="checkbox" 
-                       name="update_transporter_location" 
-                       id="update_transporter_location" 
-                       value="1" 
-                       checked 
-                       class="w-4 h-4 rounded text-[#1b5e20] focus:ring-[#1b5e20] border-slate-300 cursor-pointer">
-                <label for="update_transporter_location" class="text-xs text-slate-700 font-semibold cursor-pointer select-none">
-                    Perbarui juga posisi terkini truk pengangkut ke lokasi tujuan setelah proses pemindahan selesai
-                </label>
+            <!-- ============================================== -->
+            <!-- KONTAINER 2: PENGANGKUT DARI LUAR KMH -->
+            <!-- ============================================== -->
+            <div id="transporterExternalContainer" class="hidden space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- KIRI: ASAL KENDARAAN PENGANGKUT (ISIAN TEKS MANUAL) -->
+                    <div>
+                        <label for="transporter_origin_location_input" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Asal Kendaraan Pengangkut (Luar)</span>
+                            <span class="text-[10px] text-slate-400 font-normal">Ketik Bebas / Rekomendasi</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-map-location-dot absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   id="transporter_origin_location_input" 
+                                   list="locationSuggestionList" 
+                                   placeholder="Contoh: Pool Jambi, Workshop Padang, PT Bhara Seva..." 
+                                   oninput="onExternalOriginInput(this.value)"
+                                   value="{{ old('transporter_type') === 'external' ? old('transporter_origin_location') : '' }}"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition bg-white text-slate-800 font-semibold">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Ketik kota asal, pool rekanan, atau nama subkon penyedia armada.</p>
+                    </div>
+
+                    <!-- KANAN: IDENTITAS / NAMA KENDARAAN PENGANGKUT (ISIAN TEKS MANUAL) -->
+                    <div>
+                        <label for="transporter_unit_name_input" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Identitas / Nama Kendaraan Pengangkut</span>
+                            <span class="text-[10px] text-slate-400 font-normal">Isian Teks Bebas</span>
+                        </label>
+                        <div class="relative">
+                            <i class="fa-solid fa-truck absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input type="text" 
+                                   id="transporter_unit_name_input" 
+                                   placeholder="Contoh: Truk Tronton Hino BA 1234 XY / Lowbed Rental PT Surya" 
+                                   oninput="onExternalUnitNameInput(this.value)"
+                                   value="{{ old('transporter_type') === 'external' ? old('transporter_unit_name') : '' }}"
+                                   class="w-full pl-9 pr-3.5 py-2.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition bg-white text-slate-800 font-semibold">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Ketik jenis kendaraan, nomor plat polisi, atau identitas unit rekanan luar.</p>
+                    </div>
+                </div>
             </div>
+
+            <!-- Field Hidden Final yang Dikirim ke Server -->
+            <input type="hidden" name="transporter_origin_location" id="final_transporter_origin_location" value="{{ old('transporter_origin_location') }}">
+            <input type="hidden" name="transporter_unit_name" id="final_transporter_unit_name" value="{{ old('transporter_unit_name') }}">
 
             <!-- Grid 2 Kolom: Supir Pengangkut & Catatan Angkutan -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <!-- Supir Pengangkut -->
                 <div>
                     <label for="transporter_driver_name" class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
@@ -482,8 +590,20 @@
 </div>
 
 <script>
-    // Inisialisasi daftar semua unit alat berat dari options
+    // Inisialisasi daftar semua unit alat berat & armada pengangkut
     let allHeavyUnits = [];
+    let allTransporterUnits = [
+        @foreach($transporterUnits as $tu)
+        {
+            id: {{ $tu->id }},
+            code: @json($tu->code),
+            name: @json($tu->code . ' - ' . $tu->brand_type . ($tu->license_plate ? ' (' . $tu->license_plate . ')' : '')),
+            location: @json($tu->location ?: 'Site Kerinci'),
+            category: @json($tu->unit_category ?? 'Truk'),
+            text: @json($tu->code . ' - ' . $tu->brand_type . ($tu->license_plate ? ' (' . $tu->license_plate . ')' : '') . ' [Posisi: ' . ($tu->location ?: 'Site Kerinci') . ']')
+        },
+        @endforeach
+    ];
 
     document.addEventListener('DOMContentLoaded', function() {
         const unitSelect = document.getElementById('vehicle_id');
@@ -504,16 +624,192 @@
             });
         }
 
-        // Cek jika sudah ada lokasi awal (dari old value atau selectedOriginLocation)
+        // Cek jika sudah ada lokasi awal alat berat (dari old value atau selectedOriginLocation)
         const originSelect = document.getElementById('origin_location');
         if (originSelect && originSelect.value) {
             onOriginLocationChanged(originSelect.value, "{{ old('vehicle_id', $selectedVehicleId ?? '') }}");
+        }
+
+        // Inisialisasi tampilan jenis pengangkut (internal vs external)
+        const currentTransporterType = document.querySelector('input[name="transporter_type"]:checked')?.value || 'internal';
+        onTransporterTypeChanged(currentTransporterType);
+
+        // Inisialisasi datalist saran truk internal
+        const oldTransporterOrigin = "{{ old('transporter_origin_location') }}";
+        const oldTransporterId = "{{ old('transporter_vehicle_id') }}";
+        if (currentTransporterType === 'internal') {
+            if (oldTransporterOrigin) {
+                const tLocSelect = document.getElementById('transporter_origin_location_select');
+                if (tLocSelect) tLocSelect.value = oldTransporterOrigin;
+                onTransporterOriginChanged(oldTransporterOrigin, oldTransporterId);
+            } else if (oldTransporterId) {
+                const matched = allTransporterUnits.find(u => String(u.id) === String(oldTransporterId));
+                if (matched) {
+                    const tLocSelect = document.getElementById('transporter_origin_location_select');
+                    if (tLocSelect) tLocSelect.value = matched.location;
+                    onTransporterOriginChanged(matched.location, oldTransporterId);
+                } else {
+                    onTransporterOriginChanged('');
+                }
+            } else {
+                onTransporterOriginChanged('');
+            }
         }
 
         // Inisialisasi tampilan BAST berdasarkan status site awal
         const currentSiteStatus = document.querySelector('input[name="to_site_status"]:checked')?.value || 'inside_site';
         onSiteStatusChanged(currentSiteStatus);
     });
+
+    /**
+     * Handler untuk Jenis Pengangkut (Dari Dalam KMH vs Dari Luar KMH)
+     */
+    function onTransporterTypeChanged(type) {
+        const cardInternal = document.getElementById('card_transporter_internal');
+        const cardExternal = document.getElementById('card_transporter_external');
+        const containerInternal = document.getElementById('transporterInternalContainer');
+        const containerExternal = document.getElementById('transporterExternalContainer');
+        const updateCheckboxWrapper = document.getElementById('transporterUpdateCheckboxWrapper');
+        const updateCheckbox = document.getElementById('update_transporter_location');
+
+        if (type === 'external') {
+            // Style Card External Aktif
+            cardExternal.className = 'flex items-center space-x-3 p-3 rounded-xl border-2 border-blue-600 bg-blue-50/50 text-blue-950 transition cursor-pointer shadow-xs';
+            cardInternal.className = 'flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 transition cursor-pointer';
+
+            containerInternal.classList.add('hidden');
+            containerExternal.classList.remove('hidden');
+            if (updateCheckboxWrapper) updateCheckboxWrapper.classList.add('hidden');
+            if (updateCheckbox) updateCheckbox.checked = false;
+
+            // Kosongkan seleksi unit internal
+            const vId = document.getElementById('transporter_vehicle_id');
+            if (vId) vId.value = '';
+
+            // Sinkronkan data dari input teks external
+            const extOrigin = document.getElementById('transporter_origin_location_input')?.value.trim() || '';
+            const extName = document.getElementById('transporter_unit_name_input')?.value.trim() || '';
+            document.getElementById('final_transporter_origin_location').value = extOrigin;
+            document.getElementById('final_transporter_unit_name').value = extName;
+        } else {
+            // Style Card Internal Aktif
+            cardInternal.className = 'flex items-center space-x-3 p-3 rounded-xl border-2 border-blue-600 bg-blue-50/50 text-blue-950 transition cursor-pointer shadow-xs';
+            cardExternal.className = 'flex items-center space-x-3 p-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white text-slate-700 transition cursor-pointer';
+
+            containerInternal.classList.remove('hidden');
+            containerExternal.classList.add('hidden');
+            if (updateCheckboxWrapper) updateCheckboxWrapper.classList.remove('hidden');
+            if (updateCheckbox) updateCheckbox.checked = true;
+
+            // Sinkronkan data dari input pencarian internal
+            const searchInput = document.getElementById('internal_transporter_search');
+            if (searchInput) onInternalTransporterInput(searchInput.value);
+        }
+
+        updateRouteBanner();
+    }
+
+    /**
+     * Handler ketika Lokasi Asal Armada Pengangkut Internal Berubah
+     */
+    function onTransporterOriginChanged(selectedLocation, preselectId = null) {
+        const datalist = document.getElementById('internalTransporterSuggestionList');
+        const badge = document.getElementById('transporterCounterBadge');
+        const searchInput = document.getElementById('internal_transporter_search');
+        if (!datalist) return;
+
+        datalist.innerHTML = '';
+
+        const filtered = (!selectedLocation || selectedLocation === 'ALL')
+            ? allTransporterUnits
+            : allTransporterUnits.filter(u => u.location === selectedLocation);
+
+        if (badge) {
+            badge.classList.remove('hidden');
+            badge.textContent = `${filtered.length} Truk Tersedia`;
+        }
+
+        if (searchInput) {
+            if (selectedLocation && selectedLocation !== 'ALL') {
+                searchInput.placeholder = `Ketik kode truk di ${selectedLocation} (${filtered.length} truk)...`;
+            } else {
+                searchInput.placeholder = `Ketik kode/tipe truk (${filtered.length} truk tersedia)...`;
+            }
+        }
+
+        filtered.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.text;
+            opt.setAttribute('data-id', u.id);
+            datalist.appendChild(opt);
+        });
+
+        if (preselectId) {
+            const matched = allTransporterUnits.find(u => String(u.id) === String(preselectId));
+            if (matched && searchInput) {
+                searchInput.value = matched.text;
+                onInternalTransporterInput(matched.text);
+            }
+        }
+    }
+
+    /**
+     * Handler ketika input ketikan truk internal berubah (Autocomplete / Pencarian)
+     */
+    function onInternalTransporterInput(val) {
+        val = (val || '').trim();
+        const finalOrigin = document.getElementById('final_transporter_origin_location');
+        const finalName = document.getElementById('final_transporter_unit_name');
+        const vehicleIdInput = document.getElementById('transporter_vehicle_id');
+
+        if (!val) {
+            if (vehicleIdInput) vehicleIdInput.value = '';
+            if (finalName) finalName.value = '';
+            if (finalOrigin) finalOrigin.value = '';
+            updateRouteBanner();
+            return;
+        }
+
+        // Cari unit yang cocok di allTransporterUnits berdasarkan kode atau nama lengkap
+        const valUpper = val.toUpperCase();
+        const matched = allTransporterUnits.find(u => 
+            valUpper === u.code.toUpperCase() ||
+            valUpper === u.text.toUpperCase() ||
+            valUpper === u.name.toUpperCase() ||
+            valUpper.startsWith(u.code.toUpperCase() + ' ') ||
+            valUpper.startsWith(u.code.toUpperCase() + '-')
+        );
+
+        if (matched) {
+            if (vehicleIdInput) vehicleIdInput.value = matched.id;
+            if (finalName) finalName.value = matched.name;
+            if (finalOrigin) finalOrigin.value = matched.location;
+        } else {
+            // Teks ketikan bebas
+            if (vehicleIdInput) vehicleIdInput.value = '';
+            if (finalName) finalName.value = val;
+        }
+
+        updateRouteBanner();
+    }
+
+    /**
+     * Handler input Asal Kendaraan Luar
+     */
+    function onExternalOriginInput(val) {
+        const finalOrigin = document.getElementById('final_transporter_origin_location');
+        if (finalOrigin) finalOrigin.value = (val || '').trim();
+        updateRouteBanner();
+    }
+
+    /**
+     * Handler input Nama / Identitas Kendaraan Luar
+     */
+    function onExternalUnitNameInput(val) {
+        const finalName = document.getElementById('final_transporter_unit_name');
+        if (finalName) finalName.value = (val || '').trim();
+        updateRouteBanner();
+    }
 
     /**
      * Handler untuk Area Tujuan (Di Dalam Site vs Di Luar Site)
@@ -679,46 +975,49 @@
     }
 
     /**
-     * Handler saat Armada Pengangkut Terpilih
-     */
-    function onTransporterSelected(selectElement) {
-        const option = selectElement.options[selectElement.selectedIndex];
-        const nameInput = document.getElementById('transporter_unit_name');
-        if (option && option.value) {
-            const dataName = option.getAttribute('data-name');
-            if (dataName) {
-                nameInput.value = dataName;
-            }
-        }
-        updateRouteBanner();
-    }
-
-    /**
-     * Update Banner Logistik Rute Perjalanan
+     * Update Banner Logistik Rute Perjalanan (Mendukung Internal & Eksternal)
      */
     function updateRouteBanner() {
         const banner = document.getElementById('routeLogisticsBanner');
         const text = document.getElementById('routeLogisticsText');
-        const transporterSelect = document.getElementById('transporter_vehicle_id');
         const originSelect = document.getElementById('origin_location');
         const destinationInput = document.getElementById('to_location');
+        const transporterType = document.querySelector('input[name="transporter_type"]:checked')?.value || 'internal';
 
-        const optTransporter = transporterSelect.options[transporterSelect.selectedIndex];
-        if (!optTransporter || !optTransporter.value) {
-            banner.classList.add('hidden');
-            return;
-        }
+        if (!banner || !text) return;
 
-        const transporterCode = optTransporter.getAttribute('data-code');
-        const transporterLoc = optTransporter.getAttribute('data-location') || 'Pool Workshop';
-        const originLoc = originSelect.value && originSelect.value !== 'ALL' ? originSelect.value : 'Lokasi Asal Alat Berat';
-        const destLoc = destinationInput.value ? destinationInput.value : '[Lokasi Tujuan Baru]';
+        const originLoc = originSelect && originSelect.value && originSelect.value !== 'ALL' ? originSelect.value : 'Lokasi Asal Alat Berat';
+        const destLoc = destinationInput && destinationInput.value ? destinationInput.value : '[Lokasi Tujuan Baru]';
 
-        banner.classList.remove('hidden');
-        if (transporterLoc === originLoc) {
-            text.innerHTML = `Truk <strong>${transporterCode}</strong> saat ini standby di <strong>${transporterLoc}</strong> (sama dengan lokasi alat berat) &rarr; Langsung mengangkut unit menuju tujuan <strong>${destLoc}</strong>.`;
+        if (transporterType === 'internal') {
+            const truckName = document.getElementById('final_transporter_unit_name')?.value || document.getElementById('internal_transporter_search')?.value.trim();
+            const truckLoc = document.getElementById('final_transporter_origin_location')?.value || 'Site Kerinci';
+
+            if (!truckName) {
+                banner.classList.add('hidden');
+                return;
+            }
+
+            banner.classList.remove('hidden');
+            if (truckLoc === originLoc) {
+                text.innerHTML = `Truk <strong>${truckName}</strong> saat ini standby di <strong>${truckLoc}</strong> (sama dengan lokasi alat berat) &rarr; Langsung mengangkut unit menuju tujuan <strong>${destLoc}</strong>.`;
+            } else {
+                text.innerHTML = `Truk <strong>${truckName}</strong> diberangkatkan dari <strong>${truckLoc}</strong> &rarr; Menjemput alat berat di <strong>${originLoc}</strong> &rarr; Mengantarkannya ke tujuan <strong>${destLoc}</strong>.`;
+            }
         } else {
-            text.innerHTML = `Truk <strong>${transporterCode}</strong> diberangkatkan dari <strong>${transporterLoc}</strong> &rarr; Menjemput alat berat di <strong>${originLoc}</strong> &rarr; Mengantarkannya ke tujuan <strong>${destLoc}</strong>.`;
+            const extOrigin = document.getElementById('transporter_origin_location_input')?.value.trim();
+            const extName = document.getElementById('transporter_unit_name_input')?.value.trim();
+
+            if (!extName && !extOrigin) {
+                banner.classList.add('hidden');
+                return;
+            }
+
+            const displayOrigin = extOrigin ? extOrigin : 'Luar Proyek';
+            const displayName = extName ? extName : 'Armada Eksternal';
+
+            banner.classList.remove('hidden');
+            text.innerHTML = `Armada luar (<strong>${displayName}</strong>) diberangkatkan dari <strong>${displayOrigin}</strong> &rarr; Menjemput alat berat di <strong>${originLoc}</strong> &rarr; Mengantarkannya ke tujuan <strong>${destLoc}</strong>.`;
         }
     }
 </script>

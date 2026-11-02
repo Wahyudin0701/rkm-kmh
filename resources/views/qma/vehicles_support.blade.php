@@ -5,6 +5,27 @@
 @section('content')
 <div class="w-full space-y-6">
 
+    <!-- Breadcrumb Navigasi Hirarki 3 Level -->
+    <nav class="flex items-center space-x-2 text-xs font-semibold text-slate-500 mb-1">
+        <a href="{{ route('qma.dashboard') }}" class="hover:text-emerald-700 transition">Dashboard</a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+        <a href="{{ route('qma.vehicles.index') }}" class="hover:text-emerald-700 transition">Data Armada</a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+        @if($level === 'groups')
+            <span class="text-slate-900 font-extrabold">Heavy Equipment</span>
+        @else
+            <a href="{{ route('qma.vehicles.support') }}" class="hover:text-emerald-700 transition">Heavy Equipment</a>
+            <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+            @if($level === 'types')
+                <span class="text-slate-900 font-extrabold">{{ $selectedGroup }}</span>
+            @elseif($level === 'units')
+                <a href="{{ route('qma.vehicles.support', ['group' => $selectedGroup]) }}" class="hover:text-emerald-700 transition">{{ $selectedGroup }}</a>
+                <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+                <span class="text-slate-900 font-extrabold">{{ $selectedType }}</span>
+            @endif
+        @endif
+    </nav>
+
     <!-- Header Judul & Tombol Aksi -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -21,8 +42,23 @@
                 </button>
             </div>
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                Heavy Equipment
+                @if($level === 'groups')
+                    Heavy Equipment
+                @elseif($level === 'types')
+                    Kelompok: {{ $selectedGroup }}
+                @elseif($level === 'units')
+                    {{ $selectedType }}
+                @endif
             </h2>
+            <p class="text-xs text-slate-500 mt-1">
+                @if($level === 'groups')
+                    Navigasi hierarki 3 level: Kelompok Operasional &rarr; Tipe Alat Berat &rarr; Unit Fisik Individual.
+                @elseif($level === 'types')
+                    Daftar tipe alat berat operasional di bawah kelompok <span class="font-bold text-slate-800">{{ $selectedGroup }}</span>.
+                @elseif($level === 'units')
+                    Daftar unit alat berat fisik individual untuk tipe <span class="font-bold text-slate-800">{{ $selectedType }}</span> (Kelompok {{ $selectedGroup }}).
+                @endif
+            </p>
         </div>
 
         <!-- Tombol Aksi Kanan -->
@@ -54,28 +90,132 @@
             <button onclick="openAddModal()" 
                     class="w-full sm:w-auto flex items-center justify-center space-x-2 bg-[#1b5e20] hover:bg-[#144919] text-white px-3 sm:px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer">
                 <i class="fa-solid fa-plus text-xs"></i>
-                <span class="truncate">Tambah Kategori</span>
+                <span class="truncate">Tambah Unit</span>
             </button>
             @endcan
         </div>
     </div>
 
+    <!-- STATISTIK KARTU (LEVEL 1: TAMPILAN UTAMA KELOMPOK) -->
+    @if($level === 'groups')
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">TOTAL ALAT BERAT</span>
+            <div class="text-2xl sm:text-3xl font-black text-slate-900 mt-1 flex items-baseline gap-1.5">
+                <span>{{ $totalUnits }}</span>
+                <span class="text-xs font-semibold text-slate-400">Unit Fisik</span>
+            </div>
+            <div class="mt-2 text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>6 Kelompok Operasional (Excel)</span>
+            </div>
+        </div>
 
-    <!-- Top Banner jika sedang melihat unit dalam tipe tertentu -->
-    @if(isset($selectedType) && $selectedType)
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl shadow-2xs">
-        <div class="flex items-center space-x-3">
-            <a href="{{ route('qma.vehicles.support') }}" class="px-3.5 py-2 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100/60 text-[#1b5e20] text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                <i class="fa-solid fa-arrow-left text-[11px]"></i>
-                <span>Semua Tipe Alat</span>
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">STATUS OPERASI</span>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-600 mt-1 flex items-baseline gap-1.5">
+                <span>{{ $totalOperation }}</span>
+                <span class="text-xs font-semibold text-slate-400">Unit Aktif</span>
+            </div>
+            <div class="mt-2 text-[11px] text-emerald-700 font-medium">
+                {{ $totalUnits > 0 ? round(($totalOperation / $totalUnits) * 100, 1) : 0 }}% Utility Rate Operasional
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">STATUS STANDBY</span>
+            <div class="text-2xl sm:text-3xl font-black text-amber-500 mt-1 flex items-baseline gap-1.5">
+                <span>{{ $totalStandby }}</span>
+                <span class="text-xs font-semibold text-slate-400">Unit Siap</span>
+            </div>
+            <div class="mt-2 text-[11px] text-amber-700 font-medium">
+                Siap Dimobilisasi / Beroperasi
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-2xs hover:shadow-xs transition">
+            <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">STATUS BREAKDOWN</span>
+            <div class="text-2xl sm:text-3xl font-black text-rose-600 mt-1 flex items-baseline gap-1.5">
+                <span>{{ $totalBreakdown }}</span>
+                <span class="text-xs font-semibold text-slate-400">Unit Rusak</span>
+            </div>
+            <div class="mt-2 text-[11px] text-rose-700 font-medium">
+                Dalam Perbaikan / Maintenance
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- BANNER NAVIGASI LEVEL 2 (TIPE DALAM KELOMPOK TERPILIH) -->
+    @if($level === 'types')
+    @php
+        $curMeta = $groupMetadata[$selectedGroup] ?? [
+            'icon' => 'fa-truck-monster',
+            'badge' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+            'icon_bg' => 'bg-indigo-100 text-indigo-800 border-indigo-300',
+            'desc' => 'Daftar tipe alat berat dalam kelompok ' . $selectedGroup,
+        ];
+    @endphp
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-5 bg-gradient-to-r from-slate-900 to-[#06213f] text-white rounded-2xl shadow-sm">
+        <div class="flex items-start sm:items-center space-x-3.5">
+            <a href="{{ route('qma.vehicles.support') }}" class="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition flex items-center gap-2 border border-white/10 flex-shrink-0 cursor-pointer">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>Semua Kelompok</span>
             </a>
             <div>
-                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                    <span>Tipe: {{ $selectedType }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">{{ $totalUnitsOfType ?? $typeUnits->total() }} Unit Fisik</span>
-                </h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg sm:text-xl font-extrabold text-white tracking-tight">{{ $selectedGroup }}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 text-white border border-white/30 uppercase tracking-wider">
+                        {{ $groupTypesCount }} Tipe Alat
+                    </span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {{ $groupTotalUnits }} Unit Fisik
+                    </span>
+                </div>
+                <p class="text-xs text-slate-300 mt-1 max-w-xl font-normal leading-relaxed">
+                    {{ $curMeta['desc'] }}
+                </p>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                {{ $groupOpCount ?? 0 }} Operation
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                {{ $groupStCount ?? 0 }} Standby
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                {{ $groupBdCount ?? 0 }} Breakdown
+            </span>
+            <span class="px-2.5 py-1 rounded-lg font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                {{ $groupInsideCount ?? 0 }} Site / {{ $groupOutsideCount ?? 0 }} Luar
+            </span>
+        </div>
+    </div>
+    @endif
+
+    <!-- BANNER NAVIGASI LEVEL 3 (UNIT FISIK DALAM TIPE TERPILIH) -->
+    @if($level === 'units')
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl shadow-2xs">
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('qma.vehicles.support', ['group' => $selectedGroup]) }}" class="px-3.5 py-2 rounded-xl bg-white border border-emerald-300 hover:bg-emerald-100/60 text-[#1b5e20] text-xs font-bold transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                <span>Tipe {{ $selectedGroup }}</span>
+            </a>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-200 uppercase">
+                        {{ $selectedGroup }}
+                    </span>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
+                        {{ $selectedType }}
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-600 text-white">
+                        {{ $totalUnitsOfType ?? $typeUnits->total() }} Unit Fisik
+                    </span>
+                </div>
                 <p class="text-[11px] text-emerald-800 font-medium mt-0.5">
-                    Daftar unit alat berat spesifik di bawah tipe {{ $selectedType }}.
+                    Daftar unit alat berat fisik individual untuk tipe {{ $selectedType }} di kelompok {{ $selectedGroup }}.
                 </p>
             </div>
         </div>
@@ -98,9 +238,13 @@
 
     <!-- Kotak Pencarian & Filter Alat Berat -->
     <form method="GET" action="{{ route('qma.vehicles.support') }}" id="supportFilterForm" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        @if(isset($selectedGroup) && $selectedGroup)
+            <input type="hidden" name="group" value="{{ $selectedGroup }}">
+        @endif
         @if(isset($selectedType) && $selectedType)
             <input type="hidden" name="type" value="{{ $selectedType }}">
         @endif
+
         <div class="relative w-full max-w-sm sm:max-w-md">
             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                 <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -109,21 +253,29 @@
                    id="supportSearchInput"
                    name="search"
                    value="{{ request('search') }}"
-                   placeholder="{{ isset($selectedType) && $selectedType ? 'Cari kode unit, seri, model, lokasi di ' . $selectedType . '...' : 'Cari tipe alat berat (Boomlift, Excavator, Dump Truck)...' }}" 
+                   placeholder="@if($level === 'units')Cari kode unit, nomor seri, model, lokasi di {{ $selectedType }}...@elseif($level === 'types')Cari tipe alat berat di kelompok {{ $selectedGroup }}...@elseCari kelompok operasional atau tipe alat berat (Hauling, Excavator, Dump Truck)...@endif" 
                    class="w-full text-xs pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 shadow-sm transition">
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            @if(!isset($selectedType) || !$selectedType)
-            <!-- Filter Kategori Alat Berat -->
+            @if($level === 'groups')
+            <!-- Filter Kelompok Operasional Langsung -->
+            <select name="group" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
+                <option value="">Semua Kelompok Operasional</option>
+                @foreach($availableGroups as $grp)
+                    <option value="{{ $grp }}" {{ request('group') === $grp ? 'selected' : '' }}>{{ $grp }}</option>
+                @endforeach
+            </select>
+            @elseif($level === 'types')
+            <!-- Filter Kategori Alat Berat di Level 2 -->
             <select name="unit_category" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
-                <option value="">Semua Kategori (Handling, Support, Hauling...)</option>
+                <option value="">Semua Kategori Sistem</option>
                 @foreach($availableCategories as $cat)
                     <option value="{{ $cat }}" {{ request('unit_category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
                 @endforeach
             </select>
-            @else
-            <!-- Filter Status Operasional untuk Drilldown Unit -->
+            @elseif($level === 'units')
+            <!-- Filter Status Operasional untuk Drilldown Unit Fisik -->
             <select name="status" onchange="this.form.submit()" class="text-xs rounded-xl border border-slate-200 bg-white px-3 py-2 text-slate-700 font-semibold focus:outline-none focus:border-[#1b5e20]">
                 <option value="">Semua Status Operasi</option>
                 <option value="Operation" {{ request('status') === 'Operation' ? 'selected' : '' }}>Operation</option>
@@ -149,8 +301,17 @@
             </button>
 
             <div id="supportResetWrapper" class="flex items-center">
-                @if(request()->anyFilled(['search', 'unit_category', 'status', 'site_status', 'per_page']))
-                    <a id="supportResetBtn" href="{{ isset($selectedType) && $selectedType ? route('qma.vehicles.support', ['type' => $selectedType]) : route('qma.vehicles.support') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1">
+                @if(request()->anyFilled(['search', 'group', 'type', 'unit_category', 'status', 'site_status', 'per_page']))
+                    @php
+                        if ($level === 'units') {
+                            $resetUrl = route('qma.vehicles.support', ['group' => $selectedGroup, 'type' => $selectedType]);
+                        } elseif ($level === 'types') {
+                            $resetUrl = route('qma.vehicles.support', ['group' => $selectedGroup]);
+                        } else {
+                            $resetUrl = route('qma.vehicles.support');
+                        }
+                    @endphp
+                    <a id="supportResetBtn" href="{{ $resetUrl }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center space-x-1 whitespace-nowrap ml-1">
                         <i class="fa-solid fa-rotate-left"></i>
                         <span>Reset</span>
                     </a>
@@ -162,8 +323,11 @@
     <!-- Tabel Data Heavy Equipment (Header Navy Solid #06213f) -->
     <div class="bg-white rounded-none sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            @if(isset($selectedType) && $selectedType)
-            <!-- TABEL 1: DAFTAR UNIT FISIK SPESIFIK TIPE INI -->
+
+            {{-- ========================================================================= --}}
+            {{-- LEVEL 3: TABEL DAFTAR UNIT FISIK INDIVIDUAL SPESIFIK TIPE TERPILIH        --}}
+            {{-- ========================================================================= --}}
+            @if($level === 'units')
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
@@ -267,105 +431,194 @@
                     @endforelse
                 </tbody>
             </table>
-            @else
-            <!-- TABEL 2: PENGELOMPOKAN BERDASARKAN TIPE HEAVY EQUIPMENT -->
+
+            {{-- ========================================================================= --}}
+            {{-- LEVEL 2: TABEL DAFTAR TIPE ALAT BERAT DI DALAM KELOMPOK TERPILIH           --}}
+            {{-- ========================================================================= --}}
+            @elseif($level === 'types')
             <table class="min-w-full text-xs text-left border-collapse">
                 <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
                     <tr>
                         <th class="py-3.5 px-4 text-center w-12">NO</th>
                         <th class="py-3.5 px-4">TIPE ALAT BERAT</th>
-                        <th class="py-3.5 px-4">KATEGORI</th>
+                        <th class="py-3.5 px-4">KELOMPOK</th>
                         <th class="py-3.5 px-4 text-center">JUMLAH (QTY)</th>
                         <th class="py-3.5 px-4">STATUS OPERASIONAL</th>
                         <th class="py-3.5 px-4">DISTRIBUSI AREA</th>
                         <th class="py-3.5 px-4 text-center">AKSI</th>
                     </tr>
                 </thead>
-                <tbody id="supportTableBody" class="divide-y divide-slate-100 text-slate-700 bg-white">
-                    @forelse($vehicles as $index => $v)
-                        <tr class="support-row hover:bg-slate-50/70 transition">
+                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    @forelse($types as $index => $t)
+                        <tr class="hover:bg-slate-50/70 transition">
                             <td class="py-3.5 px-4 text-center font-medium text-slate-400">
-                                {{ $vehicles->firstItem() + $index }}
+                                {{ $types->firstItem() + $index }}
                             </td>
 
                             <td class="py-3.5 px-4 font-bold text-slate-900 text-xs whitespace-nowrap">
-                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" class="hover:text-[#1b5e20] transition flex items-center space-x-2.5">
+                                <a href="{{ route('qma.vehicles.support', ['group' => $selectedGroup, 'type' => $t->unit_type]) }}" class="hover:text-[#1b5e20] transition flex items-center space-x-2.5">
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center flex-shrink-0">
                                         <i class="fa-solid fa-truck-monster text-xs"></i>
                                     </div>
                                     <div>
-                                        <span class="font-extrabold text-slate-900 block text-xs">{{ $v->unit_type }}</span>
-                                        @if(isset($v->sample_brand_type) && $v->sample_brand_type)
-                                            <span class="text-[10px] text-slate-400 font-normal block">{{ $v->sample_brand_type }}</span>
+                                        <span class="font-extrabold text-slate-900 block text-xs">{{ $t->unit_type }}</span>
+                                        @if(isset($t->sample_brand_type) && $t->sample_brand_type)
+                                            <span class="text-[10px] text-slate-400 font-normal block">{{ $t->sample_brand_type }}</span>
                                         @endif
                                     </div>
                                 </a>
                             </td>
 
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 uppercase tracking-wider">
-                                    {{ $v->unit_category ?? 'SUPPORT' }}
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase tracking-wider">
+                                    {{ $selectedGroup }}
                                 </span>
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" 
+                                <a href="{{ route('qma.vehicles.support', ['group' => $selectedGroup, 'type' => $t->unit_type]) }}" 
                                    class="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#e8f8f0] text-[#00897b] border border-[#a7f3d0] hover:bg-[#d1fae5] transition shadow-2xs group cursor-pointer"
-                                   title="Buka daftar {{ $v->units_count ?? 0 }} unit fisik tipe {{ $v->unit_type }}">
-                                    <span>{{ $v->units_count ?? 0 }} Unit</span>
+                                   title="Buka daftar {{ $t->units_count ?? 0 }} unit fisik tipe {{ $t->unit_type }}">
+                                    <span>{{ $t->units_count ?? 0 }} Unit</span>
                                     <i class="fa-solid fa-chevron-right text-[10px] ml-1 transition group-hover:translate-x-0.5"></i>
                                 </a>
                             </td>
 
                             <td class="py-3.5 px-4">
-                                <div class="flex items-center space-x-2 text-[10px] font-bold">
+                                <div class="flex items-center space-x-1.5 text-[10px] font-bold">
                                     <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                                        {{ $v->total_operation ?? 0 }} Operasi
+                                        {{ $t->total_operation ?? 0 }} Operasi
                                     </span>
                                     <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                                        {{ $v->total_standby ?? 0 }} Standby
+                                        {{ $t->total_standby ?? 0 }} Standby
                                     </span>
                                     <span class="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                                        {{ $v->total_breakdown ?? 0 }} Breakdown
+                                        {{ $t->total_breakdown ?? 0 }} Breakdown
                                     </span>
                                 </div>
                             </td>
 
-                            <td class="py-3.5 px-4 text-slate-600 text-[11px]">
-                                <span class="font-medium text-emerald-800">{{ $v->inside_site_count ?? 0 }} Di Dalam Site</span>
+                            <td class="py-3.5 px-4 text-slate-600 text-[11px] whitespace-nowrap">
+                                <span class="font-medium text-emerald-800">{{ $t->inside_site_count ?? 0 }} Di Dalam Site</span>
                                 <span class="text-slate-300 mx-1">&bull;</span>
-                                <span class="text-slate-500">{{ $v->outside_site_count ?? 0 }} Di Luar Site</span>
+                                <span class="text-slate-500">{{ $t->outside_site_count ?? 0 }} Di Luar Site</span>
                             </td>
 
                             <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                                <a href="{{ route('qma.vehicles.support', ['type' => $v->unit_type]) }}" 
+                                <a href="{{ route('qma.vehicles.support', ['group' => $selectedGroup, 'type' => $t->unit_type]) }}" 
                                    class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#1b5e20] hover:bg-[#144919] text-white rounded-xl text-xs font-bold transition shadow-2xs">
                                     <i class="fa-regular fa-folder-open text-xs"></i>
                                     <span>Buka Unit</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
                                 </a>
                             </td>
                         </tr>
                     @empty
-                        <tr id="serverSupportEmptyRow">
+                        <tr>
                             <td colspan="7" class="py-12 text-center text-slate-400">
                                 <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
-                                @if(request('search'))
-                                    <p class="text-sm font-semibold text-slate-700">
-                                        Data "<span class="text-rose-600 font-bold">{{ request('search') }}</span>" tidak ditemukan di tabel
-                                    </p>
-                                    <p class="text-xs text-slate-400 mt-1">
-                                        Pastikan kata kunci yang dicari sudah benar.
-                                    </p>
-                                    <div class="mt-4">
-                                        <a href="{{ route('qma.vehicles.support') }}" class="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition cursor-pointer">
-                                            <i class="fa-solid fa-rotate-left text-[11px]"></i>
-                                            <span>Hapus Pencarian</span>
-                                        </a>
+                                <p class="text-sm font-semibold text-slate-700">Tidak ada tipe alat berat di kelompok {{ $selectedGroup }}</p>
+                                <p class="text-xs text-slate-400 mt-1">Belum ada tipe alat yang sesuai dengan filter.</p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            {{-- ========================================================================= --}}
+            {{-- LEVEL 1: TABEL DAFTAR KELOMPOK OPERASIONAL HEAVY EQUIPMENT (EXCEL)        --}}
+            {{-- ========================================================================= --}}
+            @else
+            <table class="min-w-full text-xs text-left border-collapse">
+                <thead class="bg-[#06213f] text-white font-bold text-[11px] uppercase tracking-wider">
+                    <tr>
+                        <th class="py-3.5 px-4 text-center w-12">NO</th>
+                        <th class="py-3.5 px-4">KELOMPOK OPERASIONAL</th>
+                        <th class="py-3.5 px-4 text-center">TIPE ALAT</th>
+                        <th class="py-3.5 px-4 text-center">JUMLAH (QTY)</th>
+                        <th class="py-3.5 px-4">STATUS OPERASIONAL</th>
+                        <th class="py-3.5 px-4">DISTRIBUSI AREA</th>
+                        <th class="py-3.5 px-4 text-center">AKSI</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
+                    @forelse($groups as $index => $g)
+                        @php
+                            $meta = $groupMetadata[$g->operational_group] ?? [
+                                'icon' => 'fa-truck-monster',
+                                'badge' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                'icon_bg' => 'bg-slate-100 text-slate-700 border-slate-200',
+                                'desc' => 'Kelompok operasional alat berat',
+                            ];
+                        @endphp
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3.5 px-4 text-center font-medium text-slate-400">
+                                {{ $groups->firstItem() + $index }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <a href="{{ route('qma.vehicles.support', ['group' => $g->operational_group]) }}" class="flex items-center space-x-3 group">
+                                    <div class="w-10 h-10 rounded-xl {{ $meta['icon_bg'] }} border flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition shadow-2xs">
+                                        <i class="fa-solid {{ $meta['icon'] }} text-sm"></i>
                                     </div>
-                                @else
-                                    <p class="text-sm font-semibold text-slate-700">Belum ada tipe alat berat</p>
-                                    <p class="text-xs text-slate-400 mt-0.5">Belum ada tipe alat berat yang sesuai dengan filter.</p>
-                                @endif
+                                    <div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="font-extrabold text-slate-900 group-hover:text-emerald-700 text-sm transition">{{ $g->operational_group }}</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider {{ $meta['badge'] }}">
+                                                {{ $g->operational_group }}
+                                            </span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5 font-normal max-w-md">
+                                            {{ $meta['desc'] }}
+                                        </p>
+                                    </div>
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                    {{ $g->types_count ?? 0 }} Tipe Alat
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <a href="{{ route('qma.vehicles.support', ['group' => $g->operational_group]) }}" 
+                                   class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full text-xs font-extrabold bg-[#e8f8f0] text-[#00897b] border border-[#a7f3d0] hover:bg-[#d1fae5] transition shadow-2xs group cursor-pointer"
+                                   title="Lihat kategori/tipe dalam kelompok {{ $g->operational_group }}">
+                                    <span>{{ $g->units_count ?? 0 }} Unit</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px] ml-1 transition group-hover:translate-x-0.5"></i>
+                                </a>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center space-x-1.5 text-[10px] font-bold">
+                                    <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                        {{ $g->total_operation ?? 0 }} Operasi
+                                    </span>
+                                    <span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                        {{ $g->total_standby ?? 0 }} Standby
+                                    </span>
+                                    <span class="text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                        {{ $g->total_breakdown ?? 0 }} Breakdown
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-600 text-[11px] whitespace-nowrap">
+                                <span class="font-medium text-emerald-800">{{ $g->inside_site_count ?? 0 }} Dalam Site</span>
+                                <span class="text-slate-300 mx-1">&bull;</span>
+                                <span class="text-slate-500">{{ $g->outside_site_count ?? 0 }} Luar Site</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                                <a href="{{ route('qma.vehicles.support', ['group' => $g->operational_group]) }}" 
+                                   class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-[#1b5e20] hover:bg-[#144919] text-white rounded-xl text-xs font-bold transition shadow-2xs">
+                                    <i class="fa-solid fa-list-ul text-xs"></i>
+                                    <span>Lihat Kategori</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400">
+                                <i class="fa-solid fa-magnifying-glass text-3xl mb-3 block text-slate-300"></i>
+                                <p class="text-sm font-semibold text-slate-700">Kelompok operasional tidak ditemukan</p>
+                                <p class="text-xs text-slate-400 mt-1">Silakan sesuaikan kata kunci pencarian Anda.</p>
                             </td>
                         </tr>
                     @endforelse
@@ -375,40 +628,63 @@
         </div>
 
         <div id="supportPaginationContainer" class="p-4 bg-slate-50 border-t border-slate-200">
-            @if(isset($selectedType) && $selectedType)
+            @if($level === 'units')
                 {{ $typeUnits->links() }}
+            @elseif($level === 'types')
+                {{ $types->links() }}
             @else
-                {{ $vehicles->links() }}
+                {{ $groups->links() }}
             @endif
         </div>
     </div>
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: TAMBAH HEAVY EQUIPMENT (KENDARAAN BERAT) -->
+<!-- DATALIST UNTUK AUTO-SUGGEST LOKASI & MEREK ALAT BERAT                    -->
+<!-- ========================================================================= -->
+<datalist id="locationsList">
+    @foreach($availableLocations ?? [] as $loc)
+        <option value="{{ $loc }}"></option>
+    @endforeach
+</datalist>
+
+<datalist id="brandsList">
+    @foreach($availableBrands ?? [] as $b)
+        <option value="{{ $b }}"></option>
+    @endforeach
+</datalist>
+
+<!-- ========================================================================= -->
+<!-- MODAL: TAMBAH UNIT ALAT BERAT (HEAVY EQUIPMENT)                           -->
 <!-- ========================================================================= -->
 <div id="addVehicleModal" 
      data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Tambah Kategori Heavy Equipment
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Mendaftarkan kategori/tipe master aset baru ke sistem.</p>
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#1b5e20] border border-emerald-200 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-truck-monster text-base"></i>
+                </div>
+                <div>
+                    <h3 id="addModalTitle" class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                        Tambah Unit Alat Berat
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Mendaftarkan unit alat berat fisik baru ke sistem armada proyek.</p>
+                </div>
             </div>
-            <button type="button" onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <button type="button" onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="addVehicleForm" action="{{ route('qma.vehicles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-3.5">
+        <form id="addVehicleForm" action="{{ route('qma.vehicles.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="hidden" name="category" value="unit_support">
 
+            <!-- Upload Foto Unit -->
             <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1">Foto Kategori Heavy Equipment (Opsional)</label>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Unit Alat Berat (Opsional)</label>
                 <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
                     <div id="addPhotoPreviewContainer" class="w-14 h-14 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
                         <img id="addPhotoPreview" src="" alt="Pratinjau" class="w-full h-full object-cover hidden">
@@ -426,10 +702,43 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Baris 1: Kelompok Operasional (Kategori Excel) & Tipe Alat Berat (Type Excel) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Kode Kategori <span class="text-rose-500">*</span></label>
-                    <input type="text" name="code" id="addCodeInput" required placeholder="MISAL: EX01, CR01, BL01" value="{{ old('code') }}"
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Kelompok Operasional (Excel) <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="operational_group" id="addOperationalGroup" required 
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        @foreach($availableGroups as $grp)
+                            <option value="{{ $grp }}" {{ (isset($selectedGroup) && $selectedGroup === $grp) ? 'selected' : '' }}>
+                                {{ $grp }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Tipe Alat Berat (Excel) <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="space-y-1.5">
+                        <select id="addUnitTypeSelect" required
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                            <!-- Diisi via JavaScript berdasarkan kelompok yang dipilih -->
+                        </select>
+                        <input type="text" id="addCustomUnitType" placeholder="Ketik nama tipe alat berat baru..." 
+                               class="hidden w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase font-semibold">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris 2: Kode Unit Fisik & Nomor Polisi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Kode Unit Fisik <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" name="code" id="addCodeInput" required placeholder="Contoh: DT 105, EX 60, BL 11" value="{{ old('code') }}"
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border @error('code') border-rose-500 @else border-slate-200 @enderror bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono uppercase font-bold">
                     
                     <p id="codeError" class="text-xs text-rose-600 font-semibold mt-1 flex items-center space-x-1.5 @if(!$errors->has('code')) hidden @endif">
@@ -437,43 +746,85 @@
                         <span id="codeErrorText">{{ $errors->first('code') ?? 'Kode unit sudah ada, silakan gunakan kode lain.' }}</span>
                     </p>
                     <p id="codeHint" class="text-[11px] text-slate-400 mt-0.5 @if($errors->has('code')) hidden @endif">
-                        * Digunakan sebagai dasar kode unit fisik (contoh: BL01-001).
+                        * Kode unik identifikasi fisik unit alat berat di lapangan.
                     </p>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Kategori Alat Berat <span class="text-rose-500">*</span></label>
-                    <input type="text" name="unit_category" required placeholder="Contoh: Excavator / Mobile Crane / Boomlift" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Nomor Polisi (Plat No)</label>
+                    <input type="text" name="license_plate" placeholder="Contoh: BH 8920 BM (opsional)" value="{{ old('license_plate') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono uppercase font-medium">
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Baris 3: Merek & Model / Spesifikasi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Merek & Tipe Lengkap <span class="text-rose-500">*</span></label>
-                    <input type="text" name="brand_type" required placeholder="Contoh: KOMATSU PC200-8 / KATO SR-250R" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Merek (Brand)</label>
+                    <input type="text" name="brand" list="brandsList" placeholder="Contoh: MITSUBISHI, KOMATSU, HOWO" value="{{ old('brand') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Tipe / Model Khusus</label>
-                    <input type="text" name="unit_type" placeholder="Contoh: Hydraulic Excavator / Rough Terrain" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Nomor Model</label>
-                    <input type="text" name="model_number" placeholder="Contoh: PC200-8M0" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Estimasi Konsumsi BBM (Liter/Jam)</label>
-                    <input type="number" step="0.01" name="fuel_consumption" placeholder="Contoh: 18.5" 
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Model / Tipe Model</label>
+                    <input type="text" name="model_number" placeholder="Contoh: FE 84 SHDX, PC200-8, SINOTRUK 336" value="{{ old('model_number') }}"
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Baris 4: No. Seri / Rangka & Tahun Pembuatan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">No. Seri / Rangka (Serial Number)</label>
+                    <input type="text" name="serial_number" placeholder="Nomor seri rangka / mesin unit" value="{{ old('serial_number') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Tahun Pembuatan</label>
+                    <input type="number" name="production_year" min="1980" max="{{ date('Y') + 1 }}" placeholder="Contoh: 2021" value="{{ old('production_year') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+            </div>
+
+            <!-- Baris 5: Lokasi Saat Ini & Status Area -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Lokasi Saat Ini</label>
+                    <input type="text" name="location" list="locationsList" placeholder="Contoh: ADIT 3, POWER HOUSE, BENDUNGAN" value="{{ old('location') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Area Lokasi</label>
+                    <select name="site_status" 
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
+                        <option value="inside_site" {{ old('site_status', 'inside_site') === 'inside_site' ? 'selected' : '' }}>
+                            Di Dalam Area Proyek (Site KMH)
+                        </option>
+                        <option value="outside_site" {{ old('site_status') === 'outside_site' ? 'selected' : '' }}>
+                            Di Luar Proyek (Workshop / Vendor Luar)
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Baris 6: Status Operasional & KM / HM Awal -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Status Operasional <span class="text-rose-500">*</span></label>
+                    <select name="status" required
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        <option value="Operation" {{ old('status', 'Operation') === 'Operation' ? 'selected' : '' }}>Operation (Beroperasi Aktif)</option>
+                        <option value="Standby" {{ old('status') === 'Standby' ? 'selected' : '' }}>Standby (Siap Operasi)</option>
+                        <option value="Breakdown" {{ old('status') === 'Breakdown' ? 'selected' : '' }}>Breakdown (Rusak / Perbaikan)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Nilai KM / HM Awal</label>
+                    <input type="number" step="0.1" name="current_km" value="{{ old('current_km', 0) }}" min="0" placeholder="0"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                </div>
+            </div>
+
+            <!-- Baris 7: Divisi & Kepemilikan Aset -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                     <label class="block text-xs font-bold text-slate-800 mb-1">Divisi Penanggung Jawab</label>
                     <select name="division" 
@@ -485,21 +836,31 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1">Kepemilikan Aset</label>
-                    <input type="text" name="ownership" placeholder="Contoh: PT Kerinci Merangin Hidro" 
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Kepemilikan Aset (Owner)</label>
+                    <input type="text" name="ownership" placeholder="Contoh: PT Kerinci Merangin Hidro / PT BMS" value="{{ old('ownership') }}"
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
                 </div>
             </div>
 
+            <!-- Baris 8: Estimasi Konsumsi BBM -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Estimasi Konsumsi BBM (Liter/Jam)</label>
+                    <input type="number" step="0.01" name="fuel_consumption" placeholder="Contoh: 18.5" value="{{ old('fuel_consumption') }}"
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+            </div>
+
             <!-- Footer Tombol -->
-            <div class="pt-3 flex items-center justify-end space-x-3">
+            <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
                 <button type="button" onclick="closeAddModal()" 
-                        class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition">
+                        class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer">
                     Batal
                 </button>
                 <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
-                    Simpan Kategori
+                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm cursor-pointer flex items-center space-x-1.5">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>Simpan Unit Alat Berat</span>
                 </button>
             </div>
         </form>
@@ -507,33 +868,39 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: EDIT KATEGORI HEAVY EQUIPMENT -->
+<!-- MODAL: EDIT UNIT ALAT BERAT (HEAVY EQUIPMENT)                             -->
 <!-- ========================================================================= -->
 <div id="editVehicleModal" 
      data-backdrop="static"
      class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Edit Kategori Heavy Equipment
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Memperbarui informasi master kategori aset.</p>
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-pen-to-square text-base"></i>
+                </div>
+                <div>
+                    <h3 id="editModalTitle" class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                        Edit Data Unit Alat Berat
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Memperbarui informasi dan spesifikasi unit alat berat fisik.</p>
+                </div>
             </div>
-            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
-        <form id="editVehicleForm" action="" method="POST" enctype="multipart/form-data" class="space-y-3.5">
+        <form id="editVehicleForm" action="" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <input type="hidden" name="category" value="unit_support">
 
+            <!-- Foto Unit -->
             <div>
-                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Kategori Heavy Equipment</label>
+                <label class="block text-xs font-bold text-slate-800 mb-1.5">Foto Unit Alat Berat</label>
                 <div class="flex items-center space-x-3.5 p-3 rounded-2xl border border-slate-200 bg-slate-50/50">
                     <div id="editPhotoPreviewContainer" class="w-14 h-14 rounded-xl border border-slate-200 bg-white flex items-center justify-center overflow-hidden flex-shrink-0 shadow-2xs">
-                        <img id="editPhotoPreview" src="" alt="Foto Kategori" class="w-full h-full object-cover hidden">
+                        <img id="editPhotoPreview" src="" alt="Foto Unit" class="w-full h-full object-cover hidden">
                         <i id="editPhotoPlaceholder" class="fa-solid fa-truck-monster text-slate-400 text-base"></i>
                     </div>
                     <div class="flex-1 min-w-0">
@@ -548,54 +915,121 @@
                 </div>
             </div>
 
+            <!-- Baris 1: Kelompok Operasional & Tipe Alat Berat -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode Kategori <span class="text-rose-500">*</span></label>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Kelompok Operasional (Excel) <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="operational_group" id="editOperationalGroup" required 
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        @foreach($availableGroups as $grp)
+                            <option value="{{ $grp }}">{{ $grp }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Tipe Alat Berat (Excel) <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="space-y-1.5">
+                        <select id="editUnitTypeSelect" required
+                                class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        </select>
+                        <input type="text" id="editCustomUnitType" placeholder="Ketik tipe baru..." 
+                               class="hidden w-full text-xs px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase font-semibold">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baris 2: Kode Unit Fisik & Nomor Polisi -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">
+                        Kode Unit Fisik <span class="text-rose-500">*</span>
+                    </label>
                     <input type="text" name="code" id="editCode" required 
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono uppercase font-bold">
                     
-                    <p id="editCodeError" class="text-xs text-rose-600 font-semibold mt-1.5 hidden flex items-center">
-                        <i class="fa-solid fa-circle-exclamation mr-1.5 flex-shrink-0"></i>
+                    <p id="editCodeError" class="text-xs text-rose-600 font-semibold mt-1 hidden flex items-center space-x-1.5">
+                        <i class="fa-solid fa-circle-exclamation text-rose-500 text-xs"></i>
                         <span id="editCodeErrorText">Kode unit sudah ada, silakan gunakan kode lain.</span>
                     </p>
-                    <p id="editCodeHint" class="text-[11px] text-slate-400 mt-1">* Jika diubah, kode seluruh unit fisik di bawahnya akan otomatis menyesuaikan.</p>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kategori Alat Berat <span class="text-rose-500">*</span></label>
-                    <input type="text" name="unit_category" id="editUnitCategory" required 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Merek & Tipe Lengkap <span class="text-rose-500">*</span></label>
-                    <input type="text" name="brand_type" id="editBrandType" required 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Tipe / Model Khusus</label>
-                    <input type="text" name="unit_type" id="editUnitType" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Nomor Polisi (Plat No)</label>
+                    <input type="text" name="license_plate" id="editLicensePlate" placeholder="Contoh: BH 8920 BM (opsional)" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono uppercase font-medium">
                 </div>
             </div>
 
+            <!-- Baris 3: Merek & Model -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Nomor Model</label>
-                    <input type="text" name="model_number" id="editModelNumber" 
-                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Merek (Brand)</label>
+                    <input type="text" name="brand" id="editBrand" list="brandsList" placeholder="Contoh: MITSUBISHI, KOMATSU, HOWO" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Konsumsi BBM Standar (L/Jam)</label>
-                    <input type="number" step="0.01" name="fuel_consumption" id="editFuelConsumption" 
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Model / Tipe Model</label>
+                    <input type="text" name="model_number" id="editModelNumber" placeholder="Contoh: FE 84 SHDX, PC200-8" 
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
                 </div>
             </div>
 
+            <!-- Baris 4: No. Seri & Tahun -->
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Divisi Penanggung Jawab</label>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">No. Seri / Rangka (Serial Number)</label>
+                    <input type="text" name="serial_number" id="editSerialNumber" placeholder="Nomor seri rangka / mesin" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Tahun Pembuatan</label>
+                    <input type="number" name="production_year" id="editProductionYear" min="1980" max="{{ date('Y') + 1 }}" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+            </div>
+
+            <!-- Baris 5: Lokasi & Status Area -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Lokasi Saat Ini</label>
+                    <input type="text" name="location" id="editLocation" list="locationsList" placeholder="Contoh: ADIT 3, POWER HOUSE" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Area Lokasi</label>
+                    <select name="site_status" id="editSiteStatus" 
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
+                        <option value="inside_site">Di Dalam Area Proyek (Site KMH)</option>
+                        <option value="outside_site">Di Luar Proyek (Workshop / Vendor Luar)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Baris 6: Status Operasional & KM / HM -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Status Operasional <span class="text-rose-500">*</span></label>
+                    <select name="status" id="editStatus" required
+                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-semibold focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                        <option value="Operation">Operation (Beroperasi Aktif)</option>
+                        <option value="Standby">Standby (Siap Operasi)</option>
+                        <option value="Breakdown">Breakdown (Rusak / Perbaikan)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Nilai KM / HM</label>
+                    <input type="number" step="0.1" name="current_km" id="editCurrentKm" min="0" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                </div>
+            </div>
+
+            <!-- Baris 7: Divisi & Kepemilikan -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Divisi Penanggung Jawab</label>
                     <select name="division" id="editDivision" 
                             class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-medium">
                         <option value="">-- Pilih Divisi Penanggung Jawab --</option>
@@ -605,21 +1039,31 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kepemilikan</label>
-                    <input type="text" name="ownership" id="editOwnership" 
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Kepemilikan Aset (Owner)</label>
+                    <input type="text" name="ownership" id="editOwnership" placeholder="Contoh: PT Kerinci Merangin Hidro / PT BMS" 
                            class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
                 </div>
             </div>
 
+            <!-- Baris 8: Estimasi Konsumsi BBM -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-800 mb-1">Estimasi Konsumsi BBM (Liter/Jam)</label>
+                    <input type="number" step="0.01" name="fuel_consumption" id="editFuelConsumption" placeholder="Contoh: 18.5" 
+                           class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition font-mono">
+                </div>
+            </div>
+
             <!-- Footer Tombol -->
-            <div class="pt-4 flex items-center justify-end space-x-3">
+            <div class="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
                 <button type="button" onclick="closeEditModal()" 
-                        class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition">
+                        class="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition cursor-pointer">
                     Batal
                 </button>
                 <button type="submit" 
-                        class="px-6 py-2.5 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white font-bold text-xs transition shadow-sm">
-                    Perbarui Kategori
+                        class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition shadow-sm cursor-pointer flex items-center space-x-1.5">
+                    <i class="fa-solid fa-floppy-disk text-xs"></i>
+                    <span>Perbarui Unit Alat Berat</span>
                 </button>
             </div>
         </form>
@@ -627,101 +1071,103 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: DETAIL SPESIFIKASI KATEGORI HEAVY EQUIPMENT -->
+<!-- MODAL: DETAIL SPESIFIKASI UNIT ALAT BERAT (HEAVY EQUIPMENT)               -->
 <!-- ========================================================================= -->
 <div id="detailVehicleModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-scrollbar">
     <div class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-7 border border-slate-100 max-h-[92vh] overflow-y-auto no-scrollbar">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h3 class="text-xl font-bold text-slate-900 tracking-tight">
-                    Detail Spesifikasi Kategori
-                </h3>
-                <p class="text-xs text-slate-500 mt-0.5">Informasi master kategori aset Heavy Equipment.</p>
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-circle-info text-base"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+                        Detail Spesifikasi Alat Berat
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Informasi lengkap spesifikasi dan status unit fisik.</p>
+                </div>
             </div>
-            <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 transition p-1">
+            <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600 transition p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
         </div>
 
         <div class="space-y-4">
-            <!-- Foto Kategori di Detail Modal -->
+            <!-- Foto Unit di Detail Modal -->
             <div id="detailPhotoContainer" class="w-full h-48 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden relative hidden">
-                <img id="detailPhoto" src="" alt="Foto Kategori Heavy Equipment" class="w-full h-full object-cover">
+                <img id="detailPhoto" src="" alt="Foto Unit Alat Berat" class="w-full h-full object-cover">
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Banner Header Identitas Unit -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kode Kategori</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono font-bold flex items-center">
-                        <span id="detailCode" class="bg-blue-50 text-blue-800 px-2.5 py-0.5 rounded border border-blue-200">-</span>
+                    <div class="flex items-center gap-2">
+                        <span id="detailCodeBadge" class="bg-blue-600 text-white font-mono text-sm font-extrabold px-3 py-1 rounded-xl shadow-2xs">
+                            -
+                        </span>
+                        <span id="detailGroupBadge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200 uppercase">
+                            -
+                        </span>
                     </div>
+                    <h4 id="detailTypeTitle" class="text-base font-extrabold text-slate-900 mt-1.5">
+                        -
+                    </h4>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kategori Alat</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold flex items-center">
-                        <span id="detailCategory">-</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Merek & Tipe Lengkap</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-bold flex items-center">
-                        <span id="detailBrand">-</span>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Tipe / Model Khusus</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium flex items-center">
-                        <span id="detailUnitType">-</span>
-                    </div>
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <span id="detailStatusBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        Operation
+                    </span>
+                    <span id="detailAreaBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                        Di Dalam Site
+                    </span>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Nomor Model</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-mono flex items-center">
-                        <span id="detailModelNumber">-</span>
+            <!-- Grid Rincian Spesifikasi Unit -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Merek & Model</span>
+                    <span id="detailBrandModel" class="font-bold text-slate-800 mt-0.5 block">-</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">No. Seri / Rangka</span>
+                    <span id="detailSerialNumber" class="font-mono font-semibold text-slate-800 mt-0.5 block">-</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Tahun Pembuatan</span>
+                    <span id="detailProductionYear" class="font-bold text-slate-800 mt-0.5 block">-</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Nomor Polisi (Plat No)</span>
+                    <span id="detailLicensePlate" class="font-mono font-bold text-slate-800 mt-0.5 block">-</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Lokasi Terkini</span>
+                    <div class="flex items-center space-x-1.5 mt-0.5">
+                        <i class="fa-solid fa-location-dot text-emerald-600 text-xs"></i>
+                        <span id="detailLocation" class="font-bold text-slate-800">-</span>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Konsumsi BBM Standar</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium flex items-center">
-                        <span id="detailFuel">-</span>
-                    </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">KM / HM Terkini</span>
+                    <span id="detailCurrentKm" class="font-mono font-bold text-slate-800 mt-0.5 block">-</span>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Divisi Penanggung Jawab</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium flex items-center">
-                        <span id="detailDivision">-</span>
-                    </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Divisi Penanggung Jawab</span>
+                    <span id="detailDivision" class="font-semibold text-slate-800 mt-0.5 block">-</span>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-800 mb-1.5">Kepemilikan Aset</label>
-                    <div class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium flex items-center">
-                        <span id="detailOwnership">-</span>
-                    </div>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Kepemilikan Aset (Owner)</span>
+                    <span id="detailOwnership" class="font-semibold text-slate-800 mt-0.5 block">-</span>
                 </div>
-            </div>
-
-            <!-- Card Unit Fisik Terdaftar -->
-            <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-bold text-emerald-950 block">Unit Fisik Terdaftar</span>
-                    <span id="detailUnitCountText" class="text-xs text-emerald-800 font-medium">0 Unit Fisik</span>
+                <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100 sm:col-span-2">
+                    <span class="text-[10px] text-slate-400 uppercase font-bold block">Konsumsi BBM Standar</span>
+                    <span id="detailFuel" class="font-medium text-slate-800 mt-0.5 block">-</span>
                 </div>
-                <a id="detailManageUnitsBtn" href="#" class="px-4 py-2 rounded-xl bg-[#1b5e20] hover:bg-[#144919] text-white text-xs font-bold transition shadow-sm inline-flex items-center justify-center">
-                    <span>Kelola Unit Fisik</span>
-                </a>
             </div>
 
             <!-- Footer Tombol Tutup -->
-            <div class="pt-2 flex items-center justify-end">
+            <div class="pt-3 flex items-center justify-end border-t border-slate-100">
                 <button type="button" onclick="closeDetailModal()" 
                         class="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition shadow-sm cursor-pointer">
                     Tutup
@@ -805,6 +1251,91 @@
     // Daftar semua kode kendaraan heavy equipment yang sudah terdaftar di sistem
     const existingVehicleCodes = @json($existingCodes ?? \App\Models\Vehicle::unitSupports()->pluck('code')->map(fn($c) => strtoupper(trim($c))));
 
+    // Peta Tipe Alat Berat berdasarkan Kelompok Operasional
+    const groupTypesMap = @json($groupTypesMap ?? []);
+
+    // Helper untuk mengisi dropdown tipe alat berat dinamis berdasarkan kelompok
+    function populateTypeSelect(groupSelectId, typeSelectId, customInputId, defaultType = '') {
+        const groupSelect = document.getElementById(groupSelectId);
+        const typeSelect = document.getElementById(typeSelectId);
+        const customInput = document.getElementById(customInputId);
+        if (!groupSelect || !typeSelect) return;
+
+        const selectedGroup = groupSelect.value;
+        const types = groupTypesMap[selectedGroup] || [];
+
+        typeSelect.innerHTML = '';
+        
+        let matched = false;
+        types.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            if (defaultType && t.toUpperCase() === defaultType.toUpperCase()) {
+                opt.selected = true;
+                matched = true;
+            }
+            typeSelect.appendChild(opt);
+        });
+
+        const customOpt = document.createElement('option');
+        customOpt.value = '__custom__';
+        customOpt.textContent = '+ Ketik Tipe Baru...';
+        typeSelect.appendChild(customOpt);
+
+        if (defaultType && !matched) {
+            customOpt.selected = true;
+            if (customInput) {
+                customInput.value = defaultType;
+                customInput.classList.remove('hidden');
+            }
+        } else if (customInput) {
+            customInput.classList.add('hidden');
+            customInput.value = '';
+        }
+    }
+
+    // Event listener pergantian kelompok di modal tambah & edit
+    const addOperationalGroup = document.getElementById('addOperationalGroup');
+    const addUnitTypeSelect = document.getElementById('addUnitTypeSelect');
+    const addCustomUnitType = document.getElementById('addCustomUnitType');
+    if (addOperationalGroup) {
+        addOperationalGroup.addEventListener('change', function() {
+            populateTypeSelect('addOperationalGroup', 'addUnitTypeSelect', 'addCustomUnitType');
+        });
+    }
+    if (addUnitTypeSelect && addCustomUnitType) {
+        addUnitTypeSelect.addEventListener('change', function() {
+            if (this.value === '__custom__') {
+                addCustomUnitType.classList.remove('hidden');
+                addCustomUnitType.focus();
+            } else {
+                addCustomUnitType.classList.add('hidden');
+                addCustomUnitType.value = '';
+            }
+        });
+    }
+
+    const editOperationalGroup = document.getElementById('editOperationalGroup');
+    const editUnitTypeSelect = document.getElementById('editUnitTypeSelect');
+    const editCustomUnitType = document.getElementById('editCustomUnitType');
+    if (editOperationalGroup) {
+        editOperationalGroup.addEventListener('change', function() {
+            populateTypeSelect('editOperationalGroup', 'editUnitTypeSelect', 'editCustomUnitType');
+        });
+    }
+    if (editUnitTypeSelect && editCustomUnitType) {
+        editUnitTypeSelect.addEventListener('change', function() {
+            if (this.value === '__custom__') {
+                editCustomUnitType.classList.remove('hidden');
+                editCustomUnitType.focus();
+            } else {
+                editCustomUnitType.classList.add('hidden');
+                editCustomUnitType.value = '';
+            }
+        });
+    }
+
     const addCodeInput = document.getElementById('addCodeInput');
     const codeError = document.getElementById('codeError');
     const codeErrorText = document.getElementById('codeErrorText');
@@ -865,6 +1396,20 @@
                 addCodeInput.focus();
                 return false;
             }
+            if (addUnitTypeSelect && addUnitTypeSelect.value === '__custom__') {
+                const val = addCustomUnitType.value.trim().toUpperCase();
+                if (!val) {
+                    e.preventDefault();
+                    alert('Silakan ketik nama tipe alat berat baru.');
+                    addCustomUnitType.focus();
+                    return false;
+                }
+                addUnitTypeSelect.removeAttribute('name');
+                addCustomUnitType.setAttribute('name', 'unit_type');
+            } else if (addUnitTypeSelect) {
+                addUnitTypeSelect.setAttribute('name', 'unit_type');
+                if (addCustomUnitType) addCustomUnitType.removeAttribute('name');
+            }
         });
     }
 
@@ -872,7 +1417,6 @@
     const editCodeInput = document.getElementById('editCode');
     const editCodeError = document.getElementById('editCodeError');
     const editCodeErrorText = document.getElementById('editCodeErrorText');
-    const editCodeHint = document.getElementById('editCodeHint');
     const editVehicleForm = document.getElementById('editVehicleForm');
     let currentEditVehicleCode = '';
 
@@ -902,7 +1446,6 @@
     function showEditCodeError(message) {
         if (editCodeErrorText) editCodeErrorText.innerText = message;
         if (editCodeError) editCodeError.classList.remove('hidden');
-        if (editCodeHint) editCodeHint.classList.add('hidden');
         if (editCodeInput) {
             editCodeInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/10');
             editCodeInput.classList.remove('border-slate-200');
@@ -911,7 +1454,6 @@
 
     function hideEditCodeError() {
         if (editCodeError) editCodeError.classList.add('hidden');
-        if (editCodeHint) editCodeHint.classList.remove('hidden');
         if (editCodeInput) {
             editCodeInput.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500/10');
             editCodeInput.classList.add('border-slate-200');
@@ -935,6 +1477,20 @@
                 e.preventDefault();
                 editCodeInput.focus();
                 return false;
+            }
+            if (editUnitTypeSelect && editUnitTypeSelect.value === '__custom__') {
+                const val = editCustomUnitType.value.trim().toUpperCase();
+                if (!val) {
+                    e.preventDefault();
+                    alert('Silakan ketik nama tipe alat berat baru.');
+                    editCustomUnitType.focus();
+                    return false;
+                }
+                editUnitTypeSelect.removeAttribute('name');
+                editCustomUnitType.setAttribute('name', 'unit_type');
+            } else if (editUnitTypeSelect) {
+                editUnitTypeSelect.setAttribute('name', 'unit_type');
+                if (editCustomUnitType) editCustomUnitType.removeAttribute('name');
             }
         });
     }
@@ -970,8 +1526,34 @@
         if (addPhotoPlaceholder) {
             addPhotoPlaceholder.classList.remove('hidden');
         }
+
+        // Auto-set initial group & type based on current view
+        const currentGroup = "{{ $selectedGroup ?? '' }}";
+        const currentType = "{{ $selectedType ?? '' }}";
+        const groupSelect = document.getElementById('addOperationalGroup');
+        if (groupSelect) {
+            if (currentGroup) {
+                groupSelect.value = currentGroup;
+            } else if (!groupSelect.value) {
+                groupSelect.value = 'HAULING';
+            }
+            populateTypeSelect('addOperationalGroup', 'addUnitTypeSelect', 'addCustomUnitType', currentType);
+        }
+
+        const titleEl = document.getElementById('addModalTitle');
+        if (titleEl) {
+            if (currentType) {
+                titleEl.innerText = `Tambah Unit Fisik (${currentType})`;
+            } else if (currentGroup) {
+                titleEl.innerText = `Tambah Unit Alat Berat (${currentGroup})`;
+            } else {
+                titleEl.innerText = 'Tambah Unit Alat Berat';
+            }
+        }
+
         if (addCodeInput) addCodeInput.focus();
     }
+
     function closeAddModal() {
         document.getElementById('addVehicleModal').classList.add('hidden');
         hideCodeError();
@@ -983,10 +1565,47 @@
         document.getElementById('editCode').value = v.code || '';
         currentEditVehicleCode = (v.code || '').trim().toUpperCase();
         hideEditCodeError();
-        document.getElementById('editUnitCategory').value = v.unit_category || '';
-        document.getElementById('editBrandType').value = v.brand_type || '';
-        document.getElementById('editUnitType').value = v.unit_type || '';
-        document.getElementById('editModelNumber').value = v.model_number || '';
+
+        const editGroupSelect = document.getElementById('editOperationalGroup');
+        if (editGroupSelect) {
+            editGroupSelect.value = v.operational_group || 'SUPPORT';
+        }
+        populateTypeSelect('editOperationalGroup', 'editUnitTypeSelect', 'editCustomUnitType', v.unit_type || v.unit_category || '');
+
+        if (document.getElementById('editLicensePlate')) {
+            document.getElementById('editLicensePlate').value = v.license_plate || '';
+        }
+        if (document.getElementById('editBrand')) {
+            document.getElementById('editBrand').value = v.brand || '';
+        }
+        if (document.getElementById('editModelNumber')) {
+            document.getElementById('editModelNumber').value = v.model_number || '';
+        }
+        if (document.getElementById('editSerialNumber')) {
+            document.getElementById('editSerialNumber').value = v.serial_number || '';
+        }
+        if (document.getElementById('editProductionYear')) {
+            document.getElementById('editProductionYear').value = v.production_year || '';
+        }
+        if (document.getElementById('editLocation')) {
+            document.getElementById('editLocation').value = v.location || '';
+        }
+        if (document.getElementById('editSiteStatus')) {
+            document.getElementById('editSiteStatus').value = v.site_status || 'inside_site';
+        }
+        if (document.getElementById('editStatus')) {
+            document.getElementById('editStatus').value = v.status || 'Operation';
+        }
+        if (document.getElementById('editCurrentKm')) {
+            document.getElementById('editCurrentKm').value = v.current_km !== null ? v.current_km : 0;
+        }
+        if (document.getElementById('editOwnership')) {
+            document.getElementById('editOwnership').value = v.ownership || '';
+        }
+        if (document.getElementById('editFuelConsumption')) {
+            document.getElementById('editFuelConsumption').value = v.fuel_consumption || '';
+        }
+
         const divSelect = document.getElementById('editDivision');
         if (divSelect) {
             if (v.division) {
@@ -1008,8 +1627,6 @@
                 divSelect.value = '';
             }
         }
-        document.getElementById('editOwnership').value = v.ownership || '';
-        document.getElementById('editFuelConsumption').value = v.fuel_consumption || '';
 
         const editPhotoPreview = document.getElementById('editPhotoPreview');
         const editPhotoPlaceholder = document.getElementById('editPhotoPlaceholder');
@@ -1029,6 +1646,7 @@
             if (editPhotoPlaceholder) editPhotoPlaceholder.classList.remove('hidden');
         }
     }
+
     function closeEditModal() {
         document.getElementById('editVehicleModal').classList.add('hidden');
         hideEditCodeError();
@@ -1036,14 +1654,47 @@
 
     function openDetailModal(v) {
         document.getElementById('detailVehicleModal').classList.remove('hidden');
-        document.getElementById('detailCode').innerText = v.code || '-';
-        document.getElementById('detailCategory').innerText = v.unit_category || '-';
-        document.getElementById('detailBrand').innerText = v.brand_type || '-';
-        document.getElementById('detailUnitType').innerText = v.unit_type || '-';
-        document.getElementById('detailModelNumber').innerText = v.model_number || '-';
-        document.getElementById('detailFuel').innerText = v.fuel_consumption ? `${v.fuel_consumption} L/Jam` : '-';
+        document.getElementById('detailCodeBadge').innerText = v.code || '-';
+        document.getElementById('detailGroupBadge').innerText = v.operational_group || 'HEAVY EQUIPMENT';
+        document.getElementById('detailTypeTitle').innerText = v.unit_type || v.unit_category || (v.brand_type || '-');
+        
+        // Status Badge
+        const statusBadge = document.getElementById('detailStatusBadge');
+        if (statusBadge) {
+            const st = v.status || 'Operation';
+            statusBadge.innerText = st;
+            if (st === 'Operation') {
+                statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200';
+            } else if (st === 'Standby') {
+                statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200';
+            } else if (st === 'Breakdown') {
+                statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200';
+            } else {
+                statusBadge.className = 'px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200';
+            }
+        }
+
+        // Area Badge
+        const areaBadge = document.getElementById('detailAreaBadge');
+        if (areaBadge) {
+            const isOut = v.site_status === 'outside_site';
+            areaBadge.innerText = isOut ? 'Di Luar Site' : 'Di Dalam Site';
+            areaBadge.className = isOut 
+                ? 'px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200' 
+                : 'px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200';
+        }
+
+        // Brand & Model
+        const brandModel = [v.brand, v.model_number].filter(Boolean).join(' ') || (v.brand_type || '-');
+        document.getElementById('detailBrandModel').innerText = brandModel;
+        document.getElementById('detailSerialNumber').innerText = v.serial_number || '-';
+        document.getElementById('detailProductionYear').innerText = v.production_year ? `Tahun ${v.production_year}` : '-';
+        document.getElementById('detailLicensePlate').innerText = v.license_plate || '-';
+        document.getElementById('detailLocation').innerText = v.location || 'Site Kerinci';
+        document.getElementById('detailCurrentKm').innerText = v.current_km !== null ? `${v.current_km} HM / KM` : '-';
         document.getElementById('detailDivision').innerText = v.division || '-';
         document.getElementById('detailOwnership').innerText = v.ownership || 'PT Kerinci Merangin Hidro';
+        document.getElementById('detailFuel').innerText = v.fuel_consumption ? `${v.fuel_consumption} Liter / Jam` : 'Tidak tercatat';
 
         const detailPhotoContainer = document.getElementById('detailPhotoContainer');
         const detailPhoto = document.getElementById('detailPhoto');
@@ -1054,14 +1705,8 @@
             if (detailPhoto) detailPhoto.src = '';
             if (detailPhotoContainer) detailPhotoContainer.classList.add('hidden');
         }
-
-        const count = v.units_count !== undefined ? v.units_count : 0;
-        document.getElementById('detailUnitCountText').innerText = count + ' Unit Fisik';
-        const manageBtn = document.getElementById('detailManageUnitsBtn');
-        if (manageBtn) {
-            manageBtn.href = `/qma/vehicles/unit-support/${v.id}/units`;
-        }
     }
+
     function closeDetailModal() {
         document.getElementById('detailVehicleModal').classList.add('hidden');
     }

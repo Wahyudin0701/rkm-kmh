@@ -143,20 +143,47 @@ class UnitTransferController extends Controller
             ->map(fn($group) => $group->count())
             ->sortKeys();
 
-        // 2. Daftar armada pengangkut khusus truk/alat angkut (Truk, Flatbed, Lowbed, Towing, dsb. - Eksklusif Non-LV)
-        $transporterUnits = Vehicle::where('category', '!=', 'light_vehicle')
+        // 2. Daftar armada pengangkut khusus truk/alat angkut (Lowbed, Flatbed, Trailer, Dump Truck, Light Truck, Crane Truck)
+        $transporterCategories = [
+            'Low Bed',
+            'Flat Bed',
+            'Trailer',
+            'Dump Truck',
+            'Light Truck',
+            'Crane Truck',
+        ];
+
+        $transporterUnits = Vehicle::trackableUnits()
+            ->where(function (Builder $q) use ($transporterCategories) {
+                $q->whereIn('unit_category', $transporterCategories)
+                  ->orWhere(function (Builder $sub) {
+                      $sub->where('code', 'like', 'LB %')
+                          ->orWhere('code', 'like', 'LB-%')
+                          ->orWhere('code', 'like', 'FB %')
+                          ->orWhere('code', 'like', 'FB-%')
+                          ->orWhere('code', 'like', 'TR %')
+                          ->orWhere('code', 'like', 'TR-%')
+                          ->orWhere('code', 'like', 'DT %')
+                          ->orWhere('code', 'like', 'DT-%')
+                          ->orWhere('code', 'like', 'LT %')
+                          ->orWhere('code', 'like', 'LT-%')
+                          ->orWhere('code', 'like', 'CT %')
+                          ->orWhere('code', 'like', 'CT-%');
+                  });
+            })
             ->where(function (Builder $q) {
                 $q->where('code', 'not like', 'LV %')
                   ->where('code', 'not like', 'LV-%')
                   ->where('code', 'not like', 'LV/%')
                   ->where('code', 'not like', 'LV_%');
             })
-            ->where(function (Builder $q) {
-                $q->whereNotNull('parent_id')
-                  ->orWhereDoesntHave('units');
-            })
             ->orderBy('code')
             ->get();
+
+        // Lokasi asal armada pengangkut internal yang tersedia beserta jumlah unitnya
+        $transporterLocations = $transporterUnits->groupBy(fn($u) => $u->location ?: 'Site Kerinci')
+            ->map(fn($group) => $group->count())
+            ->sortKeys();
 
         // 3. Daftar pengemudi / operator
         $drivers = Employee::where('is_operator', true)
@@ -175,6 +202,7 @@ class UnitTransferController extends Controller
             'originLocations',
             'selectedOriginLocation',
             'transporterUnits',
+            'transporterLocations',
             'drivers',
             'locationSuggestions',
             'defaultDocNumber',
@@ -195,6 +223,8 @@ class UnitTransferController extends Controller
             'to_site_status' => ['required', 'in:inside_site,outside_site'],
             'description' => ['nullable', 'string', 'max:2000'],
             'reported_by' => ['required', 'string', 'max:255'],
+            'transporter_type' => ['nullable', 'string', 'in:internal,external,none'],
+            'transporter_origin_location' => ['nullable', 'string', 'max:255'],
             'transporter_vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
             'transporter_unit_name' => ['nullable', 'string', 'max:255'],
             'transporter_driver_id' => ['nullable', 'integer', 'exists:employees,id'],
@@ -230,14 +260,25 @@ class UnitTransferController extends Controller
             $fromLocation = $vehicle->location ?: ($validated['from_location'] ?? 'Site Kerinci');
             $fromSiteStatus = $vehicle->site_status ?: 'inside_site';
 
+            // Sumber Armada Pengangkut (Internal / External / None)
+            $transporterType = $validated['transporter_type'] ?? (!empty($validated['transporter_vehicle_id']) ? 'internal' : (!empty($validated['transporter_unit_name']) ? 'external' : 'none'));
+            $transporterVehicleId = ($transporterType === 'internal') ? ($validated['transporter_vehicle_id'] ?? null) : null;
+            $transporterOriginLocation = !empty($validated['transporter_origin_location']) ? trim($validated['transporter_origin_location']) : null;
+
             // Nama armada pengangkut
             $transporterUnitName = !empty($validated['transporter_unit_name']) ? trim($validated['transporter_unit_name']) : null;
-            if (empty($transporterUnitName) && !empty($validated['transporter_vehicle_id'])) {
-                $transporterVeh = Vehicle::find($validated['transporter_vehicle_id']);
+            if ($transporterType === 'internal' && !empty($transporterVehicleId)) {
+                $transporterVeh = Vehicle::find($transporterVehicleId);
                 if ($transporterVeh) {
                     $plate = $transporterVeh->license_plate ? " ({$transporterVeh->license_plate})" : '';
                     $transporterUnitName = "{$transporterVeh->code} - {$transporterVeh->brand_type}{$plate}";
+                    if (empty($transporterOriginLocation)) {
+                        $transporterOriginLocation = $transporterVeh->location ?: 'Site Kerinci';
+                    }
                 }
+            } elseif ($transporterType === 'none') {
+                $transporterUnitName = 'Mobilisasi Mandiri (Tanpa Pengangkut)';
+                $transporterOriginLocation = null;
             }
 
             // Nama driver pengangkut
@@ -271,7 +312,9 @@ class UnitTransferController extends Controller
                 'description' => !empty($validated['description']) ? trim($validated['description']) : null,
                 'reported_by' => $reportedBy,
                 'user_id' => auth()->id(),
-                'transporter_vehicle_id' => $validated['transporter_vehicle_id'] ?? null,
+                'transporter_type' => $transporterType,
+                'transporter_vehicle_id' => $transporterVehicleId,
+                'transporter_origin_location' => $transporterOriginLocation,
                 'transporter_unit_name' => $transporterUnitName,
                 'transporter_driver_id' => $validated['transporter_driver_id'] ?? null,
                 'transporter_driver_name' => $transporterDriverName,
@@ -294,6 +337,9 @@ class UnitTransferController extends Controller
 
             // 3. Catat di audit log riwayat pergerakan unit (VehicleLocationHistory)
             $transporterSummary = $transporterUnitName ? " Pengangkut: {$transporterUnitName}" : "";
+            if ($transporterOriginLocation) {
+                $transporterSummary .= " [Asal: {$transporterOriginLocation}]";
+            }
             if ($transporterDriverName) {
                 $transporterSummary .= " (Driver: {$transporterDriverName})";
             }
@@ -314,9 +360,9 @@ class UnitTransferController extends Controller
                 'recorded_at' => Carbon::now(),
             ]);
 
-            // 4. Jika opsi perbarui posisi truk pengangkut aktif
-            if ($updateTransporter && !empty($validated['transporter_vehicle_id'])) {
-                $transporterVeh = Vehicle::find($validated['transporter_vehicle_id']);
+            // 4. Jika opsi perbarui posisi truk pengangkut aktif (Hanya armada internal)
+            if ($transporterType === 'internal' && $updateTransporter && !empty($transporterVehicleId)) {
+                $transporterVeh = Vehicle::find($transporterVehicleId);
                 if ($transporterVeh && $transporterVeh->id !== $vehicle->id) {
                     $transporterNote = $docNumber 
                         ? "Armada Pengangkut BAST {$docNumber} untuk {$vehicle->code} ke {$toLocation}"
@@ -329,9 +375,10 @@ class UnitTransferController extends Controller
                         'location_note' => $transporterNote,
                     ]);
 
-                    $transporterHistNote = $docNumber
+                    $transporterHistNote = $docNumber 
                         ? "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) via BAST {$docNumber} ke {$toLocation}"
                         : "Armada Pengangkut: Mengantar {$vehicle->code} ({$vehicle->brand_type}) transfer internal ke {$toLocation}";
+
                     VehicleLocationHistory::create([
                         'vehicle_id' => $transporterVeh->id,
                         'site_status' => $validated['to_site_status'],

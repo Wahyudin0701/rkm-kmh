@@ -190,8 +190,21 @@
                             <td class="py-2.5 px-4 font-bold text-slate-600 w-1/3">Kendaraan Pengangkut</td>
                             <td class="py-2.5 px-4 font-bold text-slate-900">
                                 {{ $transfer->transporter_unit_name ?: ($transfer->transporterVehicle?->code ?? 'Tanpa Truk Pengangkut (Mobilisasi Mandiri)') }}
+                                @if($transfer->transporter_type === 'external' || (!$transfer->transporter_vehicle_id && $transfer->transporter_unit_name))
+                                    <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">Armada Luar / Rekanan</span>
+                                @elseif($transfer->transporter_vehicle_id)
+                                    <span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">Armada Internal KMH</span>
+                                @endif
                             </td>
                         </tr>
+                        @if($transfer->transporter_origin_location)
+                        <tr>
+                            <td class="py-2.5 px-4 font-bold text-slate-600">Asal Kendaraan Pengangkut</td>
+                            <td class="py-2.5 px-4 font-semibold text-slate-800">
+                                <i class="fa-solid fa-map-pin text-emerald-600 mr-1.5"></i>{{ $transfer->transporter_origin_location }}
+                            </td>
+                        </tr>
+                        @endif
                         <tr>
                             <td class="py-2.5 px-4 font-bold text-slate-600">Nama Pengemudi / Driver</td>
                             <td class="py-2.5 px-4 font-semibold text-slate-800">

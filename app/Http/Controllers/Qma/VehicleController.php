@@ -277,9 +277,14 @@ class VehicleController extends Controller
 
     /**
      * Halaman khusus pengelolaan Kategori Kendaraan Berat (Heavy Equipment / Alat Berat).
+     * Mendukung navigasi hirarki 3 level:
+     * - Level 1: Kelompok Operasional (HAULING, LOADER, SUPPORT, HANDLING, DRILLING, PIT SERVICE)
+     * - Level 2: Tipe Alat Berat di dalam Kelompok (Dump Truck, Mixer Truck, Excavator, dll.)
+     * - Level 3: Daftar Unit Fisik individual (DT 01, EX 01, dll.)
      */
     public function indexSupport(Request $request): View
     {
+        $selectedGroup = $request->input('group');
         $selectedType = $request->input('type');
 
         // Master data daftar divisi perusahaan (gabungan standar + data existing di Employee & Vehicle)
@@ -307,7 +312,58 @@ class VehicleController extends Controller
             ->values()
             ->all();
 
-        // Master data daftar kategori & tipe alat berat
+        // Master data daftar kelompok operasional, kategori & tipe alat berat
+        $availableGroups = ['HAULING', 'LOADER', 'SUPPORT', 'HANDLING', 'DRILLING', 'PIT SERVICE'];
+
+        $groupTypesMap = [
+            'HAULING' => ['DUMP TRUCK', 'MIXER TRUCK', 'CAPSULE CEMENT', 'LOW BED', 'DUMP TRUCK FFT'],
+            'LOADER' => ['EXCAVATOR', 'WHEEL LOADER', 'MUCKING LOADER'],
+            'SUPPORT' => ['COMPRESSOR', 'CONCRETE PUMP', 'ENGINE GENSET', 'CONCRETE PUMP TRUCK', 'LIGHT TRUCK', 'SHOTCRETE', 'WET SHOTCRETE TRUCK', 'FUEL TRUCK', 'WATER TRUCK', 'SILENT SHEET PILE', 'SKYLIFT TRUCK', 'ASPHALT PATCH MIXER'],
+            'HANDLING' => ['FORKLIFT', 'CRANE TRUCK', 'ROUGHTER CRANE', 'BOOMLIFT', 'CRAWLER CRANE', 'SCISSOR LIFT', 'TRAILER', 'TOWER CRANE', 'FLAT BED', 'CARRYDECK CRANE', 'LOW BED', 'MOBILE CRANE'],
+            'DRILLING' => ['CRAWLER ROCK DRILL', 'BORE PILE', 'JUMBO DRILL', 'WHEEL RIG DRILL'],
+            'PIT SERVICE' => ['BULLDOZER', 'VIBRO', 'WATER TRUCK', 'MOTOR GRADER'],
+        ];
+
+        // Gabungkan tipe dari database agar dinamis jika ada custom type baru
+        $dbGroupTypes = Vehicle::where('category', 'unit_support')
+            ->whereNotNull('operational_group')
+            ->whereNotNull('unit_type')
+            ->where('unit_type', '!=', '')
+            ->select('operational_group', 'unit_type')
+            ->distinct()
+            ->get();
+        foreach ($dbGroupTypes as $gt) {
+            $grpKey = strtoupper(trim($gt->operational_group));
+            $tVal = strtoupper(trim($gt->unit_type));
+            if (!isset($groupTypesMap[$grpKey])) {
+                $groupTypesMap[$grpKey] = [];
+            }
+            if (!in_array($tVal, $groupTypesMap[$grpKey])) {
+                $groupTypesMap[$grpKey][] = $tVal;
+            }
+        }
+        foreach ($groupTypesMap as $grpKey => &$tList) {
+            sort($tList);
+        }
+        unset($tList);
+
+        $availableLocations = Vehicle::whereNotNull('location')
+            ->where('location', '!=', '')
+            ->distinct()
+            ->pluck('location')
+            ->sort()
+            ->values()
+            ->all();
+
+        $availableBrands = Vehicle::where('category', 'unit_support')
+            ->whereNotNull('brand')
+            ->where('brand', '!=', '')
+            ->distinct()
+            ->pluck('brand')
+            ->sort()
+            ->values()
+            ->all();
+
         $availableCategories = Vehicle::where('category', 'unit_support')
             ->whereNotNull('unit_category')
             ->where('unit_category', '!=', '')
@@ -323,8 +379,81 @@ class VehicleController extends Controller
 
         $existingCodes = Vehicle::where('category', 'unit_support')->pluck('code')->map(fn($c) => strtoupper(trim($c)))->values()->all();
 
-        // 1. JIKA USER MEMILIH / MASUK KE TIPE TERTENTU (Tampilkan unit-unit fisik tipe tersebut)
+        // Metadata kelompok operasional (icon, badge style, keterangan)
+        $groupMetadata = [
+            'HAULING' => [
+                'icon' => 'fa-truck-moving',
+                'color' => 'indigo',
+                'badge' => 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                'icon_bg' => 'bg-indigo-100 text-indigo-800 border-indigo-300',
+                'desc' => 'Armada pengangkutan material tanah, batuan, semen, beton curah, dan mobilisasi berat (Dump Truck, Truk Mixer, Capsule Cement, Low Bed).',
+            ],
+            'LOADER' => [
+                'icon' => 'fa-truck-monster',
+                'color' => 'amber',
+                'badge' => 'bg-amber-50 text-amber-800 border-amber-200',
+                'icon_bg' => 'bg-amber-100 text-amber-800 border-amber-300',
+                'desc' => 'Alat pemuatan material, penggalian tanah dan batuan terowongan proyek (Excavator, Wheel Loader, Mucking Loader).',
+            ],
+            'SUPPORT' => [
+                'icon' => 'fa-gears',
+                'color' => 'emerald',
+                'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                'icon_bg' => 'bg-emerald-100 text-emerald-800 border-emerald-300',
+                'desc' => 'Unit penunjang operasional, kelistrikan, suplai angin kompresi, dan pengecoran (Compressor, Genset, Concrete Pump, Fuel Truck, Light Truck).',
+            ],
+            'HANDLING' => [
+                'icon' => 'fa-boxes-stacked',
+                'color' => 'purple',
+                'badge' => 'bg-purple-50 text-purple-700 border-purple-200',
+                'icon_bg' => 'bg-purple-100 text-purple-800 border-purple-300',
+                'desc' => 'Alat pengangkatan dan penanganan material konstruksi serta akses ketinggian (Mobile Crane, Crane Truck, Crawler Crane, Forklift, Boomlift, Scissorlift).',
+            ],
+            'DRILLING' => [
+                'icon' => 'fa-arrows-down-to-line',
+                'color' => 'rose',
+                'badge' => 'bg-rose-50 text-rose-700 border-rose-200',
+                'icon_bg' => 'bg-rose-100 text-rose-800 border-rose-300',
+                'desc' => 'Alat pengeboran batuan keras, tiang pancang, dan pekerjaan bawah tanah (Crawler Rock Drill, Bore Pile, Jumbo Drill, Wheel Rig Drill).',
+            ],
+            'PIT SERVICE' => [
+                'icon' => 'fa-mountain',
+                'color' => 'cyan',
+                'badge' => 'bg-cyan-50 text-cyan-800 border-cyan-200',
+                'icon_bg' => 'bg-cyan-100 text-cyan-800 border-cyan-300',
+                'desc' => 'Alat pemeliharaan jalan tambang, perataan tanah, dan penyiraman debu lintasan proyek (Bulldozer, Motor Grader, Vibro Roller, Water Truck).',
+            ],
+        ];
+
+        // Global statistik untuk header
+        $allSupportQuery = Vehicle::where('category', 'unit_support');
+        $totalUnits = (clone $allSupportQuery)->count();
+        $totalOperation = (clone $allSupportQuery)->where('status', 'Operation')->count();
+        $totalStandby = (clone $allSupportQuery)->where('status', 'Standby')->count();
+        $totalBreakdown = (clone $allSupportQuery)->where('status', 'Breakdown')->count();
+        $totalSupport = (clone $allSupportQuery)->whereNotNull('unit_type')->where('unit_type', '!=', '')->distinct('unit_type')->count('unit_type');
+        $totalGroups = count($availableGroups);
+
+        $perPage = (int) $request->input('per_page', 15);
+        if (!in_array($perPage, [15, 50, 100])) {
+            $perPage = 15;
+        }
+
+        // =========================================================================
+        // LEVEL 3: JIKA USER MEMILIH TIPE TERTENTU (Daftar Unit Fisik)
+        // =========================================================================
         if ($selectedType) {
+            $level = 'units';
+
+            // Auto-detect group jika tidak disuplai
+            if (!$selectedGroup) {
+                $sampleUnit = Vehicle::where('category', 'unit_support')
+                    ->where(function ($q) use ($selectedType) {
+                        $q->where('unit_type', $selectedType)->orWhere('unit_category', $selectedType);
+                    })->first();
+                $selectedGroup = $sampleUnit?->operational_group ?: 'SUPPORT';
+            }
+
             $unitsQuery = Vehicle::where('category', 'unit_support')
                 ->where(function ($q) use ($selectedType) {
                     $q->where('unit_type', $selectedType)
@@ -353,12 +482,8 @@ class VehicleController extends Controller
                 });
             }
 
-            $perPage = (int) $request->input('per_page', 15);
-            if (!in_array($perPage, [15, 50, 100])) {
-                $perPage = 15;
-            }
-
             $typeUnits = $unitsQuery->orderBy('code')->paginate($perPage)->withQueryString();
+            $vehicles = $typeUnits;
 
             // Statistik Khusus Tipe Terpilih
             $allOfType = Vehicle::where('category', 'unit_support')
@@ -375,16 +500,12 @@ class VehicleController extends Controller
             $insideCount = $allOfType->where('site_status', 'inside_site')->count();
             $outsideCount = $allOfType->where('site_status', 'outside_site')->count();
 
-            // Total global statistik untuk header
-            $totalUnits = Vehicle::where('category', 'unit_support')->count();
-            $totalOperation = Vehicle::where('category', 'unit_support')->where('status', 'Operation')->count();
-            $totalStandby = Vehicle::where('category', 'unit_support')->where('status', 'Standby')->count();
-            $totalBreakdown = Vehicle::where('category', 'unit_support')->where('status', 'Breakdown')->count();
-            $totalSupport = $availableTypes->count();
-
             return view('qma.vehicles_support', compact(
+                'level',
+                'selectedGroup',
                 'selectedType',
                 'typeUnits',
+                'vehicles',
                 'totalUnitsOfType',
                 'opCount',
                 'stCount',
@@ -392,10 +513,16 @@ class VehicleController extends Controller
                 'insideCount',
                 'outsideCount',
                 'totalSupport',
+                'totalGroups',
                 'totalUnits',
                 'totalOperation',
                 'totalStandby',
                 'totalBreakdown',
+                'groupMetadata',
+                'groupTypesMap',
+                'availableLocations',
+                'availableBrands',
+                'availableGroups',
                 'availableCategories',
                 'availableTypes',
                 'availableDivisions',
@@ -403,21 +530,25 @@ class VehicleController extends Controller
             ));
         }
 
-        // 2. TAMPILAN UTAMA: PENGELOMPOKAN BERDASARKAN TYPE DULU
-        $allSupportQuery = Vehicle::where('category', 'unit_support');
-        $totalUnits = (clone $allSupportQuery)->count();
-        $totalOperation = (clone $allSupportQuery)->where('status', 'Operation')->count();
-        $totalStandby = (clone $allSupportQuery)->where('status', 'Standby')->count();
-        $totalBreakdown = (clone $allSupportQuery)->where('status', 'Breakdown')->count();
-        $totalSupport = (clone $allSupportQuery)->whereNotNull('unit_type')->where('unit_type', '!=', '')->distinct('unit_type')->count('unit_type');
+        // =========================================================================
+        // LEVEL 2: JIKA USER MEMILIH KELOMPOK OPERASIONAL (Daftar Tipe Alat di Kelompok Tersebut)
+        // =========================================================================
+        if ($selectedGroup) {
+            $level = 'types';
 
-        // Query pengelompokan berdasarkan tipe
-        $hasTypes = Vehicle::where('category', 'unit_support')->whereNotNull('unit_type')->where('unit_type', '!=', '')->exists();
+            $groupUnitsQuery = Vehicle::where('category', 'unit_support')->where('operational_group', $selectedGroup);
+            $groupTotalUnits = (clone $groupUnitsQuery)->count();
+            $groupOpCount = (clone $groupUnitsQuery)->where('status', 'Operation')->count();
+            $groupStCount = (clone $groupUnitsQuery)->where('status', 'Standby')->count();
+            $groupBdCount = (clone $groupUnitsQuery)->where('status', 'Breakdown')->count();
+            $groupInsideCount = (clone $groupUnitsQuery)->where('site_status', 'inside_site')->count();
+            $groupOutsideCount = (clone $groupUnitsQuery)->where('site_status', 'outside_site')->count();
+            $groupTypesCount = (clone $groupUnitsQuery)->whereNotNull('unit_type')->where('unit_type', '!=', '')->distinct('unit_type')->count('unit_type');
 
-        if ($hasTypes) {
-            $typeGroupsQuery = Vehicle::where('category', 'unit_support')
+            $typesQuery = Vehicle::where('category', 'unit_support')
+                ->where('operational_group', $selectedGroup)
                 ->select(
-                    DB::raw("COALESCE(NULLIF(unit_type, ''), 'LAINNYA') as unit_type"),
+                    'unit_type',
                     DB::raw('MAX(unit_category) as unit_category'),
                     DB::raw('COUNT(*) as units_count'),
                     DB::raw("SUM(CASE WHEN status = 'Operation' THEN 1 ELSE 0 END) as total_operation"),
@@ -430,14 +561,14 @@ class VehicleController extends Controller
                     DB::raw('MIN(id) as sample_id'),
                     DB::raw('MIN(code) as code')
                 )
-                ->groupBy(DB::raw("COALESCE(NULLIF(unit_type, ''), 'LAINNYA')"));
+                ->groupBy('unit_type');
 
             if ($request->filled('unit_category')) {
-                $typeGroupsQuery->where('unit_category', $request->input('unit_category'));
+                $typesQuery->where('unit_category', $request->input('unit_category'));
             }
             if ($request->filled('search')) {
                 $search = trim($request->input('search'));
-                $typeGroupsQuery->where(function ($q) use ($search) {
+                $typesQuery->where(function ($q) use ($search) {
                     $q->where('unit_type', 'like', "%{$search}%")
                       ->orWhere('unit_category', 'like', "%{$search}%")
                       ->orWhere('brand_type', 'like', "%{$search}%")
@@ -445,40 +576,98 @@ class VehicleController extends Controller
                 });
             }
 
-            $perPage = (int) $request->input('per_page', 15);
-            if (!in_array($perPage, [15, 50, 100])) {
-                $perPage = 15;
-            }
+            $types = $typesQuery->orderByDesc(DB::raw('COUNT(*)'))->paginate($perPage)->withQueryString();
+            $vehicles = $types;
 
-            $vehicles = $typeGroupsQuery->orderByDesc(DB::raw('COUNT(*)'))->paginate($perPage)->withQueryString();
-        } else {
-            // Fallback untuk DB sebelum sync excel atau legacy category format
-            $query = Vehicle::unitSupportCategories()->withCount('units');
-            if ($request->filled('status')) {
-                $query->where('status', $request->input('status'));
-            }
-            if ($request->filled('unit_category')) {
-                $query->where('unit_category', $request->input('unit_category'));
-            }
-            if ($request->filled('search')) {
-                $search = trim($request->input('search'));
-                $query->where(function ($q) use ($search) {
-                    $q->where('code', 'like', "%{$search}%")
-                      ->orWhere('brand_type', 'like', "%{$search}%")
-                      ->orWhere('unit_category', 'like', "%{$search}%");
-                });
-            }
-            $perPage = (int) $request->input('per_page', 15);
-            $vehicles = $query->orderBy('code')->paginate($perPage)->withQueryString();
+            return view('qma.vehicles_support', compact(
+                'level',
+                'selectedGroup',
+                'types',
+                'vehicles',
+                'groupTotalUnits',
+                'groupOpCount',
+                'groupStCount',
+                'groupBdCount',
+                'groupInsideCount',
+                'groupOutsideCount',
+                'groupTypesCount',
+                'totalSupport',
+                'totalGroups',
+                'totalUnits',
+                'totalOperation',
+                'totalStandby',
+                'totalBreakdown',
+                'groupMetadata',
+                'groupTypesMap',
+                'availableLocations',
+                'availableBrands',
+                'availableGroups',
+                'availableCategories',
+                'availableTypes',
+                'availableDivisions',
+                'existingCodes'
+            ));
         }
 
+        // =========================================================================
+        // LEVEL 1: TAMPILAN UTAMA (6 KELOMPOK OPERASIONAL BESAR)
+        // =========================================================================
+        $level = 'groups';
+
+        $groupsQuery = Vehicle::where('category', 'unit_support')
+            ->select(
+                'operational_group',
+                DB::raw('COUNT(DISTINCT unit_type) as types_count'),
+                DB::raw('COUNT(*) as units_count'),
+                DB::raw("SUM(CASE WHEN status = 'Operation' THEN 1 ELSE 0 END) as total_operation"),
+                DB::raw("SUM(CASE WHEN status = 'Standby' THEN 1 ELSE 0 END) as total_standby"),
+                DB::raw("SUM(CASE WHEN status = 'Breakdown' THEN 1 ELSE 0 END) as total_breakdown"),
+                DB::raw("SUM(CASE WHEN site_status = 'inside_site' THEN 1 ELSE 0 END) as inside_site_count"),
+                DB::raw("SUM(CASE WHEN site_status = 'outside_site' THEN 1 ELSE 0 END) as outside_site_count"),
+                DB::raw('MIN(code) as sample_code')
+            )
+            ->groupBy('operational_group');
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $groupsQuery->where(function ($q) use ($search) {
+                $q->where('operational_group', 'like', "%{$search}%")
+                  ->orWhere('unit_type', 'like', "%{$search}%")
+                  ->orWhere('unit_category', 'like', "%{$search}%")
+                  ->orWhere('brand_type', 'like', "%{$search}%")
+                  ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        $groups = $groupsQuery
+            ->orderByRaw("CASE operational_group
+                WHEN 'HAULING' THEN 1
+                WHEN 'LOADER' THEN 2
+                WHEN 'SUPPORT' THEN 3
+                WHEN 'HANDLING' THEN 4
+                WHEN 'DRILLING' THEN 5
+                WHEN 'PIT SERVICE' THEN 6
+                ELSE 7 END")
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $vehicles = $groups;
+
         return view('qma.vehicles_support', compact(
+            'level',
+            'groups',
             'vehicles',
             'totalSupport',
+            'totalGroups',
             'totalUnits',
             'totalOperation',
             'totalStandby',
             'totalBreakdown',
+            'groupMetadata',
+            'groupTypesMap',
+            'availableLocations',
+            'availableBrands',
+            'availableGroups',
             'availableCategories',
             'availableTypes',
             'availableDivisions',
@@ -494,6 +683,19 @@ class VehicleController extends Controller
         $category = Vehicle::unitSupportCategories()->withCount('units')->findOrFail($id);
 
         $query = $category->units();
+
+        if ($request->filled('group') || $request->filled('operational_group')) {
+            $grp = $request->input('group') ?: $request->input('operational_group');
+            $query->where('operational_group', $grp);
+        }
+
+        if ($request->filled('type') || $request->filled('unit_type')) {
+            $t = $request->input('type') ?: $request->input('unit_type');
+            $query->where(function ($q) use ($t) {
+                $q->where('unit_type', $t)
+                  ->orWhere('unit_category', $t);
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -572,6 +774,19 @@ class VehicleController extends Controller
     {
         $query = Vehicle::unitSupportPhysical()->with('parent');
 
+        if ($request->filled('group') || $request->filled('operational_group')) {
+            $grp = $request->input('group') ?: $request->input('operational_group');
+            $query->where('operational_group', $grp);
+        }
+
+        if ($request->filled('type') || $request->filled('unit_type')) {
+            $t = $request->input('type') ?: $request->input('unit_type');
+            $query->where(function ($q) use ($t) {
+                $q->where('unit_type', $t)
+                  ->orWhere('unit_category', $t);
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
@@ -610,6 +825,19 @@ class VehicleController extends Controller
     private function getFilteredSupportCategoriesQuery(Request $request): Builder
     {
         $query = Vehicle::unitSupportCategories()->withCount('units');
+
+        if ($request->filled('group') || $request->filled('operational_group')) {
+            $grp = $request->input('group') ?: $request->input('operational_group');
+            $query->where('operational_group', $grp);
+        }
+
+        if ($request->filled('type') || $request->filled('unit_type')) {
+            $t = $request->input('type') ?: $request->input('unit_type');
+            $query->where(function ($q) use ($t) {
+                $q->where('unit_type', $t)
+                  ->orWhere('unit_category', $t);
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -861,6 +1089,19 @@ class VehicleController extends Controller
         $category = Vehicle::unitSupportCategories()->withCount('units')->findOrFail($id);
         $query = $category->units();
 
+        if ($request->filled('group') || $request->filled('operational_group')) {
+            $grp = $request->input('group') ?: $request->input('operational_group');
+            $query->where('operational_group', $grp);
+        }
+
+        if ($request->filled('type') || $request->filled('unit_type')) {
+            $t = $request->input('type') ?: $request->input('unit_type');
+            $query->where(function ($q) use ($t) {
+                $q->where('unit_type', $t)
+                  ->orWhere('unit_category', $t);
+            });
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
@@ -937,6 +1178,19 @@ class VehicleController extends Controller
     {
         $category = Vehicle::unitSupportCategories()->withCount('units')->findOrFail($id);
         $query = $category->units();
+
+        if ($request->filled('group') || $request->filled('operational_group')) {
+            $grp = $request->input('group') ?: $request->input('operational_group');
+            $query->where('operational_group', $grp);
+        }
+
+        if ($request->filled('type') || $request->filled('unit_type')) {
+            $t = $request->input('type') ?: $request->input('unit_type');
+            $query->where(function ($q) use ($t) {
+                $q->where('unit_type', $t)
+                  ->orWhere('unit_category', $t);
+            });
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
@@ -1103,7 +1357,7 @@ class VehicleController extends Controller
         $rules = [
             'code' => ['required', 'string', 'max:50', 'unique:vehicles,code'],
             'category' => ['required', 'in:light_vehicle,unit_support'],
-            'brand_type' => ['required', 'string', 'max:150'],
+            'brand_type' => [$category === 'unit_support' ? 'nullable' : 'required', 'string', 'max:150'],
             'license_plate' => ['nullable', 'string', 'max:30'],
             'serial_number' => ['nullable', 'string', 'max:100'],
             'ownership' => ['nullable', 'string', 'max:150'],
@@ -1118,12 +1372,14 @@ class VehicleController extends Controller
         // Atribut opsional spesifik Heavy Equipment (Kendaraan Berat)
         if ($category === 'unit_support') {
             $rules = array_merge($rules, [
+                'operational_group' => ['required', 'string', 'max:50'],
+                'unit_type' => ['required', 'string', 'max:100'],
                 'unit_category' => ['nullable', 'string', 'max:100'],
-                'unit_type' => ['nullable', 'string', 'max:100'],
                 'brand' => ['nullable', 'string', 'max:100'],
                 'model_number' => ['nullable', 'string', 'max:100'],
                 'production_year' => ['nullable', 'integer', 'min:1980', 'max:' . (date('Y') + 1)],
                 'location' => ['nullable', 'string', 'max:150'],
+                'site_status' => ['nullable', 'in:inside_site,outside_site'],
                 'fuel_consumption' => ['nullable', 'numeric', 'min:0'],
                 'silo_document' => ['nullable', 'string', 'max:150'],
                 'stnk_document' => ['nullable', 'string', 'max:150'],
@@ -1135,6 +1391,8 @@ class VehicleController extends Controller
         $validated = $request->validate($rules, [
             'code.required' => 'Kode kendaraan wajib diisi.',
             'code.unique' => 'Kode sudah ada, silakan gunakan kode lain.',
+            'operational_group.required' => 'Kelompok operasional wajib dipilih.',
+            'unit_type.required' => 'Tipe alat berat wajib dipilih/diisi.',
             'brand_type.required' => 'Merek dan spesifikasi/tipe wajib diisi.',
             'current_km.required' => 'Nilai KM / HM awal wajib diisi.',
             'status.required' => 'Status operasional wajib dipilih.',
@@ -1143,6 +1401,37 @@ class VehicleController extends Controller
         if ($category === 'unit_support') {
             $validated['status'] = $validated['status'] ?? 'Operation';
             $validated['current_km'] = $validated['current_km'] ?? 0;
+            $validated['code'] = strtoupper(trim($validated['code']));
+            $validated['operational_group'] = strtoupper(trim($validated['operational_group']));
+            $validated['unit_type'] = strtoupper(trim($validated['unit_type']));
+            $validated['unit_category'] = !empty($validated['unit_category']) ? $validated['unit_category'] : $validated['unit_type'];
+
+            // Jika brand_type kosong, susun otomatis dari brand dan model_number
+            if (empty($validated['brand_type'])) {
+                $brandPart = trim(($validated['brand'] ?? '') . ' ' . ($validated['model_number'] ?? ''));
+                $validated['brand_type'] = $brandPart ?: $validated['unit_type'];
+            }
+
+            // Site status auto-detection jika kosong
+            if (empty($validated['site_status']) && !empty($validated['location'])) {
+                $upperLoc = strtoupper($validated['location']);
+                $outsideKeywords = ['PT.', 'HO', 'LAMPUNG', 'JAKARTA', 'CIDAS', 'POSO', 'MEDCO', 'SULINDO', 'BMS', 'BHARA', 'BUKAKA', 'ACEH'];
+                $isOutside = false;
+                foreach ($outsideKeywords as $kw) {
+                    if (str_contains($upperLoc, $kw)) {
+                        $isOutside = true;
+                        break;
+                    }
+                }
+                $validated['site_status'] = $isOutside ? 'outside_site' : 'inside_site';
+            } elseif (empty($validated['site_status'])) {
+                $validated['site_status'] = 'inside_site';
+            }
+
+            if (!empty($validated['location'])) {
+                $validated['location_updated_at'] = now();
+                $validated['location_updated_by'] = auth()->user()?->name ?? 'Admin QMA';
+            }
         }
 
         $validated['is_timesheet_mobile'] = $request->boolean('is_timesheet_mobile');
@@ -1156,19 +1445,20 @@ class VehicleController extends Controller
         $vehicle = Vehicle::create($validated);
 
         if ($vehicle->isSupportCategory()) {
-            // Otomatis buatkan Master Template P2H baru (default kosong tanpa butir pertanyaan)
+            // Otomatis buatkan Master Template P2H baru jika belum ada
+            $templateCode = $vehicle->unit_type ?: $vehicle->code;
             $template = P2hTemplate::firstOrCreate(
-                ['code' => $vehicle->code],
+                ['code' => $templateCode],
                 [
-                    'name' => $vehicle->unit_category ?: $vehicle->brand_type,
-                    'description' => "Template form inspeksi P2H resmi untuk kategori {$vehicle->brand_type} (Kode: {$vehicle->code}).",
+                    'name' => $vehicle->unit_type ?: $vehicle->brand_type,
+                    'description' => "Template form inspeksi P2H resmi untuk {$vehicle->unit_type} (Kode: {$templateCode}).",
                     'is_active' => true,
                 ]
             );
             $vehicle->update(['p2h_template_id' => $template->id]);
         }
 
-        $categoryLabel = $vehicle->isLightVehicle() ? 'Light Vehicle (LV)' : 'Kategori Heavy Equipment';
+        $categoryLabel = $vehicle->isLightVehicle() ? 'Light Vehicle (LV)' : 'Unit Heavy Equipment';
 
         return back()->with('success', "Data {$categoryLabel} [{$vehicle->code}] berhasil ditambahkan ke sistem.");
     }
@@ -1186,19 +1476,21 @@ class VehicleController extends Controller
         $rules = [
             'code' => ['required', 'string', 'max:50', Rule::unique('vehicles', 'code')->ignore($vehicle->id)],
             'category' => ['required', 'in:light_vehicle,unit_support'],
-            'brand_type' => ['required', 'string', 'max:150'],
+            'brand_type' => [$vehicle->isSupportCategory() ? 'nullable' : 'required', 'string', 'max:150'],
             'license_plate' => ['nullable', 'string', 'max:30'],
             'serial_number' => ['nullable', 'string', 'max:100'],
             'ownership' => ['nullable', 'string', 'max:150'],
             'division' => ['nullable', 'string', 'max:100'],
-            'status' => [$vehicle->isSupportCategory() ? 'nullable' : 'required', 'string', 'in:Operation,Standby,Breakdown,Maintenance'],
+            'status' => ['required', 'string', 'in:Operation,Standby,Breakdown,Maintenance'],
             'current_km' => [$vehicle->isSupportCategory() ? 'nullable' : 'required', 'numeric', 'min:0'],
+            'operational_group' => ['nullable', 'string', 'max:50'],
             'unit_category' => ['nullable', 'string', 'max:100'],
             'unit_type' => ['nullable', 'string', 'max:100'],
             'brand' => ['nullable', 'string', 'max:100'],
             'model_number' => ['nullable', 'string', 'max:100'],
             'production_year' => ['nullable', 'integer', 'min:1980', 'max:' . (date('Y') + 1)],
             'location' => ['nullable', 'string', 'max:150'],
+            'site_status' => ['nullable', 'in:inside_site,outside_site'],
             'fuel_consumption' => ['nullable', 'numeric', 'min:0'],
             'silo_document' => ['nullable', 'string', 'max:150'],
             'stnk_document' => ['nullable', 'string', 'max:150'],
@@ -1215,6 +1507,39 @@ class VehicleController extends Controller
             'brand_type.required' => 'Merek dan tipe wajib diisi.',
             'current_km.required' => 'Nilai KM / HM wajib diisi.',
         ]);
+
+        if ($vehicle->isSupportCategory()) {
+            $validated['code'] = strtoupper(trim($validated['code']));
+            if (!empty($validated['operational_group'])) {
+                $validated['operational_group'] = strtoupper(trim($validated['operational_group']));
+            }
+            if (!empty($validated['unit_type'])) {
+                $validated['unit_type'] = strtoupper(trim($validated['unit_type']));
+                $validated['unit_category'] = !empty($validated['unit_category']) ? $validated['unit_category'] : $validated['unit_type'];
+            }
+            if (empty($validated['brand_type'])) {
+                $brandPart = trim(($validated['brand'] ?? '') . ' ' . ($validated['model_number'] ?? ''));
+                $validated['brand_type'] = $brandPart ?: ($vehicle->brand_type ?: $validated['code']);
+            }
+            if ($request->filled('site_status')) {
+                $validated['site_status'] = $request->input('site_status');
+            } elseif (!empty($validated['location']) && $validated['location'] !== $vehicle->location) {
+                $upperLoc = strtoupper($validated['location']);
+                $outsideKeywords = ['PT.', 'HO', 'LAMPUNG', 'JAKARTA', 'CIDAS', 'POSO', 'MEDCO', 'SULINDO', 'BMS', 'BHARA', 'BUKAKA', 'ACEH'];
+                $isOutside = false;
+                foreach ($outsideKeywords as $kw) {
+                    if (str_contains($upperLoc, $kw)) {
+                        $isOutside = true;
+                        break;
+                    }
+                }
+                $validated['site_status'] = $isOutside ? 'outside_site' : 'inside_site';
+            }
+            if (!empty($validated['location']) && $validated['location'] !== $vehicle->location) {
+                $validated['location_updated_at'] = now();
+                $validated['location_updated_by'] = auth()->user()?->name ?? 'Admin QMA';
+            }
+        }
 
         if ($request->hasFile('photo')) {
             ImageCompressionService::deleteIfExists($vehicle->photo_path);

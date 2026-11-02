@@ -82,13 +82,26 @@ class SyncExcelVehicleDataCommand extends Command
                 };
 
                 // 2. Lokasi & Status Area (Inside / Outside Site)
-                if (strtoupper($lokasiCurrent) === 'SITE' || empty($lokasiCurrent)) {
-                    $finalLocation = $lokasiSite ?: 'Site Kerinci';
-                    $siteStatus = 'inside_site';
-                } else {
-                    $finalLocation = $lokasiCurrent;
-                    $siteStatus = 'outside_site';
+                // Sesuai berkas Excel "DATA LOKASI TERBARU RKM KMH",
+                // Kolom 8 adalah "LOKASI" tempat unit berada (ADIT 3, POWER HOUSE, VERTICAL SHAFT, dll.)
+                $finalLocation = $lokasiSite ?: ($lokasiCurrent ?: 'Site Kerinci');
+
+                // Klasifikasi site_status berdasarkan lokasi:
+                // Lokasi eksternal / kontraktor luar / workshop luar -> outside_site
+                // Lokasi area proyek KMH Kerinci (Adit, Power House, Bendungan, dll.) -> inside_site
+                $outsideKeywords = [
+                    'PT.', 'HO', 'LAMPUNG', 'JAKARTA', 'CIDAS', 'POSO',
+                    'MEDCO', 'SULINDO', 'BMS', 'BHARA', 'BUKAKA', 'ACEH'
+                ];
+                $upperLoc = strtoupper($finalLocation);
+                $isOutside = false;
+                foreach ($outsideKeywords as $kw) {
+                    if (str_contains($upperLoc, $kw)) {
+                        $isOutside = true;
+                        break;
+                    }
                 }
+                $siteStatus = $isOutside ? 'outside_site' : 'inside_site';
 
                 // 3. Timesheet Mobile Flag
                 $isMobile = (str_contains($jenis, 'MOBILE') || $type === 'DUMP TRUCK' || $type === 'LIGHT TRUCK');
@@ -113,7 +126,7 @@ class SyncExcelVehicleDataCommand extends Command
                     // Update data unit yang sudah ada
                     $updatePayload = [
                         'category' => 'unit_support',
-                        'unit_category' => $cat,
+                        'operational_group' => $cat,
                         'unit_type' => $type,
                         'location' => $finalLocation,
                         'site_status' => $siteStatus,
@@ -122,6 +135,10 @@ class SyncExcelVehicleDataCommand extends Command
                         'location_updated_by' => 'Import Berkas Excel Lokasi',
                         'location_note' => "Pembaruan dari berkas DATA LOKASI TERBARU RKM KMH ({$finalLocation})",
                     ];
+
+                    if (empty($vehicle->unit_category)) {
+                        $updatePayload['unit_category'] = $vehicle->parent?->unit_category ?: ucwords(strtolower($type));
+                    }
 
                     if ($cleanBrand) {
                         $updatePayload['brand'] = $cleanBrand;
@@ -155,6 +172,7 @@ class SyncExcelVehicleDataCommand extends Command
                     $vehicle = Vehicle::create([
                         'code' => $code1,
                         'category' => 'unit_support',
+                        'operational_group' => $cat,
                         'unit_category' => $cat,
                         'unit_type' => $type,
                         'brand' => $cleanBrand,
@@ -187,6 +205,67 @@ class SyncExcelVehicleDataCommand extends Command
                     'recorded_at' => Carbon::now(),
                 ]);
             }
+
+            // Fallback untuk unit support yang belum memiliki operational_group
+            $typeFallback = [
+                'DUMP TRUCK' => 'HAULING',
+                'DUMP TRUCK FFT' => 'HAULING',
+                'MIXER TRUCK' => 'HAULING',
+                'CAPSULE CEMENT' => 'HAULING',
+                'EXCAVATOR' => 'LOADER',
+                'WHEEL LOADER' => 'LOADER',
+                'MUCKING LOADER' => 'LOADER',
+                'CRAWLER ROCK DRILL' => 'DRILLING',
+                'BORE PILE' => 'DRILLING',
+                'JUMBO DRILL' => 'DRILLING',
+                'WHEEL RIG DRILL' => 'DRILLING',
+                'BULLDOZER' => 'PIT SERVICE',
+                'MOTOR GRADER' => 'PIT SERVICE',
+                'VIBRO' => 'PIT SERVICE',
+                'WATER TRUCK' => 'PIT SERVICE',
+                'BOOMLIFT' => 'HANDLING',
+                'CARRYDECK CRANE' => 'HANDLING',
+                'CRAWLER CRANE' => 'HANDLING',
+                'CRANE TRUCK' => 'HANDLING',
+                'FLAT BED' => 'HANDLING',
+                'FORKLIFT' => 'HANDLING',
+                'LOW BED' => 'HANDLING',
+                'MOBILE CRANE' => 'HANDLING',
+                'ROUGHTER CRANE' => 'HANDLING',
+                'SCISSOR LIFT' => 'HANDLING',
+                'TOWER CRANE' => 'HANDLING',
+                'TRAILER' => 'HANDLING',
+                'ASPHALT PATCH MIXER' => 'SUPPORT',
+                'COMPRESSOR' => 'SUPPORT',
+                'CONCRETE PUMP' => 'SUPPORT',
+                'CONCRETE PUMP TRUCK' => 'SUPPORT',
+                'ENGINE GENSET' => 'SUPPORT',
+                'FUEL TRUCK' => 'SUPPORT',
+                'SILENT SHEET PILE' => 'SUPPORT',
+                'LIGHT TRUCK' => 'SUPPORT',
+                'SHOTCRETE' => 'SUPPORT',
+                'SKYLIFT TRUCK' => 'SUPPORT',
+                'WET SHOTCRETE TRUCK' => 'SUPPORT',
+            ];
+
+            foreach ($typeFallback as $fbType => $fbGroup) {
+                Vehicle::where('category', 'unit_support')
+                    ->where(function ($q) {
+                        $q->whereNull('operational_group')->orWhere('operational_group', '');
+                    })
+                    ->where(function ($q) use ($fbType) {
+                        $q->where('unit_type', $fbType)
+                          ->orWhere('unit_category', $fbType);
+                    })
+                    ->update(['operational_group' => $fbGroup]);
+            }
+
+            // Default terakhir jika masih kosong
+            Vehicle::where('category', 'unit_support')
+                ->where(function ($q) {
+                    $q->whereNull('operational_group')->orWhere('operational_group', '');
+                })
+                ->update(['operational_group' => 'SUPPORT']);
 
             DB::commit();
         } catch (\Throwable $e) {
