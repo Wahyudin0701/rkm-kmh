@@ -27,6 +27,12 @@ class CheckRole
             return $next($request);
         }
 
+        // Proteksi: Cek apakah petugas satpam berstatus Nonaktif
+        $guard = $user->securityGuard ?: \App\Models\SecurityGuard::where('user_id', $user->id)->first();
+        if ($guard && ! $guard->is_active) {
+            abort(403, 'Akses Ditolak: Akun Petugas Satpam Anda berstatus Nonaktif. Silakan hubungi Administrator PG.');
+        }
+
         // Cek via kolom role string atau Spatie hasAnyRole
         if (in_array($userRole, $roles) || (method_exists($user, 'hasAnyRole') && $user->hasAnyRole($roles))) {
             return $next($request);

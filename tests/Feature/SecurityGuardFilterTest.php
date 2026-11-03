@@ -175,4 +175,30 @@ class SecurityGuardFilterTest extends TestCase
             $this->assertSoftDeleted('users', ['id' => $userId]);
         }
     }
+
+    /**
+     * Memastikan petugas Satpam yang dinonaktifkan tidak dapat login dan ditolak middleware.
+     */
+    public function test_deactivated_guard_cannot_login_and_blocked_by_middleware(): void
+    {
+        $guard = SecurityGuard::with('user')->where('badge_id', 'SEC-001')->first();
+        $this->assertNotNull($guard);
+        $user = $guard->user;
+        $this->assertNotNull($user);
+
+        // 1. Nonaktifkan petugas satpam
+        $guard->update(['is_active' => false]);
+
+        // Coba login -> Harus ditolak
+        $loginResponse = $this->post(route('login'), [
+            'username' => $user->username,
+            'password' => 'password',
+        ]);
+        $loginResponse->assertSessionHasErrors('username');
+        $this->assertGuest();
+
+        // 2. Jika dalam sesi aktif tapi di-nonaktifkan -> Middleware tolak dengan 403
+        $middlewareResponse = $this->actingAs($user)->get(route('pg.dashboard'));
+        $middlewareResponse->assertStatus(403);
+    }
 }

@@ -47,6 +47,18 @@ class LoginController extends Controller
             /** @var \App\Models\User $user */
             $user = Auth::user();
 
+            // Proteksi: Cek apakah akun Petugas Satpam berstatus Nonaktif
+            $guard = $user->securityGuard ?: \App\Models\SecurityGuard::where('user_id', $user->id)->first();
+            if ($guard && ! $guard->is_active && ! $user->isSuperAdmin()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'username' => 'Akun Petugas Satpam Anda berstatus Nonaktif. Silakan hubungi Administrator Pos Gerbang (PG) untuk mengaktifkan kembali.',
+                ])->onlyInput('username');
+            }
+
             if ($request->session()->has('url.intended')) {
                 return redirect()->intended()
                     ->with('success', "Selamat datang kembali, {$user->name}!");

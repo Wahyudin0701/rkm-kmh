@@ -184,6 +184,10 @@ class GateInspectionController extends Controller
         }
 
         $guard = SecurityGuard::find($guardId);
+        if ($guard && ! $guard->is_active && ! ($user && $user->isSuperAdmin())) {
+            return back()->with('error', 'Aksi Ditolak: Petugas Satpam berstatus Nonaktif tidak diizinkan memvalidasi aktivitas pos gerbang.');
+        }
+
         $guardName = $guard?->name ?? ($user?->name ?? 'Petugas Pos Gerbang');
 
         DB::transaction(function () use ($guardId, $guardName, $activity, $user) {
@@ -264,6 +268,11 @@ class GateInspectionController extends Controller
         ], [
             'rejection_note.required' => 'Alasan penolakan wajib diisi.',
         ]);
+
+        $guard = SecurityGuard::find($guardId);
+        if ($guard && ! $guard->is_active && ! ($user && $user->isSuperAdmin())) {
+            return back()->with('error', 'Aksi Ditolak: Petugas Satpam berstatus Nonaktif tidak diizinkan memvalidasi aktivitas pos gerbang.');
+        }
 
         $activity = VehicleActivity::with('vehicle')->findOrFail($id);
 
