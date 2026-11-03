@@ -658,7 +658,6 @@
             }, 500);
         });
     });
-    });
 
     // Panduan Halaman Modal
     function openGuideModal() {

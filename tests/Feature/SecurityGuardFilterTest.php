@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Employee;
 use App\Models\Gate;
 use App\Models\SecurityGuard;
 use App\Models\User;
@@ -200,5 +201,73 @@ class SecurityGuardFilterTest extends TestCase
         // 2. Jika dalam sesi aktif tapi di-nonaktifkan -> Middleware tolak dengan 403
         $middlewareResponse = $this->actingAs($user)->get(route('pg.dashboard'));
         $middlewareResponse->assertStatus(403);
+    }
+
+    public function test_admin_pg_can_edit_guard_badge_id_and_syncs_with_user_and_employee(): void
+    {
+        $guard = SecurityGuard::with('user')->where('badge_id', 'SEC-002')->first();
+        $this->assertNotNull($guard);
+        $this->assertNotNull($guard->user);
+
+        // Pastikan ada Employee dengan NIK lama
+        $emp = Employee::firstOrCreate(
+            ['nik' => 'SEC-002'],
+            [
+                'user_id' => $guard->user_id,
+                'name' => $guard->name,
+                'employee_type' => 'Karyawan',
+                'unit_kerja' => 'Private Guard',
+                'division' => 'Private Guard',
+                'position' => 'Anggota',
+            ]
+        );
+
+        $response = $this->actingAs($this->adminPg)->post(route('pg.guards.update', $guard->id), [
+            'badge_id' => 'SEC-002-EDIT',
+            'name' => 'Budi Santoso Diperbarui',
+            'team' => 3,
+            'password' => 'newpassword123',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
+
+        // Verifikasi SecurityGuard
+        $guard->refresh();
+        $this->assertEquals('SEC-002-EDIT', $guard->badge_id);
+        $this->assertEquals('Budi Santoso Diperbarui', $guard->name);
+        $this->assertEquals(3, $guard->team);
+
+        // Verifikasi User login
+        $guard->user->refresh();
+        $this->assertEquals('SEC-002-EDIT', $guard->user->username);
+        $this->assertEquals('sec-002-edit@kmh.co.id', $guard->user->email);
+
+        // Verifikasi Employee NIK
+        $emp->refresh();
+        $this->assertEquals('SEC-002-EDIT', $emp->nik);
+        $this->assertEquals('Budi Santoso Diperbarui', $emp->name);
+
+        // Verifikasi login dengan ID baru dan password baru
+        $this->post('/logout');
+        $loginResponse = $this->post('/login', [
+            'username' => 'SEC-002-EDIT',
+            'password' => 'newpassword123',
+        ]);
+        $loginResponse->assertRedirect();
+        $this->assertAuthenticatedAs($guard->user);
+    }
+
+    public function test_editing_guard_with_duplicate_badge_id_is_rejected(): void
+    {
+        $guard = SecurityGuard::where('badge_id', 'SEC-002')->first();
+
+        $response = $this->actingAs($this->adminPg)->post(route('pg.guards.update', $guard->id), [
+            'badge_id' => 'SEC-001', // sudah dipakai oleh guard 1
+            'name' => 'Budi Duplicate',
+            'team' => 2,
+        ]);
+
+        $response->assertSessionHasErrors('badge_id');
     }
 }

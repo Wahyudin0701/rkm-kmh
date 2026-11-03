@@ -13,6 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -276,27 +277,44 @@ class SecurityGuardController extends Controller
     }
 
     /**
-     * Perbarui data Satpam (Nama, Regu, Penempatan Pos, dan Password opsional).
+     * Perbarui data Satpam (ID Satpam, Nama, Regu, Penempatan Pos, dan Password opsional).
      */
     public function update(Request $request, int $id): RedirectResponse
     {
         $guard = SecurityGuard::with('user')->findOrFail($id);
 
+        $newBadgeId = strtoupper(trim((string) $request->input('badge_id')));
+        $request->merge(['badge_id' => $newBadgeId]);
+
+        $emp = Employee::where('user_id', $guard->user_id)->orWhere('nik', $guard->badge_id)->first();
+
         $request->validate([
+            'badge_id' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('security_guards', 'badge_id')->ignore($guard->id),
+                Rule::unique('users', 'username')->ignore($guard->user_id),
+                Rule::unique('employees', 'nik')->ignore($emp?->id),
+            ],
             'name' => ['required', 'string', 'max:100'],
             'team' => ['required', 'integer', 'in:1,2,3'],
             'gate_id' => ['nullable', 'exists:gates,id'],
             'password' => ['nullable', 'string', 'min:4'],
         ], [
+            'badge_id.required' => 'ID Satpam wajib diisi.',
+            'badge_id.unique' => 'ID Satpam / NIK ini sudah digunakan oleh petugas/karyawan lain.',
             'name.required' => 'Nama lengkap Satpam wajib diisi.',
             'team.required' => 'Silakan pilih Regu Satpam (1, 2, atau 3).',
             'password.min' => 'Password minimal terdiri dari 4 karakter.',
         ]);
 
-        DB::transaction(function () use ($request, $guard) {
+        DB::transaction(function () use ($request, $guard, $newBadgeId, $emp) {
+            $oldBadgeId = $guard->badge_id;
             $gateId = $request->has('gate_id') ? ($request->input('gate_id') ?: null) : $guard->gate_id;
 
             $guard->update([
+                'badge_id' => $newBadgeId,
                 'name' => $request->input('name'),
                 'team' => (int) $request->input('team'),
                 'gate_id' => $gateId,
@@ -305,8 +323,13 @@ class SecurityGuardController extends Controller
             if ($guard->user) {
                 $userData = [
                     'name' => $request->input('name'),
+                    'username' => $newBadgeId,
                     'gate_id' => $gateId,
                 ];
+
+                if ($guard->user->email === strtolower((string) $oldBadgeId) . '@kmh.co.id') {
+                    $userData['email'] = strtolower($newBadgeId) . '@kmh.co.id';
+                }
 
                 if ($request->filled('password')) {
                     $userData['password'] = Hash::make($request->input('password'));
@@ -316,9 +339,9 @@ class SecurityGuardController extends Controller
             }
 
             // Sinkronkan nama dan profil Employee Satpam
-            $emp = Employee::where('user_id', $guard->user_id)->orWhere('nik', $guard->badge_id)->first();
             if ($emp) {
                 $emp->update([
+                    'nik' => $newBadgeId,
                     'name' => $guard->name,
                     'unit_kerja' => $emp->unit_kerja ?: 'Private Guard',
                     'division' => ($emp->division && $emp->division !== '-') ? $emp->division : 'Private Guard',
@@ -327,7 +350,7 @@ class SecurityGuardController extends Controller
             }
         });
 
-        return back()->with('success', "Data petugas Satpam {$guard->name} berhasil diperbarui.");
+        return back()->with('success', "Data petugas Satpam {$guard->name} ({$newBadgeId}) berhasil diperbarui.");
     }
 
     /**

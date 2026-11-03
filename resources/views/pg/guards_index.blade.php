@@ -374,10 +374,14 @@
         <form id="editGuardForm" method="POST" action="" class="mt-5 space-y-4">
             @csrf
             
-            <!-- ID Satpam (Read-only) -->
+            <!-- ID Satpam (Username Login) -->
             <div>
-                <label class="block text-sm font-bold text-slate-800 mb-2">ID Satpam (Username Login)</label>
-                <input type="text" id="editBadgeId" disabled class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-slate-100 text-slate-600 font-mono font-bold">
+                <label for="editBadgeId" class="block text-sm font-bold text-slate-800 mb-2">
+                    ID Satpam (Username Login) <span class="text-rose-500">*</span>
+                </label>
+                <input type="text" name="badge_id" id="editBadgeId" required placeholder="Contoh: SEC-001" 
+                       class="w-full text-sm px-4 py-3 rounded-2xl border border-slate-200 bg-white text-slate-800 font-mono font-bold placeholder-slate-400 focus:outline-none focus:border-[#1b5e20] focus:ring-2 focus:ring-[#1b5e20]/10 transition">
+                <p class="text-[11px] text-slate-400 mt-1">Mengubah ID Satpam otomatis memperbarui username login dan NIK Karyawan.</p>
             </div>
 
             <!-- Nama Lengkap -->
