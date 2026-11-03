@@ -337,4 +337,44 @@ class HseEmployeeImportTest extends TestCase
         $this->assertEquals('Ruadi Baru Terpulihkan', $employee->name);
         $this->assertEquals('Pembangkit', $employee->unit_kerja);
     }
+
+    public function test_import_updates_only_division_without_overwriting_other_existing_fields(): void
+    {
+        $existing = Employee::create([
+            'nik' => 'KMH-DIV-001',
+            'name' => 'Budi Santoso',
+            'unit_kerja' => 'Pembangkit',
+            'division' => '-',
+            'position' => 'Supervisor Listrik',
+            'is_operator' => true,
+            'simper_expired_at' => '2027-01-01',
+        ]);
+
+        // Excel hanya mengisi NIK, Nama, dan Divisi (kolom lainnya kosong/None)
+        $csvContent = implode("\n", [
+            'No,NIK,Nama Lengkap,Unit Kerja,Divisi,Jabatan,Operator Driver,Masa Berlaku SIMPER',
+            '1,KMH-DIV-001,Budi Santoso,,Electrical & Instrumentation,,,',
+        ]);
+
+        $file = UploadedFile::fake()->createWithContent('update_division_only.csv', $csvContent);
+
+        $response = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.import'), [
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $existing->refresh();
+
+        // Divisi terupdate
+        $this->assertEquals('Electrical & Instrumentation', $existing->division);
+
+        // Data lain yang tidak diisi di Excel tetap dipertahankan utuh
+        $this->assertEquals('Pembangkit', $existing->unit_kerja);
+        $this->assertEquals('Supervisor Listrik', $existing->position);
+        $this->assertTrue((bool)$existing->is_operator);
+        $this->assertEquals('2027-01-01 00:00:00', $existing->simper_expired_at);
+    }
 }

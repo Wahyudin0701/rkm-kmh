@@ -509,18 +509,24 @@ class EmployeeController extends Controller
                     continue;
                 }
 
-                $unitKerja = trim((string) ($colMap['unit_kerja'] !== null ? ($row[$colMap['unit_kerja']] ?? 'Umum') : 'Umum'));
-                $division = trim((string) ($colMap['division'] !== null ? ($row[$colMap['division']] ?? '-') : '-'));
-                $position = trim((string) ($colMap['position'] !== null ? ($row[$colMap['position']] ?? '-') : '-'));
-                $employeeType = trim((string) ($colMap['employee_type'] !== null ? ($row[$colMap['employee_type']] ?? 'Karyawan') : 'Karyawan')) ?: 'Karyawan';
+                $rawUnitKerja = $colMap['unit_kerja'] !== null ? trim((string) ($row[$colMap['unit_kerja']] ?? '')) : '';
+                $rawDivision = $colMap['division'] !== null ? trim((string) ($row[$colMap['division']] ?? '')) : '';
+                $rawPosition = $colMap['position'] !== null ? trim((string) ($row[$colMap['position']] ?? '')) : '';
+                $rawEmployeeType = $colMap['employee_type'] !== null ? trim((string) ($row[$colMap['employee_type']] ?? '')) : '';
+                $rawOperator = $colMap['is_operator'] !== null ? trim((string) ($row[$colMap['is_operator']] ?? '')) : '';
+                $rawSimper = $colMap['simper_expired_at'] !== null ? trim((string) ($row[$colMap['simper_expired_at']] ?? '')) : '';
+
+                $unitKerja = $rawUnitKerja ?: 'Umum';
+                $division = $rawDivision ?: '-';
+                $position = $rawPosition ?: '-';
+                $employeeType = $rawEmployeeType ?: 'Karyawan';
 
                 // Deteksi status driver (jika kolom ada dan berisi ya/driver)
-                $operatorRaw = $colMap['is_operator'] !== null ? strtolower(trim((string) ($row[$colMap['is_operator']] ?? ''))) : '';
+                $operatorRaw = strtolower($rawOperator);
                 $isOperator = in_array($operatorRaw, ['ya', 'yes', '1', 'true', 'driver', 'operator', 'y']);
 
                 // Deteksi tanggal SIMPER
-                $simperRaw = $colMap['simper_expired_at'] !== null ? trim((string) ($row[$colMap['simper_expired_at']] ?? '')) : '';
-                $simperExpiredAt = $isOperator ? SimpleXlsxImporter::normalizeDate($simperRaw) : null;
+                $simperExpiredAt = $isOperator ? SimpleXlsxImporter::normalizeDate($rawSimper) : null;
 
                 // 1. Sinkronisasi Akun User untuk login karyawan (gunakan withTrashed agar tidak bentrok dengan data di Tong Sampah)
                 $cleanEmail = strtolower(str_replace(['-', ' '], '', $nik)) . '@kmh.co.id';
@@ -557,16 +563,40 @@ class EmployeeController extends Controller
                     if ($isExisting->trashed()) {
                         $isExisting->restore();
                     }
-                    $isExisting->update([
+
+                    $updateData = [
                         'name' => $name,
-                        'employee_type' => $employeeType,
-                        'unit_kerja' => $unitKerja ?: 'Umum',
-                        'division' => $division ?: '-',
-                        'position' => $position ?: '-',
-                        'is_operator' => $isOperator,
-                        'simper_expired_at' => $simperExpiredAt,
                         'user_id' => $user->id,
-                    ]);
+                    ];
+
+                    // Perbarui kolom secara selektif jika pada berkas Excel terisi data baru
+                    if ($rawEmployeeType !== '') {
+                        $updateData['employee_type'] = $employeeType;
+                    }
+                    if ($rawUnitKerja !== '') {
+                        $updateData['unit_kerja'] = $unitKerja;
+                    } elseif (empty($isExisting->unit_kerja) || $isExisting->unit_kerja === '-') {
+                        $updateData['unit_kerja'] = 'Umum';
+                    }
+
+                    if ($rawDivision !== '') {
+                        $updateData['division'] = $division;
+                    }
+
+                    if ($rawPosition !== '') {
+                        $updateData['position'] = $position;
+                    }
+
+                    if ($rawOperator !== '') {
+                        $updateData['is_operator'] = $isOperator;
+                        if ($rawSimper !== '' && $isOperator) {
+                            $updateData['simper_expired_at'] = $simperExpiredAt;
+                        }
+                    } elseif ($rawSimper !== '' && $isExisting->is_operator) {
+                        $updateData['simper_expired_at'] = SimpleXlsxImporter::normalizeDate($rawSimper);
+                    }
+
+                    $isExisting->update($updateData);
                     $updatedCount++;
                 } else {
                     Employee::create([
