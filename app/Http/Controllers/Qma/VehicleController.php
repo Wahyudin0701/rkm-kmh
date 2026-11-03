@@ -1446,12 +1446,12 @@ class VehicleController extends Controller
 
         if ($vehicle->isSupportCategory()) {
             // Otomatis buatkan Master Template P2H baru jika belum ada
-            $templateCode = $vehicle->unit_type ?: $vehicle->code;
+            $templateCode = $vehicle->code;
             $template = P2hTemplate::firstOrCreate(
                 ['code' => $templateCode],
                 [
-                    'name' => $vehicle->unit_type ?: $vehicle->brand_type,
-                    'description' => "Template form inspeksi P2H resmi untuk {$vehicle->unit_type} (Kode: {$templateCode}).",
+                    'name' => $vehicle->unit_category ?: ($vehicle->unit_type ?: $vehicle->brand_type),
+                    'description' => "Template form inspeksi P2H resmi untuk " . ($vehicle->unit_category ?: $vehicle->brand_type) . " (Kode: {$templateCode}).",
                     'is_active' => true,
                 ]
             );

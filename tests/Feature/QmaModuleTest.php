@@ -155,6 +155,7 @@ class QmaModuleTest extends TestCase
             'category' => 'unit_support',
             'brand_type' => 'Caterpillar D6R',
             'unit_category' => 'Bulldozer',
+            'operational_group' => 'HEAVY',
             'unit_type' => 'Track-type Tractor',
             'brand' => 'Caterpillar',
             'model_number' => 'D6R XL',
@@ -174,6 +175,7 @@ class QmaModuleTest extends TestCase
             'code' => 'DZ01',
             'category' => 'unit_support',
             'unit_category' => 'Bulldozer',
+            'operational_group' => 'HEAVY',
             'silo_document' => 'SILO-2026/01',
         ]);
     }

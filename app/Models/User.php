@@ -33,17 +33,26 @@ class User extends Authenticatable
         });
 
         static::deleting(function (User $user) {
-            if ($user->employee) {
-                if ($user->employee->activities()->exists() || $user->employee->p2hRecords()->exists()) {
-                    throw new \Exception("Tidak dapat menghapus user: Karyawan '{$user->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H.");
+            $employee = $user->employee ?: Employee::where('user_id', $user->id)->orWhere('nik', $user->username)->first();
+            $guard = $user->securityGuard ?: SecurityGuard::where('user_id', $user->id)->first();
+
+            if ($user->isForceDeleting()) {
+                $employeeTrashed = $employee ?: Employee::withTrashed()->where('user_id', $user->id)->orWhere('nik', $user->username)->first();
+                if ($employeeTrashed && ($employeeTrashed->activities()->exists() || $employeeTrashed->p2hRecords()->exists() || $employeeTrashed->supportTimesheets()->exists())) {
+                    throw new \RuntimeException("Tidak dapat menghapus permanen user: Karyawan '{$user->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H.");
                 }
-                $user->employee->delete();
-            }
-            if ($user->securityGuard) {
-                if ($user->securityGuard->activities()->exists()) {
-                    throw new \Exception("Tidak dapat menghapus user: Petugas Satpam '{$user->name}' memiliki riwayat data validasi pos gerbang.");
+                $guardTrashed = $guard ?: SecurityGuard::withTrashed()->where('user_id', $user->id)->first();
+                if ($guardTrashed && $guardTrashed->activities()->exists()) {
+                    throw new \RuntimeException("Tidak dapat menghapus permanen user: Petugas Satpam '{$user->name}' memiliki riwayat data validasi pos gerbang.");
                 }
-                $user->securityGuard->delete();
+            } else {
+                // Soft delete: cukup cascade soft delete data employee & securityGuard jika ada dan belum terhapus
+                if ($employee && ! $employee->trashed()) {
+                    $employee->delete();
+                }
+                if ($guard && ! $guard->trashed()) {
+                    $guard->delete();
+                }
             }
         });
     }

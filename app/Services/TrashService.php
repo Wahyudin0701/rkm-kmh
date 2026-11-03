@@ -378,6 +378,36 @@ class TrashService
                 EmployeeSimper::onlyTrashed()
                     ->where('employee_id', $item->id)
                     ->restore();
+
+                $user = User::onlyTrashed()->where('id', $item->user_id)->orWhere('username', $item->nik)->first();
+                if ($user) {
+                    $user->restore();
+                    if ($user->role && ! $user->hasRole($user->role)) {
+                        $role = \Spatie\Permission\Models\Role::where('name', $user->role)->first();
+                        if ($role) {
+                            $user->assignRole($role);
+                        }
+                    }
+                }
+            }
+
+            if ($item instanceof User) {
+                if ($item->role && ! $item->hasRole($item->role)) {
+                    $role = \Spatie\Permission\Models\Role::where('name', $item->role)->first();
+                    if ($role) {
+                        $item->assignRole($role);
+                    }
+                }
+
+                $employee = Employee::onlyTrashed()->where('user_id', $item->id)->orWhere('nik', $item->username)->first();
+                if ($employee) {
+                    $employee->restore();
+                }
+
+                $guard = SecurityGuard::onlyTrashed()->where('user_id', $item->id)->first();
+                if ($guard) {
+                    $guard->restore();
+                }
             }
 
             if ($item instanceof SimperType) {
@@ -453,6 +483,14 @@ class TrashService
             }
 
             if ($item instanceof User) {
+                $employee = Employee::withTrashed()->where('user_id', $item->id)->orWhere('nik', $item->username)->first();
+                if ($employee && ($employee->activities()->exists() || $employee->p2hRecords()->exists() || $employee->supportTimesheets()->exists())) {
+                    throw new \RuntimeException("User '{$item->name}' memiliki data audit riwayat operasional kendaraan atau inspeksi P2H dan tidak dapat dihapus permanen untuk menjaga integritas data.");
+                }
+                $guard = SecurityGuard::withTrashed()->where('user_id', $item->id)->first();
+                if ($guard && $guard->activities()->exists()) {
+                    throw new \RuntimeException("User '{$item->name}' memiliki riwayat data validasi pos gerbang dan tidak dapat dihapus permanen untuk menjaga integritas data.");
+                }
                 ImageCompressionService::deleteIfExists($item->photo_path ?? null);
             }
 
@@ -474,8 +512,12 @@ class TrashService
             $model = $categories[$category]['model'];
             $items = $model::onlyTrashed()->get();
             foreach ($items as $item) {
-                $this->forceDeleteItem($category, $item->id);
-                $totalDeleted++;
+                try {
+                    $this->forceDeleteItem($category, $item->id);
+                    $totalDeleted++;
+                } catch (\Throwable) {
+                    // Abaikan item yang tidak dapat dihapus permanen untuk menjaga integritas audit
+                }
             }
             return $totalDeleted;
         }
@@ -485,8 +527,12 @@ class TrashService
             $model = $config['model'];
             $items = $model::onlyTrashed()->get();
             foreach ($items as $item) {
-                $this->forceDeleteItem($catKey, $item->id);
-                $totalDeleted++;
+                try {
+                    $this->forceDeleteItem($catKey, $item->id);
+                    $totalDeleted++;
+                } catch (\Throwable) {
+                    // Abaikan item yang tidak dapat dihapus permanen untuk menjaga integritas audit
+                }
             }
         }
 
@@ -515,8 +561,12 @@ class TrashService
             $model = $config['model'];
             $expiredItems = $model::onlyTrashed()->where('deleted_at', '<=', $cutoff)->get();
             foreach ($expiredItems as $item) {
-                $this->forceDeleteItem($catKey, $item->id);
-                $prunedCount++;
+                try {
+                    $this->forceDeleteItem($catKey, $item->id);
+                    $prunedCount++;
+                } catch (\Throwable) {
+                    // Abaikan item yang tidak dapat dihapus permanen untuk menjaga integritas audit
+                }
             }
         }
 

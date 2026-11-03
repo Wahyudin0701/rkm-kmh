@@ -334,6 +334,8 @@ class P2hInspectionTest extends TestCase
             'category' => 'unit_support',
             'brand_type' => 'Manitou MT-X 733',
             'unit_category' => 'Telehandler',
+            'unit_type' => 'Telehandler',
+            'operational_group' => 'HEAVY',
             'status' => 'Operation',
             'current_km' => 0,
         ]);

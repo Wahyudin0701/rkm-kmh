@@ -302,7 +302,7 @@ class QmaUnitManagementTest extends TestCase
         $vehicle->refresh();
         $this->assertEquals('inside_site', $vehicle->site_status);
         $this->assertEquals($this->gate->name, $vehicle->location);
-        $this->assertEquals($this->guard->name, $vehicle->location_updated_by);
+        $this->assertEquals($this->gateOfficer->name, $vehicle->location_updated_by);
         $this->assertStringContainsString('TRX-IN-001', $vehicle->location_note);
 
         // Verifikasi riwayat tersimpan otomatis bersumber gate_crossing
@@ -312,7 +312,7 @@ class QmaUnitManagementTest extends TestCase
             'location' => $this->gate->name,
             'source' => 'gate_crossing',
             'vehicle_activity_id' => $activity->id,
-            'user_name' => $this->guard->name,
+            'user_name' => $this->gateOfficer->name,
         ]);
     }
 
@@ -362,7 +362,7 @@ class QmaUnitManagementTest extends TestCase
         $vehicle->refresh();
         $this->assertEquals('outside_site', $vehicle->site_status);
         $this->assertEquals('Luar Site - Antar Dokumen ke Kantor Jambi', $vehicle->location);
-        $this->assertEquals($this->guard->name, $vehicle->location_updated_by);
+        $this->assertEquals($this->gateOfficer->name, $vehicle->location_updated_by);
 
         // Verifikasi riwayat tersimpan otomatis
         $this->assertDatabaseHas('vehicle_location_histories', [

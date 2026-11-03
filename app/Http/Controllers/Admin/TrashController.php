@@ -73,24 +73,28 @@ class TrashController extends Controller
      */
     public function forceDelete(string $category, int $id): RedirectResponse
     {
-        $success = $this->trashService->forceDeleteItem($category, $id);
+        try {
+            $success = $this->trashService->forceDeleteItem($category, $id);
 
-        if (!$success) {
-            return back()->with('error', 'Data tidak ditemukan di tong sampah atau gagal dihapus permanen.');
+            if (!$success) {
+                return back()->with('error', 'Data tidak ditemukan di tong sampah atau gagal dihapus permanen.');
+            }
+
+            $catDefinitions = TrashService::getCategoryDefinitions();
+            $label = $catDefinitions[$category]['label'] ?? $category;
+
+            AdminActivityLog::record(
+                actionType: 'delete',
+                module: 'Tong Sampah',
+                description: "Menghapus permanen data pada kategori '{$label}' (ID: {$id}).",
+                targetType: $category,
+                targetId: $id
+            );
+
+            return back()->with('success', "Data '{$label}' berhasil dihapus permanen dari sistem.");
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Aksi Ditolak: ' . $e->getMessage());
         }
-
-        $catDefinitions = TrashService::getCategoryDefinitions();
-        $label = $catDefinitions[$category]['label'] ?? $category;
-
-        AdminActivityLog::record(
-            actionType: 'delete',
-            module: 'Tong Sampah',
-            description: "Menghapus permanen data pada kategori '{$label}' (ID: {$id}).",
-            targetType: $category,
-            targetId: $id
-        );
-
-        return back()->with('success', "Data '{$label}' berhasil dihapus permanen dari sistem.");
     }
 
     /**

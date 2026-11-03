@@ -11,6 +11,7 @@ use App\Services\ImageCompressionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -419,23 +420,29 @@ class UserController extends Controller
         $userRole = $user->role ?? '';
         $userId = $user->id;
 
-        $user->syncRoles([]);
-        $user->delete();
+        try {
+            DB::transaction(function () use ($user) {
+                $user->delete();
+            });
 
-        // Rekam ke Log Riwayat Aktivitas Super Admin
-        $roleTitle = $this->getFriendlyRoleName($userRole);
-        AdminActivityLog::record(
-            actionType: 'delete',
-            module: 'Manajemen Pengguna',
-            description: "Menghapus akun pengguna: {$name} (Username: {$username}) dengan hak akses '{$roleTitle}'.",
-            targetType: 'User',
-            targetId: $userId,
-            targetName: $name,
-            oldValues: $deletedSnapshot
-        );
+            // Rekam ke Log Riwayat Aktivitas Super Admin
+            $roleTitle = $this->getFriendlyRoleName($userRole);
+            AdminActivityLog::record(
+                actionType: 'delete',
+                module: 'Manajemen Pengguna',
+                description: "Menghapus akun pengguna: {$name} (Username: {$username}) dengan hak akses '{$roleTitle}'.",
+                targetType: 'User',
+                targetId: $userId,
+                targetName: $name,
+                oldValues: $deletedSnapshot
+            );
 
-        return redirect()->route('admin.users.index')
-            ->with('success', "Akun pengguna [{$name}] berhasil dihapus dari sistem.");
+            return redirect()->route('admin.users.index')
+                ->with('success', "Akun pengguna [{$name}] berhasil dihapus dan dipindahkan ke Tong Sampah.");
+        } catch (\Throwable $e) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Gagal menghapus pengguna: ' . $e->getMessage());
+        }
     }
 
     /**
