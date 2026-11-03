@@ -1019,7 +1019,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', form.action, true);
-        xhr.timeout = 1800000; // 30 Menit timeout untuk berkas backup besar
+        xhr.timeout = 3600000; // 1 Jam timeout untuk berkas backup besar
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
         xhr.upload.onprogress = function(e) {
@@ -1090,7 +1090,7 @@
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
             if (text) text.textContent = 'Mulai Pemulihan Sistem';
-            document.getElementById('directRestoreErrorMessage').textContent = 'Waktu pengunggahan habis (Timeout 30 Menit). Silakan periksa kestabilan jaringan internet Anda.';
+            document.getElementById('directRestoreErrorMessage').textContent = 'Waktu pengunggahan habis (Timeout 1 Jam). Silakan periksa kestabilan jaringan internet Anda.';
             document.getElementById('directRestoreError').classList.remove('hidden');
         };
 
@@ -1332,7 +1332,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `{{ route('admin.backups.converter.inspect') }}`, true);
-        xhr.timeout = 1800000; // 30 Menit timeout
+        xhr.timeout = 3600000; // 1 Jam timeout
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
 
@@ -1411,7 +1411,7 @@
         xhr.ontimeout = function() {
             loading.classList.add('hidden');
             document.getElementById('panelConverterUpload').classList.remove('hidden');
-            showConverterError('Waktu pengunggahan habis (Timeout 30 Menit). Silakan periksa kestabilan jaringan internet Anda.');
+            showConverterError('Waktu pengunggahan habis (Timeout 1 Jam). Silakan periksa kestabilan jaringan internet Anda.');
         };
 
         xhr.send(formData);

@@ -149,7 +149,7 @@ class DatabaseBackupService
      */
     public function createKmhBackup(?array $selectedTables = null, bool $includeMedia = false, ?string $customFilename = null): string
     {
-        @set_time_limit(1800);
+        @set_time_limit(3600);
         @ini_set('memory_limit', '1024M');
 
         if (!class_exists('ZipArchive')) {
@@ -242,7 +242,7 @@ class DatabaseBackupService
      */
     public function restore(string $backupFilenameOrPath): void
     {
-        @set_time_limit(1800);
+        @set_time_limit(3600);
         @ini_set('memory_limit', '1024M');
 
         $filePath = File::exists($backupFilenameOrPath)

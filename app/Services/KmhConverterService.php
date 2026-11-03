@@ -32,7 +32,7 @@ class KmhConverterService
      */
     public function inspectServerFile(string $filename): array
     {
-        @set_time_limit(1800);
+        @set_time_limit(3600);
         @ini_set('memory_limit', '1024M');
 
         $backupDir = $this->backupService->getBackupDirectory();
@@ -82,9 +82,9 @@ class KmhConverterService
             $tempDir = storage_path('app/temp_converter');
             File::ensureDirectoryExists($tempDir);
 
-            // Bersihkan file sementara yang lebih tua dari 30 menit
+            // Bersihkan file sementara yang lebih tua dari 1 jam (3600 detik)
             foreach (File::files($tempDir) as $f) {
-                if ((time() - $f->getMTime()) > 1800) {
+                if ((time() - $f->getMTime()) > 3600) {
                     @unlink($f->getPathname());
                 }
             }
@@ -128,7 +128,7 @@ class KmhConverterService
      */
     public function inspectUploadedFile(UploadedFile $file): array
     {
-        @set_time_limit(1800);
+        @set_time_limit(3600);
         @ini_set('memory_limit', '1024M');
 
         $realPath = $file->getRealPath();
@@ -180,9 +180,9 @@ class KmhConverterService
             $tempDir = storage_path('app/temp_converter');
             File::ensureDirectoryExists($tempDir);
 
-            // Bersihkan file sementara yang lebih tua dari 30 menit
+            // Bersihkan file sementara yang lebih tua dari 1 jam (3600 detik)
             foreach (File::files($tempDir) as $f) {
-                if ((time() - $f->getMTime()) > 1800) {
+                if ((time() - $f->getMTime()) > 3600) {
                     @unlink($f->getPathname());
                 }
             }
@@ -259,7 +259,7 @@ class KmhConverterService
      */
     public function convertKmhFilePath(string $kmhFilePath, string $originalFilename, array $selectedTables, string $format): array
     {
-        @set_time_limit(1800);
+        @set_time_limit(3600);
         @ini_set('memory_limit', '1024M');
 
         $format = strtolower($format);
