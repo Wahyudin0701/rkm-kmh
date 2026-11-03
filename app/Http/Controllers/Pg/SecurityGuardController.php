@@ -259,9 +259,23 @@ class SecurityGuardController extends Controller
             ]);
 
             // 3. Otomatis buat / sinkronkan profil Employee untuk Satpam (Divisi: Private Guard, Jabatan: Anggota)
-            Employee::firstOrCreate(
-                ['nik' => $badgeId],
-                [
+            $guardEmp = Employee::withTrashed()->where('nik', $badgeId)->first();
+            if ($guardEmp) {
+                if ($guardEmp->trashed()) {
+                    $guardEmp->restore();
+                }
+                $guardEmp->update([
+                    'user_id' => $user->id,
+                    'name' => $request->input('name'),
+                    'employee_type' => 'Karyawan',
+                    'unit_kerja' => $guardEmp->unit_kerja ?: 'Private Guard',
+                    'division' => ($guardEmp->division && $guardEmp->division !== '-') ? $guardEmp->division : 'Private Guard',
+                    'position' => ($guardEmp->position && $guardEmp->position !== '-') ? $guardEmp->position : 'Anggota',
+                    'is_operator' => false,
+                ]);
+            } else {
+                Employee::create([
+                    'nik' => $badgeId,
                     'user_id' => $user->id,
                     'name' => $request->input('name'),
                     'employee_type' => 'Karyawan',
@@ -269,8 +283,8 @@ class SecurityGuardController extends Controller
                     'division' => 'Private Guard',
                     'position' => 'Anggota',
                     'is_operator' => false,
-                ]
-            );
+                ]);
+            }
         });
 
         return back()->with('success', "Petugas Satpam {$request->input('name')} (ID: {$request->input('badge_id')}) berhasil didaftarkan.");

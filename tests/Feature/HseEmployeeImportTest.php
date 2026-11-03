@@ -284,4 +284,57 @@ class HseEmployeeImportTest extends TestCase
             'simper_expired_at' => null,
         ]);
     }
+
+    public function test_import_restores_soft_deleted_user_and_employee_without_duplicate_error(): void
+    {
+        // Simulasi kondisi VPS: User dan Employee dengan NIK 1111 pernah dihapus ke Tong Sampah
+        $user = User::create([
+            'username' => '1111',
+            'name' => 'Ruadi Lama',
+            'email' => '1111@kmh.co.id',
+            'password' => Hash::make('password'),
+            'role' => 'employee',
+        ]);
+        $employee = Employee::create([
+            'nik' => '1111',
+            'name' => 'Ruadi Lama',
+            'unit_kerja' => 'Umum',
+            'division' => 'GA',
+            'position' => 'Staff',
+            'user_id' => $user->id,
+        ]);
+
+        $user->delete(); // Soft delete ke Tong Sampah
+        $employee->delete(); // Soft delete ke Tong Sampah
+
+        $this->assertSoftDeleted('users', ['username' => '1111']);
+        $this->assertSoftDeleted('employees', ['nik' => '1111']);
+
+        // Impor file yang mengandung NIK 1111
+        $csvContent = implode("\n", [
+            'No,NIK,Nama Lengkap,Unit Kerja,Divisi,Jabatan,Operator Driver,Masa Berlaku SIMPER',
+            '1,1111,Ruadi Baru Terpulihkan,Pembangkit,Mekanik,Staff,TIDAK,',
+        ]);
+
+        $file = UploadedFile::fake()->createWithContent('import_with_trashed.csv', $csvContent);
+
+        $response = $this->actingAs($this->hseAdmin)
+            ->post(route('hse.employees.import'), [
+                'file' => $file,
+            ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        // Pastikan dipulihkan dan tidak terjadi SQL duplicate entry error
+        $this->assertNotSoftDeleted('users', ['username' => '1111']);
+        $this->assertNotSoftDeleted('employees', ['nik' => '1111']);
+
+        $user->refresh();
+        $employee->refresh();
+
+        $this->assertEquals('Ruadi Baru Terpulihkan', $user->name);
+        $this->assertEquals('Ruadi Baru Terpulihkan', $employee->name);
+        $this->assertEquals('Pembangkit', $employee->unit_kerja);
+    }
 }

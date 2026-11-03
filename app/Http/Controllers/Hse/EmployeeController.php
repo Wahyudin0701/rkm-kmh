@@ -522,25 +522,41 @@ class EmployeeController extends Controller
                 $simperRaw = $colMap['simper_expired_at'] !== null ? trim((string) ($row[$colMap['simper_expired_at']] ?? '')) : '';
                 $simperExpiredAt = $isOperator ? SimpleXlsxImporter::normalizeDate($simperRaw) : null;
 
-                // 1. Sinkronisasi Akun User untuk login karyawan
+                // 1. Sinkronisasi Akun User untuk login karyawan (gunakan withTrashed agar tidak bentrok dengan data di Tong Sampah)
                 $cleanEmail = strtolower(str_replace(['-', ' '], '', $nik)) . '@kmh.co.id';
-                $user = User::firstOrCreate(
-                    ['username' => $nik],
-                    [
+                $user = User::withTrashed()->where('username', $nik)->first();
+                if ($user) {
+                    if ($user->trashed()) {
+                        $user->restore();
+                    }
+                    $user->update([
+                        'name' => $name,
+                        'role' => $user->role ?: 'employee',
+                    ]);
+                } else {
+                    if (User::withTrashed()->where('email', $cleanEmail)->exists()) {
+                        $cleanEmail = strtolower(str_replace(['-', ' '], '', $nik)) . '.' . uniqid() . '@kmh.co.id';
+                    }
+
+                    $user = User::create([
+                        'username' => $nik,
                         'name' => $name,
                         'email' => $cleanEmail,
                         'password' => Hash::make(config('auth.default_employee_password', '123456')),
                         'role' => 'employee',
-                    ]
-                );
+                    ]);
+                }
 
                 if (!$user->hasRole('employee')) {
                     $user->assignRole('employee');
                 }
 
-                // 2. Simpan atau perbarui data master Employee
-                $isExisting = Employee::where('nik', $nik)->first();
+                // 2. Simpan atau perbarui data master Employee (gunakan withTrashed agar tidak duplikat dengan NIK di Tong Sampah)
+                $isExisting = Employee::withTrashed()->where('nik', $nik)->first();
                 if ($isExisting) {
+                    if ($isExisting->trashed()) {
+                        $isExisting->restore();
+                    }
                     $isExisting->update([
                         'name' => $name,
                         'employee_type' => $employeeType,
