@@ -16,7 +16,14 @@
             </p>
         </div>
         <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->role === 'super_admin')
+            <button type="button" onclick="openClearLogsModal()" 
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer shadow-2xs">
+                <i class="fa-regular fa-trash-can text-sm"></i>
+                <span>Kosongkan Log</span>
+            </button>
+            @endif
+            <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 <i class="fa-solid fa-shield-halved"></i>
                 <span>Rekaman Keamanan Sistem</span>
             </span>
@@ -518,10 +525,19 @@
         document.getElementById('logDetailModal').classList.add('hidden');
     }
 
+    function openClearLogsModal() {
+        document.getElementById('clearLogsModal')?.classList.remove('hidden');
+    }
+
+    function closeClearLogsModal() {
+        document.getElementById('clearLogsModal')?.classList.add('hidden');
+    }
+
     // Tutup saat klik di luar modal / Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeLogDetailModal();
+            closeClearLogsModal();
         }
     });
 
@@ -530,5 +546,50 @@
             closeLogDetailModal();
         }
     });
+
+    document.getElementById('clearLogsModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeClearLogsModal();
+        }
+    });
 </script>
+
+@if(auth()->user()?->hasRole('super_admin') || auth()->user()?->role === 'super_admin')
+<!-- Modal Konfirmasi Kosongkan Log Aktivitas -->
+<div id="clearLogsModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <div class="p-6 text-center">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 text-2xl shadow-inner">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 tracking-tight">Kosongkan Riwayat Log Admin?</h3>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                Tindakan ini akan menghapus <strong>seluruh catatan riwayat aktivitas admin</strong> saat ini. Sangat disarankan dilakukan sebelum sistem resmi di-launching agar riwayat bersih.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('admin.activity_logs.clear') }}" class="px-6 pb-6 space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 text-left">
+                    Konfirmasi Keamanan (Ketik <span class="text-rose-600 font-mono">KOSONGKAN</span> atau Password Super Admin):
+                </label>
+                <input type="text" name="confirmation" placeholder="Ketik KOSONGKAN" 
+                       class="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 font-mono transition">
+            </div>
+
+            <div class="flex items-center justify-end space-x-2 pt-2">
+                <button type="button" onclick="closeClearLogsModal()" 
+                        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition cursor-pointer">
+                    Batal
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 transition cursor-pointer shadow-sm">
+                    <i class="fa-regular fa-trash-can mr-1.5"></i> Ya, Kosongkan Semua Log
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 @endsection

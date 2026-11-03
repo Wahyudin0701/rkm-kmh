@@ -214,6 +214,7 @@ Route::middleware('auth')->group(function () {
 
         // Log Riwayat Aktivitas Super Admin
         Route::get('/activity-logs', [AdminActivityLogController::class, 'index'])->name('activity_logs.index');
+        Route::post('/activity-logs/clear', [AdminActivityLogController::class, 'clear'])->name('activity_logs.clear');
 
         // Backup & Restore Sistem (Database & Media)
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
