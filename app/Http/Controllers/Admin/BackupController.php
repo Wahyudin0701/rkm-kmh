@@ -434,21 +434,36 @@ class BackupController extends Controller
     public function converterInspect(Request $request): JsonResponse
     {
         $request->validate([
-            'backup_file' => 'required|file',
+            'backup_file' => 'nullable|file',
+            'server_filename' => 'nullable|string',
         ]);
 
-        $file = $request->file('backup_file');
-        $originalName = $file->getClientOriginalName();
-
-        if (!str_ends_with(strtolower($originalName), '.kmh')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
-            ], 422);
-        }
-
         try {
-            $metadata = $this->converterService->inspectUploadedFile($file);
+            if ($request->filled('server_filename')) {
+                $serverFile = $request->input('server_filename');
+                if (!str_ends_with(strtolower($serverFile), '.kmh')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+                    ], 422);
+                }
+                $metadata = $this->converterService->inspectServerFile($serverFile);
+            } elseif ($request->hasFile('backup_file')) {
+                $file = $request->file('backup_file');
+                $originalName = $file->getClientOriginalName();
+                if (!str_ends_with(strtolower($originalName), '.kmh')) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Berkas yang dipilih harus berekstensi .kmh.',
+                    ], 422);
+                }
+                $metadata = $this->converterService->inspectUploadedFile($file);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Silakan pilih berkas .kmh dari komputer atau server.',
+                ], 422);
+            }
 
             return response()->json([
                 'success' => true,

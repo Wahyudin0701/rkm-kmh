@@ -236,6 +236,13 @@
                                         </a>
 
                                         <button type="button" 
+                                                onclick="openServerConverterModal('{{ $log->filename }}')" 
+                                                title="Konversi langsung berkas arsip ini ke Excel / CSV / SQL tanpa perlu upload ulang dari PC" 
+                                                class="px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-semibold text-[11px] transition">
+                                            Konversi
+                                        </button>
+
+                                        <button type="button" 
                                                 onclick="openRestoreModal('{{ $log->filename }}', '{{ $log->scope_label }}', '{{ $log->file_size_human }}')" 
                                                 class="px-2.5 py-1 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 font-semibold text-[11px] transition">
                                             Pulihkan
@@ -1012,7 +1019,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', form.action, true);
-        xhr.timeout = 600000; // 10 Menit timeout untuk berkas backup besar
+        xhr.timeout = 1800000; // 30 Menit timeout untuk berkas backup besar
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
         xhr.upload.onprogress = function(e) {
@@ -1083,7 +1090,7 @@
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
             if (text) text.textContent = 'Mulai Pemulihan Sistem';
-            document.getElementById('directRestoreErrorMessage').textContent = 'Waktu pengunggahan habis (Timeout 10 Menit). Silakan periksa kestabilan jaringan internet Anda.';
+            document.getElementById('directRestoreErrorMessage').textContent = 'Waktu pengunggahan habis (Timeout 30 Menit). Silakan periksa kestabilan jaringan internet Anda.';
             document.getElementById('directRestoreError').classList.remove('hidden');
         };
 
@@ -1222,6 +1229,79 @@
         }
     }
 
+    function openServerConverterModal(filename) {
+        openConverterModal();
+
+        // Sembunyikan panel upload dan tampilkan status loading membaca arsip server
+        document.getElementById('converterError').classList.add('hidden');
+        document.getElementById('panelConverterUpload').classList.add('hidden');
+        document.getElementById('panelConverterConfig').classList.add('hidden');
+
+        const loading = document.getElementById('converterLoading');
+        const progressBar = document.getElementById('converterProgressBar');
+        const percentText = document.getElementById('converterUploadPercentText');
+        const byteText = document.getElementById('converterUploadByteText');
+        const statusText = document.getElementById('converterLoadingText');
+        const subText = document.getElementById('converterUploadSubText');
+
+        progressBar.style.width = '100%';
+        percentText.textContent = '100%';
+        byteText.textContent = 'Arsip Server';
+        statusText.textContent = `Membaca arsip server "${filename}"...`;
+        subText.textContent = 'Membaca manifest & struktur tabel langsung dari VPS (Tanpa upload)...';
+        loading.classList.remove('hidden');
+
+        const formData = new FormData();
+        formData.append('server_filename', filename);
+        formData.append('_token', '{{ csrf_token() }}');
+
+        fetch(`{{ route('admin.backups.converter.inspect') }}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(async response => {
+            loading.classList.add('hidden');
+            const res = await response.json().catch(() => ({}));
+            if (response.ok && res.success && res.data) {
+                currentConverterFile = null;
+                currentConverterToken = res.data.token || null;
+                currentConverterTables = res.data.tables || [];
+
+                document.getElementById('convFilename').textContent = res.data.filename;
+                document.getElementById('convFileSize').textContent = res.data.size_human;
+                document.getElementById('convCreatedAt').textContent = res.data.created_at_human;
+                document.getElementById('convDatabase').textContent = res.data.database;
+
+                const mediaCard = document.getElementById('convMediaFormatCard');
+                if (mediaCard) {
+                    if (res.data.has_media) {
+                        mediaCard.classList.remove('hidden');
+                    } else {
+                        mediaCard.classList.add('hidden');
+                    }
+                }
+
+                const filterInput = document.getElementById('convTableFilterInput');
+                if (filterInput) filterInput.value = '';
+
+                renderConverterTableChecklist('');
+                document.getElementById('panelConverterConfig').classList.remove('hidden');
+            } else {
+                document.getElementById('panelConverterUpload').classList.remove('hidden');
+                showConverterError(res.message || 'Gagal membaca berkas arsip .kmh dari server.');
+            }
+        })
+        .catch(err => {
+            loading.classList.add('hidden');
+            document.getElementById('panelConverterUpload').classList.remove('hidden');
+            showConverterError(err.message || 'Terjadi kesalahan saat memeriksa berkas server.');
+        });
+    }
+
     function inspectConverterFile(file) {
         if (!file.name.toLowerCase().endsWith('.kmh')) {
             alert('File yang dipilih harus berekstensi .kmh!');
@@ -1252,7 +1332,7 @@
 
         const xhr = new XMLHttpRequest();
         xhr.open('POST', `{{ route('admin.backups.converter.inspect') }}`, true);
-        xhr.timeout = 600000; // 10 Menit timeout
+        xhr.timeout = 1800000; // 30 Menit timeout
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('Accept', 'application/json');
 
@@ -1331,7 +1411,7 @@
         xhr.ontimeout = function() {
             loading.classList.add('hidden');
             document.getElementById('panelConverterUpload').classList.remove('hidden');
-            showConverterError('Waktu pengunggahan habis (Timeout 10 Menit). Silakan periksa kestabilan jaringan internet Anda.');
+            showConverterError('Waktu pengunggahan habis (Timeout 30 Menit). Silakan periksa kestabilan jaringan internet Anda.');
         };
 
         xhr.send(formData);

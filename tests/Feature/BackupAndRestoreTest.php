@@ -310,4 +310,33 @@ class BackupAndRestoreTest extends TestCase
             'target_name' => 'backup_dari_pc.kmh',
         ]);
     }
+
+    public function test_super_admin_can_inspect_and_convert_server_backup_file(): void
+    {
+        $filename = $this->backupService->createKmhBackup(['users', 'roles'], false, 'test_server_conv.kmh');
+
+        // 1. Inspect server file via AJAX
+        $inspectResponse = $this->actingAs($this->superAdmin)
+            ->postJson(route('admin.backups.converter.inspect'), [
+                'server_filename' => $filename,
+            ]);
+
+        $inspectResponse->assertStatus(200);
+        $inspectResponse->assertJson([
+            'success' => true,
+        ]);
+        $token = $inspectResponse->json('data.token');
+        $this->assertNotEmpty($token);
+
+        // 2. Convert using token to SQL
+        $convResponse = $this->actingAs($this->superAdmin)
+            ->post(route('admin.backups.converter.execute'), [
+                'token' => $token,
+                'tables' => ['users'],
+                'format' => 'sql',
+            ]);
+
+        $convResponse->assertStatus(200);
+        $this->assertEquals('application/sql', $convResponse->headers->get('Content-Type'));
+    }
 }

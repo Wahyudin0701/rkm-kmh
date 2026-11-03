@@ -15,6 +15,102 @@ class KmhConverterService
     ) {}
 
     /**
+     * Periksa metadata dan daftar tabel dari berkas .kmh yang sudah tersimpan di server.
+     * Tidak memerlukan pengunggahan ulang berkas dari PC (sangat cepat & ramah kuota).
+     *
+     * @return array{
+     *     token: string,
+     *     filename: string,
+     *     size_human: string,
+     *     created_at_human: string,
+     *     created_at_diff: string,
+     *     table_count: int,
+     *     tables: array<string>,
+     *     database: string,
+     *     has_media: bool
+     * }
+     */
+    public function inspectServerFile(string $filename): array
+    {
+        @set_time_limit(1800);
+        @ini_set('memory_limit', '1024M');
+
+        $backupDir = $this->backupService->getBackupDirectory();
+        $realPath = $backupDir . DIRECTORY_SEPARATOR . basename($filename);
+        if (!is_file($realPath)) {
+            throw new RuntimeException("Berkas arsip '{$filename}' tidak ditemukan di penyimpanan server.");
+        }
+
+        $kmhContent = file_get_contents($realPath);
+        if ($kmhContent === false) {
+            throw new RuntimeException("Gagal membaca berkas .kmh dari server.");
+        }
+
+        $decryptedZipContent = $this->backupService->decryptFromKmh($kmhContent);
+        unset($kmhContent);
+
+        $tempZipPath = storage_path('app/temp_inspect_' . uniqid() . '.zip');
+        file_put_contents($tempZipPath, $decryptedZipContent);
+        unset($decryptedZipContent);
+
+        $zip = new ZipArchive();
+        if ($zip->open($tempZipPath) !== true) {
+            @unlink($tempZipPath);
+            throw new RuntimeException("Konten terdekripsi bukan merupakan arsip ZIP yang sah.");
+        }
+
+        try {
+            $manifestJson = $zip->getFromName('manifest.json');
+            $manifest = $manifestJson ? json_decode($manifestJson, true) : [];
+
+            $tables = $manifest['tables'] ?? [];
+
+            if (empty($tables)) {
+                $sqlContent = $zip->getFromName('database.sql');
+                if ($sqlContent) {
+                    preg_match_all('/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([a-zA-Z0-9_]+)`?/i', $sqlContent, $matches);
+                    $tables = array_values(array_unique($matches[1] ?? []));
+                }
+            }
+
+            sort($tables);
+
+            $createdAt = isset($manifest['created_at']) 
+                ? Carbon::parse($manifest['created_at']) 
+                : Carbon::createFromTimestamp(filemtime($realPath));
+
+            $tempDir = storage_path('app/temp_converter');
+            File::ensureDirectoryExists($tempDir);
+
+            // Bersihkan file sementara yang lebih tua dari 30 menit
+            foreach (File::files($tempDir) as $f) {
+                if ((time() - $f->getMTime()) > 1800) {
+                    @unlink($f->getPathname());
+                }
+            }
+
+            $token = bin2hex(random_bytes(16));
+            $cachedKmhPath = $tempDir . '/' . $token . '.kmh';
+            copy($realPath, $cachedKmhPath);
+
+            return [
+                'token' => $token,
+                'filename' => basename($filename),
+                'size_human' => $this->backupService->formatBytes((int) filesize($realPath)),
+                'created_at_human' => $createdAt->translatedFormat('d F Y, H:i') . ' WIB',
+                'created_at_diff' => $createdAt->diffForHumans(),
+                'table_count' => count($tables),
+                'tables' => $tables,
+                'database' => $manifest['database'] ?? config('database.connections.' . config('database.default') . '.database', 'rkm_kmh'),
+                'has_media' => (bool) ($manifest['has_media'] ?? false),
+            ];
+        } finally {
+            $zip->close();
+            @unlink($tempZipPath);
+        }
+    }
+
+    /**
      * Periksa metadata dan daftar tabel dari berkas .kmh yang diunggah dari PC.
      * Menyimpan berkas sementara dengan token aman agar saat klik konversi tidak perlu upload ulang 2x.
      *
@@ -32,6 +128,9 @@ class KmhConverterService
      */
     public function inspectUploadedFile(UploadedFile $file): array
     {
+        @set_time_limit(1800);
+        @ini_set('memory_limit', '1024M');
+
         $realPath = $file->getRealPath();
         if (!$realPath || !is_file($realPath)) {
             throw new RuntimeException("Berkas unggahan tidak ditemukan atau korup.");
@@ -160,6 +259,9 @@ class KmhConverterService
      */
     public function convertKmhFilePath(string $kmhFilePath, string $originalFilename, array $selectedTables, string $format): array
     {
+        @set_time_limit(1800);
+        @ini_set('memory_limit', '1024M');
+
         $format = strtolower($format);
         if (!in_array($format, ['xlsx', 'csv', 'sql', 'media'], true)) {
             throw new RuntimeException("Format konversi tidak didukung: {$format}");

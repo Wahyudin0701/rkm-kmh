@@ -149,8 +149,8 @@ class DatabaseBackupService
      */
     public function createKmhBackup(?array $selectedTables = null, bool $includeMedia = false, ?string $customFilename = null): string
     {
-        @set_time_limit(600);
-        @ini_set('memory_limit', '512M');
+        @set_time_limit(1800);
+        @ini_set('memory_limit', '1024M');
 
         if (!class_exists('ZipArchive')) {
             throw new RuntimeException('Ekstensi PHP ZipArchive diperlukan untuk memaketkan arsip.');
@@ -242,8 +242,8 @@ class DatabaseBackupService
      */
     public function restore(string $backupFilenameOrPath): void
     {
-        @set_time_limit(600);
-        @ini_set('memory_limit', '512M');
+        @set_time_limit(1800);
+        @ini_set('memory_limit', '1024M');
 
         $filePath = File::exists($backupFilenameOrPath)
             ? $backupFilenameOrPath
@@ -674,55 +674,67 @@ class DatabaseBackupService
 
         fwrite($handle, "-- Dumping Data untuk `{$tableName}`\n");
 
-        $query = DB::table($tableName);
-
-        // Pastikan data yang berada di tong sampah (soft-deleted) tidak bocor ke dalam data backup
+        $sql = "SELECT * FROM `{$tableName}`";
         if (Schema::hasColumn($tableName, 'deleted_at')) {
-            $query->whereNull('deleted_at');
+            $sql .= " WHERE `deleted_at` IS NULL";
         }
 
-        $totalRows = $query->count();
+        try {
+            $stmt = $pdo->query($sql);
+        } catch (\Throwable $e) {
+            $stmt = null;
+        }
 
-        if ($totalRows === 0) {
-            fwrite($handle, "-- (Tabel kosong)\n\n");
+        if (!$stmt) {
+            fwrite($handle, "-- (Tabel kosong atau gagal dibaca)\n\n");
             return;
         }
 
-        $query->orderBy(DB::raw('1'))->chunk(200, function ($rows) use ($handle, $pdo, $tableName) {
-            if ($rows->isEmpty()) return;
+        $batch = [];
+        $batchSize = 500;
+        $columnsStr = null;
+        $hasData = false;
 
-            $columns = array_keys((array) $rows->first());
-            $escapedColumns = array_map(fn ($c) => "`{$c}`", $columns);
-            $columnsStr = implode(', ', $escapedColumns);
-
-            fwrite($handle, "INSERT INTO `{$tableName}` ({$columnsStr}) VALUES\n");
-
-            $rowCount = count($rows);
-            $i = 0;
-
-            foreach ($rows as $row) {
-                $i++;
-                $values = [];
-
-                foreach ((array) $row as $val) {
-                    if (is_null($val)) {
-                        $values[] = 'NULL';
-                    } elseif (is_int($val) || is_float($val)) {
-                        $values[] = (string) $val;
-                    } elseif (is_bool($val)) {
-                        $values[] = $val ? '1' : '0';
-                    } else {
-                        $values[] = $pdo->quote((string) $val);
-                    }
-                }
-
-                $line = '  (' . implode(', ', $values) . ')';
-                $line .= ($i === $rowCount) ? ";\n" : ",\n";
-                fwrite($handle, $line);
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $hasData = true;
+            if ($columnsStr === null) {
+                $columns = array_keys($row);
+                $escapedColumns = array_map(fn ($c) => "`{$c}`", $columns);
+                $columnsStr = implode(', ', $escapedColumns);
             }
-        });
 
-        fwrite($handle, "\n");
+            $values = [];
+            foreach ($row as $val) {
+                if (is_null($val)) {
+                    $values[] = 'NULL';
+                } elseif (is_int($val) || is_float($val)) {
+                    $values[] = (string) $val;
+                } elseif (is_bool($val)) {
+                    $values[] = $val ? '1' : '0';
+                } else {
+                    $values[] = $pdo->quote((string) $val);
+                }
+            }
+
+            $batch[] = '  (' . implode(', ', $values) . ')';
+
+            if (count($batch) >= $batchSize) {
+                fwrite($handle, "INSERT INTO `{$tableName}` ({$columnsStr}) VALUES\n");
+                fwrite($handle, implode(",\n", $batch) . ";\n");
+                $batch = [];
+            }
+        }
+
+        if (!empty($batch)) {
+            fwrite($handle, "INSERT INTO `{$tableName}` ({$columnsStr}) VALUES\n");
+            fwrite($handle, implode(",\n", $batch) . ";\n");
+        }
+
+        if (!$hasData) {
+            fwrite($handle, "-- (Tabel kosong)\n\n");
+        } else {
+            fwrite($handle, "\n");
+        }
     }
 
     /**
